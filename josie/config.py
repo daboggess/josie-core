@@ -11,6 +11,8 @@ import os
 class Config:
     openai_api_key: str | None
     gemini_api_key: str | None
+    openai_model: str
+    gemini_model: str
     log_level: str
     workspace: Path
 
@@ -40,7 +42,8 @@ def load_config(env_path: Path) -> Config:
     return Config(
         openai_api_key=value("OPENAI_API_KEY") or None,
         gemini_api_key=value("GEMINI_API_KEY") or None,
+        openai_model=value("OPENAI_MODEL", "gpt-5.6-sol"),
+        gemini_model=value("GEMINI_MODEL", "gemini-flash-latest"),
         log_level=log_level,
         workspace=Path(value("JOSIE_WORKSPACE", str(env_path.parent))).resolve(),
     )
-

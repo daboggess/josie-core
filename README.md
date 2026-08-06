@@ -37,6 +37,9 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py health
 .\.venv\Scripts\python.exe .\core.py health --json
 .\.venv\Scripts\python.exe .\core.py tools list
+.\.venv\Scripts\python.exe .\core.py providers status
+.\.venv\Scripts\python.exe .\core.py providers check openai
+.\.venv\Scripts\python.exe .\core.py providers check gemini
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
@@ -51,7 +54,9 @@ OPENAI_API_KEY=
 GEMINI_API_KEY=
 ```
 
-Cloud calls are not enabled in this initial checkpoint. Provider adapters should be added separately, with outbound actions and tool access kept explicit.
+Provider status never prints secret values. A provider `check` sends one short,
+non-stored live request and may incur API usage charges. These cloud adapters do
+not grant either provider access to Josie's local tool allowlist.
 
 ## Recovery
 

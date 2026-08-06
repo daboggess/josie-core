@@ -8,6 +8,7 @@ from pathlib import Path
 
 from josie.config import load_config
 from josie.logging_setup import configure_logging
+from josie.providers import probe_gemini, probe_openai, provider_status
 from josie.tools import available_tools, run_tool
 
 
@@ -24,6 +25,12 @@ def build_parser() -> argparse.ArgumentParser:
     run = tools_subcommands.add_parser("run", help="Run one explicitly allowed tool")
     run.add_argument("name", choices=available_tools())
     run.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+
+    providers = subcommands.add_parser("providers", help="Inspect or test cloud providers")
+    provider_subcommands = providers.add_subparsers(dest="provider_command", required=True)
+    provider_subcommands.add_parser("status", help="Show configuration without revealing keys")
+    check = provider_subcommands.add_parser("check", help="Send one minimal live request")
+    check.add_argument("provider", choices=("openai", "gemini"))
     return parser
 
 
@@ -35,6 +42,15 @@ def main() -> int:
 
     if args.command == "tools" and args.tools_command == "list":
         print("\n".join(available_tools()))
+        return 0
+
+    if args.command == "providers":
+        if args.provider_command == "status":
+            print(json.dumps(provider_status(config), indent=2, sort_keys=True))
+            return 0
+        probe = probe_openai if args.provider == "openai" else probe_gemini
+        logger.info("Running minimal provider check: %s", args.provider)
+        print(json.dumps(probe(config), indent=2, sort_keys=True))
         return 0
 
     tool_name = "health" if args.command == "health" else args.name
@@ -50,4 +66,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

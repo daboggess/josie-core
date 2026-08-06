@@ -6,6 +6,7 @@ from pathlib import Path
 
 from josie.config import load_config
 from josie.tools import available_tools, run_tool
+from josie.providers import provider_status
 
 
 class JosieTests(unittest.TestCase):
@@ -24,7 +25,17 @@ class JosieTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 run_tool("shell", config=config, project_root=root)
 
+    def test_provider_status_never_exposes_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".env").write_text("OPENAI_API_KEY=secret-one\nGEMINI_API_KEY=secret-two\n")
+            result = provider_status(load_config(root / ".env"))
+            rendered = str(result)
+            self.assertNotIn("secret-one", rendered)
+            self.assertNotIn("secret-two", rendered)
+            self.assertTrue(result["openai"]["configured"])
+            self.assertTrue(result["gemini"]["configured"])
+
 
 if __name__ == "__main__":
     unittest.main()
-
