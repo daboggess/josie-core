@@ -55,8 +55,10 @@ GEMINI_API_KEY=
 ```
 
 Provider status never prints secret values. A provider `check` sends one short,
-non-stored live request and may incur API usage charges. These cloud adapters do
-not grant either provider access to Josie's local tool allowlist.
+non-stored live request and may incur API usage charges. Cloud calls are locked
+off by default with `JOSIE_ALLOW_CLOUD=false`; a check cannot reach a provider
+until that local setting is deliberately changed to `true`. These cloud adapters
+do not grant either provider access to Josie's local tool allowlist.
 
 ## Recovery
 

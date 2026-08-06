@@ -13,6 +13,7 @@ class Config:
     gemini_api_key: str | None
     openai_model: str
     gemini_model: str
+    allow_cloud: bool
     log_level: str
     workspace: Path
 
@@ -36,6 +37,10 @@ def load_config(env_path: Path) -> Config:
     def value(name: str, default: str = "") -> str:
         return os.environ.get(name, file_values.get(name, default))
 
+    def boolean(name: str, default: bool = False) -> bool:
+        raw = value(name, "true" if default else "false").strip().lower()
+        return raw in {"1", "true", "yes", "on"}
+
     log_level = value("JOSIE_LOG_LEVEL", "INFO").upper()
     if log_level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
         log_level = "INFO"
@@ -44,6 +49,7 @@ def load_config(env_path: Path) -> Config:
         gemini_api_key=value("GEMINI_API_KEY") or None,
         openai_model=value("OPENAI_MODEL", "gpt-5.6-sol"),
         gemini_model=value("GEMINI_MODEL", "gemini-flash-latest"),
+        allow_cloud=boolean("JOSIE_ALLOW_CLOUD"),
         log_level=log_level,
         workspace=Path(value("JOSIE_WORKSPACE", str(env_path.parent))).resolve(),
     )

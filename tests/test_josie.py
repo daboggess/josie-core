@@ -6,7 +6,7 @@ from pathlib import Path
 
 from josie.config import load_config
 from josie.tools import available_tools, run_tool
-from josie.providers import provider_status
+from josie.providers import probe_openai, provider_status
 
 
 class JosieTests(unittest.TestCase):
@@ -35,6 +35,15 @@ class JosieTests(unittest.TestCase):
             self.assertNotIn("secret-two", rendered)
             self.assertTrue(result["openai"]["configured"])
             self.assertTrue(result["gemini"]["configured"])
+
+    def test_cloud_calls_are_spend_locked_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".env").write_text("OPENAI_API_KEY=secret-one\n")
+            config = load_config(root / ".env")
+            self.assertFalse(config.allow_cloud)
+            with self.assertRaisesRegex(RuntimeError, "disabled"):
+                probe_openai(config)
 
 
 if __name__ == "__main__":

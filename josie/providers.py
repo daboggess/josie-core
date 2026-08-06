@@ -12,6 +12,7 @@ from .config import Config
 def provider_status(config: Config) -> dict[str, object]:
     return {
         "status": "ok",
+        "cloud_calls_allowed": config.allow_cloud,
         "openai": {"configured": bool(config.openai_api_key), "model": config.openai_model},
         "gemini": {"configured": bool(config.gemini_api_key), "model": config.gemini_model},
     }
@@ -35,6 +36,8 @@ def _post(url: str, headers: dict[str, str], payload: dict[str, object]) -> dict
 
 
 def probe_openai(config: Config) -> dict[str, object]:
+    if not config.allow_cloud:
+        raise RuntimeError("Cloud API calls are disabled by JOSIE_ALLOW_CLOUD=false")
     if not config.openai_api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured")
     data = _post(
@@ -51,6 +54,8 @@ def probe_openai(config: Config) -> dict[str, object]:
 
 
 def probe_gemini(config: Config) -> dict[str, object]:
+    if not config.allow_cloud:
+        raise RuntimeError("Cloud API calls are disabled by JOSIE_ALLOW_CLOUD=false")
     if not config.gemini_api_key:
         raise RuntimeError("GEMINI_API_KEY is not configured")
     data = _post(
