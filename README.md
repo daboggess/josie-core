@@ -15,13 +15,18 @@ Open PowerShell in `C:\Josie`, then run:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python .\core.py health
+.\.venv\Scripts\python.exe .\core.py health
 ```
 
-No package installation is currently required. To deactivate the environment:
+No package installation or environment activation is currently required. This
+direct form works even when PowerShell's script execution policy blocks
+`Activate.ps1`.
+
+Activation is optional. If it is already permitted on the machine, you may use:
 
 ```powershell
+.\.venv\Scripts\Activate.ps1
+python .\core.py health
 deactivate
 ```
 
@@ -29,11 +34,10 @@ deactivate
 
 ```powershell
 cd C:\Josie
-.\.venv\Scripts\Activate.ps1
-python .\core.py health
-python .\core.py health --json
-python .\core.py tools list
-python -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe .\core.py health
+.\.venv\Scripts\python.exe .\core.py health --json
+.\.venv\Scripts\python.exe .\core.py tools list
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
 Josie is currently command-based, not a background service. Each command stops when its result is printed. If a future long-running command is added, press `Ctrl+C` to stop it.
@@ -71,4 +75,3 @@ git switch -c experiment-name
 ```
 
 The `.env`, `.venv`, and logs are local and are not restored by Git. Keep API keys in a password manager; revoke and replace any key that is accidentally exposed.
-
