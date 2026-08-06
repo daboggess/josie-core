@@ -1,0 +1,74 @@
+# Josie Core
+
+Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The current checkpoint uses only the Python standard library, runs safely on the Intel HD 630 system, and does not install local models or GPU packages.
+
+## Safety model
+
+- Secrets live in `.env`, which Git ignores.
+- Logs rotate under `logs/`, which Git ignores.
+- Tools must be registered in `josie/tools.py`; arbitrary shell execution is intentionally unavailable.
+- Diagnostics report whether cloud keys exist but never print their values.
+
+## First-time start
+
+Open PowerShell in `C:\Josie`, then run:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python .\core.py health
+```
+
+No package installation is currently required. To deactivate the environment:
+
+```powershell
+deactivate
+```
+
+## Everyday commands
+
+```powershell
+cd C:\Josie
+.\.venv\Scripts\Activate.ps1
+python .\core.py health
+python .\core.py health --json
+python .\core.py tools list
+python -m unittest discover -s tests -v
+```
+
+Josie is currently command-based, not a background service. Each command stops when its result is printed. If a future long-running command is added, press `Ctrl+C` to stop it.
+
+## Cloud configuration
+
+Edit `C:\Josie\.env` locally and place keys after the appropriate equals sign. Do not paste keys into chat or commit `.env`.
+
+```text
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+```
+
+Cloud calls are not enabled in this initial checkpoint. Provider adapters should be added separately, with outbound actions and tool access kept explicit.
+
+## Recovery
+
+Inspect the current state and recent checkpoints:
+
+```powershell
+git status
+git log --oneline --decorate -5
+```
+
+Restore one tracked file to the last committed version:
+
+```powershell
+git restore -- path\to\file
+```
+
+Create a recovery branch before experimenting:
+
+```powershell
+git switch -c experiment-name
+```
+
+The `.env`, `.venv`, and logs are local and are not restored by Git. Keep API keys in a password manager; revoke and replace any key that is accidentally exposed.
+
