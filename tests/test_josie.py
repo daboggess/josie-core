@@ -12,6 +12,7 @@ from josie.providers import probe_openai, provider_status
 from josie.gui import respond
 from josie.storage import LocalStore
 from josie.diagnostics import recovery_snapshot, system_snapshot, uptime_snapshot
+from josie.reports import export_diagnostics, warning_snapshot
 
 
 class JosieTests(unittest.TestCase):
@@ -140,6 +141,27 @@ class JosieTests(unittest.TestCase):
             recovery = recovery_snapshot(config=config, project_root=root)
             self.assertEqual(recovery["integrity"], "ok")
             self.assertEqual(recovery["backup_count"], 1)
+
+    def test_local_reminder_is_persistent_and_nonexecuting(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            config = load_config(root / ".env")
+            answer = respond("remind me in 5 minutes to check Josie", config=config, project_root=root, store=store)
+            self.assertIn("set locally", answer)
+            self.assertIn("check Josie", respond("reminders", config=config, project_root=root, store=store))
+
+    def test_secret_free_diagnostics_export(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".env").write_text("OPENAI_API_KEY=top-secret\nGEMINI_API_KEY=also-secret\n")
+            config = load_config(root / ".env")
+            LocalStore(root / "data" / "josie.db").create_daily_backup(root / "data" / "backups")
+            report = export_diagnostics(config=config, project_root=root)
+            content = report.read_text(encoding="utf-8")
+            self.assertNotIn("top-secret", content)
+            self.assertNotIn("also-secret", content)
+            self.assertIn('"cloud_calls_allowed": false', content)
 
 
 if __name__ == "__main__":

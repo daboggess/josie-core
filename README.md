@@ -63,6 +63,11 @@ The GUI includes quick-action buttons for Status, System, SSD, Tasks, Approvals,
 Backups, and Activity. Each button invokes the same local allowlisted command as
 typing its label; it does not bypass approval or cloud-spending controls.
 
+The right-side dashboard provides visual approval and activity panels. Use
+`remind me in 15 minutes to ...`, `reminders`, `warnings`, and `export report`
+for local reminders, threshold checks, and secret-free JSON diagnostics exports.
+While the GUI is open, Josie runs a local health check every five minutes.
+
 ## Cloud configuration
 
 Edit `C:\Josie\.env` locally and place keys after the appropriate equals sign. Do not paste keys into chat or commit `.env`.

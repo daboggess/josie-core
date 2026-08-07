@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import tkinter as tk
+import re
 from datetime import datetime
 from pathlib import Path
 from tkinter import ttk
@@ -15,6 +16,7 @@ from .diagnostics import (
 )
 from .providers import provider_status
 from .storage import LocalStore
+from .reports import export_diagnostics, warning_snapshot
 from .tools import available_tools
 
 
@@ -62,6 +64,27 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"activity", "audit", "audit history", "recent activity"}:
         items = store.recent_activity() if store else []
         return "No audited activity yet." if not items else "Recent activity:\n" + "\n".join(f"{when} | {event} | {detail}" for when, event, detail in items)
+    reminder_match = re.fullmatch(r"remind me in (\d+) minutes? to (.+)", text)
+    if reminder_match:
+        if store is None:
+            return "Local reminders are unavailable."
+        minutes = int(reminder_match.group(1))
+        if minutes < 1 or minutes > 10080:
+            return "Reminder time must be between 1 minute and 7 days."
+        description = message.strip()[reminder_match.start(2):]
+        reminder_id = store.add_reminder(minutes, description)
+        return f"Reminder {reminder_id} set locally for {minutes} minute(s) from now."
+    if text in {"reminders", "pending reminders"}:
+        items = store.pending_reminders() if store else []
+        return "No pending reminders." if not items else "Pending reminders:\n" + "\n".join(f"{i}. {due} | {value}" for i, due, value in items)
+    if text in {"warnings", "warning status", "alerts"}:
+        result = warning_snapshot(config=config, project_root=project_root)
+        return "No active local warnings." if not result["warnings"] else "Warnings:\n" + "\n".join(result["warnings"])
+    if text in {"export report", "export diagnostics", "diagnostics report"}:
+        path = export_diagnostics(config=config, project_root=project_root)
+        if store:
+            store.audit("diagnostics_exported", path.name)
+        return f"Diagnostics exported locally to {path}."
     if text in {"system", "system status", "hardware", "hardware status", "resources"}:
         snapshot = system_snapshot(config=config, project_root=project_root)
         return (
@@ -179,6 +202,7 @@ class JosieApp:
             ("Approvals", "approvals"),
             ("Backups", "backup status"),
             ("Activity", "activity"),
+            ("Warnings", "warnings"),
         ):
             ttk.Button(
                 quick_bar,
@@ -192,6 +216,21 @@ class JosieApp:
         )
         self.transcript.tag_configure("user", foreground="#79d7ff", font=("Segoe UI", 11, "bold"))
         self.transcript.tag_configure("josie", foreground="#8ef0b5", font=("Segoe UI", 11, "bold"))
+
+        side_panel = ttk.Notebook(root, width=260)
+        side_panel.pack(side="right", fill="y", padx=(0, 14), pady=8)
+        approvals_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
+        activity_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
+        side_panel.add(approvals_tab, text="Approvals")
+        side_panel.add(activity_tab, text="Activity")
+        self.approval_list = tk.Listbox(approvals_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat")
+        self.approval_list.pack(fill="both", expand=True)
+        approval_buttons = ttk.Frame(approvals_tab, style="Panel.TFrame")
+        approval_buttons.pack(fill="x", pady=(8, 0))
+        ttk.Button(approval_buttons, text="Approve", command=lambda: self._decide_selected("approved")).pack(side="left")
+        ttk.Button(approval_buttons, text="Deny", command=lambda: self._decide_selected("denied")).pack(side="right")
+        self.activity_list = tk.Listbox(activity_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat")
+        self.activity_list.pack(fill="both", expand=True)
 
         entry_bar = ttk.Frame(root, style="Panel.TFrame", padding=10)
         entry_bar.pack(side="bottom", fill="x", padx=14, pady=(8, 14))
@@ -210,6 +249,7 @@ class JosieApp:
         else:
             self._append("Josie", "I'm online locally. Cloud spending is locked off. Type 'help' to begin.", "josie")
         self.entry.focus_set()
+        self.root.after(30_000, self._scheduled_check)
 
     def refresh_status(self) -> None:
         health = health_check(config=self.config, project_root=self.project_root)
@@ -222,6 +262,12 @@ class JosieApp:
                 f"APPROVALS: {counts['pending_approvals']}   |   {cloud_text}"
             )
         )
+        self.approval_list.delete(0, "end")
+        for approval_id, description in self.store.pending_approvals():
+            self.approval_list.insert("end", f"{approval_id}: {description}")
+        self.activity_list.delete(0, "end")
+        for when, event, detail in self.store.recent_activity(20):
+            self.activity_list.insert("end", f"{event}: {detail}")
 
     def _append(self, speaker: str, message: str, tag: str, *, persist: bool = True) -> None:
         self.transcript.configure(state="normal")
@@ -248,6 +294,27 @@ class JosieApp:
         self._append("Josie", answer, "josie")
         self.refresh_status()
         self.entry.focus_set()
+
+    def _decide_selected(self, decision: str) -> None:
+        selection = self.approval_list.curselection()
+        if not selection:
+            return
+        raw = self.approval_list.get(selection[0])
+        approval_id = int(raw.split(":", 1)[0])
+        changed = self.store.decide_approval(approval_id, decision)
+        if changed:
+            self._append("Josie", f"Approval {approval_id} marked {decision}. No action was executed.", "josie")
+        self.refresh_status()
+
+    def _scheduled_check(self) -> None:
+        for reminder_id, description in self.store.deliver_due_reminders():
+            self._append("Josie", f"Reminder {reminder_id}: {description}", "josie")
+        warnings = warning_snapshot(config=self.config, project_root=self.project_root)
+        self.store.audit("scheduled_health_check", warnings["status"])
+        if warnings["warnings"]:
+            self._append("Josie", "Warning: " + "; ".join(warnings["warnings"]), "josie")
+        self.refresh_status()
+        self.root.after(300_000, self._scheduled_check)
 
 
 def launch_gui(*, config: Config, project_root: Path) -> None:

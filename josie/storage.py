@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from contextlib import closing, contextmanager
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -49,6 +49,11 @@ class LocalStore:
                 CREATE TABLE IF NOT EXISTS audit (
                     id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
                     event TEXT NOT NULL, detail TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS reminders (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, due_at TEXT NOT NULL,
+                    description TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending', 'delivered'))
                 );
                 """
             )
@@ -97,9 +102,11 @@ class LocalStore:
             pending = connection.execute("SELECT COUNT(*) FROM tasks WHERE status='pending'").fetchone()[0]
             messages = connection.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
             approvals = connection.execute("SELECT COUNT(*) FROM approvals WHERE status='pending'").fetchone()[0]
+            reminders = connection.execute("SELECT COUNT(*) FROM reminders WHERE status='pending'").fetchone()[0]
         return {
             "memories": int(memories), "pending_tasks": int(pending),
             "messages": int(messages), "pending_approvals": int(approvals),
+            "pending_reminders": int(reminders),
         }
 
     def audit(self, event: str, detail: str) -> None:
@@ -159,3 +166,36 @@ class LocalStore:
             if old_backup.resolve().parent == backup_dir.resolve():
                 old_backup.unlink()
         return destination
+
+    def add_reminder(self, minutes: int, description: str) -> int:
+        due_at = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO reminders(created_at,due_at,description) VALUES (?,?,?)",
+                (self._now(), due_at.isoformat(timespec="seconds"), description),
+            )
+            reminder_id = int(cursor.lastrowid)
+        self.audit("reminder_added", f"{reminder_id}: {description}")
+        return reminder_id
+
+    def pending_reminders(self) -> list[tuple[int, str, str]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,due_at,description FROM reminders WHERE status='pending' ORDER BY due_at"
+            ).fetchall()
+        return [(int(row["id"]), row["due_at"], row["description"]) for row in rows]
+
+    def deliver_due_reminders(self) -> list[tuple[int, str]]:
+        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,description FROM reminders WHERE status='pending' AND due_at<=? ORDER BY due_at",
+                (now,),
+            ).fetchall()
+            ids = [int(row["id"]) for row in rows]
+            if ids:
+                placeholders = ",".join("?" for _ in ids)
+                connection.execute(f"UPDATE reminders SET status='delivered' WHERE id IN ({placeholders})", ids)
+        for reminder_id in ids:
+            self.audit("reminder_delivered", str(reminder_id))
+        return [(int(row["id"]), row["description"]) for row in rows]
