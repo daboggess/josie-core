@@ -33,8 +33,32 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
         return (
             f"Status: {health['status']}. Disk free: {health['disk_free_gb']} GB. "
             f"Pending tasks: {counts['pending_tasks']}. Memories: {counts['memories']}. "
-            f"Conversation entries: {counts['messages']}. Cloud: {cloud}."
+            f"Approvals waiting: {counts['pending_approvals']}. Conversation entries: {counts['messages']}. "
+            f"Cloud: {cloud}."
         )
+    if text.startswith("request action "):
+        if store is None:
+            return "Approval inbox is unavailable."
+        description = message.strip()[15:].strip()
+        approval_id = store.request_approval(description)
+        return f"Approval request {approval_id} recorded: {description}. Nothing has been executed."
+    if text in {"approvals", "approval inbox", "pending approvals"}:
+        items = store.pending_approvals() if store else []
+        return "No pending approvals." if not items else "Pending approvals:\n" + "\n".join(f"{i}. {value}" for i, value in items)
+    if text.startswith("approve ") or text.startswith("deny "):
+        if store is None:
+            return "Approval inbox is unavailable."
+        decision_word, _, raw_id = text.partition(" ")
+        if not raw_id.isdigit():
+            return f"Please use a request number, such as '{decision_word} 1'."
+        decision = "approved" if decision_word == "approve" else "denied"
+        changed = store.decide_approval(int(raw_id), decision)
+        if not changed:
+            return f"Pending approval {raw_id} was not found."
+        return f"Approval {raw_id} marked {decision}. No action was executed."
+    if text in {"activity", "audit", "audit history", "recent activity"}:
+        items = store.recent_activity() if store else []
+        return "No audited activity yet." if not items else "Recent activity:\n" + "\n".join(f"{when} | {event} | {detail}" for when, event, detail in items)
     if text in {"system", "system status", "hardware", "hardware status", "resources"}:
         snapshot = system_snapshot(config=config, project_root=project_root)
         return (
@@ -103,6 +127,7 @@ class JosieApp:
         self.config = config
         self.project_root = project_root
         self.store = LocalStore(project_root / "data" / "josie.db")
+        self.store.create_daily_backup(project_root / "data" / "backups")
         root.title("Josie 1.0")
         root.geometry("900x620")
         root.minsize(700, 480)
@@ -152,7 +177,10 @@ class JosieApp:
         cloud_text = "CLOUD ON" if cloud["cloud_calls_allowed"] else "CLOUD LOCKED"
         counts = self.store.counts()
         self.health_label.configure(
-            text=f"HEALTH: {health['status'].upper()}   |   TASKS: {counts['pending_tasks']}   |   {cloud_text}"
+            text=(
+                f"HEALTH: {health['status'].upper()}   |   TASKS: {counts['pending_tasks']}   |   "
+                f"APPROVALS: {counts['pending_approvals']}   |   {cloud_text}"
+            )
         )
 
     def _append(self, speaker: str, message: str, tag: str, *, persist: bool = True) -> None:

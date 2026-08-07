@@ -54,6 +54,11 @@ records are stored locally in the ignored `data/josie.db` SQLite database.
 Tasks are records only and never execute automatically. Unrecognized requests
 stay local and are never forwarded to a cloud provider.
 
+Approval commands are `request action ...`, `approvals`, `approve N`, and
+`deny N`. Approval decisions are audited but never execute an action. Use
+`activity` to review the local audit trail. The GUI creates one local database
+snapshot per day under `data/backups` and retains the seven newest snapshots.
+
 ## Cloud configuration
 
 Edit `C:\Josie\.env` locally and place keys after the appropriate equals sign. Do not paste keys into chat or commit `.env`.

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 from josie.config import load_config
@@ -100,6 +102,29 @@ class JosieTests(unittest.TestCase):
     def test_monitoring_tools_are_explicitly_allowlisted(self) -> None:
         self.assertIn("system", available_tools())
         self.assertIn("repository", available_tools())
+
+    def test_approvals_record_decisions_without_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            config = load_config(root / ".env")
+            requested = respond("request action inspect the SSD", config=config, project_root=root, store=store)
+            self.assertIn("Nothing has been executed", requested)
+            self.assertIn("inspect the SSD", respond("approvals", config=config, project_root=root, store=store))
+            decided = respond("approve 1", config=config, project_root=root, store=store)
+            self.assertIn("No action was executed", decided)
+            self.assertEqual(respond("approvals", config=config, project_root=root, store=store), "No pending approvals.")
+            self.assertIn("approval_approved", respond("activity", config=config, project_root=root, store=store))
+
+    def test_daily_backup_is_local_and_bounded(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            store.remember("survives backup")
+            backup = store.create_daily_backup(root / "data" / "backups")
+            self.assertTrue(backup.exists())
+            with closing(sqlite3.connect(backup)) as connection:
+                self.assertEqual(connection.execute("SELECT content FROM memories").fetchone()[0], "survives backup")
 
 
 if __name__ == "__main__":
