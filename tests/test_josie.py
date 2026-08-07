@@ -73,6 +73,18 @@ class JosieTests(unittest.TestCase):
             self.assertIn("marked complete", respond("complete task 1", config=config, project_root=root, store=store))
             self.assertEqual(respond("tasks", config=config, project_root=root, store=store), "No pending tasks.")
 
+    def test_local_status_dashboard(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            store.remember("A local fact")
+            store.add_task("A pending task")
+            config = load_config(root / ".env")
+            answer = respond("status", config=config, project_root=root, store=store)
+            self.assertIn("Pending tasks: 1", answer)
+            self.assertIn("Memories: 1", answer)
+            self.assertIn("Cloud: LOCKED OFF", answer)
+
 
 if __name__ == "__main__":
     unittest.main()

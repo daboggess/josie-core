@@ -26,6 +26,15 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             "and manage tasks. Try: 'remember ...', 'memories', 'add task ...', 'tasks', or "
             "'complete task 1'. Cloud calls are locked off."
         )
+    if text in {"status", "dashboard", "summary", "josie status"}:
+        health = health_check(config=config, project_root=project_root)
+        counts = store.counts() if store else {"memories": 0, "pending_tasks": 0, "messages": 0}
+        cloud = "ON" if config.allow_cloud else "LOCKED OFF"
+        return (
+            f"Status: {health['status']}. Disk free: {health['disk_free_gb']} GB. "
+            f"Pending tasks: {counts['pending_tasks']}. Memories: {counts['memories']}. "
+            f"Conversation entries: {counts['messages']}. Cloud: {cloud}."
+        )
     if text.startswith("remember "):
         if store is None:
             return "Local memory is unavailable."
@@ -129,7 +138,10 @@ class JosieApp:
         health = health_check(config=self.config, project_root=self.project_root)
         cloud = provider_status(self.config)
         cloud_text = "CLOUD ON" if cloud["cloud_calls_allowed"] else "CLOUD LOCKED"
-        self.health_label.configure(text=f"HEALTH: {health['status'].upper()}   |   {cloud_text}")
+        counts = self.store.counts()
+        self.health_label.configure(
+            text=f"HEALTH: {health['status'].upper()}   |   TASKS: {counts['pending_tasks']}   |   {cloud_text}"
+        )
 
     def _append(self, speaker: str, message: str, tag: str, *, persist: bool = True) -> None:
         self.transcript.configure(state="normal")

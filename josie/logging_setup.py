@@ -17,11 +17,13 @@ def configure_logging(log_dir: Path, level: str) -> logging.Logger:
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
     console = logging.StreamHandler()
     console.setFormatter(formatter)
-    file_handler = RotatingFileHandler(
-        log_dir / "josie.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8"
-    )
-    file_handler.setFormatter(formatter)
     logger.addHandler(console)
-    logger.addHandler(file_handler)
+    try:
+        file_handler = RotatingFileHandler(
+            log_dir / "josie.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8"
+        )
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+    except OSError as exc:
+        logger.warning("File logging unavailable; continuing with console logging: %s", exc)
     return logger
-

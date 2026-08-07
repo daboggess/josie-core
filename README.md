@@ -47,7 +47,7 @@ cd C:\Josie
 Josie is currently command-based, not a background service. Each command stops when its result is printed. If a future long-running command is added, press `Ctrl+C` to stop it.
 
 The `gui` command opens Josie's local chat-style command center. It understands
-`help`, `health`, `cloud status`, `tools`, `time`, `remember ...`, `memories`,
+`help`, `status`, `health`, `cloud status`, `tools`, `time`, `remember ...`, `memories`,
 `add task ...`, `tasks`, and `complete task N`. Conversations, memories, and task
 records are stored locally in the ignored `data/josie.db` SQLite database.
 Tasks are records only and never execute automatically. Unrecognized requests

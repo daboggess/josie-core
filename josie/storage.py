@@ -81,3 +81,10 @@ class LocalStore:
         with self._connect() as connection:
             cursor = connection.execute("UPDATE tasks SET status='complete' WHERE id=? AND status='pending'", (task_id,))
             return cursor.rowcount == 1
+
+    def counts(self) -> dict[str, int]:
+        with self._connect() as connection:
+            memories = connection.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+            pending = connection.execute("SELECT COUNT(*) FROM tasks WHERE status='pending'").fetchone()[0]
+            messages = connection.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+        return {"memories": int(memories), "pending_tasks": int(pending), "messages": int(messages)}
