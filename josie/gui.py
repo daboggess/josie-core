@@ -75,18 +75,19 @@ class JosieApp:
 
         self.transcript = tk.Text(
             root, bg="#0b0f14", fg="#d8e6ef", insertbackground="white", relief="flat",
-            wrap="word", font=("Segoe UI", 11), padx=16, pady=14, state="disabled"
+            wrap="word", font=("Segoe UI", 11), padx=16, pady=14, state="disabled", height=8
         )
-        self.transcript.pack(fill="both", expand=True, padx=14, pady=8)
         self.transcript.tag_configure("user", foreground="#79d7ff", font=("Segoe UI", 11, "bold"))
         self.transcript.tag_configure("josie", foreground="#8ef0b5", font=("Segoe UI", 11, "bold"))
 
         entry_bar = ttk.Frame(root, style="Panel.TFrame", padding=10)
-        entry_bar.pack(fill="x", padx=14, pady=(8, 14))
+        entry_bar.pack(side="bottom", fill="x", padx=14, pady=(8, 14))
         self.entry = tk.Entry(entry_bar, bg="#111820", fg="white", insertbackground="white", relief="flat", font=("Segoe UI", 12))
         self.entry.pack(side="left", fill="x", expand=True, ipady=9, padx=(0, 8))
         self.entry.bind("<Return>", self._submit)
         ttk.Button(entry_bar, text="Send", style="Accent.TButton", command=self._submit).pack(side="right")
+
+        self.transcript.pack(fill="both", expand=True, padx=14, pady=8)
 
         self.refresh_status()
         self._append("Josie", "I'm online locally. Cloud spending is locked off. Type 'help' to begin.", "josie")
@@ -120,4 +121,3 @@ def launch_gui(*, config: Config, project_root: Path) -> None:
     root = tk.Tk()
     JosieApp(root, config=config, project_root=project_root)
     root.mainloop()
-
