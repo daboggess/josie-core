@@ -9,7 +9,10 @@ from pathlib import Path
 from tkinter import ttk
 
 from .config import Config
-from .diagnostics import health_check, repository_snapshot, system_snapshot
+from .diagnostics import (
+    health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
+    system_snapshot, uptime_snapshot,
+)
 from .providers import provider_status
 from .storage import LocalStore
 from .tools import available_tools
@@ -71,6 +74,26 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
         snapshot = repository_snapshot(config=config, project_root=project_root)
         state = "clean" if snapshot["clean"] else f"has {snapshot['change_count']} change(s)"
         return f"Repository {snapshot['branch']} and {state}."
+    if text in {"uptime", "how long have you been on", "how long are you running"}:
+        snapshot = uptime_snapshot(config=config, project_root=project_root)
+        return f"Windows uptime is {snapshot['days']} day(s), {snapshot['hours']} hour(s), and {snapshot['minutes']} minute(s)."
+    if text in {"storage", "storage health", "ssd", "ssd health", "drive health"}:
+        snapshot = storage_snapshot(config=config, project_root=project_root)
+        if not snapshot["drives"]:
+            return "Windows could not report physical-drive health. No changes were attempted."
+        details = "; ".join(
+            f"{drive['name']} ({drive['size_gb']} GB, {drive['media_type']}): {drive['health']}"
+            for drive in snapshot["drives"]
+        )
+        return "Physical drives: " + details + "."
+    if text in {"backup", "backup status", "recovery", "recovery status"}:
+        snapshot = recovery_snapshot(config=config, project_root=project_root)
+        if snapshot["backup_count"] == 0:
+            return "No local recovery snapshot exists yet. Reopen the GUI to create today's snapshot."
+        return (
+            f"Recovery: {snapshot['backup_count']} backup(s); latest {snapshot['latest_backup']}; "
+            f"integrity {snapshot['integrity']}."
+        )
     if text.startswith("remember "):
         if store is None:
             return "Local memory is unavailable."

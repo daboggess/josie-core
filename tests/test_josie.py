@@ -11,7 +11,7 @@ from josie.tools import available_tools, run_tool
 from josie.providers import probe_openai, provider_status
 from josie.gui import respond
 from josie.storage import LocalStore
-from josie.diagnostics import system_snapshot
+from josie.diagnostics import recovery_snapshot, system_snapshot, uptime_snapshot
 
 
 class JosieTests(unittest.TestCase):
@@ -102,6 +102,17 @@ class JosieTests(unittest.TestCase):
     def test_monitoring_tools_are_explicitly_allowlisted(self) -> None:
         self.assertIn("system", available_tools())
         self.assertIn("repository", available_tools())
+        self.assertIn("storage", available_tools())
+        self.assertIn("uptime", available_tools())
+        self.assertIn("recovery", available_tools())
+
+    def test_uptime_monitor_is_read_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_config(root / ".env")
+            snapshot = uptime_snapshot(config=config, project_root=root)
+            self.assertGreater(snapshot["uptime_seconds"], 0)
+            self.assertIn("Windows uptime", respond("uptime", config=config, project_root=root))
 
     def test_approvals_record_decisions_without_execution(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -125,6 +136,10 @@ class JosieTests(unittest.TestCase):
             self.assertTrue(backup.exists())
             with closing(sqlite3.connect(backup)) as connection:
                 self.assertEqual(connection.execute("SELECT content FROM memories").fetchone()[0], "survives backup")
+            config = load_config(root / ".env")
+            recovery = recovery_snapshot(config=config, project_root=root)
+            self.assertEqual(recovery["integrity"], "ok")
+            self.assertEqual(recovery["backup_count"], 1)
 
 
 if __name__ == "__main__":

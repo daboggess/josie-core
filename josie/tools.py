@@ -7,14 +7,20 @@ from pathlib import Path
 from typing import Any
 
 from .config import Config
-from .diagnostics import health_check, repository_snapshot, system_snapshot
+from .diagnostics import (
+    health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
+    system_snapshot, uptime_snapshot,
+)
 
 Tool = Callable[..., dict[str, object]]
 
 _ALLOWED_TOOLS: dict[str, Tool] = {
     "health": health_check,
     "repository": repository_snapshot,
+    "recovery": recovery_snapshot,
+    "storage": storage_snapshot,
     "system": system_snapshot,
+    "uptime": uptime_snapshot,
 }
 
 

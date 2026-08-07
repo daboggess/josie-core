@@ -48,7 +48,7 @@ Josie is currently command-based, not a background service. Each command stops w
 
 The `gui` command opens Josie's local chat-style command center. It understands
 `help`, `status`, `system status`, `repository status`, `health`, `cloud status`,
-`tools`, `time`, `remember ...`, `memories`,
+`storage health`, `uptime`, `backup status`, `tools`, `time`, `remember ...`, `memories`,
 `add task ...`, `tasks`, and `complete task N`. Conversations, memories, and task
 records are stored locally in the ignored `data/josie.db` SQLite database.
 Tasks are records only and never execute automatically. Unrecognized requests

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 import ctypes
+import json
 import platform
 import shutil
+import sqlite3
 import subprocess
 import sys
 
@@ -86,4 +88,68 @@ def repository_snapshot(*, config: Config, project_root: Path) -> dict[str, obje
         "branch": branch,
         "clean": result.returncode == 0 and not changes,
         "change_count": len(changes),
+    }
+
+
+def uptime_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
+    del config, project_root
+    milliseconds = int(ctypes.windll.kernel32.GetTickCount64())
+    total_seconds = milliseconds // 1000
+    days, remainder = divmod(total_seconds, 86_400)
+    hours, remainder = divmod(remainder, 3_600)
+    minutes = remainder // 60
+    return {
+        "status": "ok",
+        "uptime_seconds": total_seconds,
+        "days": days,
+        "hours": hours,
+        "minutes": minutes,
+    }
+
+
+def storage_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
+    del config, project_root
+    script = (
+        "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,"
+        "OperationalStatus,Size | ConvertTo-Json -Compress"
+    )
+    result = subprocess.run(
+        ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
+        capture_output=True, text=True, timeout=15, check=False,
+    )
+    if result.returncode != 0:
+        return {"status": "degraded", "drives": [], "error": "Windows storage query failed"}
+    raw = json.loads(result.stdout or "[]")
+    drives = raw if isinstance(raw, list) else [raw]
+    normalized = [
+        {
+            "name": drive.get("FriendlyName", "unknown"),
+            "media_type": drive.get("MediaType", "unknown"),
+            "health": drive.get("HealthStatus", "unknown"),
+            "operational_status": drive.get("OperationalStatus", "unknown"),
+            "size_gb": round(int(drive.get("Size", 0)) / (1024**3), 2),
+        }
+        for drive in drives if drive
+    ]
+    healthy = bool(normalized) and all(drive["health"] == "Healthy" for drive in normalized)
+    return {"status": "ok" if healthy else "degraded", "drives": normalized}
+
+
+def recovery_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
+    del config
+    backup_dir = project_root / "data" / "backups"
+    backups = sorted(backup_dir.glob("josie-????-??-??.db"), reverse=True) if backup_dir.exists() else []
+    latest = backups[0] if backups else None
+    integrity = "missing"
+    if latest is not None:
+        connection = sqlite3.connect(f"file:{latest}?mode=ro", uri=True)
+        try:
+            integrity = str(connection.execute("PRAGMA quick_check").fetchone()[0])
+        finally:
+            connection.close()
+    return {
+        "status": "ok" if latest is not None and integrity == "ok" else "degraded",
+        "backup_count": len(backups),
+        "latest_backup": latest.name if latest else None,
+        "integrity": integrity,
     }
