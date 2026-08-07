@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
@@ -151,7 +151,7 @@ class LocalStore:
         date_stamp = datetime.now().astimezone().strftime("%Y-%m-%d")
         destination = backup_dir / f"josie-{date_stamp}.db"
         if not destination.exists():
-            with sqlite3.connect(self.path) as source, sqlite3.connect(destination) as target:
+            with closing(sqlite3.connect(self.path)) as source, closing(sqlite3.connect(destination)) as target:
                 source.backup(target)
             self.audit("database_backup", destination.name)
         backups = sorted(backup_dir.glob("josie-????-??-??.db"), reverse=True)
