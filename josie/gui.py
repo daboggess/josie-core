@@ -9,7 +9,7 @@ from pathlib import Path
 from tkinter import ttk
 
 from .config import Config
-from .diagnostics import health_check
+from .diagnostics import health_check, repository_snapshot, system_snapshot
 from .providers import provider_status
 from .storage import LocalStore
 from .tools import available_tools
@@ -35,6 +35,18 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"Pending tasks: {counts['pending_tasks']}. Memories: {counts['memories']}. "
             f"Conversation entries: {counts['messages']}. Cloud: {cloud}."
         )
+    if text in {"system", "system status", "hardware", "hardware status", "resources"}:
+        snapshot = system_snapshot(config=config, project_root=project_root)
+        return (
+            f"System: {snapshot['cpu_logical_count']} logical CPUs; "
+            f"RAM {snapshot['memory_available_gb']} GB available of {snapshot['memory_total_gb']} GB "
+            f"({snapshot['memory_load_percent']}% used); disk {snapshot['disk_free_gb']} GB free "
+            f"of {snapshot['disk_total_gb']} GB."
+        )
+    if text in {"git", "git status", "repository", "repository status", "repo status"}:
+        snapshot = repository_snapshot(config=config, project_root=project_root)
+        state = "clean" if snapshot["clean"] else f"has {snapshot['change_count']} change(s)"
+        return f"Repository {snapshot['branch']} and {state}."
     if text.startswith("remember "):
         if store is None:
             return "Local memory is unavailable."

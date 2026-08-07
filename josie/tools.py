@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import Any
 
 from .config import Config
-from .diagnostics import health_check
+from .diagnostics import health_check, repository_snapshot, system_snapshot
 
 Tool = Callable[..., dict[str, object]]
 
 _ALLOWED_TOOLS: dict[str, Tool] = {
     "health": health_check,
+    "repository": repository_snapshot,
+    "system": system_snapshot,
 }
 
 
@@ -26,4 +28,3 @@ def run_tool(name: str, *, config: Config, project_root: Path) -> dict[str, Any]
     except KeyError as exc:
         raise ValueError(f"Tool is not allowed: {name}") from exc
     return tool(config=config, project_root=project_root)
-

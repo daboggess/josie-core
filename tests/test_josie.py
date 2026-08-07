@@ -9,6 +9,7 @@ from josie.tools import available_tools, run_tool
 from josie.providers import probe_openai, provider_status
 from josie.gui import respond
 from josie.storage import LocalStore
+from josie.diagnostics import system_snapshot
 
 
 class JosieTests(unittest.TestCase):
@@ -84,6 +85,21 @@ class JosieTests(unittest.TestCase):
             self.assertIn("Pending tasks: 1", answer)
             self.assertIn("Memories: 1", answer)
             self.assertIn("Cloud: LOCKED OFF", answer)
+
+    def test_system_monitor_is_local_and_read_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_config(root / ".env")
+            snapshot = system_snapshot(config=config, project_root=root)
+            self.assertGreater(snapshot["cpu_logical_count"], 0)
+            self.assertGreater(snapshot["disk_total_gb"], 0)
+            self.assertFalse(snapshot["cloud_calls_allowed"])
+            answer = respond("system status", config=config, project_root=root)
+            self.assertIn("logical CPUs", answer)
+
+    def test_monitoring_tools_are_explicitly_allowlisted(self) -> None:
+        self.assertIn("system", available_tools())
+        self.assertIn("repository", available_tools())
 
 
 if __name__ == "__main__":
