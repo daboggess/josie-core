@@ -11,19 +11,45 @@ from tkinter import ttk
 from .config import Config
 from .diagnostics import health_check
 from .providers import provider_status
+from .storage import LocalStore
 from .tools import available_tools
 
 
-def respond(message: str, *, config: Config, project_root: Path) -> str:
+def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
     """Handle a deliberately small, local-only conversational command set."""
     text = message.strip().lower()
     if not text:
         return "Please type a request."
     if text in {"help", "?", "commands"} or "what can you do" in text:
         return (
-            "I can check health, show provider status, list allowed tools, and report the time. "
-            "Cloud calls are locked off."
+            "I can check health, show cloud status, list allowed tools, report the time, remember notes, "
+            "and manage tasks. Try: 'remember ...', 'memories', 'add task ...', 'tasks', or "
+            "'complete task 1'. Cloud calls are locked off."
         )
+    if text.startswith("remember "):
+        if store is None:
+            return "Local memory is unavailable."
+        content = message.strip()[9:].strip()
+        return f"Remembered locally as note {store.remember(content)}."
+    if text in {"memories", "memory", "what do you remember"}:
+        items = store.memories() if store else []
+        return "No saved memories yet." if not items else "Saved memories:\n" + "\n".join(f"{i}. {value}" for i, value in items)
+    if text.startswith("add task "):
+        if store is None:
+            return "Local tasks are unavailable."
+        description = message.strip()[9:].strip()
+        task_id = store.add_task(description)
+        return f"Added task {task_id}: {description}. Tasks are records only and never run automatically."
+    if text in {"tasks", "task list", "what are we working on"}:
+        items = store.pending_tasks() if store else []
+        return "No pending tasks." if not items else "Pending tasks:\n" + "\n".join(f"{i}. {value}" for i, value in items)
+    if text.startswith("complete task "):
+        if store is None:
+            return "Local tasks are unavailable."
+        raw_id = text.removeprefix("complete task ").strip()
+        if not raw_id.isdigit():
+            return "Please use a task number, such as 'complete task 1'."
+        return f"Task {raw_id} marked complete." if store.complete_task(int(raw_id)) else f"Pending task {raw_id} was not found."
     if "health" in text or "diagnostic" in text:
         result = health_check(config=config, project_root=project_root)
         checks = result["checks"]
@@ -55,6 +81,7 @@ class JosieApp:
         self.root = root
         self.config = config
         self.project_root = project_root
+        self.store = LocalStore(project_root / "data" / "josie.db")
         root.title("Josie 1.0")
         root.geometry("900x620")
         root.minsize(700, 480)
@@ -90,7 +117,12 @@ class JosieApp:
         self.transcript.pack(fill="both", expand=True, padx=14, pady=8)
 
         self.refresh_status()
-        self._append("Josie", "I'm online locally. Cloud spending is locked off. Type 'help' to begin.", "josie")
+        history = self.store.recent_messages()
+        if history:
+            for speaker, content in history:
+                self._append(speaker, content, "user" if speaker == "You" else "josie", persist=False)
+        else:
+            self._append("Josie", "I'm online locally. Cloud spending is locked off. Type 'help' to begin.", "josie")
         self.entry.focus_set()
 
     def refresh_status(self) -> None:
@@ -99,12 +131,14 @@ class JosieApp:
         cloud_text = "CLOUD ON" if cloud["cloud_calls_allowed"] else "CLOUD LOCKED"
         self.health_label.configure(text=f"HEALTH: {health['status'].upper()}   |   {cloud_text}")
 
-    def _append(self, speaker: str, message: str, tag: str) -> None:
+    def _append(self, speaker: str, message: str, tag: str, *, persist: bool = True) -> None:
         self.transcript.configure(state="normal")
         self.transcript.insert("end", f"{speaker}: ", tag)
         self.transcript.insert("end", message + "\n\n")
         self.transcript.configure(state="disabled")
         self.transcript.see("end")
+        if persist:
+            self.store.add_message(speaker, message)
 
     def _submit(self, _event: object | None = None) -> None:
         message = self.entry.get().strip()
@@ -112,7 +146,7 @@ class JosieApp:
             return
         self.entry.delete(0, "end")
         self._append("You", message, "user")
-        answer = respond(message, config=self.config, project_root=self.project_root)
+        answer = respond(message, config=self.config, project_root=self.project_root, store=self.store)
         self._append("Josie", answer, "josie")
         self.refresh_status()
 

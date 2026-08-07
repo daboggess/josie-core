@@ -8,6 +8,7 @@ from josie.config import load_config
 from josie.tools import available_tools, run_tool
 from josie.providers import probe_openai, provider_status
 from josie.gui import respond
+from josie.storage import LocalStore
 
 
 class JosieTests(unittest.TestCase):
@@ -59,6 +60,18 @@ class JosieTests(unittest.TestCase):
             config = load_config(root / ".env")
             answer = respond("cloud status", config=config, project_root=root)
             self.assertIn("LOCKED OFF", answer)
+
+    def test_local_memory_and_tasks_persist(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            config = load_config(root / ".env")
+            self.assertIn("Remembered locally", respond("remember GPU is postponed", config=config, project_root=root, store=store))
+            self.assertIn("GPU is postponed", respond("memories", config=config, project_root=root, store=store))
+            self.assertIn("Added task 1", respond("add task check SSD health", config=config, project_root=root, store=store))
+            self.assertIn("check SSD health", respond("tasks", config=config, project_root=root, store=store))
+            self.assertIn("marked complete", respond("complete task 1", config=config, project_root=root, store=store))
+            self.assertEqual(respond("tasks", config=config, project_root=root, store=store), "No pending tasks.")
 
 
 if __name__ == "__main__":
