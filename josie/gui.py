@@ -169,6 +169,23 @@ class JosieApp:
         self.health_label = ttk.Label(header, style="Status.TLabel")
         self.health_label.pack(side="right")
 
+        quick_bar = ttk.Frame(root, style="Panel.TFrame", padding=(10, 8))
+        quick_bar.pack(fill="x", padx=14, pady=(0, 6))
+        for label, command in (
+            ("Status", "status"),
+            ("System", "system status"),
+            ("SSD", "storage health"),
+            ("Tasks", "tasks"),
+            ("Approvals", "approvals"),
+            ("Backups", "backup status"),
+            ("Activity", "activity"),
+        ):
+            ttk.Button(
+                quick_bar,
+                text=label,
+                command=lambda value=command: self._run_quick_command(value),
+            ).pack(side="left", padx=3)
+
         self.transcript = tk.Text(
             root, bg="#0b0f14", fg="#d8e6ef", insertbackground="white", relief="flat",
             wrap="word", font=("Segoe UI", 11), padx=16, pady=14, state="disabled", height=8
@@ -224,6 +241,13 @@ class JosieApp:
         answer = respond(message, config=self.config, project_root=self.project_root, store=self.store)
         self._append("Josie", answer, "josie")
         self.refresh_status()
+
+    def _run_quick_command(self, command: str) -> None:
+        self._append("You", command, "user")
+        answer = respond(command, config=self.config, project_root=self.project_root, store=self.store)
+        self._append("Josie", answer, "josie")
+        self.refresh_status()
+        self.entry.focus_set()
 
 
 def launch_gui(*, config: Config, project_root: Path) -> None:

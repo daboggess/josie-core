@@ -59,6 +59,10 @@ Approval commands are `request action ...`, `approvals`, `approve N`, and
 `activity` to review the local audit trail. The GUI creates one local database
 snapshot per day under `data/backups` and retains the seven newest snapshots.
 
+The GUI includes quick-action buttons for Status, System, SSD, Tasks, Approvals,
+Backups, and Activity. Each button invokes the same local allowlisted command as
+typing its label; it does not bypass approval or cloud-spending controls.
+
 ## Cloud configuration
 
 Edit `C:\Josie\.env` locally and place keys after the appropriate equals sign. Do not paste keys into chat or commit `.env`.
