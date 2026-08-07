@@ -7,6 +7,7 @@ from pathlib import Path
 from josie.config import load_config
 from josie.tools import available_tools, run_tool
 from josie.providers import probe_openai, provider_status
+from josie.gui import respond
 
 
 class JosieTests(unittest.TestCase):
@@ -44,6 +45,20 @@ class JosieTests(unittest.TestCase):
             self.assertFalse(config.allow_cloud)
             with self.assertRaisesRegex(RuntimeError, "disabled"):
                 probe_openai(config)
+
+    def test_gui_unknown_request_stays_local(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_config(root / ".env")
+            answer = respond("invent something new", config=config, project_root=root)
+            self.assertIn("not sent", answer)
+
+    def test_gui_reports_cloud_lock(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_config(root / ".env")
+            answer = respond("cloud status", config=config, project_root=root)
+            self.assertIn("LOCKED OFF", answer)
 
 
 if __name__ == "__main__":

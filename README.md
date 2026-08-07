@@ -16,6 +16,7 @@ Open PowerShell in `C:\Josie`, then run:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe .\core.py health
+.\.venv\Scripts\python.exe .\core.py gui
 ```
 
 No package installation or environment activation is currently required. This
@@ -44,6 +45,10 @@ cd C:\Josie
 ```
 
 Josie is currently command-based, not a background service. Each command stops when its result is printed. If a future long-running command is added, press `Ctrl+C` to stop it.
+
+The `gui` command opens Josie's local chat-style command center. It understands
+`help`, `health`, `cloud status`, `tools`, and `time`. Unrecognized requests stay
+local and are never forwarded to a cloud provider.
 
 ## Cloud configuration
 

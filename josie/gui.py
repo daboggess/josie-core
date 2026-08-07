@@ -1,0 +1,123 @@
+"""Lightweight local GUI for Josie 1.0."""
+
+from __future__ import annotations
+
+import json
+import tkinter as tk
+from datetime import datetime
+from pathlib import Path
+from tkinter import ttk
+
+from .config import Config
+from .diagnostics import health_check
+from .providers import provider_status
+from .tools import available_tools
+
+
+def respond(message: str, *, config: Config, project_root: Path) -> str:
+    """Handle a deliberately small, local-only conversational command set."""
+    text = message.strip().lower()
+    if not text:
+        return "Please type a request."
+    if text in {"help", "?", "commands"} or "what can you do" in text:
+        return (
+            "I can check health, show provider status, list allowed tools, and report the time. "
+            "Cloud calls are locked off."
+        )
+    if "health" in text or "diagnostic" in text:
+        result = health_check(config=config, project_root=project_root)
+        checks = result["checks"]
+        return (
+            f"Health is {result['status']}. Python {result['python']}; "
+            f"{result['disk_free_gb']} GB free; Git available: {checks['git_available']}."
+        )
+    if "provider" in text or "cloud" in text or "spend" in text:
+        status = provider_status(config)
+        lock = "UNLOCKED" if status["cloud_calls_allowed"] else "LOCKED OFF"
+        return (
+            f"Cloud spending is {lock}. OpenAI configured: {status['openai']['configured']}; "
+            f"Gemini configured: {status['gemini']['configured']}."
+        )
+    if "tool" in text:
+        return "Allowed tools: " + ", ".join(available_tools()) + "."
+    if "time" in text:
+        return "Local time is " + datetime.now().astimezone().strftime("%A, %B %d, %Y at %I:%M %p %Z") + "."
+    if text in {"hello", "hi", "hey", "hello josie", "hi josie"}:
+        return "Hello, Dustin. I'm online locally. Type 'help' to see what I can do safely."
+    return (
+        "I don't have that local skill yet. I have not sent your request to a cloud model. "
+        "Type 'help' for my current commands."
+    )
+
+
+class JosieApp:
+    def __init__(self, root: tk.Tk, *, config: Config, project_root: Path) -> None:
+        self.root = root
+        self.config = config
+        self.project_root = project_root
+        root.title("Josie 1.0")
+        root.geometry("900x620")
+        root.minsize(700, 480)
+        root.configure(bg="#10151c")
+
+        style = ttk.Style(root)
+        style.theme_use("clam")
+        style.configure("Panel.TFrame", background="#18212b")
+        style.configure("Title.TLabel", background="#10151c", foreground="#79d7ff", font=("Segoe UI", 22, "bold"))
+        style.configure("Status.TLabel", background="#18212b", foreground="#d8e6ef", font=("Segoe UI", 10))
+        style.configure("Accent.TButton", font=("Segoe UI", 10, "bold"), padding=8)
+
+        header = ttk.Frame(root, style="Panel.TFrame", padding=14)
+        header.pack(fill="x", padx=14, pady=(14, 8))
+        ttk.Label(header, text="JOSIE 1.0", style="Title.TLabel").pack(side="left")
+        self.health_label = ttk.Label(header, style="Status.TLabel")
+        self.health_label.pack(side="right")
+
+        self.transcript = tk.Text(
+            root, bg="#0b0f14", fg="#d8e6ef", insertbackground="white", relief="flat",
+            wrap="word", font=("Segoe UI", 11), padx=16, pady=14, state="disabled"
+        )
+        self.transcript.pack(fill="both", expand=True, padx=14, pady=8)
+        self.transcript.tag_configure("user", foreground="#79d7ff", font=("Segoe UI", 11, "bold"))
+        self.transcript.tag_configure("josie", foreground="#8ef0b5", font=("Segoe UI", 11, "bold"))
+
+        entry_bar = ttk.Frame(root, style="Panel.TFrame", padding=10)
+        entry_bar.pack(fill="x", padx=14, pady=(8, 14))
+        self.entry = tk.Entry(entry_bar, bg="#111820", fg="white", insertbackground="white", relief="flat", font=("Segoe UI", 12))
+        self.entry.pack(side="left", fill="x", expand=True, ipady=9, padx=(0, 8))
+        self.entry.bind("<Return>", self._submit)
+        ttk.Button(entry_bar, text="Send", style="Accent.TButton", command=self._submit).pack(side="right")
+
+        self.refresh_status()
+        self._append("Josie", "I'm online locally. Cloud spending is locked off. Type 'help' to begin.", "josie")
+        self.entry.focus_set()
+
+    def refresh_status(self) -> None:
+        health = health_check(config=self.config, project_root=self.project_root)
+        cloud = provider_status(self.config)
+        cloud_text = "CLOUD ON" if cloud["cloud_calls_allowed"] else "CLOUD LOCKED"
+        self.health_label.configure(text=f"HEALTH: {health['status'].upper()}   |   {cloud_text}")
+
+    def _append(self, speaker: str, message: str, tag: str) -> None:
+        self.transcript.configure(state="normal")
+        self.transcript.insert("end", f"{speaker}: ", tag)
+        self.transcript.insert("end", message + "\n\n")
+        self.transcript.configure(state="disabled")
+        self.transcript.see("end")
+
+    def _submit(self, _event: object | None = None) -> None:
+        message = self.entry.get().strip()
+        if not message:
+            return
+        self.entry.delete(0, "end")
+        self._append("You", message, "user")
+        answer = respond(message, config=self.config, project_root=self.project_root)
+        self._append("Josie", answer, "josie")
+        self.refresh_status()
+
+
+def launch_gui(*, config: Config, project_root: Path) -> None:
+    root = tk.Tk()
+    JosieApp(root, config=config, project_root=project_root)
+    root.mainloop()
+
