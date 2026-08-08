@@ -36,6 +36,9 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
     service_runtime = DeploymentController(
         config=config, project_root=project_root
     ).service_runtime_status()
+    remote_access = DeploymentController(
+        config=config, project_root=project_root
+    ).remote_access_status()
 
     criteria = {
         "repository_present": {
@@ -81,6 +84,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "local_services": {
             "state": "proven" if service_preflight["status"] == "ready" and service_runtime["status"] == "ready" else "human_gate",
             "evidence": {"preflight": service_preflight, "runtime": service_runtime},
+        },
+        "private_remote_access": {
+            "state": "proven" if remote_access["status"] == "ready" else "human_gate",
+            "evidence": remote_access,
         },
     }
     counts = {

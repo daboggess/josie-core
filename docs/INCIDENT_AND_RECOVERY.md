@@ -39,6 +39,14 @@ Do not add `--volumes`.
 - If cloud spending unexpectedly appears enabled, close Josie and set
   `JOSIE_ALLOW_CLOUD=false` in the ignored `.env` before restarting.
 
+## Service backups
+
+Run `C:\Josie\scripts\Backup-JosieServices.ps1` through a one-process
+PowerShell execution-policy bypass. It briefly stops n8n and Open WebUI, archives
+their named volumes read-only to `D:\Josie-Storage\backups\services`, verifies
+each archive, writes SHA-256 checksums, and restarts the services in a `finally`
+block. It never deletes an older backup. A real restore remains approval-gated.
+
 ## Git recovery
 
 Known-good checkpoints are pushed to the private `josie-core` repository.

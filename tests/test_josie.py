@@ -18,7 +18,7 @@ from josie.diagnostics import (
 from josie.reports import export_diagnostics, warning_snapshot
 from josie.instance import gui_instance
 from josie.roadmap import roadmap_summary
-from josie.deployment import DeploymentController
+from josie.deployment import DeploymentController, _safe_private_serve
 from josie.policy import load_policy, permission_for
 from josie.provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 from josie.acceptance import acceptance_audit
@@ -519,6 +519,28 @@ class JosieTests(unittest.TestCase):
                 result = controller.service_runtime_status()
                 self.assertEqual(result["status"], "waiting")
                 self.assertFalse(result["browser_execution_locked"])
+
+    def test_tailscale_serve_policy_allows_only_private_open_webui(self) -> None:
+        safe = (
+            "https://refurb.example.ts.net (tailnet only)\n"
+            "|-- / proxy http://127.0.0.1:3000"
+        )
+        self.assertTrue(_safe_private_serve(safe))
+        self.assertFalse(_safe_private_serve(safe.replace("tailnet only", "Funnel on")))
+        self.assertFalse(_safe_private_serve(safe + "\nproxy http://127.0.0.1:5678"))
+        self.assertFalse(_safe_private_serve(safe + "\nproxy http://127.0.0.1:3010"))
+
+    def test_service_backup_is_read_only_verified_and_non_deleting(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        script = (project_root / "scripts" / "Backup-JosieServices.ps1").read_text(encoding="utf-8").lower()
+        self.assertIn("josie_n8n_data:/source:ro", script)
+        self.assertIn("josie_open_webui_data:/source:ro", script)
+        self.assertIn("get-filehash", script)
+        self.assertIn("tar.exe -tzf", script)
+        self.assertIn("finally", script)
+        self.assertNotIn("volume rm", script)
+        self.assertNotIn("remove-item", script)
+        self.assertNotIn("--volumes", script)
 
 
 if __name__ == "__main__":

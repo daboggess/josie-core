@@ -17,6 +17,17 @@ from .reports import export_diagnostics
 from .storage import LocalStore
 
 
+def _safe_private_serve(output: str) -> bool:
+    lowered = output.lower()
+    return bool(
+        "tailnet only" in lowered
+        and "http://127.0.0.1:3000" in lowered
+        and "127.0.0.1:5678" not in lowered
+        and "127.0.0.1:3010" not in lowered
+        and "funnel on" not in lowered
+    )
+
+
 class DeploymentController:
     def __init__(self, *, config: Config, project_root: Path) -> None:
         self.config = config
@@ -116,9 +127,29 @@ class DeploymentController:
             "cloud_calls_allowed": self.config.allow_cloud,
         }
 
+    def remote_access_status(self) -> dict[str, object]:
+        tailscale_path = shutil.which("tailscale") or r"C:\Program Files\Tailscale\tailscale.exe"
+        if not Path(str(tailscale_path)).is_file():
+            return {"status": "waiting", "reason": "Tailscale is unavailable"}
+        result = subprocess.run(
+            [str(tailscale_path), "serve", "status"], capture_output=True, text=True,
+            timeout=10, check=False,
+        )
+        output = result.stdout.strip()
+        safe = result.returncode == 0 and _safe_private_serve(output)
+        match = re.search(r"https://[^\s]+", output)
+        return {
+            "status": "ready" if safe else "waiting",
+            "tailnet_only": safe,
+            "open_webui_only": safe,
+            "url": match.group(0) if match else None,
+            "public_funnel_enabled": False if safe else None,
+        }
+
     def validate_runtime(self) -> dict[str, object]:
         preflight = self.service_preflight()
         runtime = self.service_runtime_status()
+        remote = self.remote_access_status()
         system = self.status()
         ready = bool(
             preflight["status"] == "ready"
@@ -126,6 +157,7 @@ class DeploymentController:
             and system["detected"]["wsl"]
             and system["detected"]["docker"]
             and system["detected"]["tailscale_authenticated"]
+            and remote["status"] == "ready"
             and not self.config.allow_cloud
         )
         if ready:
@@ -137,12 +169,14 @@ class DeploymentController:
                 "loopback_only": True,
                 "browser_execution_locked": True,
                 "cloud_spend_lock": True,
+                "private_remote_access": True,
             }
             self._save_state(state)
         return {
             "status": "ready" if ready else "waiting",
             "preflight": preflight,
             "runtime": runtime,
+            "remote_access": remote,
             "system_detected": system["detected"],
             "state_recorded": ready,
         }

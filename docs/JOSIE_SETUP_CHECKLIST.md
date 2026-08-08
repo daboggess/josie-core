@@ -57,9 +57,9 @@ confirmed on Josie or by the repository test suite.
 - [x] ChatGPT Remote available for current Codex supervision.
 - [x] Install and authenticate Tailscale for secure remote access without router port forwarding.
 - [x] Verified 2026-08-08: Tailscale is running and authenticated; no service exposure or exit-node routing enabled.
-- [ ] Define which local services, if any, Tailscale may expose.
+- [x] Expose only authenticated Open WebUI through Tailscale Serve; verified `tailnet only` with Funnel disabled.
 - [x] Deploy Open WebUI v0.8.9 by immutable digest on localhost only; cloud providers disabled.
-- [ ] Make the approved Josie interface usable from phone and laptop.
+- [x] Make Open WebUI available to Dustin's phone/laptop at private Tailscale HTTPS URL.
 
 ## Core orchestration
 
@@ -74,6 +74,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
 - [x] Deployment safety suite passes 21 tests on 2026-08-08.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
+- [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [ ] Build Josie as the orchestrator rather than a single chatbot.
 - [x] Add a persistent local orchestration queue with an explicit handler registry.
