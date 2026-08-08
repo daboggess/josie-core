@@ -68,6 +68,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Verified 2026-08-07: `wsl.exe` exists but Windows Subsystem for Linux is not installed/enabled.
 - [ ] Evaluate Docker Desktop versus a lighter Windows/WSL container runtime.
 - [ ] Install container tooling only after explicit approval.
+- [x] Stage a resumable attended system-gate script with installer-signature checks and bounded WSL resources.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.

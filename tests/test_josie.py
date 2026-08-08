@@ -217,6 +217,21 @@ class JosieTests(unittest.TestCase):
             self.assertGreater(result["counts"]["human_gate"], 0)
             self.assertGreater(result["counts"]["failed"], 0)
 
+    def test_attended_gate_preserves_security_boundaries(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        script = (project_root / "scripts" / "Invoke-JosieSystemGate.ps1").read_text(encoding="utf-8")
+        lowered = script.lower()
+        self.assertIn("get-authenticodesignature", lowered)
+        self.assertIn("--no-distribution", lowered)
+        self.assertIn("--user", lowered)
+        self.assertIn("--no-windows-containers", lowered)
+        self.assertNotIn("enablelua", lowered)
+        self.assertNotIn("autoadminlogon", lowered)
+        self.assertNotIn("new-netfirewallrule", lowered)
+        self.assertNotIn("tailscale up", lowered)
+        self.assertNotIn("--accept-license", lowered)
+        self.assertNotIn("set-executionpolicy", lowered)
+
     def test_local_status_dashboard(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
