@@ -5,6 +5,9 @@ The non-destructive external-drive procedure is [docs/EXTERNAL_DRIVE_PLAN.md](do
 
 Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The current checkpoint uses only the Python standard library, runs safely on the Intel HD 630 system, and does not install local models or GPU packages.
 
+Large, archival, and replaceable data is rooted at `D:\Josie-Storage`; the live
+application and SQLite database remain on the internal SSD.
+
 ## Safety model
 
 - Secrets live in `.env`, which Git ignores.

@@ -4,6 +4,15 @@ This plan is intentionally non-destructive. Detection does not authorize disk
 initialization, formatting, partitioning, drive-letter assignment, encryption,
 directory creation, or data movement.
 
+## Verified onboarding state — 2026-08-07
+
+- Disk 1: UnionSine USB 3.2, 9.1 TiB reported by Windows.
+- GPT partition table, NTFS volume `D:`, label `External HDD`.
+- Windows reports Healthy / Online / OK.
+- Approximately 8.82 TiB free at onboarding.
+- Existing personal and backup folders were preserved.
+- The isolated `D:\Josie-Storage` tree was created without altering other content.
+
 ## Read-only acceptance checks
 
 1. Confirm the USB disk is physically detected and is at least 8 TB as reported by Windows.
@@ -35,4 +44,3 @@ backup-oriented data.
 After detection, Josie must present the exact disk number, reported capacity,
 existing partition/filesystem state, and preservation risk. Any initialization,
 formatting, encryption, or data migration requires a new explicit human approval.
-

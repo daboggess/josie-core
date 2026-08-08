@@ -184,6 +184,8 @@ class JosieApp:
         self.project_root = project_root
         self.store = LocalStore(project_root / "data" / "josie.db")
         self.store.create_daily_backup(project_root / "data" / "backups")
+        if config.external_storage and config.external_storage.is_dir():
+            self.store.create_daily_backup(config.external_storage / "backups" / "josie-database")
         root.title("Josie 1.0")
         root.geometry("900x620")
         root.minsize(700, 480)

@@ -16,6 +16,7 @@ class Config:
     allow_cloud: bool
     log_level: str
     workspace: Path
+    external_storage: Path | None
 
 
 def _read_env_file(path: Path) -> dict[str, str]:
@@ -52,4 +53,5 @@ def load_config(env_path: Path) -> Config:
         allow_cloud=boolean("JOSIE_ALLOW_CLOUD"),
         log_level=log_level,
         workspace=Path(value("JOSIE_WORKSPACE", str(env_path.parent))).resolve(),
+        external_storage=(Path(value("JOSIE_EXTERNAL_STORAGE")).resolve() if value("JOSIE_EXTERNAL_STORAGE") else None),
     )

@@ -41,12 +41,16 @@ confirmed on Josie or by the repository test suite.
 
 ## Immediate hardware and storage
 
-- [ ] Attach the 10 TB external USB HDD.
+- [x] Attach the 10 TB external USB HDD.
 - [x] Read-only disk inventory completed on 2026-08-07: the 10 TB drive was not attached or detected; only the healthy internal SQF 128 GB SATA SSD was visible.
 - [ ] Confirm its health, filesystem, drive letter, and usable capacity.
 - [ ] Create directories for models, datasets, downloads, generated files, archives, logs, and backups.
 - [ ] Keep active programs and databases on the internal SSD where practical.
 - [ ] Add the external drive to Josie's monitoring and backup policy.
+- [x] Drive detected as healthy 9.1 TiB UnionSine USB 3.2, GPT/NTFS, mounted at `D:` and labeled `External HDD`.
+- [x] Existing Dropbox, OneDrive, Google, Immich, WD Backup, and other data preserved.
+- [x] Created isolated `D:\Josie-Storage` directories for models, datasets, downloads, generated files, archives, backups, archived logs, and staging.
+- [x] Configured a second daily Josie database backup under the external storage root.
 
 ## Remote access and interface
 

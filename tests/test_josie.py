@@ -165,6 +165,15 @@ class JosieTests(unittest.TestCase):
             self.assertNotIn("also-secret", content)
             self.assertIn('"cloud_calls_allowed": false', content)
 
+    def test_external_storage_config_is_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertIsNone(load_config(root / ".env").external_storage)
+            external = root / "external"
+            external.mkdir()
+            (root / ".env").write_text(f"JOSIE_EXTERNAL_STORAGE={external}\n")
+            self.assertEqual(load_config(root / ".env").external_storage, external.resolve())
+
     def test_gui_single_instance_guard(self) -> None:
         with gui_instance("Local\\JosieCoreTestMutex") as first:
             self.assertTrue(first)

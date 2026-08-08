@@ -156,7 +156,7 @@ def recovery_snapshot(*, config: Config, project_root: Path) -> dict[str, object
 
 
 def external_storage_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
-    del config, project_root
+    del project_root
     script = (
         "Get-Disk | Where-Object BusType -eq 'USB' | Select-Object Number,FriendlyName,"
         "PartitionStyle,OperationalStatus,HealthStatus,IsOffline,IsReadOnly,Size | ConvertTo-Json -Compress"
@@ -166,7 +166,12 @@ def external_storage_snapshot(*, config: Config, project_root: Path) -> dict[str
         capture_output=True, text=True, timeout=15, check=False,
     )
     if result.returncode != 0:
-        return {"status": "degraded", "suitable_drive_present": False, "drives": [], "error": "USB disk query failed"}
+        return {
+            "status": "degraded", "suitable_drive_present": False, "drives": [],
+            "configured_path": str(config.external_storage) if config.external_storage else None,
+            "configured_path_exists": bool(config.external_storage and config.external_storage.is_dir()),
+            "error": "USB disk query failed",
+        }
     raw = json.loads(result.stdout or "[]")
     drives = raw if isinstance(raw, list) else [raw]
     normalized = [
@@ -183,4 +188,11 @@ def external_storage_snapshot(*, config: Config, project_root: Path) -> dict[str
         for drive in drives if drive
     ]
     suitable = any(drive["size_tb"] >= 8 for drive in normalized)
-    return {"status": "ok" if suitable else "waiting", "suitable_drive_present": suitable, "drives": normalized}
+    configured_exists = bool(config.external_storage and config.external_storage.is_dir())
+    return {
+        "status": "ok" if suitable and configured_exists else "waiting",
+        "suitable_drive_present": suitable,
+        "configured_path": str(config.external_storage) if config.external_storage else None,
+        "configured_path_exists": configured_exists,
+        "drives": normalized,
+    }
