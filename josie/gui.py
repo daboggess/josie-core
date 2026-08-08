@@ -24,6 +24,7 @@ from .provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 from .jobs import JobRunner, available_job_handlers
 from .local_model import propose_local_actions
 from .browser_policy import load_browser_policy
+from .economic_policy import load_economic_policy
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -70,6 +71,12 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
         return (
             "Browser capability is LOCKED: zero allowed sites and navigation, extraction, forms, "
             "downloads, and uploads are disabled. Dedicated connectors are preferred."
+        )
+    if text in {"economic policy", "spending limits", "wallet policy", "wallet status"}:
+        policy = load_economic_policy(project_root)
+        return (
+            "Economic capability is LOCKED: spending $0.00, wallet $0.00, debt $0.00, "
+            "and zero transactions executed. Josie cannot modify these limits."
         )
     if text.startswith("queue job "):
         if store is None:

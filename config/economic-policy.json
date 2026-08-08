@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "currency": "USD",
+  "spending_enabled": false,
+  "wallet_enabled": false,
+  "self_modifiable": false,
+  "limits_cents": {
+    "single_transaction": 0,
+    "daily_spend": 0,
+    "monthly_spend": 0,
+    "wallet_balance": 0,
+    "debt": 0
+  },
+  "human_controlled": [
+    "tax",
+    "contracting",
+    "identity_verification",
+    "regulated_business_action",
+    "purchase",
+    "subscription",
+    "bid",
+    "financial_transfer"
+  ],
+  "forbidden_autonomous": [
+    "debt",
+    "contract",
+    "money_movement",
+    "wallet_transfer",
+    "spending_limit_change",
+    "human_impersonation"
+  ]
+}

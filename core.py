@@ -20,6 +20,7 @@ from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
+from josie.economic_policy import load_economic_policy
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +70,8 @@ def build_parser() -> argparse.ArgumentParser:
     handoff_answer.add_argument("response", nargs="+")
     browser = subcommands.add_parser("browser", help="Inspect the locked browser policy")
     browser.add_argument("action", choices=("status",))
+    economics = subcommands.add_parser("economics", help="Inspect zero-dollar economic limits")
+    economics.add_argument("action", choices=("status",))
     return parser
 
 
@@ -179,6 +182,10 @@ def main() -> int:
 
     if args.command == "browser":
         print(json.dumps(load_browser_policy(project_root), indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "economics":
+        print(json.dumps(load_economic_policy(project_root), indent=2, sort_keys=True))
         return 0
 
     tool_name = "health" if args.command == "health" else args.name

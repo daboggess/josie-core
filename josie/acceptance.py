@@ -11,6 +11,7 @@ from .deployment import DeploymentController
 from .diagnostics import recovery_snapshot, restore_drill_snapshot
 from .policy import load_policy
 from .browser_policy import load_browser_policy
+from .economic_policy import load_economic_policy
 
 
 def _git_ignores(project_root: Path, relative_path: str) -> bool:
@@ -109,6 +110,17 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and browser_policy.get("allowed_host_count") == 0
         and browser_policy.get("external_activity") is False
     )
+    try:
+        economic_policy = load_economic_policy(project_root)
+    except (OSError, ValueError, TypeError):
+        economic_policy = {}
+    economic_policy_ready = bool(
+        economic_policy.get("status") == "locked"
+        and economic_policy.get("spending_enabled") is False
+        and economic_policy.get("wallet_enabled") is False
+        and economic_policy.get("self_modifiable") is False
+        and economic_policy.get("transactions_executed") == 0
+    )
 
     criteria = {
         "repository_present": {
@@ -182,6 +194,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "fail_closed_browser_policy": {
             "state": "proven" if browser_policy_ready else "human_gate",
             "evidence": browser_policy or str(project_root / "config" / "browser-policy.json"),
+        },
+        "zero_dollar_economic_policy": {
+            "state": "proven" if economic_policy_ready else "human_gate",
+            "evidence": economic_policy or str(project_root / "config" / "economic-policy.json"),
         },
         "storage_headroom_guard": {
             "state": "proven" if storage_guard_ready else "human_gate",

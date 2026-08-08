@@ -30,6 +30,7 @@ from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
+from josie.economic_policy import load_economic_policy
 
 
 class JosieTests(unittest.TestCase):
@@ -155,6 +156,33 @@ class JosieTests(unittest.TestCase):
             )
             with self.assertRaises(ValueError):
                 load_browser_policy(root)
+
+    def test_economic_policy_is_zero_dollar_and_not_self_modifiable(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        policy = load_economic_policy(project_root)
+        self.assertEqual(policy["status"], "locked")
+        self.assertFalse(policy["spending_enabled"])
+        self.assertFalse(policy["wallet_enabled"])
+        self.assertFalse(policy["self_modifiable"])
+        self.assertEqual(set(policy["limits_cents"].values()), {0})
+        self.assertEqual(policy["transactions_executed"], 0)
+        self.assertFalse(policy["external_activity"])
+
+    def test_economic_policy_rejects_nonzero_or_self_modified_limits(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            policy = json.loads(
+                (Path(__file__).resolve().parents[1] / "config" / "economic-policy.json")
+                .read_text(encoding="utf-8")
+            )
+            policy["self_modifiable"] = True
+            policy["limits_cents"]["single_transaction"] = 1
+            (root / "config" / "economic-policy.json").write_text(
+                json.dumps(policy), encoding="utf-8"
+            )
+            with self.assertRaises(ValueError):
+                load_economic_policy(root)
 
     def test_health_is_allowlisted_and_runs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

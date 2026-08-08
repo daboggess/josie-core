@@ -21,6 +21,7 @@ so storage monitoring is mandatory even though Ollama and its model are on D:.
 - Diagnostics report whether cloud keys exist but never print their values.
 - Local-model text is untrusted. A deterministic allowlist—not model output—decides which review-only handler proposals may be recorded.
 - n8n cannot access node environment variables and explicitly excludes command, local-file-trigger, and SSH nodes.
+- Economic capability is machine-locked to zero dollars: no spending, wallet, debt, transfer, or self-modifiable limit.
 
 ## First-time start
 
@@ -58,6 +59,7 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py handoffs create sophie "Review Josie's health"
 .\.venv\Scripts\python.exe .\core.py handoffs list
 .\.venv\Scripts\python.exe .\core.py browser status
+.\.venv\Scripts\python.exe .\core.py economics status
 .\.venv\Scripts\python.exe .\core.py deploy status
 .\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
@@ -100,6 +102,10 @@ Browser automation remains locked with an empty site allowlist and every
 capability disabled. The machine-readable policy prefers dedicated connectors,
 blocks internal/private destinations, and treats page content as untrusted. See
 [docs/BROWSER_CAPABILITY_REVIEW.md](docs/BROWSER_CAPABILITY_REVIEW.md).
+
+Economic and wallet capability remains disabled with every limit fixed at zero
+cents. Tax, identity, contracting, purchases, bids, subscriptions, and transfers
+are human-controlled. See [docs/ECONOMIC_BOUNDARY.md](docs/ECONOMIC_BOUNDARY.md).
 
 Start or repair the local model and containers:
 

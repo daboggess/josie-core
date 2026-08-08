@@ -73,7 +73,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Expanded orchestration and deployment safety suite passes 55 tests on 2026-08-08.
+- [x] Expanded orchestration and deployment safety suite passes 57 tests on 2026-08-08.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
@@ -125,10 +125,10 @@ confirmed on Josie or by the repository test suite.
 - [x] Cloud-spending lock controlled outside provider code.
 - [x] Encode capability-specific permissions in a tested, fail-closed machine-readable policy.
 - [x] Unknown capabilities default to forbidden; overlapping policy groups are rejected.
-- [ ] Require human approval for sensitive external communication or file transfer.
-- [ ] Prohibit human impersonation where disallowed.
-- [ ] Prohibit debt, contracts, significant spending, or wallet transfers without authorization.
-- [ ] Create spending and wallet limits that Josie cannot modify herself.
+- [x] Require human approval for sensitive external communication or file transfer.
+- [x] Prohibit human impersonation where disallowed.
+- [x] Prohibit debt, contracts, significant spending, and wallet transfers autonomously.
+- [x] Create machine-readable zero-cent spending, wallet, balance, and debt limits that Josie cannot modify herself.
 - [x] Add a tested non-overwriting restore drill and incident/recovery runbook with exact commands.
 - [x] Add a machine-readable Josie 1.0 acceptance audit that separates failures from human gates.
 
@@ -137,7 +137,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Create a local, non-transactional Josie Upgrade Fund ledger.
 - [x] Separate actual revenue, expenses, API costs, electricity, and balance from estimated savings.
 - [x] Prevent estimated savings from being counted as earned money; ledger records cannot move or spend money.
-- [ ] Keep tax, contracting, identity verification, and regulated business actions human-controlled.
+- [x] Keep tax, contracting, identity verification, and regulated business actions human-controlled.
 - [ ] Evaluate wallet capability only after strict non-self-modifiable limits exist.
 - [ ] Build opportunity discovery within platform rules and applicable law.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.

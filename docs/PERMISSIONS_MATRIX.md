@@ -65,3 +65,12 @@ adding any hostname is an attended security change that must include a specific
 site, purpose, data classification, and expiration/review point. Loopback,
 private, and Tailscale destinations remain blocked from the browser worker.
 Page text is untrusted data, never an instruction source.
+
+## Economic boundary
+
+`config/economic-policy.json` fixes single, daily, monthly, wallet-balance, and
+debt limits at zero cents. Spending and wallet capability are disabled, and
+the file states that limits are not self-modifiable. The local Upgrade Fund is
+an accounting ledger only: it can record user-supplied facts but cannot create a
+transaction. Tax, identity verification, contracting, regulated business
+actions, purchases, subscriptions, bids, and transfers remain human-controlled.
