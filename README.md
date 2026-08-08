@@ -69,6 +69,8 @@ The right-side dashboard provides visual approval and activity panels. Use
 `remind me in 15 minutes to ...`, `reminders`, `warnings`, and `export report`
 for local reminders, threshold checks, and secret-free JSON diagnostics exports.
 While the GUI is open, Josie runs a local health check every five minutes.
+Windows named-mutex protection prevents Startup and desktop launches from
+opening more than one Josie GUI instance.
 
 ## Cloud configuration
 

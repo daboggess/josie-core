@@ -13,6 +13,7 @@ from josie.gui import respond
 from josie.storage import LocalStore
 from josie.diagnostics import recovery_snapshot, system_snapshot, uptime_snapshot
 from josie.reports import export_diagnostics, warning_snapshot
+from josie.instance import gui_instance
 
 
 class JosieTests(unittest.TestCase):
@@ -162,6 +163,12 @@ class JosieTests(unittest.TestCase):
             self.assertNotIn("top-secret", content)
             self.assertNotIn("also-secret", content)
             self.assertIn('"cloud_calls_allowed": false', content)
+
+    def test_gui_single_instance_guard(self) -> None:
+        with gui_instance("Local\\JosieCoreTestMutex") as first:
+            self.assertTrue(first)
+            with gui_instance("Local\\JosieCoreTestMutex") as second:
+                self.assertFalse(second)
 
 
 if __name__ == "__main__":

@@ -36,6 +36,8 @@ confirmed on Josie or by the repository test suite.
 - [x] Gemini connectivity previously verified; live calls are now locked.
 - [ ] OpenAI API connectivity blocked by zero API credit; ChatGPT subscription remains the Sophie control surface.
 - [x] ChatGPT Remote paired for monitoring and steering from a phone.
+- [x] Windows is configured not to sleep while on AC power; display timeout remains enabled.
+- [x] Single-instance guard prevents duplicate Josie GUI processes.
 
 ## Immediate hardware and storage
 

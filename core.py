@@ -9,6 +9,7 @@ from pathlib import Path
 from josie.config import load_config
 from josie.logging_setup import configure_logging
 from josie.gui import launch_gui
+from josie.instance import gui_instance
 from josie.providers import probe_gemini, probe_openai, provider_status
 from josie.tools import available_tools, run_tool
 
@@ -57,8 +58,12 @@ def main() -> int:
         return 0
 
     if args.command == "gui":
-        logger.info("Starting local GUI")
-        launch_gui(config=config, project_root=project_root)
+        with gui_instance() as acquired:
+            if not acquired:
+                logger.info("Josie GUI is already running")
+                return 0
+            logger.info("Starting local GUI")
+            launch_gui(config=config, project_root=project_root)
         return 0
 
     tool_name = "health" if args.command == "health" else args.name
