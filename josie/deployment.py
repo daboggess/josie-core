@@ -86,7 +86,14 @@ class DeploymentController:
             "node": bool(shutil.which("node")),
             "n8n": bool(shutil.which("n8n")),
         }
-        gates = [component for component in manifest["components"] if component["gate"]]
+        steps = state.get("steps", {})
+        if not isinstance(steps, dict):
+            steps = {}
+        gates = [
+            component
+            for component in manifest["components"]
+            if component["gate"] and steps.get(component["id"]) != "complete"
+        ]
         return {
             "status": "ok",
             "state": state,

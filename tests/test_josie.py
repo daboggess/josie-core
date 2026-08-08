@@ -639,6 +639,12 @@ class JosieTests(unittest.TestCase):
             self.assertFalse(status["cloud_calls_allowed"])
             self.assertEqual(status["pending_human_gates"][0]["id"], "wsl")
 
+            controller._save_state(
+                {"schema_version": 1, "steps": {"wsl": "complete"}, "updated_at": None}
+            )
+            completed = controller.status()
+            self.assertEqual(completed["pending_human_gates"], [])
+
     def test_service_preflight_rejects_unverified_images(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
