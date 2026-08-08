@@ -48,7 +48,10 @@ Josie must not:
 ## Approval semantics
 
 - Approval is scoped to the exact action, target, account, and immediate context presented.
-- An approval record in Josie's GUI currently records intent only and executes nothing.
+- A general approval record records intent only and executes nothing. Memory correction,
+  soft deletion, and restoration are the sole bounded exception: they require both an
+  approved change-specific record and a separate `apply memory change N` command.
+- Memory deletion is archival, not a hard delete; the original value remains recoverable.
+- Local-model proposals are untrusted review records and never count as approval.
 - Expired, ambiguous, inherited, or unrelated approvals do not authorize new actions.
 - Authentication, administrator prompts, and consequential confirmations remain human-controlled.
-

@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import os
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import Config
@@ -135,12 +135,45 @@ class DeploymentController:
             isinstance(results[name], dict) and results[name].get("ok")
             for name in endpoints
         )
+        storage_monitor: dict[str, object] = {"required": False, "ready": True}
+        if self.config.external_storage:
+            snapshot_path = self.config.external_storage / "staging" / "storage-status.json"
+            storage_monitor = {"required": True, "ready": False, "path": str(snapshot_path)}
+            try:
+                snapshot = json.loads(snapshot_path.read_text(encoding="utf-8-sig"))
+                created_at = datetime.fromisoformat(str(snapshot["created_at"]))
+                age_seconds = max(
+                    0, int((datetime.now(timezone.utc) - created_at.astimezone(timezone.utc)).total_seconds())
+                )
+                monitor_ready = bool(
+                    age_seconds <= 900
+                    and snapshot.get("status") in {"ok", "warning"}
+                    and snapshot.get("cloud_activity") is False
+                    and snapshot.get("deletion_performed") is False
+                )
+                storage_monitor.update(
+                    {
+                        "ready": monitor_ready,
+                        "status": snapshot.get("status"),
+                        "age_seconds": age_seconds,
+                        "c_free_gb": next(
+                            (
+                                drive.get("free_gb") for drive in snapshot.get("drives", [])
+                                if str(drive.get("drive", "")).upper() == "C:\\"
+                            ),
+                            None,
+                        ),
+                    }
+                )
+            except (OSError, ValueError, KeyError, TypeError):
+                storage_monitor["error"] = "storage snapshot missing or invalid"
         return {
-            "status": "ready" if all_healthy and browser_safe and model_ready else "waiting",
+            "status": "ready" if all_healthy and browser_safe and model_ready and storage_monitor["ready"] else "waiting",
             "services": results,
             "browser_execution_locked": browser_safe,
             "local_model": LOCAL_MODEL,
             "local_model_ready": model_ready,
+            "storage_monitor": storage_monitor,
             "loopback_only": True,
             "cloud_calls_allowed": self.config.allow_cloud,
         }
@@ -222,12 +255,40 @@ class DeploymentController:
                 'ENABLE_OLLAMA_API: "true"',
                 'OLLAMA_BASE_URL: http://host.docker.internal:11434',
                 'ENABLE_OPENAI_API: "false"',
+                'N8N_BLOCK_ENV_ACCESS_IN_NODE: "true"',
+                'N8N_RESTRICT_FILE_ACCESS_TO: /josie-storage/staging',
+                'n8n-nodes-base.executeCommand',
+                'n8n-nodes-base.localFileTrigger',
             )
             for value in required_controls:
                 if value not in compose:
                     issues.append(f"missing Open WebUI control: {value}")
             if "11434:11434" in compose:
                 issues.append("Ollama must not be published by Docker")
+
+        workflow_path = deploy_root / "n8n" / "workflows" / "storage-headroom-guard.json"
+        if not workflow_path.is_file():
+            issues.append("storage headroom workflow is missing")
+        else:
+            try:
+                workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+                node_types = {
+                    str(node.get("type")) for node in workflow.get("nodes", [])
+                    if isinstance(node, dict)
+                }
+                if workflow.get("active") is not True:
+                    issues.append("storage headroom workflow must be staged active")
+                if "n8n-nodes-base.scheduleTrigger" not in node_types:
+                    issues.append("storage headroom workflow has no schedule trigger")
+                forbidden_nodes = {
+                    "n8n-nodes-base.executeCommand",
+                    "n8n-nodes-base.ssh",
+                    "n8n-nodes-base.httpRequest",
+                }
+                if node_types & forbidden_nodes:
+                    issues.append("storage headroom workflow contains a forbidden node")
+            except (OSError, ValueError, TypeError):
+                issues.append("storage headroom workflow is invalid JSON")
 
         images: dict[str, str] = {}
         if not secrets_path.is_file():

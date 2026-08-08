@@ -43,10 +43,10 @@ confirmed on Josie or by the repository test suite.
 
 - [x] Attach the 10 TB external USB HDD.
 - [x] Read-only disk inventory completed on 2026-08-07: the 10 TB drive was not attached or detected; only the healthy internal SQF 128 GB SATA SSD was visible.
-- [ ] Confirm its health, filesystem, drive letter, and usable capacity.
-- [ ] Create directories for models, datasets, downloads, generated files, archives, logs, and backups.
-- [ ] Keep active programs and databases on the internal SSD where practical.
-- [ ] Add the external drive to Josie's monitoring and backup policy.
+- [x] Confirm its health, filesystem, drive letter, and usable capacity.
+- [x] Create directories for models, datasets, downloads, generated files, archives, logs, and backups.
+- [x] Keep active programs and databases on the internal SSD where practical.
+- [x] Add the external drive to Josie's monitoring and backup policy.
 - [x] Drive detected as healthy 9.1 TiB UnionSine USB 3.2, GPT/NTFS, mounted at `D:` and labeled `External HDD`.
 - [x] Existing Dropbox, OneDrive, Google, Immich, WD Backup, and other data preserved.
 - [x] Created isolated `D:\Josie-Storage` directories for models, datasets, downloads, generated files, archives, backups, archived logs, and staging.
@@ -64,24 +64,25 @@ confirmed on Josie or by the repository test suite.
 
 ## Core orchestration
 
-- [ ] Verify storage headroom before installing container tooling.
+- [x] Verify storage headroom before installing container tooling.
 - [x] Historical baseline: Docker, system Node.js/npm, and n8n were absent on 2026-08-07.
 - [x] Verified 2026-08-07: `wsl.exe` exists but Windows Subsystem for Linux is not installed/enabled.
 - [x] Install Docker Desktop 4.85.0 in per-user WSL 2 Linux-container mode.
-- [ ] Install container tooling only after explicit approval.
+- [x] Install container tooling only after explicit approval.
 - [x] Stage a resumable attended system-gate script with installer-signature checks and bounded WSL resources.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Deployment safety suite passes 21 tests on 2026-08-08.
+- [x] Expanded orchestration and deployment safety suite passes 47 tests on 2026-08-08.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
-- [ ] Build Josie as the orchestrator rather than a single chatbot.
+- [x] Add a governed local-model proposal boundary: deterministic intent mapping, durable review records, and zero model-triggered execution.
 - [x] Add a persistent local orchestration queue with an explicit handler registry.
 - [x] Add narrowly allowlisted Python job handlers; unrestricted Python/JavaScript text execution remains forbidden.
 - [x] Add structured error handling and bounded retries capped at three attempts.
 - [x] Add non-executing repair proposals after retry exhaustion; generated code cannot run automatically.
+- [x] Add and validate the first n8n workflow: daily C: headroom guard using a five-minute host snapshot, with no external message or command node.
 
 ## Computer-use capability
 
@@ -101,7 +102,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Add native Windows Ollama 0.32.5 under the 10 TB storage root instead of expanding Docker's C: VHDX.
 - [x] Add governed `josie-local:1.0` from Qwen 2.5 1.5B Q4_K_M with three threads and 4096-token context.
 - [x] Keep model blobs on D:, OpenAI disabled, and native Ollama inaccessible from LAN/Tailscale clients.
-- [ ] A/B test Qwen3 only if the first model fails the structured-proposal evaluation.
+- [x] Qwen 2.5 passed benign and adversarial structured-proposal evaluation; the conditional Qwen3 A/B test was not triggered.
 - [ ] Reconfirm whether Claude should serve as an optional editor/checker.
 
 ## Persistent memory and continuity
@@ -111,9 +112,9 @@ confirmed on Josie or by the repository test suite.
 - [ ] Import and organize selected Sophie/Josie project history.
 - [x] Stage a local origin interview process for Dustin, Sophie, and Bernie; cloud interviews remain approval-gated.
 - [x] Record project rules, philosophy, and major decisions with source and confirmed/unverified/rejected provenance.
-- [ ] Add explicit memory review, correction, deletion, export, and restore workflows.
+- [x] Add explicit memory review, correction, soft deletion, export, and restore workflows.
 - [x] Add secret-free local memory/task export and a non-overwriting restore drill.
-- [ ] Add approval-gated correction and deletion workflows; current approval records execute nothing.
+- [x] Require a recorded approval plus a separate apply command for correction, soft deletion, and restoration; preserve original values for recovery.
 
 ## Safety and permissions
 
@@ -158,14 +159,11 @@ confirmed on Josie or by the repository test suite.
 
 ## Critical path
 
-1. Attach and validate the 10 TB external drive.
-2. Define and install secure general remote access (Tailscale) if still needed beyond ChatGPT Remote.
-3. Choose and install an appropriately lightweight container runtime.
-4. Install n8n with durable storage and backups.
-5. Add an isolated, allowlisted browser worker.
-6. Evaluate and deploy Open WebUI.
-7. Expand persistent memory governance and recovery.
-8. Define the zero-spend Sophie workflow and explicitly budgeted Bernie bridge.
+1. Connect Open WebUI to Core through an authenticated, local-only proposal interface without granting model execution authority.
+2. Define the zero-spend Sophie workflow and explicitly budgeted Bernie bridge.
+3. Import selected origin/history records through the provenance review workflow.
+4. Review a narrow browser capability allowlist before enabling navigation.
+5. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
 
 ## Change-control rule
 

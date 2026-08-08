@@ -87,8 +87,35 @@ class LocalStore:
                     CHECK (status IN ('review_required','accepted','rejected')),
                     FOREIGN KEY(job_id) REFERENCES jobs(id)
                 );
+                CREATE TABLE IF NOT EXISTS memory_changes (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    memory_id INTEGER NOT NULL,
+                    action TEXT NOT NULL CHECK (action IN ('correct','delete','restore')),
+                    replacement_content TEXT,
+                    approval_id INTEGER NOT NULL UNIQUE,
+                    status TEXT NOT NULL DEFAULT 'pending_review'
+                    CHECK (status IN ('pending_review','applied','denied')),
+                    applied_at TEXT,
+                    original_content TEXT,
+                    FOREIGN KEY(memory_id) REFERENCES memories(id),
+                    FOREIGN KEY(approval_id) REFERENCES approvals(id)
+                );
+                CREATE TABLE IF NOT EXISTS model_proposals (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    user_input TEXT NOT NULL, model TEXT NOT NULL,
+                    response_json TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'review_required'
+                    CHECK (status IN ('review_required','accepted','rejected'))
+                );
                 """
             )
+            memory_columns = {
+                str(row[1]) for row in connection.execute("PRAGMA table_info(memories)").fetchall()
+            }
+            if "status" not in memory_columns:
+                connection.execute("ALTER TABLE memories ADD COLUMN status TEXT NOT NULL DEFAULT 'active'")
+            if "updated_at" not in memory_columns:
+                connection.execute("ALTER TABLE memories ADD COLUMN updated_at TEXT")
 
     @staticmethod
     def _now() -> str:
@@ -110,8 +137,145 @@ class LocalStore:
 
     def memories(self) -> list[tuple[int, str]]:
         with self._connect() as connection:
-            rows = connection.execute("SELECT id,content FROM memories ORDER BY id").fetchall()
+            rows = connection.execute(
+                "SELECT id,content FROM memories WHERE status='active' ORDER BY id"
+            ).fetchall()
         return [(int(row["id"]), row["content"]) for row in rows]
+
+    def memory_records(self) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,created_at,updated_at,content,status FROM memories ORDER BY id"
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def request_memory_change(
+        self, *, memory_id: int, action: str, replacement_content: str | None = None
+    ) -> tuple[int, int]:
+        if action not in {"correct", "delete", "restore"}:
+            raise ValueError("Memory action must be correct, delete, or restore")
+        replacement = replacement_content.strip() if replacement_content is not None else None
+        if action == "correct" and (not replacement or len(replacement) > 2_000):
+            raise ValueError("A correction must contain between 1 and 2000 characters")
+        if action != "correct" and replacement is not None:
+            raise ValueError("Only a correction may include replacement content")
+        with self._connect() as connection:
+            memory = connection.execute(
+                "SELECT content,status FROM memories WHERE id=?", (memory_id,)
+            ).fetchone()
+            if memory is None:
+                raise ValueError("Memory was not found")
+            current_status = str(memory["status"])
+            if action in {"correct", "delete"} and current_status != "active":
+                raise ValueError("Only an active memory may be corrected or deleted")
+            if action == "restore" and current_status != "archived":
+                raise ValueError("Only an archived memory may be restored")
+            duplicate = connection.execute(
+                "SELECT id FROM memory_changes WHERE memory_id=? AND status='pending_review'",
+                (memory_id,),
+            ).fetchone()
+            if duplicate is not None:
+                raise ValueError("A memory change is already awaiting review")
+            description = f"{action} local memory {memory_id}"
+            approval = connection.execute(
+                "INSERT INTO approvals(created_at,description) VALUES (?,?)",
+                (self._now(), description),
+            )
+            approval_id = int(approval.lastrowid)
+            change = connection.execute(
+                "INSERT INTO memory_changes(created_at,memory_id,action,replacement_content,approval_id) "
+                "VALUES (?,?,?,?,?)",
+                (self._now(), memory_id, action, replacement, approval_id),
+            )
+            change_id = int(change.lastrowid)
+        self.audit("memory_change_requested", f"{change_id}: {action} memory {memory_id}")
+        self.audit("approval_requested", f"{approval_id}: {description}")
+        return change_id, approval_id
+
+    def memory_changes(self, *, pending_only: bool = False) -> list[dict[str, object]]:
+        query = (
+            "SELECT c.id,c.memory_id,c.action,c.replacement_content,c.status,c.approval_id,"
+            "a.status approval_status FROM memory_changes c "
+            "JOIN approvals a ON a.id=c.approval_id"
+        )
+        if pending_only:
+            query += " WHERE c.status='pending_review'"
+        query += " ORDER BY c.id"
+        with self._connect() as connection:
+            rows = connection.execute(query).fetchall()
+        return [dict(row) for row in rows]
+
+    def apply_memory_change(self, change_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            change = connection.execute(
+                "SELECT c.*,a.status approval_status FROM memory_changes c "
+                "JOIN approvals a ON a.id=c.approval_id WHERE c.id=?",
+                (change_id,),
+            ).fetchone()
+            if change is None or change["status"] != "pending_review":
+                raise ValueError("Pending memory change was not found")
+            if change["approval_status"] != "approved":
+                raise ValueError("Memory change requires an approved review record")
+            memory = connection.execute(
+                "SELECT content,status FROM memories WHERE id=?", (change["memory_id"],)
+            ).fetchone()
+            if memory is None:
+                raise ValueError("Memory was not found")
+            action = str(change["action"])
+            if action == "correct":
+                if memory["status"] != "active":
+                    raise ValueError("Only an active memory may be corrected")
+                connection.execute(
+                    "UPDATE memories SET content=?,updated_at=? WHERE id=?",
+                    (change["replacement_content"], self._now(), change["memory_id"]),
+                )
+            elif action == "delete":
+                if memory["status"] != "active":
+                    raise ValueError("Only an active memory may be deleted")
+                connection.execute(
+                    "UPDATE memories SET status='archived',updated_at=? WHERE id=?",
+                    (self._now(), change["memory_id"]),
+                )
+            else:
+                if memory["status"] != "archived":
+                    raise ValueError("Only an archived memory may be restored")
+                connection.execute(
+                    "UPDATE memories SET status='active',updated_at=? WHERE id=?",
+                    (self._now(), change["memory_id"]),
+                )
+            connection.execute(
+                "UPDATE memory_changes SET status='applied',applied_at=?,original_content=? WHERE id=?",
+                (self._now(), memory["content"], change_id),
+            )
+        self.audit("memory_change_applied", f"{change_id}: {action} memory {change['memory_id']}")
+        return {
+            "change_id": change_id,
+            "memory_id": int(change["memory_id"]),
+            "action": action,
+            "status": "applied",
+            "hard_delete": False,
+        }
+
+    def record_model_proposal(self, *, user_input: str, model: str, response_json: str) -> int:
+        if len(user_input) > 4_000 or len(response_json) > 20_000:
+            raise ValueError("Model proposal record is too large")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO model_proposals(created_at,user_input,model,response_json) VALUES (?,?,?,?)",
+                (self._now(), user_input, model, response_json),
+            )
+            proposal_id = int(cursor.lastrowid)
+        self.audit("model_proposal_recorded", f"{proposal_id}: {model}")
+        return proposal_id
+
+    def recent_model_proposals(self, limit: int = 20) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,created_at,model,response_json,status FROM model_proposals "
+                "ORDER BY id DESC LIMIT ?", (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def add_task(self, description: str) -> int:
         with self._connect() as connection:
@@ -181,6 +345,12 @@ class LocalStore:
                 (decision, approval_id),
             )
             changed = cursor.rowcount == 1
+            if changed and decision == "denied":
+                connection.execute(
+                    "UPDATE memory_changes SET status='denied' "
+                    "WHERE approval_id=? AND status='pending_review'",
+                    (approval_id,),
+                )
         if changed:
             self.audit(f"approval_{decision}", str(approval_id))
         return changed
@@ -197,6 +367,18 @@ class LocalStore:
         for old_backup in backups[max(1, keep):]:
             if old_backup.resolve().parent == backup_dir.resolve():
                 old_backup.unlink()
+        return destination
+
+    def create_checkpoint_backup(self, backup_dir: Path, label: str = "checkpoint") -> Path:
+        clean_label = "".join(character for character in label.lower() if character.isalnum() or character == "-")
+        if not clean_label:
+            raise ValueError("Checkpoint label is invalid")
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().astimezone().strftime("%Y-%m-%d-%H%M%S")
+        destination = backup_dir / f"josie-{stamp}-{clean_label}.db"
+        with closing(sqlite3.connect(self.path)) as source, closing(sqlite3.connect(destination)) as target:
+            source.backup(target)
+        self.audit("database_checkpoint", destination.name)
         return destination
 
     def add_reminder(self, minutes: int, description: str) -> int:

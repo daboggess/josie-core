@@ -1,0 +1,128 @@
+{
+  "id": "9c3c3efe-e52d-4e79-becd-28893c1bbf83",
+  "name": "Josie - C Drive Headroom Guard",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "1d3b57fe-981e-4d2e-825d-116a4e67966f",
+      "name": "Daily at 9 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [-640, 0]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "612cc8c1-0bdf-4a2b-b082-8a6ab4c9b08b",
+      "name": "Internal Validation Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [-640, 160]
+    },
+    {
+      "parameters": {
+        "filePath": "/josie-storage/staging/storage-status.json",
+        "dataPropertyName": "data"
+      },
+      "id": "530a8d45-0b03-416c-b9be-4a57fc76da69",
+      "name": "Read Storage Snapshot",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [-400, 0]
+    },
+    {
+      "parameters": {
+        "mode": "binaryToJson",
+        "setAllData": true,
+        "options": {
+          "jsonParse": true,
+          "stripBOM": true
+        }
+      },
+      "id": "6f8ec2a7-b32e-4f02-b0bf-a3d5792e9c66",
+      "name": "Parse Snapshot",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1.1,
+      "position": [-160, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "26d9b314-16b7-4c4a-bbdf-b2f807f28993",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1903839-973a-474a-a205-352f51946f03",
+      "name": "Headroom Warning?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [80, 0]
+    },
+    {
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "=Josie storage headroom is {{ $json.status }}. Review C: immediately. Snapshot: {{ $json.created_at }}"
+      },
+      "id": "5902993c-5c12-4ed7-9a3a-080563068604",
+      "name": "Record Storage Alert",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [320, -80]
+    }
+  ],
+  "connections": {
+    "Daily at 9 AM": {
+      "main": [[{"node": "Read Storage Snapshot", "type": "main", "index": 0}]]
+    },
+    "Internal Validation Trigger": {
+      "main": [[{"node": "Read Storage Snapshot", "type": "main", "index": 0}]]
+    },
+    "Read Storage Snapshot": {
+      "main": [[{"node": "Parse Snapshot", "type": "main", "index": 0}]]
+    },
+    "Parse Snapshot": {
+      "main": [[{"node": "Headroom Warning?", "type": "main", "index": 0}]]
+    },
+    "Headroom Warning?": {
+      "main": [[{"node": "Record Storage Alert", "type": "main", "index": 0}], []]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York"
+  },
+  "versionId": "2952e18f-e037-4cac-8287-f1ad1e314364",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "tags": []
+}

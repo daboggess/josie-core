@@ -32,6 +32,19 @@ Firewall retains default inbound blocking and adds one program-specific allow
 rule limited to the observed Docker/WSL source networks. No LAN or Tailscale
 client is authorized to call Ollama directly. OpenAI remains disabled.
 
+## Storage headroom workflow
+
+`n8n/workflows/storage-headroom-guard.json` is the canonical first workflow. A
+host-side monitor refreshes a bounded JSON snapshot on D: every five minutes.
+n8n may read only the staging directory, checks the snapshot daily, and records
+a failed workflow execution when C: is below the configured headroom threshold.
+The workflow has no HTTP, messaging, command, SSH, browser, or credential node.
+
+n8n environment access is blocked. Execute Command, Local File Trigger, and SSH
+nodes are explicitly excluded. Import the canonical workflow with the n8n CLI,
+publish its stable ID, restart n8n, and verify it with the internal validation
+trigger. The workflow never receives model-generated parameters.
+
 ## Recovery
 
 Stop services with `docker compose --env-file deploy/.env.services -f deploy/compose.yaml down`.

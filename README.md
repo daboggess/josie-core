@@ -19,6 +19,8 @@ so storage monitoring is mandatory even though Ollama and its model are on D:.
 - Logs rotate under `logs/`, which Git ignores.
 - Tools must be registered in `josie/tools.py`; arbitrary shell execution is intentionally unavailable.
 - Diagnostics report whether cloud keys exist but never print their values.
+- Local-model text is untrusted. A deterministic allowlist—not model output—decides which review-only handler proposals may be recorded.
+- n8n cannot access node environment variables and explicitly excludes command, local-file-trigger, and SSH nodes.
 
 ## First-time start
 
@@ -50,6 +52,7 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py health --json
 .\.venv\Scripts\python.exe .\core.py tools list
 .\.venv\Scripts\python.exe .\core.py providers status
+.\.venv\Scripts\python.exe .\core.py propose "Please check Josie system health"
 .\.venv\Scripts\python.exe .\core.py deploy status
 .\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
@@ -70,11 +73,18 @@ host gateway. The model server is not published through Tailscale or the LAN.
 OpenAI API access remains disabled, so this chat path cannot create OpenAI API
 charges.
 
+Open WebUI is the direct conversational surface for `josie-local:1.0`. The
+governed Core proposal boundary is available from the local GUI with
+`ask Josie ...` or from the `core.py propose` command. It accepts only three
+review-only intents: health check, secret-free memory export, and non-overwriting
+restore drill. Model text cannot queue or execute any of them.
+
 Start or repair the local model and containers:
 
 ```powershell
 cd C:\Josie
 .\scripts\Ensure-JosieOllama.ps1
+.\scripts\Start-JosieStorageMonitor.ps1 -Once
 docker compose --env-file .\deploy\.env.services -f .\deploy\compose.yaml up -d
 ```
 
@@ -82,6 +92,7 @@ Stop the containers without deleting data, then unload the local model:
 
 ```powershell
 docker compose --env-file .\deploy\.env.services -f .\deploy\compose.yaml stop
+.\scripts\Stop-JosieStorageMonitor.ps1
 & 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' stop josie-local:1.0
 ```
 
@@ -94,12 +105,15 @@ Check the model, storage thresholds, and acceptance state:
 .\.venv\Scripts\python.exe .\core.py audit
 ```
 
-Josie is currently command-based, not a background service. Each command stops when its result is printed. If a future long-running command is added, press `Ctrl+C` to stop it.
+Josie's GUI and storage monitor start at sign-in. The storage monitor refreshes
+`D:\Josie-Storage\staging\storage-status.json` every five minutes; the active
+n8n headroom guard checks it daily and records a failed execution if C: reaches
+warning or critical status. It sends no external message and uses no network node.
 
 The `gui` command opens Josie's local chat-style command center. It understands
 `help`, `status`, `system status`, `repository status`, `health`, `cloud status`,
 `storage health`, `uptime`, `backup status`, `tools`, `time`, `remember ...`, `memories`,
-`add task ...`, `tasks`, and `complete task N`. Conversations, memories, and task
+`add task ...`, `tasks`, `complete task N`, and `ask Josie ...`. Conversations, memories, and task
 records are stored locally in the ignored `data/josie.db` SQLite database.
 Tasks are records only and never execute automatically. Unrecognized requests
 stay local and are never forwarded to a cloud provider.
@@ -108,6 +122,12 @@ Approval commands are `request action ...`, `approvals`, `approve N`, and
 `deny N`. Approval decisions are audited but never execute an action. Use
 `activity` to review the local audit trail. The GUI creates one local database
 snapshot per day under `data/backups` and retains the seven newest snapshots.
+
+Memory correction, soft deletion, and restoration are two-step operations. Use
+`request correct memory N: ...`, `request delete memory N`, or
+`request restore memory N`; approve the generated request; then use
+`apply memory change N`. `memory history` shows active and archived records.
+Nothing is hard-deleted, and the original value remains in the audit record.
 
 The GUI includes quick-action buttons for Status, System, SSD, Tasks, Approvals,
 Backups, and Activity. Each button invokes the same local allowlisted command as

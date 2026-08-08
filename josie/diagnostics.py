@@ -139,7 +139,7 @@ def storage_snapshot(*, config: Config, project_root: Path) -> dict[str, object]
 def recovery_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
     del config
     backup_dir = project_root / "data" / "backups"
-    backups = sorted(backup_dir.glob("josie-????-??-??.db"), reverse=True) if backup_dir.exists() else []
+    backups = sorted(backup_dir.glob("josie-*.db"), reverse=True) if backup_dir.exists() else []
     latest = backups[0] if backups else None
     integrity = "missing"
     if latest is not None:
@@ -160,7 +160,7 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
     """Restore the newest backup into memory and verify it without touching live data."""
     del config
     backup_dir = project_root / "data" / "backups"
-    backups = sorted(backup_dir.glob("josie-????-??-??.db"), reverse=True)
+    backups = sorted(backup_dir.glob("josie-*.db"), reverse=True)
     if not backups:
         return {"status": "waiting", "reason": "No backup exists", "live_database_changed": False}
     source = sqlite3.connect(f"file:{backups[0]}?mode=ro", uri=True)
@@ -208,16 +208,30 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
     try:
+        memory_columns = {
+            str(row[1]) for row in connection.execute("PRAGMA table_info(memories)").fetchall()
+        }
+        memory_fields = ["id", "created_at", "content"]
+        memory_fields.extend(field for field in ("updated_at", "status") if field in memory_columns)
+        tables = {
+            str(row[0]) for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        }
         data = {
-            "schema_version": 1,
+            "schema_version": 2,
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": "Josie local database",
             "memories": [dict(row) for row in connection.execute(
-                "SELECT id,created_at,content FROM memories ORDER BY id"
+                f"SELECT {','.join(memory_fields)} FROM memories ORDER BY id"
             )],
             "tasks": [dict(row) for row in connection.execute(
                 "SELECT id,created_at,description,status FROM tasks ORDER BY id"
             )],
+            "memory_changes": [dict(row) for row in connection.execute(
+                "SELECT id,created_at,memory_id,action,replacement_content,approval_id,status,"
+                "applied_at,original_content FROM memory_changes ORDER BY id"
+            )] if "memory_changes" in tables else [],
         }
     finally:
         connection.close()

@@ -16,6 +16,7 @@ from josie.tools import available_tools, run_tool
 from josie.acceptance import acceptance_audit
 from josie.jobs import JobRunner, available_job_handlers
 from josie.storage import LocalStore
+from josie.local_model import propose_local_actions
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -48,6 +49,8 @@ def build_parser() -> argparse.ArgumentParser:
     jobs_subcommands.add_parser("run-one", help="Run one queued allowlisted job")
     queue = jobs_subcommands.add_parser("queue", help="Queue an allowlisted local job")
     queue.add_argument("handler", choices=available_job_handlers())
+    propose = subcommands.add_parser("propose", help="Ask the local model for non-executing proposals")
+    propose.add_argument("request", nargs="+", help="Untrusted request text")
     return parser
 
 
@@ -106,6 +109,19 @@ def main() -> int:
             result = {"status": "queued", "job_id": runner.queue(args.handler)}
         else:
             result = runner.run_one()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "propose":
+        request_text = " ".join(args.request).strip()
+        store = LocalStore(project_root / "data" / "josie.db")
+        result = propose_local_actions(request_text, config=config, project_root=project_root)
+        proposal_id = store.record_model_proposal(
+            user_input=request_text,
+            model=str(result["model"]),
+            response_json=json.dumps(result, sort_keys=True),
+        )
+        result["proposal_id"] = proposal_id
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

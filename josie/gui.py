@@ -22,6 +22,7 @@ from .tools import available_tools
 from .policy import permission_for
 from .provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 from .jobs import JobRunner, available_job_handlers
+from .local_model import propose_local_actions
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -32,8 +33,9 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"help", "?", "commands"} or "what can you do" in text:
         return (
             "I can check health, show cloud status, list allowed tools, report the time, remember notes, "
-            "and manage tasks. Try: 'remember ...', 'memories', 'add task ...', 'tasks', or "
-            "'complete task 1'. Cloud calls are locked off."
+            "manage tasks, and ask the local planning model. Try: 'ask Josie ...', 'remember ...', "
+            "'memories', 'add task ...', 'tasks', or 'complete task 1'. Model proposals are review-only; "
+            "cloud calls are locked off."
         )
     if text in {"status", "dashboard", "summary", "josie status"}:
         health = health_check(config=config, project_root=project_root)
@@ -74,6 +76,39 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             return "The local job queue is unavailable."
         result = JobRunner(config=config, project_root=project_root, store=store).run_one()
         return f"Job runner: {result['status']}." if result["status"] == "idle" else f"Job {result['job_id']}: {result['status']}."
+    if text.startswith("ask josie ") or text.startswith("ask local "):
+        prefix = "ask josie " if text.startswith("ask josie ") else "ask local "
+        request_text = message.strip()[len(prefix):].strip()
+        try:
+            result = propose_local_actions(request_text, config=config, project_root=project_root)
+        except (RuntimeError, ValueError) as exc:
+            return f"The local planning model could not produce a safe proposal: {exc}. Nothing was executed."
+        proposal_id = None
+        if store:
+            proposal_id = store.record_model_proposal(
+                user_input=request_text,
+                model=str(result["model"]),
+                response_json=json.dumps(result, sort_keys=True),
+            )
+        lines = [str(result["reply"])]
+        actions = result["proposals"]
+        if actions:
+            lines.append("Review-only proposals:")
+            lines.extend(
+                f"- {item['handler']}: {item['reason']}" for item in actions
+            )
+        if proposal_id is not None:
+            lines.append(f"Proposal record {proposal_id} was saved locally.")
+        lines.append("No action was queued or executed.")
+        return "\n".join(lines)
+    if text in {"model proposals", "local proposals", "proposal history"}:
+        items = store.recent_model_proposals() if store else []
+        if not items:
+            return "No local-model proposals are recorded."
+        return "Local-model proposals:\n" + "\n".join(
+            f"{item['id']}. [{item['status']}] {item['model']} | {item['created_at']}"
+            for item in items
+        )
     if text in {"origin interview", "origin questions", "provenance interview"}:
         status = origin_workflow_status(project_root)
         return (
@@ -265,6 +300,56 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"memories", "memory", "what do you remember"}:
         items = store.memories() if store else []
         return "No saved memories yet." if not items else "Saved memories:\n" + "\n".join(f"{i}. {value}" for i, value in items)
+    if text in {"memory history", "all memories", "archived memories"}:
+        items = store.memory_records() if store else []
+        return "No memory history exists." if not items else "Memory history:\n" + "\n".join(
+            f"{item['id']}. [{item['status']}] {item['content']}" for item in items
+        )
+    correction = re.fullmatch(r"request correct memory (\d+)\s*:\s*(.+)", message.strip(), re.IGNORECASE)
+    change_action = re.fullmatch(r"request (delete|restore) memory (\d+)", text)
+    if correction or change_action:
+        if store is None:
+            return "Local memory governance is unavailable."
+        if correction:
+            memory_id = int(correction.group(1))
+            action = "correct"
+            replacement = correction.group(2)
+        else:
+            assert change_action is not None
+            action = change_action.group(1)
+            memory_id = int(change_action.group(2))
+            replacement = None
+        try:
+            change_id, approval_id = store.request_memory_change(
+                memory_id=memory_id, action=action, replacement_content=replacement
+            )
+        except ValueError as exc:
+            return f"{exc}. Nothing changed."
+        return (
+            f"Memory change {change_id} requests {action} for memory {memory_id}; approval {approval_id} "
+            "is waiting. The memory is unchanged."
+        )
+    if text in {"memory changes", "pending memory changes"}:
+        items = store.memory_changes(pending_only=True) if store else []
+        if not items:
+            return "No memory changes are awaiting review."
+        return "Pending memory changes:\n" + "\n".join(
+            f"{item['id']}. {item['action']} memory {item['memory_id']} | approval "
+            f"{item['approval_id']} {item['approval_status']}"
+            for item in items
+        )
+    apply_change = re.fullmatch(r"apply memory change (\d+)", text)
+    if apply_change:
+        if store is None:
+            return "Local memory governance is unavailable."
+        try:
+            result = store.apply_memory_change(int(apply_change.group(1)))
+        except ValueError as exc:
+            return f"{exc}. Nothing changed."
+        return (
+            f"Memory change {result['change_id']} applied: {result['action']} memory "
+            f"{result['memory_id']}. This was a recoverable soft change; no record was hard-deleted."
+        )
     if text.startswith("add task "):
         if store is None:
             return "Local tasks are unavailable."

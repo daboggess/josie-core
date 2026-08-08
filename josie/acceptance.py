@@ -55,6 +55,39 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and firewall.get("lan_allowed") is False
         and firewall.get("tailscale_allowed") is False
     )
+    planner_path = project_root / "josie" / "local_model.py"
+    planner_text = planner_path.read_text(encoding="utf-8") if planner_path.is_file() else ""
+    governed_planner_ready = bool(
+        "deterministic_allowlist" in planner_text
+        and '"actions_queued": 0' in planner_text
+        and '"actions_executed": 0' in planner_text
+        and "subprocess" not in planner_text
+    )
+    workflow_lock_path = project_root / "deploy" / "n8n-workflow.lock.json"
+    workflow_lock: dict[str, object] = {}
+    try:
+        workflow_lock = __import__("json").loads(workflow_lock_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        pass
+    workflow_validation = workflow_lock.get("validation", {})
+    workflow_record = workflow_lock.get("workflow", {})
+    storage_guard_ready = bool(
+        service_preflight["status"] == "ready"
+        and service_runtime.get("storage_monitor", {}).get("ready")
+        and isinstance(workflow_record, dict)
+        and workflow_record.get("active") is True
+        and isinstance(workflow_validation, dict)
+        and workflow_validation.get("external_communication") is False
+        and workflow_validation.get("executable_node_enabled") is False
+        and workflow_validation.get("model_parameters_accepted") is False
+    )
+    storage_source_path = project_root / "josie" / "storage.py"
+    storage_source = storage_source_path.read_text(encoding="utf-8") if storage_source_path.is_file() else ""
+    memory_governance_ready = bool(
+        "CREATE TABLE IF NOT EXISTS memory_changes" in storage_source
+        and '"hard_delete": False' in storage_source
+        and "approval_status" in storage_source
+    )
 
     criteria = {
         "repository_present": {
@@ -112,6 +145,22 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "native_model_security": {
             "state": "proven" if native_model_security_ready else "human_gate",
             "evidence": model_lock or "deploy/local-model.lock.json is missing",
+        },
+        "governed_local_planner": {
+            "state": "proven" if governed_planner_ready else "human_gate",
+            "evidence": str(planner_path),
+        },
+        "approval_gated_memory_governance": {
+            "state": "proven" if memory_governance_ready else "human_gate",
+            "evidence": str(project_root / "josie" / "storage.py"),
+        },
+        "storage_headroom_guard": {
+            "state": "proven" if storage_guard_ready else "human_gate",
+            "evidence": {
+                "preflight": service_preflight["status"],
+                "monitor": service_runtime.get("storage_monitor"),
+                "workflow_lock": workflow_lock or "deploy/n8n-workflow.lock.json is missing",
+            },
         },
         "private_remote_access": {
             "state": "proven" if remote_access["status"] == "ready" else "human_gate",

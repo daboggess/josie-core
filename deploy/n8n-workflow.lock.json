@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "installed_at": "2026-08-08T17:52:00-04:00",
+  "n8n_version": "2.30.5",
+  "workflow": {
+    "id": "9c3c3efe-e52d-4e79-becd-28893c1bbf83",
+    "name": "Josie - C Drive Headroom Guard",
+    "source": "deploy/n8n/workflows/storage-headroom-guard.json",
+    "sha256": "3a5d3719cfdbcca8ce5c1bd273c3b6dccddbba77311f1f51ffacdced2af44f3f",
+    "active": true
+  },
+  "monitor": {
+    "source": "D:\\Josie-Storage\\staging\\storage-status.json",
+    "interval_seconds": 300,
+    "warning_below_gb": 20,
+    "critical_below_gb": 15
+  },
+  "validation": {
+    "isolated_import": true,
+    "isolated_publish": true,
+    "isolated_execution": true,
+    "validation_network": "none",
+    "storage_mount": "read-only",
+    "live_n8n_healthy": true,
+    "external_communication": false,
+    "executable_node_enabled": false,
+    "model_parameters_accepted": false
+  }
+}
