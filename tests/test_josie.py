@@ -213,6 +213,52 @@ class JosieTests(unittest.TestCase):
             self.assertFalse(status["cloud_calls_allowed"])
             self.assertEqual(status["pending_human_gates"][0]["id"], "wsl")
 
+    def test_service_preflight_rejects_unverified_images(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "config" / "deployment.json").write_text(
+                '{"schema_version":1,"components":[]}', encoding="utf-8"
+            )
+            deploy = root / "deploy"
+            deploy.mkdir()
+            (deploy / "compose.yaml").write_text(
+                'ports:\n- "127.0.0.1:5678:5678"\n- "127.0.0.1:3000:8080"\n- "127.0.0.1:3010:3010"\n',
+                encoding="utf-8",
+            )
+            (deploy / ".env.services").write_text(
+                "N8N_IMAGE=n8nio/n8n:latest\n"
+                "OPEN_WEBUI_IMAGE=open-webui:main\n"
+                "PLAYWRIGHT_IMAGE=playwright:latest\n",
+                encoding="utf-8",
+            )
+            result = DeploymentController(
+                config=load_config(root / ".env"), project_root=root
+            ).service_preflight()
+            self.assertEqual(result["status"], "waiting")
+            self.assertFalse(result["network_activity"])
+            self.assertFalse(result["services_started"])
+            self.assertEqual(len(result["issues"]), 3)
+
+    def test_service_preflight_rejects_unsafe_compose_controls(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "config" / "deployment.json").write_text(
+                '{"schema_version":1,"components":[]}', encoding="utf-8"
+            )
+            deploy = root / "deploy"
+            deploy.mkdir()
+            (deploy / "compose.yaml").write_text(
+                "privileged: true\nvolumes:\n- /var/run/docker.sock:/var/run/docker.sock\n",
+                encoding="utf-8",
+            )
+            result = DeploymentController(
+                config=load_config(root / ".env"), project_root=root
+            ).service_preflight()
+            self.assertEqual(result["status"], "waiting")
+            self.assertTrue(any("docker.sock" in issue for issue in result["issues"]))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -51,6 +52,48 @@ class DeploymentController:
             "cloud_calls_allowed": self.config.allow_cloud,
         }
 
+    def service_preflight(self) -> dict[str, object]:
+        """Validate staged service controls without downloading or starting anything."""
+        deploy_root = self.project_root / "deploy"
+        compose_path = deploy_root / "compose.yaml"
+        secrets_path = deploy_root / ".env.services"
+        issues: list[str] = []
+
+        if not compose_path.is_file():
+            issues.append("deploy/compose.yaml is missing")
+        else:
+            compose = compose_path.read_text(encoding="utf-8")
+            forbidden = ("/var/run/docker.sock", "privileged: true", '0.0.0.0:')
+            for value in forbidden:
+                if value in compose:
+                    issues.append(f"forbidden compose setting: {value}")
+            for expected in ("127.0.0.1:5678", "127.0.0.1:3000", "127.0.0.1:3010"):
+                if expected not in compose:
+                    issues.append(f"missing loopback binding: {expected}")
+
+        images: dict[str, str] = {}
+        if not secrets_path.is_file():
+            issues.append("deploy/.env.services has not been created after digest verification")
+        else:
+            for raw_line in secrets_path.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
+                    if key in {"N8N_IMAGE", "OPEN_WEBUI_IMAGE", "PLAYWRIGHT_IMAGE"}:
+                        images[key] = value
+            immutable = re.compile(r"^[^\s]+:[^\s@]+@sha256:[0-9a-fA-F]{64}$")
+            for key in ("N8N_IMAGE", "OPEN_WEBUI_IMAGE", "PLAYWRIGHT_IMAGE"):
+                if not immutable.fullmatch(images.get(key, "")):
+                    issues.append(f"{key} must use a version tag and verified sha256 digest")
+
+        return {
+            "status": "ready" if not issues else "waiting",
+            "issues": issues,
+            "docker_detected": bool(shutil.which("docker")),
+            "network_activity": False,
+            "services_started": False,
+        }
+
     def run_safe_phase(self) -> dict[str, object]:
         state = self._load_state()
         steps = state.setdefault("steps", {})
@@ -85,4 +128,3 @@ class DeploymentController:
         }
         self._save_state(state)
         return {"status": "ok", "results": results, "state_path": str(self.state_path)}
-

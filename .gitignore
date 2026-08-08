@@ -6,3 +6,4 @@ logs/
 data/
 .pytest_cache/
 .vscode/
+deploy/.env.services

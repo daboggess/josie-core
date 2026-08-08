@@ -37,7 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     subcommands.add_parser("gui", help="Open Josie's local graphical interface")
     deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
-    deploy.add_argument("action", choices=("status", "safe"))
+    deploy.add_argument("action", choices=("status", "safe", "services-preflight"))
     return parser
 
 
@@ -71,7 +71,12 @@ def main() -> int:
 
     if args.command == "deploy":
         controller = DeploymentController(config=config, project_root=project_root)
-        result = controller.status() if args.action == "status" else controller.run_safe_phase()
+        if args.action == "status":
+            result = controller.status()
+        elif args.action == "services-preflight":
+            result = controller.service_preflight()
+        else:
+            result = controller.run_safe_phase()
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

@@ -1,0 +1,62 @@
+name: josie
+
+services:
+  n8n:
+    image: ${N8N_IMAGE:?Set an immutable N8N_IMAGE in deploy/.env.services}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_SECURE_COOKIE: "false"
+      GENERIC_TIMEZONE: ${JOSIE_TIMEZONE:-America/New_York}
+    volumes:
+      - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}:/josie-storage
+      - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5678/healthz >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  open-webui:
+    image: ${OPEN_WEBUI_IMAGE:?Set an immutable OPEN_WEBUI_IMAGE in deploy/.env.services}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:8080"
+    environment:
+      ENABLE_SIGNUP: "false"
+      ENABLE_OLLAMA_API: "false"
+      ENABLE_OPENAI_API: "false"
+    volumes:
+      - open_webui_data:/app/backend/data
+
+  browser-worker:
+    build:
+      context: ./browser-worker
+      args:
+        PLAYWRIGHT_IMAGE: ${PLAYWRIGHT_IMAGE:?Set an immutable PLAYWRIGHT_IMAGE}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    ports:
+      - "127.0.0.1:3010:3010"
+    environment:
+      JOSIE_BROWSER_ALLOWLIST: ${JOSIE_BROWSER_ALLOWLIST:-}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3010/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  n8n_data:
+  open_webui_data:

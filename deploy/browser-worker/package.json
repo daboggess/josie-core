@@ -1,0 +1,10 @@
+{
+  "name": "josie-browser-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-only allowlisted browser worker",
+  "main": "server.js",
+  "dependencies": {
+    "playwright": "1.62.0"
+  }
+}
