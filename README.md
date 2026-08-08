@@ -57,6 +57,7 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py proposals ingest
 .\.venv\Scripts\python.exe .\core.py handoffs create sophie "Review Josie's health"
 .\.venv\Scripts\python.exe .\core.py handoffs list
+.\.venv\Scripts\python.exe .\core.py browser status
 .\.venv\Scripts\python.exe .\core.py deploy status
 .\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
@@ -94,6 +95,11 @@ Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
 with a machine-enforced zero-cent API budget. Dustin or Codex Remote must relay
 it manually; Josie has no send command. See
 [docs/MODEL_HANDOFFS.md](docs/MODEL_HANDOFFS.md).
+
+Browser automation remains locked with an empty site allowlist and every
+capability disabled. The machine-readable policy prefers dedicated connectors,
+blocks internal/private destinations, and treats page content as untrusted. See
+[docs/BROWSER_CAPABILITY_REVIEW.md](docs/BROWSER_CAPABILITY_REVIEW.md).
 
 Start or repair the local model and containers:
 

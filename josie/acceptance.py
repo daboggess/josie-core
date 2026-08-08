@@ -10,6 +10,7 @@ from .config import Config
 from .deployment import DeploymentController
 from .diagnostics import recovery_snapshot, restore_drill_snapshot
 from .policy import load_policy
+from .browser_policy import load_browser_policy
 
 
 def _git_ignores(project_root: Path, relative_path: str) -> bool:
@@ -99,6 +100,15 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and "CHECK (api_budget_cents = 0)" in storage_source
         and "CHECK (external_activity = 0)" in storage_source
     )
+    try:
+        browser_policy = load_browser_policy(project_root)
+    except (OSError, ValueError, TypeError):
+        browser_policy = {}
+    browser_policy_ready = bool(
+        browser_policy.get("status") == "locked"
+        and browser_policy.get("allowed_host_count") == 0
+        and browser_policy.get("external_activity") is False
+    )
 
     criteria = {
         "repository_present": {
@@ -168,6 +178,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "zero_spend_model_handoffs": {
             "state": "proven" if zero_spend_handoffs_ready else "human_gate",
             "evidence": str(handoff_path),
+        },
+        "fail_closed_browser_policy": {
+            "state": "proven" if browser_policy_ready else "human_gate",
+            "evidence": browser_policy or str(project_root / "config" / "browser-policy.json"),
         },
         "storage_headroom_guard": {
             "state": "proven" if storage_guard_ready else "human_gate",

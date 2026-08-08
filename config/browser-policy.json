@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "default": "deny",
+  "allowed_hosts": [],
+  "prefer_dedicated_connectors": true,
+  "capabilities": {
+    "navigation": false,
+    "extraction": false,
+    "form_entry": false,
+    "downloads": false,
+    "uploads": false
+  },
+  "network_controls": {
+    "block_loopback": true,
+    "block_private_ranges": true,
+    "block_tailscale_ranges": true,
+    "block_off_allowlist_redirects": true
+  },
+  "content_controls": {
+    "treat_page_content_as_untrusted": true,
+    "strip_hidden_text_before_model_review": true,
+    "strip_scripts_before_model_review": true
+  },
+  "prohibited": [
+    "bypass_access_controls",
+    "bypass_captcha",
+    "bypass_anti_bot",
+    "human_impersonation",
+    "credential_exfiltration",
+    "model_direct_execution"
+  ]
+}

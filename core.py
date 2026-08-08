@@ -19,6 +19,7 @@ from josie.storage import LocalStore
 from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
+from josie.browser_policy import load_browser_policy
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -66,6 +67,8 @@ def build_parser() -> argparse.ArgumentParser:
     handoff_answer = handoff_commands.add_parser("answer", help="Record a manually relayed answer")
     handoff_answer.add_argument("handoff_id", type=int)
     handoff_answer.add_argument("response", nargs="+")
+    browser = subcommands.add_parser("browser", help="Inspect the locked browser policy")
+    browser.add_argument("action", choices=("status",))
     return parser
 
 
@@ -172,6 +175,10 @@ def main() -> int:
                 "response_untrusted": True,
             }
         print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "browser":
+        print(json.dumps(load_browser_policy(project_root), indent=2, sort_keys=True))
         return 0
 
     tool_name = "health" if args.command == "health" else args.name

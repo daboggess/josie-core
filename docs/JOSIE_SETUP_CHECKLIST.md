@@ -73,7 +73,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Expanded orchestration and deployment safety suite passes 53 tests on 2026-08-08.
+- [x] Expanded orchestration and deployment safety suite passes 55 tests on 2026-08-08.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
@@ -89,9 +89,10 @@ confirmed on Josie or by the repository test suite.
 
 - [x] Deploy an isolated Playwright 1.62.0 browser worker with all capabilities dropped and execution locked.
 - [x] Staged browser-worker health endpoint; navigation and execution remain disabled pending capability review.
+- [x] Add a machine-readable, default-deny browser policy with an empty host allowlist, private-network blocks, untrusted-content controls, and all capabilities disabled.
 - [ ] Support permitted navigation, form entry, downloads, uploads, and extraction.
-- [ ] Prefer APIs or dedicated connectors over browser automation when available.
-- [ ] Do not bypass platform rules, access controls, CAPTCHAs, or anti-bot systems.
+- [x] Prefer APIs or dedicated connectors over browser automation when available.
+- [x] Prohibit bypass of platform rules, access controls, CAPTCHAs, and anti-bot systems in both the general and browser-specific policies.
 
 ## AI and model routing
 
@@ -162,8 +163,7 @@ confirmed on Josie or by the repository test suite.
 
 1. Complete the attended Open WebUI Admin connection to the staged authenticated, local-only proposal interface; model execution authority remains absent.
 2. Import selected origin/history records through the provenance review workflow.
-3. Review a narrow browser capability allowlist before enabling navigation.
-4. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
+3. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
 
 ## Change-control rule
 

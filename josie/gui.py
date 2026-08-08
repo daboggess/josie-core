@@ -23,6 +23,7 @@ from .policy import permission_for
 from .provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 from .jobs import JobRunner, available_job_handlers
 from .local_model import propose_local_actions
+from .browser_policy import load_browser_policy
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -64,6 +65,12 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"jobs", "job status", "orchestration jobs"}:
         summary = store.job_summary() if store else {}
         return "Jobs: " + ", ".join(f"{key} {value}" for key, value in summary.items()) + "."
+    if text in {"browser", "browser policy", "browser status", "web automation"}:
+        policy = load_browser_policy(project_root)
+        return (
+            "Browser capability is LOCKED: zero allowed sites and navigation, extraction, forms, "
+            "downloads, and uploads are disabled. Dedicated connectors are preferred."
+        )
     if text.startswith("queue job "):
         if store is None:
             return "The local job queue is unavailable."

@@ -29,6 +29,7 @@ from josie.jobs import JobRunner, available_job_handlers
 from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
+from josie.browser_policy import load_browser_policy
 
 
 class JosieTests(unittest.TestCase):
@@ -128,6 +129,32 @@ class JosieTests(unittest.TestCase):
             self.assertIn("Nothing was sent", response)
             self.assertIn("$0.00", response)
             self.assertFalse(store.recent_model_handoffs()[0]["external_activity"])
+
+    def test_browser_policy_is_empty_disabled_and_fail_closed(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        policy = load_browser_policy(project_root)
+        self.assertEqual(policy["status"], "locked")
+        self.assertEqual(policy["allowed_host_count"], 0)
+        self.assertFalse(policy["enabled"])
+        self.assertFalse(policy["external_activity"])
+        self.assertTrue(policy["prefer_dedicated_connectors"])
+        self.assertTrue(all(value is False for value in policy["capabilities"].values()))
+
+    def test_browser_policy_rejects_enabled_or_wildcard_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            policy = json.loads(
+                (Path(__file__).resolve().parents[1] / "config" / "browser-policy.json")
+                .read_text(encoding="utf-8")
+            )
+            policy["enabled"] = True
+            policy["allowed_hosts"] = ["*"]
+            (root / "config" / "browser-policy.json").write_text(
+                json.dumps(policy), encoding="utf-8"
+            )
+            with self.assertRaises(ValueError):
+                load_browser_policy(root)
 
     def test_health_is_allowlisted_and_runs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
