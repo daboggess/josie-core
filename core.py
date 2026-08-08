@@ -14,6 +14,8 @@ from josie.deployment import DeploymentController
 from josie.providers import probe_gemini, probe_openai, provider_status
 from josie.tools import available_tools, run_tool
 from josie.acceptance import acceptance_audit
+from josie.jobs import JobRunner, available_job_handlers
+from josie.storage import LocalStore
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -40,6 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
     deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
     deploy.add_argument("action", choices=("status", "safe", "services-preflight"))
     subcommands.add_parser("audit", help="Audit Josie 1.0 acceptance evidence")
+    jobs = subcommands.add_parser("jobs", help="Manage bounded local orchestration jobs")
+    jobs_subcommands = jobs.add_subparsers(dest="jobs_command", required=True)
+    jobs_subcommands.add_parser("status", help="Show local job counts")
+    jobs_subcommands.add_parser("run-one", help="Run one queued allowlisted job")
+    queue = jobs_subcommands.add_parser("queue", help="Queue an allowlisted local job")
+    queue.add_argument("handler", choices=available_job_handlers())
     return parser
 
 
@@ -86,6 +94,18 @@ def main() -> int:
         result = acceptance_audit(config=config, project_root=project_root)
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0 if result["status"] != "failed" else 1
+
+    if args.command == "jobs":
+        store = LocalStore(project_root / "data" / "josie.db")
+        runner = JobRunner(config=config, project_root=project_root, store=store)
+        if args.jobs_command == "status":
+            result = store.job_summary()
+        elif args.jobs_command == "queue":
+            result = {"status": "queued", "job_id": runner.queue(args.handler)}
+        else:
+            result = runner.run_one()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
 
     tool_name = "health" if args.command == "health" else args.name
     logger.info("Running allowed tool: %s", tool_name)

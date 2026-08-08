@@ -21,6 +21,7 @@ from .roadmap import roadmap_summary
 from .tools import available_tools
 from .policy import permission_for
 from .provenance import INTERVIEW_QUESTIONS, origin_workflow_status
+from .jobs import JobRunner, available_job_handlers
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -57,6 +58,22 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"costs ${summary['estimated_cost_cents']/100:.2f}, savings ${summary['estimated_savings_cents']/100:.2f}. "
             "This ledger cannot spend or move money."
         )
+    if text in {"jobs", "job status", "orchestration jobs"}:
+        summary = store.job_summary() if store else {}
+        return "Jobs: " + ", ".join(f"{key} {value}" for key, value in summary.items()) + "."
+    if text.startswith("queue job "):
+        if store is None:
+            return "The local job queue is unavailable."
+        handler = text.removeprefix("queue job ").strip().replace("-", "_").replace(" ", "_")
+        if handler not in available_job_handlers():
+            return "Allowed job handlers: " + ", ".join(available_job_handlers()) + "."
+        job_id = JobRunner(config=config, project_root=project_root, store=store).queue(handler)
+        return f"Local allowlisted job {job_id} queued for {handler}."
+    if text in {"run one job", "run next job"}:
+        if store is None:
+            return "The local job queue is unavailable."
+        result = JobRunner(config=config, project_root=project_root, store=store).run_one()
+        return f"Job runner: {result['status']}." if result["status"] == "idle" else f"Job {result['job_id']}: {result['status']}."
     if text in {"origin interview", "origin questions", "provenance interview"}:
         status = origin_workflow_status(project_root)
         return (

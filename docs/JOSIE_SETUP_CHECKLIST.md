@@ -76,9 +76,10 @@ confirmed on Josie or by the repository test suite.
 - [ ] Install and configure n8n with persistent data outside disposable containers.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [ ] Build Josie as the orchestrator rather than a single chatbot.
-- [ ] Add narrowly allowlisted Python and JavaScript workers.
-- [ ] Add structured error handling and bounded retries.
-- [ ] Add a bounded code-repair loop with explicit attempt and resource limits.
+- [x] Add a persistent local orchestration queue with an explicit handler registry.
+- [x] Add narrowly allowlisted Python job handlers; unrestricted Python/JavaScript text execution remains forbidden.
+- [x] Add structured error handling and bounded retries capped at three attempts.
+- [x] Add non-executing repair proposals after retry exhaustion; generated code cannot run automatically.
 
 ## Computer-use capability
 

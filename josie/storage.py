@@ -71,6 +71,22 @@ class LocalStore:
                     status TEXT NOT NULL DEFAULT 'unverified'
                     CHECK (status IN ('unverified', 'confirmed', 'rejected'))
                 );
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    handler TEXT NOT NULL, payload_json TEXT NOT NULL DEFAULT '{}',
+                    status TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending','running','succeeded','failed','review_required')),
+                    attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+                    max_attempts INTEGER NOT NULL CHECK (max_attempts BETWEEN 1 AND 3),
+                    result_json TEXT, last_error TEXT
+                );
+                CREATE TABLE IF NOT EXISTS repair_proposals (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    job_id INTEGER NOT NULL, failure TEXT NOT NULL,
+                    proposal TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'review_required'
+                    CHECK (status IN ('review_required','accepted','rejected')),
+                    FOREIGN KEY(job_id) REFERENCES jobs(id)
+                );
                 """
             )
 
@@ -321,3 +337,85 @@ class LocalStore:
         if changed:
             self.audit(f"provenance_{decision}", str(record_id))
         return changed
+
+    def enqueue_job(self, handler: str, payload_json: str = "{}", max_attempts: int = 2) -> int:
+        if max_attempts < 1 or max_attempts > 3:
+            raise ValueError("Job attempts must be between 1 and 3")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO jobs(created_at,handler,payload_json,max_attempts) VALUES (?,?,?,?)",
+                (self._now(), handler, payload_json, max_attempts),
+            )
+            job_id = int(cursor.lastrowid)
+        self.audit("job_queued", f"{job_id}: {handler}")
+        return job_id
+
+    def claim_next_job(self) -> dict[str, object] | None:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT id,handler,payload_json,attempts,max_attempts FROM jobs "
+                "WHERE status='pending' ORDER BY id LIMIT 1"
+            ).fetchone()
+            if row is None:
+                return None
+            connection.execute(
+                "UPDATE jobs SET status='running',attempts=attempts+1 WHERE id=?",
+                (row["id"],),
+            )
+        return {
+            "id": int(row["id"]), "handler": row["handler"],
+            "payload_json": row["payload_json"], "attempts": int(row["attempts"]) + 1,
+            "max_attempts": int(row["max_attempts"]),
+        }
+
+    def finish_job(self, job_id: int, result_json: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE jobs SET status='succeeded',result_json=?,last_error=NULL "
+                "WHERE id=? AND status='running'", (result_json, job_id),
+            )
+        self.audit("job_succeeded", str(job_id))
+
+    def fail_job(self, job_id: int, error: str) -> str:
+        bounded_error = error[:1000]
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT attempts,max_attempts FROM jobs WHERE id=? AND status='running'", (job_id,)
+            ).fetchone()
+            if row is None:
+                raise ValueError("Running job was not found")
+            retry = int(row["attempts"]) < int(row["max_attempts"])
+            status = "pending" if retry else "review_required"
+            connection.execute(
+                "UPDATE jobs SET status=?,last_error=? WHERE id=?", (status, bounded_error, job_id)
+            )
+            if not retry:
+                connection.execute(
+                    "INSERT INTO repair_proposals(created_at,job_id,failure,proposal) VALUES (?,?,?,?)",
+                    (
+                        self._now(), job_id, bounded_error,
+                        "Inspect the structured failure and propose a tracked code/config change. "
+                        "Do not execute generated code automatically.",
+                    ),
+                )
+        self.audit("job_retry" if retry else "job_review_required", str(job_id))
+        return status
+
+    def job_summary(self) -> dict[str, int]:
+        with self._connect() as connection:
+            rows = connection.execute("SELECT status,COUNT(*) total FROM jobs GROUP BY status").fetchall()
+        result = {status: 0 for status in ("pending", "running", "succeeded", "failed", "review_required")}
+        result.update({row["status"]: int(row["total"]) for row in rows})
+        return result
+
+    def recent_jobs(self, limit: int = 20) -> list[tuple[int, str, str, int, int]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,handler,status,attempts,max_attempts FROM jobs ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [
+            (int(row["id"]), row["handler"], row["status"], int(row["attempts"]), int(row["max_attempts"]))
+            for row in rows
+        ]

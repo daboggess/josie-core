@@ -21,6 +21,7 @@ from josie.deployment import DeploymentController
 from josie.policy import load_policy, permission_for
 from josie.provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 from josie.acceptance import acceptance_audit
+from josie.jobs import JobRunner, available_job_handlers
 
 
 class JosieTests(unittest.TestCase):
@@ -244,6 +245,37 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn("tailscale up", lowered)
         self.assertNotIn("0.0.0.0:", lowered)
         self.assertNotIn("set-executionpolicy", lowered)
+
+    def test_job_runner_only_executes_registered_handlers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            runner = JobRunner(config=load_config(root / ".env"), project_root=root, store=store)
+            self.assertIn("health_check", available_job_handlers())
+            with self.assertRaisesRegex(ValueError, "not allowed"):
+                runner.queue("shell", {"command": "whoami"})
+            job_id = runner.queue("health_check")
+            result = runner.run_one()
+            self.assertEqual(result["job_id"], job_id)
+            self.assertEqual(result["status"], "succeeded")
+            self.assertEqual(store.job_summary()["succeeded"], 1)
+
+    def test_job_failures_retry_at_most_three_times_and_never_execute_repairs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            runner = JobRunner(config=load_config(root / ".env"), project_root=root, store=store)
+            job_id = runner.queue("health_check", {"unexpected": True}, max_attempts=3)
+            first = runner.run_one()
+            second = runner.run_one()
+            third = runner.run_one()
+            self.assertEqual(first["status"], "pending")
+            self.assertEqual(second["status"], "pending")
+            self.assertEqual(third["status"], "review_required")
+            self.assertFalse(third["generated_code_executed"])
+            self.assertEqual(third["job_id"], job_id)
+            self.assertEqual(store.job_summary()["review_required"], 1)
+            self.assertEqual(runner.run_one()["status"], "idle")
 
     def test_local_status_dashboard(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
