@@ -9,6 +9,7 @@
     {"id": "container_runtime", "phase": "system", "gate": "admin_and_download"},
     {"id": "n8n", "phase": "services", "gate": "network_download"},
     {"id": "browser_worker", "phase": "services", "gate": "network_download"},
-    {"id": "open_webui", "phase": "services", "gate": "network_download"}
+    {"id": "open_webui", "phase": "services", "gate": "network_download"},
+    {"id": "local_model", "phase": "models", "gate": "network_download_and_firewall"}
   ]
 }

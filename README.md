@@ -4,10 +4,14 @@ The canonical build roadmap is [docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_
 The non-destructive external-drive procedure is [docs/EXTERNAL_DRIVE_PLAN.md](docs/EXTERNAL_DRIVE_PLAN.md).
 The capability policy is [docs/PERMISSIONS_MATRIX.md](docs/PERMISSIONS_MATRIX.md).
 
-Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The current checkpoint uses only the Python standard library, runs safely on the Intel HD 630 system, and does not install local models or GPU packages.
+Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The Python kernel uses only the standard library. Native Windows Ollama runs the CPU-only `josie-local:1.0` model from the external drive; no GPU packages are installed and cloud providers remain locked off.
 
 Large, archival, and replaceable data is rooted at `D:\Josie-Storage`; the live
 application and SQLite database remain on the internal SSD.
+
+The 128 GB internal SSD is guarded by a 20 GB warning threshold and a 15 GB
+critical threshold. Docker's WSL disk remains on C: for the existing services,
+so storage monitoring is mandatory even though Ollama and its model are on D:.
 
 ## Safety model
 
@@ -51,6 +55,43 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py providers check openai
 .\.venv\Scripts\python.exe .\core.py providers check gemini
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+## Private local chat
+
+From a device connected to Dustin's Tailscale network, open:
+
+```text
+https://refurb.tail0ab4d2.ts.net/
+```
+
+Open WebUI sends model requests to the native Ollama server through Docker's
+host gateway. The model server is not published through Tailscale or the LAN.
+OpenAI API access remains disabled, so this chat path cannot create OpenAI API
+charges.
+
+Start or repair the local model and containers:
+
+```powershell
+cd C:\Josie
+.\scripts\Ensure-JosieOllama.ps1
+docker compose --env-file .\deploy\.env.services -f .\deploy\compose.yaml up -d
+```
+
+Stop the containers without deleting data, then unload the local model:
+
+```powershell
+docker compose --env-file .\deploy\.env.services -f .\deploy\compose.yaml stop
+& 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' stop josie-local:1.0
+```
+
+Check the model, storage thresholds, and acceptance state:
+
+```powershell
+& 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' list
+.\scripts\Write-JosieStorageSnapshot.ps1
+.\.venv\Scripts\python.exe .\core.py deploy validate
+.\.venv\Scripts\python.exe .\core.py audit
 ```
 
 Josie is currently command-based, not a background service. Each command stops when its result is printed. If a future long-running command is added, press `Ctrl+C` to stop it.

@@ -33,6 +33,7 @@ foreach ($key in 'N8N_IMAGE', 'OPEN_WEBUI_IMAGE') {
 $stamp = [DateTimeOffset]::Now.ToString('yyyyMMdd-HHmmss')
 $n8nArchive = Join-Path $backupRoot "n8n-$stamp.tgz"
 $webuiArchive = Join-Path $backupRoot "open-webui-$stamp.tgz"
+$modelManifest = Join-Path $backupRoot "ollama-models-$stamp.txt"
 $mount = ($backupRoot -replace '\\', '/')
 
 try {
@@ -51,6 +52,11 @@ finally {
     & $dockerPath compose --env-file $environmentPath -f $composePath up -d n8n open-webui
 }
 
+$ollamaPath = 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
+if (-not (Test-Path -LiteralPath $ollamaPath)) { throw 'The native Ollama runtime is unavailable.' }
+& $ollamaPath list | Set-Content -LiteralPath $modelManifest -Encoding UTF8
+if ($LASTEXITCODE -ne 0) { throw 'Ollama model manifest capture failed.' }
+
 foreach ($archive in $n8nArchive, $webuiArchive) {
     if (-not (Test-Path -LiteralPath $archive) -or (Get-Item -LiteralPath $archive).Length -eq 0) {
         throw "Backup archive is missing or empty: $archive"
@@ -61,11 +67,15 @@ foreach ($archive in $n8nArchive, $webuiArchive) {
     "$($hash.Hash.ToLowerInvariant())  $([IO.Path]::GetFileName($archive))" |
         Set-Content -LiteralPath "$archive.sha256" -Encoding ASCII
 }
+$manifestHash = Get-FileHash -LiteralPath $modelManifest -Algorithm SHA256
+"$($manifestHash.Hash.ToLowerInvariant())  $([IO.Path]::GetFileName($modelManifest))" |
+    Set-Content -LiteralPath "$modelManifest.sha256" -Encoding ASCII
 
 [ordered]@{
     status = 'ok'
     created_at = [DateTimeOffset]::Now.ToString('o')
     archives = @($n8nArchive, $webuiArchive)
-    checksums = @("$n8nArchive.sha256", "$webuiArchive.sha256")
+    model_manifest = $modelManifest
+    checksums = @("$n8nArchive.sha256", "$webuiArchive.sha256", "$modelManifest.sha256")
     deletion_performed = $false
 } | ConvertTo-Json -Depth 3

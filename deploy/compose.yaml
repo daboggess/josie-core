@@ -28,7 +28,9 @@ services:
       - "127.0.0.1:3000:8080"
     environment:
       ENABLE_SIGNUP: ${OPEN_WEBUI_ENABLE_SIGNUP:-false}
-      ENABLE_OLLAMA_API: "false"
+      ENABLE_PERSISTENT_CONFIG: "false"
+      ENABLE_OLLAMA_API: "true"
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
       ENABLE_OPENAI_API: "false"
       ENABLE_VERSION_UPDATE_CHECK: "false"
     volumes:

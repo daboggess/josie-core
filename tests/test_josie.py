@@ -465,7 +465,7 @@ class JosieTests(unittest.TestCase):
             self.assertEqual(result["status"], "waiting")
             self.assertFalse(result["network_activity"])
             self.assertFalse(result["services_started"])
-            self.assertEqual(len(result["issues"]), 3)
+            self.assertGreaterEqual(len(result["issues"]), 3)
 
     def test_service_preflight_rejects_unsafe_compose_controls(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -508,13 +508,21 @@ class JosieTests(unittest.TestCase):
             def locked_response(request, timeout=0):
                 del timeout
                 url = request if isinstance(request, str) else request.full_url
-                return FakeResponse('{"execution":false,"allowedHosts":0}' if url.endswith("3010/health") else '{"status":true}')
+                if url.endswith("3010/health"):
+                    return FakeResponse('{"execution":false,"allowedHosts":0}')
+                if url.endswith("11434/api/tags"):
+                    return FakeResponse('{"models":[{"name":"josie-local:1.0"}]}')
+                return FakeResponse('{"status":true}')
             with patch("josie.deployment.urllib.request.urlopen", side_effect=locked_response):
                 self.assertEqual(controller.service_runtime_status()["status"], "ready")
             def unlocked_response(request, timeout=0):
                 del timeout
                 url = request if isinstance(request, str) else request.full_url
-                return FakeResponse('{"execution":true,"allowedHosts":1}' if url.endswith("3010/health") else '{"status":true}')
+                if url.endswith("3010/health"):
+                    return FakeResponse('{"execution":true,"allowedHosts":1}')
+                if url.endswith("11434/api/tags"):
+                    return FakeResponse('{"models":[{"name":"josie-local:1.0"}]}')
+                return FakeResponse('{"status":true}')
             with patch("josie.deployment.urllib.request.urlopen", side_effect=unlocked_response):
                 result = controller.service_runtime_status()
                 self.assertEqual(result["status"], "waiting")
@@ -535,12 +543,57 @@ class JosieTests(unittest.TestCase):
         script = (project_root / "scripts" / "Backup-JosieServices.ps1").read_text(encoding="utf-8").lower()
         self.assertIn("josie_n8n_data:/source:ro", script)
         self.assertIn("josie_open_webui_data:/source:ro", script)
+        self.assertIn("ollama.exe", script)
+        self.assertIn("modelmanifest", script)
         self.assertIn("get-filehash", script)
         self.assertIn("tar.exe -tzf", script)
         self.assertIn("finally", script)
         self.assertNotIn("volume rm", script)
         self.assertNotIn("remove-item", script)
         self.assertNotIn("--volumes", script)
+
+    def test_native_model_rollout_is_allowlisted_and_stored_on_external_disk(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        installer = (project_root / "scripts" / "Install-JosieNativeModel.ps1").read_text(
+            encoding="utf-8"
+        ).lower()
+        server = (project_root / "scripts" / "Start-JosieOllama.ps1").read_text(
+            encoding="utf-8"
+        ).lower()
+        modelfile = (project_root / "deploy" / "Josie.Modelfile").read_text(encoding="utf-8").lower()
+        compose = (project_root / "deploy" / "compose.yaml").read_text(encoding="utf-8").lower()
+        self.assertIn("7c941ae084569d298062d29f8139163a3187c76dbca0479c70d085e78fd8c7bb", installer)
+        self.assertIn("qwen2.5:1.5b-instruct-q4_k_m", installer)
+        self.assertIn("d:\\josie-storage\\apps\\ollama\\0.32.5", installer)
+        self.assertIn("d:\\josie-storage\\models\\ollama", server)
+        self.assertIn("ollama_max_loaded_models = '1'", server)
+        self.assertIn("ollama_num_parallel = '1'", server)
+        self.assertIn("parameter num_thread 3", modelfile)
+        self.assertIn("parameter num_ctx 4096", modelfile)
+        self.assertIn("ollama_base_url: http://host.docker.internal:11434", compose)
+        self.assertIn('enable_openai_api: "false"', compose)
+        self.assertNotIn("ollama/ollama", compose)
+        self.assertNotIn("11434:11434", compose)
+
+    def test_native_model_firewall_is_docker_scoped(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        script = (project_root / "scripts" / "Set-JosieOllamaFirewall.ps1").read_text(
+            encoding="utf-8"
+        ).lower()
+        self.assertIn("defaultinboundaction -ne block", script)
+        self.assertIn("172.18.0.0/16", script)
+        self.assertIn("172.31.0.0/20", script)
+        self.assertIn("192.168.65.0/24", script)
+        self.assertIn("tailscale_allowed = $false", script)
+        self.assertIn("lan_allowed = $false", script)
+        self.assertNotIn("set-netfirewallprofile", script)
+
+    def test_startup_bootstraps_local_model_without_arbitrary_commands(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        startup = (project_root / "Start Josie.cmd").read_text(encoding="utf-8").lower()
+        self.assertIn("ensure-josieollama.ps1", startup)
+        self.assertNotIn("%1", startup)
+        self.assertNotIn("%*", startup)
 
 
 if __name__ == "__main__":

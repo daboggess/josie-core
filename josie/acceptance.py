@@ -39,6 +39,22 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
     remote_access = DeploymentController(
         config=config, project_root=project_root
     ).remote_access_status()
+    model_lock: dict[str, object] = {}
+    try:
+        model_lock = __import__("json").loads(
+            (project_root / "deploy" / "local-model.lock.json").read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError):
+        pass
+    firewall = model_lock.get("firewall", {})
+    native_model_security_ready = bool(
+        model_lock.get("model") == "josie-local:1.0"
+        and model_lock.get("cloud_spend_enabled") is False
+        and model_lock.get("gpu_enabled") is False
+        and isinstance(firewall, dict)
+        and firewall.get("lan_allowed") is False
+        and firewall.get("tailscale_allowed") is False
+    )
 
     criteria = {
         "repository_present": {
@@ -84,6 +100,18 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "local_services": {
             "state": "proven" if service_preflight["status"] == "ready" and service_runtime["status"] == "ready" else "human_gate",
             "evidence": {"preflight": service_preflight, "runtime": service_runtime},
+        },
+        "local_model": {
+            "state": "proven" if service_runtime.get("local_model_ready") else "human_gate",
+            "evidence": {
+                "model": service_runtime.get("local_model"),
+                "ready": service_runtime.get("local_model_ready", False),
+                "cloud_calls_allowed": config.allow_cloud,
+            },
+        },
+        "native_model_security": {
+            "state": "proven" if native_model_security_ready else "human_gate",
+            "evidence": model_lock or "deploy/local-model.lock.json is missing",
         },
         "private_remote_access": {
             "state": "proven" if remote_access["status"] == "ready" else "human_gate",

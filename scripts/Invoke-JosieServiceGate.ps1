@@ -46,7 +46,9 @@ $lines = @(
     "N8N_IMAGE=$N8nImage"
     "OPEN_WEBUI_IMAGE=$OpenWebUIImage"
     "PLAYWRIGHT_IMAGE=$PlaywrightImage"
+    'JOSIE_LOCAL_MODEL=josie-local:1.0'
     'JOSIE_BROWSER_ALLOWLIST='
+    'OPEN_WEBUI_ENABLE_SIGNUP=false'
 )
 $temporary = "$environmentPath.tmp"
 $lines | Set-Content -LiteralPath $temporary -Encoding UTF8
@@ -68,4 +70,5 @@ if ($PSCmdlet.ShouldProcess('Josie local service stack', 'Pull immutable images,
 }
 
 & $dockerPath compose --env-file $environmentPath -f $composePath ps
-Write-Host 'Services are local-only. Browser execution and cloud providers remain locked.'
+Write-Host 'Container services are local-only. Browser execution and cloud providers remain locked.'
+Write-Host 'Native Ollama is a separate approved gate and stores its runtime and models on D:.'

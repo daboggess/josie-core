@@ -15,8 +15,29 @@ digests and creates `deploy/.env.services`. Only then may services be pulled and
 started. All published ports bind to `127.0.0.1`; remote exposure requires a
 separate explicit approval.
 
+## Native local model
+
+Ollama is deliberately not inside Docker on this 128 GB system. The verified
+standalone Windows runtime is installed under
+`D:\Josie-Storage\apps\Ollama\0.32.5`, and all model blobs are stored under
+`D:\Josie-Storage\models\ollama`.
+
+The governed `josie-local:1.0` model is derived from
+`qwen2.5:1.5b-instruct-q4_K_M`. Its Modelfile fixes a 4096-token context, three
+inference threads, and low-temperature output. The server allows one loaded
+model, one parallel request, and a bounded queue.
+
+Open WebUI reaches native Ollama at `host.docker.internal:11434`. Windows
+Firewall retains default inbound blocking and adds one program-specific allow
+rule limited to the observed Docker/WSL source networks. No LAN or Tailscale
+client is authorized to call Ollama directly. OpenAI remains disabled.
+
 ## Recovery
 
 Stop services with `docker compose --env-file deploy/.env.services -f deploy/compose.yaml down`.
 Named volumes are retained. Remove no volumes unless a verified backup exists
 and Dustin explicitly approves deletion.
+
+The native model is replaceable download data. Backups record its installed
+manifest and checksum but do not duplicate model blobs on the same external
+drive.

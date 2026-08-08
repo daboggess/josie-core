@@ -60,6 +60,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Expose only authenticated Open WebUI through Tailscale Serve; verified `tailnet only` with Funnel disabled.
 - [x] Deploy Open WebUI v0.8.9 by immutable digest on localhost only; cloud providers disabled.
 - [x] Make Open WebUI available to Dustin's phone/laptop at private Tailscale HTTPS URL.
+- [x] Configure Open WebUI from environment-controlled settings to use native Ollama only.
 
 ## Core orchestration
 
@@ -97,7 +98,10 @@ confirmed on Josie or by the repository test suite.
 - [ ] Define a zero-spend Sophie workflow through ChatGPT/Codex Remote.
 - [ ] Define when Gemini free-tier use is acceptable, with an explicit budget gate.
 - [ ] Compare provider answers only when the user has approved the associated API use.
-- [ ] Add local models after storage and hardware capacity permit.
+- [x] Add native Windows Ollama 0.32.5 under the 10 TB storage root instead of expanding Docker's C: VHDX.
+- [x] Add governed `josie-local:1.0` from Qwen 2.5 1.5B Q4_K_M with three threads and 4096-token context.
+- [x] Keep model blobs on D:, OpenAI disabled, and native Ollama inaccessible from LAN/Tailscale clients.
+- [ ] A/B test Qwen3 only if the first model fails the structured-proposal evaluation.
 - [ ] Reconfirm whether Claude should serve as an optional editor/checker.
 
 ## Persistent memory and continuity

@@ -17,6 +17,9 @@ from .reports import export_diagnostics
 from .storage import LocalStore
 
 
+LOCAL_MODEL = "josie-local:1.0"
+
+
 def _safe_private_serve(output: str) -> bool:
     lowered = output.lower()
     return bool(
@@ -98,6 +101,7 @@ class DeploymentController:
             "n8n": "http://127.0.0.1:5678/healthz",
             "open_webui": "http://127.0.0.1:3000/health",
             "browser_worker": "http://127.0.0.1:3010/health",
+            "ollama": "http://127.0.0.1:11434/api/tags",
         }
         results: dict[str, object] = {}
         for name, url in endpoints.items():
@@ -115,14 +119,28 @@ class DeploymentController:
                 browser_safe = browser_data.get("execution") is False and browser_data.get("allowedHosts") == 0
             except json.JSONDecodeError:
                 pass
+        model_ready = False
+        ollama = results.get("ollama", {})
+        if isinstance(ollama, dict) and ollama.get("ok"):
+            try:
+                model_data = json.loads(str(ollama.get("body", "{}")))
+                model_ready = any(
+                    item.get("name") == LOCAL_MODEL
+                    for item in model_data.get("models", [])
+                    if isinstance(item, dict)
+                )
+            except json.JSONDecodeError:
+                pass
         all_healthy = all(
             isinstance(results[name], dict) and results[name].get("ok")
             for name in endpoints
         )
         return {
-            "status": "ready" if all_healthy and browser_safe else "waiting",
+            "status": "ready" if all_healthy and browser_safe and model_ready else "waiting",
             "services": results,
             "browser_execution_locked": browser_safe,
+            "local_model": LOCAL_MODEL,
+            "local_model_ready": model_ready,
             "loopback_only": True,
             "cloud_calls_allowed": self.config.allow_cloud,
         }
@@ -163,7 +181,7 @@ class DeploymentController:
         if ready:
             state = self._load_state()
             steps = state.setdefault("steps", {})
-            for name in ("tailscale", "wsl", "container_runtime", "n8n", "browser_worker", "open_webui"):
+            for name in ("tailscale", "wsl", "container_runtime", "n8n", "browser_worker", "open_webui", "local_model"):
                 steps[name] = "complete"
             steps["runtime_security"] = {
                 "loopback_only": True,
@@ -199,6 +217,17 @@ class DeploymentController:
             for expected in ("127.0.0.1:5678", "127.0.0.1:3000", "127.0.0.1:3010"):
                 if expected not in compose:
                     issues.append(f"missing loopback binding: {expected}")
+            required_controls = (
+                'ENABLE_PERSISTENT_CONFIG: "false"',
+                'ENABLE_OLLAMA_API: "true"',
+                'OLLAMA_BASE_URL: http://host.docker.internal:11434',
+                'ENABLE_OPENAI_API: "false"',
+            )
+            for value in required_controls:
+                if value not in compose:
+                    issues.append(f"missing Open WebUI control: {value}")
+            if "11434:11434" in compose:
+                issues.append("Ollama must not be published by Docker")
 
         images: dict[str, str] = {}
         if not secrets_path.is_file():
