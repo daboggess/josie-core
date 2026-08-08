@@ -40,6 +40,7 @@ confirmed on Josie or by the repository test suite.
 ## Immediate hardware and storage
 
 - [ ] Attach the 10 TB external USB HDD.
+- [x] Read-only disk inventory completed on 2026-08-07: the 10 TB drive was not attached or detected; only the healthy internal SQF 128 GB SATA SSD was visible.
 - [ ] Confirm its health, filesystem, drive letter, and usable capacity.
 - [ ] Create directories for models, datasets, downloads, generated files, archives, logs, and backups.
 - [ ] Keep active programs and databases on the internal SSD where practical.
@@ -49,6 +50,7 @@ confirmed on Josie or by the repository test suite.
 
 - [x] ChatGPT Remote available for current Codex supervision.
 - [ ] Evaluate and install Tailscale for general secure remote access without router port forwarding.
+- [x] Verified 2026-08-07: Tailscale is not currently installed.
 - [ ] Define which local services, if any, Tailscale may expose.
 - [ ] Evaluate Open WebUI after storage and container prerequisites are ready.
 - [ ] Make the approved Josie interface usable from phone and laptop.
@@ -56,6 +58,8 @@ confirmed on Josie or by the repository test suite.
 ## Core orchestration
 
 - [ ] Verify storage headroom before installing container tooling.
+- [x] Verified 2026-08-07: Docker, system Node.js/npm, and n8n are not installed.
+- [x] Verified 2026-08-07: `wsl.exe` exists but Windows Subsystem for Linux is not installed/enabled.
 - [ ] Evaluate Docker Desktop versus a lighter Windows/WSL container runtime.
 - [ ] Install container tooling only after explicit approval.
 - [ ] Install and configure n8n with persistent data outside disposable containers.
@@ -144,4 +148,3 @@ confirmed on Josie or by the repository test suite.
 Destructive, privileged, authentication, network-exposure, spending, wallet,
 contractual, or externally communicative actions always require explicit human
 approval. Planned checklist entries are not authorization to perform them.
-
