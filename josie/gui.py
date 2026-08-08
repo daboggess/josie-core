@@ -19,6 +19,7 @@ from .storage import LocalStore
 from .reports import export_diagnostics, warning_snapshot
 from .roadmap import roadmap_summary
 from .tools import available_tools
+from .policy import permission_for
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -55,6 +56,17 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"costs ${summary['estimated_cost_cents']/100:.2f}, savings ${summary['estimated_savings_cents']/100:.2f}. "
             "This ledger cannot spend or move money."
         )
+    if text.startswith("permission ") or text.startswith("may you "):
+        prefix = "permission " if text.startswith("permission ") else "may you "
+        capability = text.removeprefix(prefix).strip()
+        result = permission_for(capability, project_root)
+        labels = {
+            "autonomous": "allowed autonomously",
+            "approval_required": "requires immediate human approval",
+            "forbidden": "forbidden",
+        }
+        known = "known capability" if result["known"] == "true" else "unknown capability; fail-closed default"
+        return f"{result['capability']}: {labels[result['decision']]} ({known})."
     ledger_match = re.fullmatch(
         r"record (actual|estimated) (revenue|expense|api cost|electricity|savings) "
         r"\$?(\d+(?:\.\d{1,2})?) for (.+)", text

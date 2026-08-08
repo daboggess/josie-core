@@ -18,9 +18,47 @@ from josie.reports import export_diagnostics, warning_snapshot
 from josie.instance import gui_instance
 from josie.roadmap import roadmap_summary
 from josie.deployment import DeploymentController
+from josie.policy import load_policy, permission_for
 
 
 class JosieTests(unittest.TestCase):
+    @staticmethod
+    def _write_policy(root: Path) -> None:
+        config = root / "config"
+        config.mkdir(exist_ok=True)
+        (config / "permissions.json").write_text(
+            '{"schema_version":1,"default":"forbidden",'
+            '"autonomous":["run_tests"],'
+            '"approval_required":["install_software"],'
+            '"forbidden":["bypass_security"]}', encoding="utf-8"
+        )
+
+    def test_machine_policy_is_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_policy(root)
+            self.assertEqual(permission_for("run tests", root)["decision"], "autonomous")
+            self.assertEqual(permission_for("install software", root)["decision"], "approval_required")
+            self.assertEqual(permission_for("unknown future power", root)["decision"], "forbidden")
+
+    def test_machine_policy_rejects_overlap_and_permissive_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = root / "config"
+            config.mkdir()
+            path = config / "permissions.json"
+            path.write_text(
+                '{"default":"autonomous","autonomous":[],"approval_required":[],"forbidden":[]}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "default"):
+                load_policy(root)
+            path.write_text(
+                '{"default":"forbidden","autonomous":["x"],'
+                '"approval_required":["x"],"forbidden":[]}', encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "multiple"):
+                load_policy(root)
     def test_health_is_allowlisted_and_runs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

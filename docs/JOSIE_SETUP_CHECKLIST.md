@@ -112,7 +112,8 @@ confirmed on Josie or by the repository test suite.
 - [x] Explicit tool allowlist.
 - [x] Non-executing approval inbox and audit trail.
 - [x] Cloud-spending lock controlled outside provider code.
-- [ ] Define capability-specific autonomous, approval-required, and forbidden actions.
+- [x] Encode capability-specific permissions in a tested, fail-closed machine-readable policy.
+- [x] Unknown capabilities default to forbidden; overlapping policy groups are rejected.
 - [ ] Require human approval for sensitive external communication or file transfer.
 - [ ] Prohibit human impersonation where disallowed.
 - [ ] Prohibit debt, contracts, significant spending, or wallet transfers without authorization.

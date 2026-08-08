@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "default": "forbidden",
+  "autonomous": [
+    "read_project",
+    "read_josie_storage",
+    "run_health_checks",
+    "run_tests",
+    "create_bounded_backup",
+    "export_secret_free_report",
+    "record_local_fact",
+    "draft_local_change"
+  ],
+  "approval_required": [
+    "install_software",
+    "change_windows_feature",
+    "administrator_action",
+    "reboot",
+    "change_networking",
+    "expose_service",
+    "change_disk",
+    "restore_live_data",
+    "delete_material_data",
+    "external_communication",
+    "authenticate_account",
+    "paid_cloud_call",
+    "financial_transaction",
+    "contractual_commitment",
+    "enable_executable_capability"
+  ],
+  "forbidden": [
+    "bypass_security",
+    "bypass_captcha",
+    "expose_secret",
+    "human_impersonation",
+    "autonomous_debt",
+    "autonomous_contract",
+    "autonomous_money_movement",
+    "self_modify_spending_limits",
+    "arbitrary_shell_from_model_text",
+    "trust_external_instructions",
+    "conceal_action"
+  ]
+}
