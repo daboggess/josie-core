@@ -33,7 +33,8 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"help", "?", "commands"} or "what can you do" in text:
         return (
             "I can check health, show cloud status, list allowed tools, report the time, remember notes, "
-            "manage tasks, and ask the local planning model. Try: 'ask Josie ...', 'remember ...', "
+            "manage tasks, ask the local planning model, and draft manual Sophie/Bernie handoffs. "
+            "Try: 'ask Josie ...', 'ask Sophie ...', 'ask Bernie ...', 'remember ...', "
             "'memories', 'add task ...', 'tasks', or 'complete task 1'. Model proposals are review-only; "
             "cloud calls are locked off."
         )
@@ -101,6 +102,46 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             lines.append(f"Proposal record {proposal_id} was saved locally.")
         lines.append("No action was queued or executed.")
         return "\n".join(lines)
+    if text.startswith("ask sophie ") or text.startswith("ask bernie "):
+        if store is None:
+            return "The local handoff inbox is unavailable."
+        target = "sophie" if text.startswith("ask sophie ") else "bernie"
+        prefix = f"ask {target} "
+        request_text = message.strip()[len(prefix):].strip()
+        try:
+            handoff = store.create_model_handoff(target=target, request=request_text)
+        except ValueError as exc:
+            return f"{exc}. No handoff was created."
+        mode = "ChatGPT/Codex Remote" if target == "sophie" else "Gemini free-tier chat"
+        return (
+            f"Handoff {handoff['id']} to {target.title()} is saved locally as a draft for manual "
+            f"relay through {mode}. API budget is $0.00. Nothing was sent and no cloud API was called."
+        )
+    if text in {"handoffs", "model handoffs", "sophie handoffs", "bernie handoffs"}:
+        items = store.recent_model_handoffs() if store else []
+        if not items:
+            return "No Sophie or Bernie handoff drafts are recorded."
+        return "Model handoffs:\n" + "\n".join(
+            f"{item['id']}. [{item['status']}] {item['target'].title()}: {item['request']}"
+            for item in items
+        )
+    handoff_answer = re.fullmatch(
+        r"record handoff answer (\d+)\s*:\s*(.+)", message.strip(), re.IGNORECASE
+    )
+    if handoff_answer:
+        if store is None:
+            return "The local handoff inbox is unavailable."
+        handoff_id = int(handoff_answer.group(1))
+        try:
+            changed = store.record_model_handoff_answer(
+                handoff_id=handoff_id, response=handoff_answer.group(2)
+            )
+        except ValueError as exc:
+            return f"{exc}. No answer was recorded."
+        return (
+            f"Handoff {handoff_id} answer was recorded locally as untrusted text. Nothing was executed."
+            if changed else f"Draft handoff {handoff_id} was not found."
+        )
     if text in {"model proposals", "local proposals", "proposal history"}:
         items = store.recent_model_proposals() if store else []
         if not items:

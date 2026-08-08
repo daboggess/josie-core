@@ -55,6 +55,8 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py propose "Please check Josie system health"
 .\.venv\Scripts\python.exe .\core.py proposals status
 .\.venv\Scripts\python.exe .\core.py proposals ingest
+.\.venv\Scripts\python.exe .\core.py handoffs create sophie "Review Josie's health"
+.\.venv\Scripts\python.exe .\core.py handoffs list
 .\.venv\Scripts\python.exe .\core.py deploy status
 .\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
@@ -86,6 +88,12 @@ proposal types. It is disabled by default, has no host port, uses a private
 Docker network and bearer token, and can only write bounded JSON records. The
 host monitor validates and imports those records into Core; it never executes
 them. See [docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
+
+Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
+`ask Sophie ...` and `ask Bernie ...` in the GUI save a secret-screened draft
+with a machine-enforced zero-cent API budget. Dustin or Codex Remote must relay
+it manually; Josie has no send command. See
+[docs/MODEL_HANDOFFS.md](docs/MODEL_HANDOFFS.md).
 
 Start or repair the local model and containers:
 
@@ -122,8 +130,9 @@ The same monitor also ingests and validates any records in the proposal inbox.
 The `gui` command opens Josie's local chat-style command center. It understands
 `help`, `status`, `system status`, `repository status`, `health`, `cloud status`,
 `storage health`, `uptime`, `backup status`, `tools`, `time`, `remember ...`, `memories`,
-`add task ...`, `tasks`, `complete task N`, `ask Josie ...`, and
-`external proposals`. Conversations, memories, and task
+`add task ...`, `tasks`, `complete task N`, `ask Josie ...`,
+`external proposals`, `ask Sophie ...`, `ask Bernie ...`, and `handoffs`.
+Conversations, memories, and task
 records are stored locally in the ignored `data/josie.db` SQLite database.
 Tasks are records only and never execute automatically. Unrecognized requests
 stay local and are never forwarded to a cloud provider.

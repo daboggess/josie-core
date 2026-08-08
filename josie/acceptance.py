@@ -88,6 +88,17 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and '"hard_delete": False' in storage_source
         and "approval_status" in storage_source
     )
+    handoff_path = project_root / "josie" / "handoffs.py"
+    handoff_source = handoff_path.read_text(encoding="utf-8") if handoff_path.is_file() else ""
+    zero_spend_handoffs_ready = bool(
+        '"api_budget_cents": 0' in handoff_source
+        and '"external_activity": False' in handoff_source
+        and '"manual_relay_required": True' in handoff_source
+        and "urlopen" not in handoff_source
+        and "subprocess" not in handoff_source
+        and "CHECK (api_budget_cents = 0)" in storage_source
+        and "CHECK (external_activity = 0)" in storage_source
+    )
 
     criteria = {
         "repository_present": {
@@ -153,6 +164,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "approval_gated_memory_governance": {
             "state": "proven" if memory_governance_ready else "human_gate",
             "evidence": str(project_root / "josie" / "storage.py"),
+        },
+        "zero_spend_model_handoffs": {
+            "state": "proven" if zero_spend_handoffs_ready else "human_gate",
+            "evidence": str(handoff_path),
         },
         "storage_headroom_guard": {
             "state": "proven" if storage_guard_ready else "human_gate",

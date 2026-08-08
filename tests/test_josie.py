@@ -28,6 +28,7 @@ from josie.acceptance import acceptance_audit
 from josie.jobs import JobRunner, available_job_handlers
 from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
+from josie.handoffs import export_model_handoff
 
 
 class JosieTests(unittest.TestCase):
@@ -68,6 +69,66 @@ class JosieTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "multiple"):
                 load_policy(root)
+
+    def test_model_handoffs_are_zero_spend_manual_drafts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "josie.db")
+            handoff = store.create_model_handoff(
+                target="sophie", request="Review Josie's current health summary"
+            )
+            self.assertEqual(handoff["status"], "draft")
+            self.assertEqual(handoff["api_budget_cents"], 0)
+            self.assertTrue(handoff["manual_relay_required"])
+            self.assertFalse(handoff["external_activity"])
+            self.assertTrue(handoff["response_untrusted"])
+            self.assertTrue(
+                store.record_model_handoff_answer(
+                    handoff_id=int(handoff["id"]), response="A manually relayed answer"
+                )
+            )
+            self.assertEqual(store.model_handoff(int(handoff["id"]))["status"], "answered")
+
+    def test_model_handoff_rejects_credentials_and_exports_locally(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            external = root / "external"
+            external.mkdir()
+            (root / ".env").write_text(
+                f"JOSIE_EXTERNAL_STORAGE={external}\nJOSIE_ALLOW_CLOUD=false\n",
+                encoding="utf-8",
+            )
+            config = load_config(root / ".env")
+            store = LocalStore(root / "josie.db")
+            with self.assertRaises(ValueError):
+                store.create_model_handoff(target="bernie", request="Use sk-secret-value")
+            handoff = store.create_model_handoff(
+                target="bernie", request="Compare two CPU-safe designs"
+            )
+            result = export_model_handoff(
+                config=config, store=store, handoff_id=int(handoff["id"])
+            )
+            self.assertEqual(result["status"], "exported")
+            self.assertFalse(result["external_activity"])
+            payload = json.loads(Path(str(result["path"])).read_text(encoding="utf-8"))
+            self.assertEqual(payload["api_budget_cents"], 0)
+            self.assertTrue(payload["manual_relay_required"])
+
+    def test_gui_model_handoff_never_calls_cloud(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_config(root / ".env")
+            store = LocalStore(root / "josie.db")
+            response = respond(
+                "Ask Bernie compare the two local plans",
+                config=config,
+                project_root=root,
+                store=store,
+            )
+            self.assertIn("Nothing was sent", response)
+            self.assertIn("$0.00", response)
+            self.assertFalse(store.recent_model_handoffs()[0]["external_activity"])
+
     def test_health_is_allowlisted_and_runs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

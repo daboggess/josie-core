@@ -73,7 +73,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Expanded orchestration and deployment safety suite passes 50 tests on 2026-08-08.
+- [x] Expanded orchestration and deployment safety suite passes 53 tests on 2026-08-08.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
@@ -97,9 +97,9 @@ confirmed on Josie or by the repository test suite.
 
 - [x] Provider adapters exist with secrets excluded from Git.
 - [x] Cloud calls are disabled by default.
-- [ ] Define a zero-spend Sophie workflow through ChatGPT/Codex Remote.
-- [ ] Define when Gemini free-tier use is acceptable, with an explicit budget gate.
-- [ ] Compare provider answers only when the user has approved the associated API use.
+- [x] Define a zero-spend Sophie workflow through local drafts and manual ChatGPT/Codex Remote relay; no API call or send command exists.
+- [x] Define Gemini free-tier use as manual relay only with a machine-enforced zero-cent API budget; any future API use requires a new approval.
+- [x] Keep provider comparison manual and user-directed; imported answers remain untrusted text and cannot execute actions.
 - [x] Add native Windows Ollama 0.32.5 under the 10 TB storage root instead of expanding Docker's C: VHDX.
 - [x] Add governed `josie-local:1.0` from Qwen 2.5 1.5B Q4_K_M with three threads and 4096-token context.
 - [x] Keep model blobs on D:, OpenAI disabled, and native Ollama inaccessible from LAN/Tailscale clients.
@@ -161,10 +161,9 @@ confirmed on Josie or by the repository test suite.
 ## Critical path
 
 1. Complete the attended Open WebUI Admin connection to the staged authenticated, local-only proposal interface; model execution authority remains absent.
-2. Define the zero-spend Sophie workflow and explicitly budgeted Bernie bridge.
-3. Import selected origin/history records through the provenance review workflow.
-4. Review a narrow browser capability allowlist before enabling navigation.
-5. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
+2. Import selected origin/history records through the provenance review workflow.
+3. Review a narrow browser capability allowlist before enabling navigation.
+4. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
 
 ## Change-control rule
 

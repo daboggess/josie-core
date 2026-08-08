@@ -18,6 +18,7 @@ from josie.jobs import JobRunner, available_job_handlers
 from josie.storage import LocalStore
 from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
+from josie.handoffs import export_model_handoff
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -54,6 +55,17 @@ def build_parser() -> argparse.ArgumentParser:
     propose.add_argument("request", nargs="+", help="Untrusted request text")
     proposals = subcommands.add_parser("proposals", help="Manage the bounded external proposal inbox")
     proposals.add_argument("action", choices=("ingest", "status"))
+    handoffs = subcommands.add_parser("handoffs", help="Manage zero-spend manual model handoffs")
+    handoff_commands = handoffs.add_subparsers(dest="handoff_command", required=True)
+    handoff_commands.add_parser("list", help="List local handoff drafts")
+    handoff_create = handoff_commands.add_parser("create", help="Create a local handoff draft")
+    handoff_create.add_argument("target", choices=("sophie", "bernie"))
+    handoff_create.add_argument("request", nargs="+")
+    handoff_export = handoff_commands.add_parser("export", help="Export one draft locally")
+    handoff_export.add_argument("handoff_id", type=int)
+    handoff_answer = handoff_commands.add_parser("answer", help="Record a manually relayed answer")
+    handoff_answer.add_argument("handoff_id", type=int)
+    handoff_answer.add_argument("response", nargs="+")
     return parser
 
 
@@ -134,6 +146,31 @@ def main() -> int:
             result = ingest_proposal_inbox(config=config, project_root=project_root, store=store)
         else:
             result = {"status": "ok", "proposals": store.recent_external_proposals()}
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "handoffs":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.handoff_command == "list":
+            result = {"status": "ok", "handoffs": store.recent_model_handoffs()}
+        elif args.handoff_command == "create":
+            result = store.create_model_handoff(
+                target=args.target, request=" ".join(args.request)
+            )
+        elif args.handoff_command == "export":
+            result = export_model_handoff(
+                config=config, store=store, handoff_id=args.handoff_id
+            )
+        else:
+            changed = store.record_model_handoff_answer(
+                handoff_id=args.handoff_id, response=" ".join(args.response)
+            )
+            result = {
+                "status": "answered" if changed else "not_found_or_not_draft",
+                "handoff_id": args.handoff_id,
+                "external_activity": False,
+                "response_untrusted": True,
+            }
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

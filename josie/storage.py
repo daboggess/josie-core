@@ -116,6 +116,23 @@ class LocalStore:
                     status TEXT NOT NULL DEFAULT 'review_required'
                     CHECK (status IN ('review_required','accepted','rejected'))
                 );
+                CREATE TABLE IF NOT EXISTS model_handoffs (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    target TEXT NOT NULL CHECK (target IN ('sophie','bernie')),
+                    request TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'draft'
+                    CHECK (status IN ('draft','answered','cancelled')),
+                    response TEXT,
+                    answered_at TEXT,
+                    api_budget_cents INTEGER NOT NULL DEFAULT 0
+                    CHECK (api_budget_cents = 0),
+                    manual_relay_required INTEGER NOT NULL DEFAULT 1
+                    CHECK (manual_relay_required = 1),
+                    external_activity INTEGER NOT NULL DEFAULT 0
+                    CHECK (external_activity = 0),
+                    response_untrusted INTEGER NOT NULL DEFAULT 1
+                    CHECK (response_untrusted = 1)
+                );
                 """
             )
             memory_columns = {
@@ -312,6 +329,74 @@ class LocalStore:
                 "FROM external_proposals ORDER BY id DESC LIMIT ?", (limit,),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    @staticmethod
+    def _bounded_handoff_text(value: str, *, label: str) -> str:
+        clean = value.strip()
+        if not clean or len(clean) > 4_000:
+            raise ValueError(f"{label} must contain 1 to 4000 characters")
+        lowered = clean.lower()
+        secret_markers = (
+            "sk-", "aizasy", "bearer ", "api_key=", "api-key:",
+            "-----begin private key-----", "-----begin rsa private key-----",
+        )
+        if any(marker in lowered for marker in secret_markers):
+            raise ValueError(f"{label} appears to contain a credential")
+        return clean
+
+    def create_model_handoff(self, *, target: str, request: str) -> dict[str, object]:
+        clean_target = target.strip().lower()
+        if clean_target not in {"sophie", "bernie"}:
+            raise ValueError("Handoff target must be Sophie or Bernie")
+        clean_request = self._bounded_handoff_text(request, label="Handoff request")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO model_handoffs(created_at,target,request) VALUES (?,?,?)",
+                (self._now(), clean_target, clean_request),
+            )
+            handoff_id = int(cursor.lastrowid)
+        self.audit("model_handoff_drafted", f"{handoff_id}: {clean_target}")
+        return self.model_handoff(handoff_id)
+
+    def model_handoff(self, handoff_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT id,created_at,target,request,status,response,answered_at,"
+                "api_budget_cents,manual_relay_required,external_activity,response_untrusted "
+                "FROM model_handoffs WHERE id=?", (handoff_id,),
+            ).fetchone()
+        if row is None:
+            raise ValueError("Model handoff was not found")
+        record = dict(row)
+        for key in ("manual_relay_required", "external_activity", "response_untrusted"):
+            record[key] = bool(record[key])
+        return record
+
+    def recent_model_handoffs(self, limit: int = 20) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,created_at,target,request,status,api_budget_cents,"
+                "manual_relay_required,external_activity,response_untrusted "
+                "FROM model_handoffs ORDER BY id DESC LIMIT ?", (limit,),
+            ).fetchall()
+        records = [dict(row) for row in rows]
+        for record in records:
+            for key in ("manual_relay_required", "external_activity", "response_untrusted"):
+                record[key] = bool(record[key])
+        return records
+
+    def record_model_handoff_answer(self, *, handoff_id: int, response: str) -> bool:
+        clean_response = self._bounded_handoff_text(response, label="Handoff response")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "UPDATE model_handoffs SET status='answered',response=?,answered_at=? "
+                "WHERE id=? AND status='draft'",
+                (clean_response, self._now(), handoff_id),
+            )
+            changed = cursor.rowcount == 1
+        if changed:
+            self.audit("model_handoff_answer_recorded", str(handoff_id))
+        return changed
 
     def add_task(self, description: str) -> int:
         with self._connect() as connection:
