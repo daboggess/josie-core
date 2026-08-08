@@ -6,6 +6,8 @@ import json
 import re
 import shutil
 import subprocess
+import os
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -41,10 +43,32 @@ class DeploymentController:
             ["wsl.exe", "--status"], capture_output=True, text=True,
             timeout=10, check=False,
         ) if shutil.which("wsl.exe") else None
+        local_docker = Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "DockerDesktop" / "resources" / "bin" / "docker.exe"
+        tailscale_path = shutil.which("tailscale") or (
+            r"C:\Program Files\Tailscale\tailscale.exe"
+            if Path(r"C:\Program Files\Tailscale\tailscale.exe").is_file() else None
+        )
+        tailscale_authenticated = False
+        if tailscale_path:
+            tailscale_result = subprocess.run(
+                [str(tailscale_path), "status", "--json"], capture_output=True, text=True,
+                timeout=10, check=False,
+            )
+            if tailscale_result.returncode == 0:
+                try:
+                    tailscale_data = json.loads(tailscale_result.stdout)
+                    tailscale_authenticated = bool(
+                        tailscale_data.get("BackendState") == "Running"
+                        and tailscale_data.get("HaveNodeKey")
+                        and not tailscale_data.get("AuthURL")
+                    )
+                except json.JSONDecodeError:
+                    pass
         installed = {
-            "tailscale": bool(shutil.which("tailscale")),
+            "tailscale": bool(tailscale_path),
+            "tailscale_authenticated": tailscale_authenticated,
             "wsl": bool(wsl_result and wsl_result.returncode == 0),
-            "docker": bool(shutil.which("docker")),
+            "docker": bool(shutil.which("docker")) or local_docker.is_file(),
             "node": bool(shutil.which("node")),
             "n8n": bool(shutil.which("n8n")),
         }
@@ -55,6 +79,72 @@ class DeploymentController:
             "detected": installed,
             "pending_human_gates": gates,
             "cloud_calls_allowed": self.config.allow_cloud,
+        }
+
+    def service_runtime_status(self) -> dict[str, object]:
+        """Verify local endpoints and the browser execution lock without external traffic."""
+        endpoints = {
+            "n8n": "http://127.0.0.1:5678/healthz",
+            "open_webui": "http://127.0.0.1:3000/health",
+            "browser_worker": "http://127.0.0.1:3010/health",
+        }
+        results: dict[str, object] = {}
+        for name, url in endpoints.items():
+            try:
+                with urllib.request.urlopen(url, timeout=5) as response:
+                    body = response.read(4096).decode("utf-8", errors="replace")
+                    results[name] = {"ok": response.status == 200, "status_code": response.status, "body": body}
+            except Exception as exc:
+                results[name] = {"ok": False, "error": type(exc).__name__}
+        browser_safe = False
+        browser = results.get("browser_worker", {})
+        if isinstance(browser, dict) and browser.get("ok"):
+            try:
+                browser_data = json.loads(str(browser.get("body", "{}")))
+                browser_safe = browser_data.get("execution") is False and browser_data.get("allowedHosts") == 0
+            except json.JSONDecodeError:
+                pass
+        all_healthy = all(
+            isinstance(results[name], dict) and results[name].get("ok")
+            for name in endpoints
+        )
+        return {
+            "status": "ready" if all_healthy and browser_safe else "waiting",
+            "services": results,
+            "browser_execution_locked": browser_safe,
+            "loopback_only": True,
+            "cloud_calls_allowed": self.config.allow_cloud,
+        }
+
+    def validate_runtime(self) -> dict[str, object]:
+        preflight = self.service_preflight()
+        runtime = self.service_runtime_status()
+        system = self.status()
+        ready = bool(
+            preflight["status"] == "ready"
+            and runtime["status"] == "ready"
+            and system["detected"]["wsl"]
+            and system["detected"]["docker"]
+            and system["detected"]["tailscale_authenticated"]
+            and not self.config.allow_cloud
+        )
+        if ready:
+            state = self._load_state()
+            steps = state.setdefault("steps", {})
+            for name in ("tailscale", "wsl", "container_runtime", "n8n", "browser_worker", "open_webui"):
+                steps[name] = "complete"
+            steps["runtime_security"] = {
+                "loopback_only": True,
+                "browser_execution_locked": True,
+                "cloud_spend_lock": True,
+            }
+            self._save_state(state)
+        return {
+            "status": "ready" if ready else "waiting",
+            "preflight": preflight,
+            "runtime": runtime,
+            "system_detected": system["detected"],
+            "state_recorded": ready,
         }
 
     def service_preflight(self) -> dict[str, object]:
@@ -94,7 +184,10 @@ class DeploymentController:
         return {
             "status": "ready" if not issues else "waiting",
             "issues": issues,
-            "docker_detected": bool(shutil.which("docker")),
+            "docker_detected": bool(shutil.which("docker")) or (
+                Path(os.environ.get("LOCALAPPDATA", ""))
+                / "Programs" / "DockerDesktop" / "resources" / "bin" / "docker.exe"
+            ).is_file(),
             "network_activity": False,
             "services_started": False,
         }

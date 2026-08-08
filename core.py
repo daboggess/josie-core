@@ -40,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     subcommands.add_parser("gui", help="Open Josie's local graphical interface")
     deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
-    deploy.add_argument("action", choices=("status", "safe", "services-preflight"))
+    deploy.add_argument("action", choices=("status", "safe", "services-preflight", "validate"))
     subcommands.add_parser("audit", help="Audit Josie 1.0 acceptance evidence")
     jobs = subcommands.add_parser("jobs", help="Manage bounded local orchestration jobs")
     jobs_subcommands = jobs.add_subparsers(dest="jobs_command", required=True)
@@ -85,6 +85,8 @@ def main() -> int:
             result = controller.status()
         elif args.action == "services-preflight":
             result = controller.service_preflight()
+        elif args.action == "validate":
+            result = controller.validate_runtime()
         else:
             result = controller.run_safe_phase()
         print(json.dumps(result, indent=2, sort_keys=True))

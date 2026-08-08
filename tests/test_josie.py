@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import sqlite3
 from contextlib import closing
+from unittest.mock import patch
 from pathlib import Path
 
 from josie.config import load_config
@@ -484,6 +485,40 @@ class JosieTests(unittest.TestCase):
             ).service_preflight()
             self.assertEqual(result["status"], "waiting")
             self.assertTrue(any("docker.sock" in issue for issue in result["issues"]))
+
+    def test_runtime_validation_requires_locked_browser(self) -> None:
+        class FakeResponse:
+            def __init__(self, body: str) -> None:
+                self.status = 200
+                self._body = body.encode()
+            def __enter__(self):
+                return self
+            def __exit__(self, *_args):
+                return False
+            def read(self, _limit: int) -> bytes:
+                return self._body
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "config" / "deployment.json").write_text(
+                '{"schema_version":1,"components":[]}', encoding="utf-8"
+            )
+            controller = DeploymentController(config=load_config(root / ".env"), project_root=root)
+            def locked_response(request, timeout=0):
+                del timeout
+                url = request if isinstance(request, str) else request.full_url
+                return FakeResponse('{"execution":false,"allowedHosts":0}' if url.endswith("3010/health") else '{"status":true}')
+            with patch("josie.deployment.urllib.request.urlopen", side_effect=locked_response):
+                self.assertEqual(controller.service_runtime_status()["status"], "ready")
+            def unlocked_response(request, timeout=0):
+                del timeout
+                url = request if isinstance(request, str) else request.full_url
+                return FakeResponse('{"execution":true,"allowedHosts":1}' if url.endswith("3010/health") else '{"status":true}')
+            with patch("josie.deployment.urllib.request.urlopen", side_effect=unlocked_response):
+                result = controller.service_runtime_status()
+                self.assertEqual(result["status"], "waiting")
+                self.assertFalse(result["browser_execution_locked"])
 
 
 if __name__ == "__main__":

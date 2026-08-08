@@ -33,6 +33,9 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
     service_preflight = DeploymentController(
         config=config, project_root=project_root
     ).service_preflight()
+    service_runtime = DeploymentController(
+        config=config, project_root=project_root
+    ).service_runtime_status()
 
     criteria = {
         "repository_present": {
@@ -72,12 +75,12 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
             "evidence": "docker executable",
         },
         "tailscale": {
-            "state": "proven" if deployment["detected"]["tailscale"] else "human_gate",
+            "state": "proven" if deployment["detected"]["tailscale_authenticated"] else "human_gate",
             "evidence": "tailscale executable and account sign-in",
         },
         "local_services": {
-            "state": "proven" if service_preflight["status"] == "ready" else "human_gate",
-            "evidence": service_preflight,
+            "state": "proven" if service_preflight["status"] == "ready" and service_runtime["status"] == "ready" else "human_gate",
+            "evidence": {"preflight": service_preflight, "runtime": service_runtime},
         },
     }
     counts = {

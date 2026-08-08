@@ -30,6 +30,8 @@ $dockerPath = if ($dockerCommand) { $dockerCommand.Source } else {
 if (-not (Test-Path -LiteralPath $dockerPath)) {
     throw 'Docker is unavailable. Complete the attended system gate first.'
 }
+$dockerBin = Split-Path -Parent $dockerPath
+$env:Path = "$dockerBin;$env:Path"
 & $dockerPath info *> $null
 if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop is not running or healthy.' }
 

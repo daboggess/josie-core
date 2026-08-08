@@ -55,25 +55,25 @@ confirmed on Josie or by the repository test suite.
 ## Remote access and interface
 
 - [x] ChatGPT Remote available for current Codex supervision.
-- [ ] Evaluate and install Tailscale for general secure remote access without router port forwarding.
-- [x] Verified 2026-08-07: Tailscale is not currently installed.
+- [x] Install and authenticate Tailscale for secure remote access without router port forwarding.
+- [x] Verified 2026-08-08: Tailscale is running and authenticated; no service exposure or exit-node routing enabled.
 - [ ] Define which local services, if any, Tailscale may expose.
-- [ ] Evaluate Open WebUI after storage and container prerequisites are ready.
+- [x] Deploy Open WebUI v0.8.9 by immutable digest on localhost only; cloud providers disabled.
 - [ ] Make the approved Josie interface usable from phone and laptop.
 
 ## Core orchestration
 
 - [ ] Verify storage headroom before installing container tooling.
-- [x] Verified 2026-08-07: Docker, system Node.js/npm, and n8n are not installed.
+- [x] Historical baseline: Docker, system Node.js/npm, and n8n were absent on 2026-08-07.
 - [x] Verified 2026-08-07: `wsl.exe` exists but Windows Subsystem for Linux is not installed/enabled.
-- [ ] Evaluate Docker Desktop versus a lighter Windows/WSL container runtime.
+- [x] Install Docker Desktop 4.85.0 in per-user WSL 2 Linux-container mode.
 - [ ] Install container tooling only after explicit approval.
 - [x] Stage a resumable attended system-gate script with installer-signature checks and bounded WSL resources.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
 - [x] Deployment safety suite passes 21 tests on 2026-08-08.
-- [ ] Install and configure n8n with persistent data outside disposable containers.
+- [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [ ] Build Josie as the orchestrator rather than a single chatbot.
 - [x] Add a persistent local orchestration queue with an explicit handler registry.
@@ -83,7 +83,7 @@ confirmed on Josie or by the repository test suite.
 
 ## Computer-use capability
 
-- [ ] Add Playwright browser workers in an isolated profile.
+- [x] Deploy an isolated Playwright 1.62.0 browser worker with all capabilities dropped and execution locked.
 - [x] Staged browser-worker health endpoint; navigation and execution remain disabled pending capability review.
 - [ ] Support permitted navigation, form entry, downloads, uploads, and extraction.
 - [ ] Prefer APIs or dedicated connectors over browser automation when available.
