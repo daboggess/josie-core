@@ -239,7 +239,7 @@ class JosieTests(unittest.TestCase):
         lowered = script.lower()
         self.assertIn("sha256", lowered)
         self.assertIn("services-preflight", lowered)
-        self.assertIn("docker.exe compose", lowered)
+        self.assertIn("$dockerpath compose", lowered)
         self.assertIn("d:\\josie-storage", lowered)
         self.assertNotIn("--volumes", lowered)
         self.assertNotIn("tailscale up", lowered)

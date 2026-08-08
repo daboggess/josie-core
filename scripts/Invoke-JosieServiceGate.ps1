@@ -23,10 +23,14 @@ foreach ($entry in @{
     }
 }
 
-if (-not (Get-Command docker.exe -ErrorAction SilentlyContinue)) {
+$dockerCommand = Get-Command docker.exe -ErrorAction SilentlyContinue
+$dockerPath = if ($dockerCommand) { $dockerCommand.Source } else {
+    Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\docker.exe'
+}
+if (-not (Test-Path -LiteralPath $dockerPath)) {
     throw 'Docker is unavailable. Complete the attended system gate first.'
 }
-& docker.exe info *> $null
+& $dockerPath info *> $null
 if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop is not running or healthy.' }
 
 $storage = 'D:/Josie-Storage'
@@ -49,17 +53,17 @@ Move-Item -Force -LiteralPath $temporary -Destination $environmentPath
 & $pythonPath (Join-Path $projectRoot 'core.py') deploy services-preflight
 if ($LASTEXITCODE -ne 0) { throw 'Josie service preflight failed.' }
 
-& docker.exe compose --env-file $environmentPath -f $composePath config --quiet
+& $dockerPath compose --env-file $environmentPath -f $composePath config --quiet
 if ($LASTEXITCODE -ne 0) { throw 'Docker Compose validation failed.' }
 
 if ($PSCmdlet.ShouldProcess('Josie local service stack', 'Pull immutable images, build locked worker, and start loopback-only services')) {
-    & docker.exe compose --env-file $environmentPath -f $composePath pull
+    & $dockerPath compose --env-file $environmentPath -f $composePath pull
     if ($LASTEXITCODE -ne 0) { throw 'Container image pull failed.' }
-    & docker.exe compose --env-file $environmentPath -f $composePath build --pull=false browser-worker
+    & $dockerPath compose --env-file $environmentPath -f $composePath build --pull=false browser-worker
     if ($LASTEXITCODE -ne 0) { throw 'Browser worker build failed.' }
-    & docker.exe compose --env-file $environmentPath -f $composePath up -d
+    & $dockerPath compose --env-file $environmentPath -f $composePath up -d
     if ($LASTEXITCODE -ne 0) { throw 'Service startup failed.' }
 }
 
-& docker.exe compose --env-file $environmentPath -f $composePath ps
+& $dockerPath compose --env-file $environmentPath -f $composePath ps
 Write-Host 'Services are local-only. Browser execution and cloud providers remain locked.'
