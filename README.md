@@ -1,5 +1,7 @@
 # Josie Core
 
+The canonical build roadmap is [docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_CHECKLIST.md).
+
 Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The current checkpoint uses only the Python standard library, runs safely on the Intel HD 630 system, and does not install local models or GPU packages.
 
 ## Safety model
