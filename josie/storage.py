@@ -65,6 +65,12 @@ class LocalStore:
                     amount_cents INTEGER NOT NULL CHECK (amount_cents >= 0),
                     description TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS provenance_records (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    source TEXT NOT NULL, statement TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'unverified'
+                    CHECK (status IN ('unverified', 'confirmed', 'rejected'))
+                );
                 """
             )
 
@@ -273,3 +279,45 @@ class LocalStore:
             (int(row["id"]), row["basis"], row["category"], int(row["amount_cents"]), row["description"])
             for row in rows
         ]
+
+    def record_provenance(self, *, source: str, statement: str) -> int:
+        clean_source = source.strip()
+        clean_statement = statement.strip()
+        if not clean_source or len(clean_source) > 100:
+            raise ValueError("Source must be between 1 and 100 characters")
+        if not clean_statement or len(clean_statement) > 2000:
+            raise ValueError("Statement must be between 1 and 2000 characters")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO provenance_records(created_at,source,statement) VALUES (?,?,?)",
+                (self._now(), clean_source, clean_statement),
+            )
+            record_id = int(cursor.lastrowid)
+        self.audit("provenance_recorded", f"{record_id}: {clean_source}")
+        return record_id
+
+    def provenance_records(self, status: str | None = None) -> list[tuple[int, str, str, str]]:
+        if status is not None and status not in {"unverified", "confirmed", "rejected"}:
+            raise ValueError("Invalid provenance status")
+        query = "SELECT id,source,statement,status FROM provenance_records"
+        parameters: tuple[str, ...] = ()
+        if status is not None:
+            query += " WHERE status=?"
+            parameters = (status,)
+        query += " ORDER BY id"
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [(int(row["id"]), row["source"], row["statement"], row["status"]) for row in rows]
+
+    def decide_provenance(self, record_id: int, decision: str) -> bool:
+        if decision not in {"confirmed", "rejected"}:
+            raise ValueError("Decision must be confirmed or rejected")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "UPDATE provenance_records SET status=? WHERE id=? AND status='unverified'",
+                (decision, record_id),
+            )
+            changed = cursor.rowcount == 1
+        if changed:
+            self.audit(f"provenance_{decision}", str(record_id))
+        return changed

@@ -101,8 +101,8 @@ confirmed on Josie or by the repository test suite.
 - [x] Persistent SQLite storage for messages, memories, tasks, reminders, approvals, and audit events.
 - [x] Local backup and integrity verification.
 - [ ] Import and organize selected Sophie/Josie project history.
-- [ ] Build the origin interview process for Sophie and Bernie.
-- [ ] Record project rules, philosophy, major decisions, and provenance.
+- [x] Stage a local origin interview process for Dustin, Sophie, and Bernie; cloud interviews remain approval-gated.
+- [x] Record project rules, philosophy, and major decisions with source and confirmed/unverified/rejected provenance.
 - [ ] Add explicit memory review, correction, deletion, export, and restore workflows.
 - [x] Add secret-free local memory/task export and a non-overwriting restore drill.
 - [ ] Add approval-gated correction and deletion workflows; current approval records execute nothing.

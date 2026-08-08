@@ -20,6 +20,7 @@ from .reports import export_diagnostics, warning_snapshot
 from .roadmap import roadmap_summary
 from .tools import available_tools
 from .policy import permission_for
+from .provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -55,6 +56,42 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"Estimates (not earned money): revenue ${summary['estimated_revenue_cents']/100:.2f}, "
             f"costs ${summary['estimated_cost_cents']/100:.2f}, savings ${summary['estimated_savings_cents']/100:.2f}. "
             "This ledger cannot spend or move money."
+        )
+    if text in {"origin interview", "origin questions", "provenance interview"}:
+        status = origin_workflow_status(project_root)
+        return (
+            "Origin interview is local and ready; no model has been contacted.\n" +
+            "\n".join(f"{index}. {question}" for index, question in enumerate(INTERVIEW_QUESTIONS, 1)) +
+            f"\nWorkflow: {status['document']}"
+        )
+    if text.startswith("record origin from "):
+        if store is None:
+            return "The provenance record is unavailable."
+        payload = message.strip()[19:].strip()
+        source, separator, statement = payload.partition(":")
+        if not separator:
+            return "Use: record origin from SOURCE: STATEMENT"
+        try:
+            record_id = store.record_provenance(source=source, statement=statement)
+        except ValueError as exc:
+            return str(exc) + ". Nothing was recorded."
+        return f"Origin record {record_id} saved as unverified from {source.strip()}."
+    if text in {"origin records", "provenance", "project history"}:
+        records = store.provenance_records() if store else []
+        return "No origin records yet." if not records else "Origin records:\n" + "\n".join(
+            f"{record_id}. [{status}] {source}: {statement}"
+            for record_id, source, statement, status in records
+        )
+    origin_decision = re.fullmatch(r"(confirm|reject) origin (\d+)", text)
+    if origin_decision:
+        if store is None:
+            return "The provenance record is unavailable."
+        verb, raw_id = origin_decision.groups()
+        decision = "confirmed" if verb == "confirm" else "rejected"
+        changed = store.decide_provenance(int(raw_id), decision)
+        return (
+            f"Origin record {raw_id} marked {decision}."
+            if changed else f"Unverified origin record {raw_id} was not found."
         )
     if text.startswith("permission ") or text.startswith("may you "):
         prefix = "permission " if text.startswith("permission ") else "may you "

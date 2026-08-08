@@ -19,6 +19,7 @@ from josie.instance import gui_instance
 from josie.roadmap import roadmap_summary
 from josie.deployment import DeploymentController
 from josie.policy import load_policy, permission_for
+from josie.provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 
 
 class JosieTests(unittest.TestCase):
@@ -160,6 +161,34 @@ class JosieTests(unittest.TestCase):
             )
             self.assertIn("no transaction occurred", result.lower())
             self.assertEqual(store.ledger_summary()["estimated_savings_cents"], 1525)
+
+    def test_origin_records_start_unverified_and_require_explicit_decision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            record_id = store.record_provenance(source="Bernie", statement="A suggested design")
+            self.assertEqual(store.provenance_records()[0][3], "unverified")
+            self.assertTrue(store.decide_provenance(record_id, "confirmed"))
+            self.assertEqual(store.provenance_records()[0][3], "confirmed")
+            self.assertFalse(store.decide_provenance(record_id, "rejected"))
+
+    def test_origin_gui_does_not_contact_cloud_or_auto_confirm(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "docs").mkdir()
+            (root / "docs" / "ORIGIN_AND_PROVENANCE.md").write_text("workflow", encoding="utf-8")
+            store = LocalStore(root / "data" / "josie.db")
+            config = load_config(root / ".env")
+            answer = respond(
+                "record origin from Sophie: Josie should be cautious",
+                config=config, project_root=root, store=store,
+            )
+            self.assertIn("unverified", answer)
+            self.assertEqual(store.provenance_records()[0][3], "unverified")
+            workflow = origin_workflow_status(root)
+            self.assertFalse(workflow["cloud_activity"])
+            self.assertFalse(workflow["automatic_import"])
+            self.assertEqual(workflow["question_count"], len(INTERVIEW_QUESTIONS))
 
     def test_local_status_dashboard(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
