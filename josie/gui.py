@@ -11,7 +11,7 @@ from tkinter import ttk
 
 from .config import Config
 from .diagnostics import (
-    health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
+    external_storage_snapshot, health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
     system_snapshot, uptime_snapshot,
 )
 from .providers import provider_status
@@ -117,6 +117,16 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"Recovery: {snapshot['backup_count']} backup(s); latest {snapshot['latest_backup']}; "
             f"integrity {snapshot['integrity']}."
         )
+    if text in {"external drive", "usb drive", "10tb drive", "external storage"}:
+        snapshot = external_storage_snapshot(config=config, project_root=project_root)
+        if not snapshot["drives"]:
+            return "No external USB disk is detected. No disk changes were attempted."
+        details = "; ".join(
+            f"disk {drive['number']} {drive['name']} ({drive['size_tb']} TB, {drive['partition_style']}, {drive['health']})"
+            for drive in snapshot["drives"]
+        )
+        suitable = "A suitable 8+ TB drive is present" if snapshot["suitable_drive_present"] else "No suitable 8+ TB drive is present"
+        return f"External storage: {details}. {suitable}. No disk changes were attempted."
     if text.startswith("remember "):
         if store is None:
             return "Local memory is unavailable."
@@ -249,6 +259,7 @@ class JosieApp:
         else:
             self._append("Josie", "I'm online locally. Cloud spending is locked off. Type 'help' to begin.", "josie")
         self.entry.focus_set()
+        self._last_warning_signature: tuple[str, ...] | None = None
         self.root.after(30_000, self._scheduled_check)
 
     def refresh_status(self) -> None:
@@ -311,8 +322,12 @@ class JosieApp:
             self._append("Josie", f"Reminder {reminder_id}: {description}", "josie")
         warnings = warning_snapshot(config=self.config, project_root=self.project_root)
         self.store.audit("scheduled_health_check", warnings["status"])
-        if warnings["warnings"]:
+        signature = tuple(warnings["warnings"])
+        if warnings["warnings"] and signature != self._last_warning_signature:
             self._append("Josie", "Warning: " + "; ".join(warnings["warnings"]), "josie")
+        elif not warnings["warnings"] and self._last_warning_signature:
+            self._append("Josie", "All monitored warnings have cleared.", "josie")
+        self._last_warning_signature = signature
         self.refresh_status()
         self.root.after(300_000, self._scheduled_check)
 

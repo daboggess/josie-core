@@ -8,7 +8,7 @@ from typing import Any
 
 from .config import Config
 from .diagnostics import (
-    health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
+    external_storage_snapshot, health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
     system_snapshot, uptime_snapshot,
 )
 
@@ -16,6 +16,7 @@ Tool = Callable[..., dict[str, object]]
 
 _ALLOWED_TOOLS: dict[str, Tool] = {
     "health": health_check,
+    "external-storage": external_storage_snapshot,
     "repository": repository_snapshot,
     "recovery": recovery_snapshot,
     "storage": storage_snapshot,

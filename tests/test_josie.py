@@ -107,6 +107,7 @@ class JosieTests(unittest.TestCase):
         self.assertIn("storage", available_tools())
         self.assertIn("uptime", available_tools())
         self.assertIn("recovery", available_tools())
+        self.assertIn("external-storage", available_tools())
 
     def test_uptime_monitor_is_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

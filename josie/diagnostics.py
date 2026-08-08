@@ -153,3 +153,34 @@ def recovery_snapshot(*, config: Config, project_root: Path) -> dict[str, object
         "latest_backup": latest.name if latest else None,
         "integrity": integrity,
     }
+
+
+def external_storage_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
+    del config, project_root
+    script = (
+        "Get-Disk | Where-Object BusType -eq 'USB' | Select-Object Number,FriendlyName,"
+        "PartitionStyle,OperationalStatus,HealthStatus,IsOffline,IsReadOnly,Size | ConvertTo-Json -Compress"
+    )
+    result = subprocess.run(
+        ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
+        capture_output=True, text=True, timeout=15, check=False,
+    )
+    if result.returncode != 0:
+        return {"status": "degraded", "suitable_drive_present": False, "drives": [], "error": "USB disk query failed"}
+    raw = json.loads(result.stdout or "[]")
+    drives = raw if isinstance(raw, list) else [raw]
+    normalized = [
+        {
+            "number": drive.get("Number"),
+            "name": drive.get("FriendlyName", "unknown"),
+            "partition_style": drive.get("PartitionStyle", "unknown"),
+            "operational_status": drive.get("OperationalStatus", "unknown"),
+            "health": drive.get("HealthStatus", "unknown"),
+            "offline": bool(drive.get("IsOffline", False)),
+            "read_only": bool(drive.get("IsReadOnly", False)),
+            "size_tb": round(int(drive.get("Size", 0)) / (1024**4), 2),
+        }
+        for drive in drives if drive
+    ]
+    suitable = any(drive["size_tb"] >= 8 for drive in normalized)
+    return {"status": "ok" if suitable else "waiting", "suitable_drive_present": suitable, "drives": normalized}
