@@ -30,6 +30,45 @@ $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 & icacls.exe $tokenPath /inheritance:r /grant:r "${identity}:(F)" 'SYSTEM:(F)' | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'The proposal credential could not be restricted to the current user and SYSTEM.' }
 
+$token = [System.IO.File]::ReadAllText($tokenPath, [System.Text.Encoding]::UTF8).Trim()
+if ([string]::IsNullOrWhiteSpace($token)) { throw 'The proposal credential is empty.' }
+$connection = @(
+    [ordered]@{
+        url = 'http://proposal-server:3030'
+        path = '/openapi.json'
+        type = 'openapi'
+        auth_type = 'bearer'
+        key = $token
+        spec_type = 'url'
+        config = [ordered]@{
+            enable = $true
+            access_grants = @()
+        }
+        info = [ordered]@{
+            id = 'josie-core-review'
+            name = 'Josie Core Review'
+            description = 'Records bounded local proposals for human review and never executes actions.'
+        }
+    }
+)
+$connectionJson = ConvertTo-Json -InputObject $connection -Compress -Depth 8
+$environmentLines = [System.Collections.Generic.List[string]]::new()
+foreach ($line in [System.IO.File]::ReadAllLines($environmentPath)) {
+    if (-not $line.StartsWith('JOSIE_TOOL_SERVER_CONNECTIONS=')) {
+        $environmentLines.Add($line)
+    }
+}
+$environmentLines.Add("JOSIE_TOOL_SERVER_CONNECTIONS=$connectionJson")
+[System.IO.File]::WriteAllLines(
+    $environmentPath,
+    $environmentLines,
+    [System.Text.UTF8Encoding]::new($false)
+)
+& icacls.exe $environmentPath /inheritance:r /grant:r "${identity}:(F)" 'SYSTEM:(F)' | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'The local service configuration could not be restricted.' }
+$token = $null
+$connectionJson = $null
+
 & $dockerPath compose --profile proposal-interface --env-file $environmentPath `
     -f $composePath up -d proposal-server open-webui
 if ($LASTEXITCODE -ne 0) { throw 'The internal proposal interface did not start.' }
@@ -48,10 +87,12 @@ $backendProbe = & $dockerPath exec josie-open-webui-1 python -c `
 if ($LASTEXITCODE -ne 0) { throw 'Open WebUI cannot reach the internal proposal interface.' }
 
 [ordered]@{
-    status = 'ready_for_admin_connection'
+    status = 'registered_and_ready'
     server = 'http://proposal-server:3030'
     specification = 'http://proposal-server:3030/openapi.json'
     authentication = 'bearer_token_required'
+    connection_id = 'josie-core-review'
+    global_tool_enabled = $true
     credential_file = $tokenPath
     published_host_port = $false
     docker_network = 'internal'

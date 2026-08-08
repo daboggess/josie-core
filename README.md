@@ -86,9 +86,9 @@ governed Core proposal boundary is available from the local GUI with
 review-only intents: health check, secret-free memory export, and non-overwriting
 restore drill. Model text cannot queue or execute any of them.
 
-An optional OpenAPI bridge is staged so Open WebUI can record those same three
-proposal types. It is disabled by default, has no host port, uses a private
-Docker network and bearer token, and can only write bounded JSON records. The
+An authenticated OpenAPI bridge is active so Open WebUI can record those same
+three proposal types. It has no host port, uses a private Docker network and
+bearer token, and can only write bounded JSON records. The
 host monitor validates and imports those records into Core; it never executes
 them. See [docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
 

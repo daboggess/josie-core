@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -121,6 +122,67 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and economic_policy.get("self_modifiable") is False
         and economic_policy.get("transactions_executed") == 0
     )
+    proposal_bridge_lock: dict[str, object] = {}
+    try:
+        proposal_bridge_lock = __import__("json").loads(
+            (project_root / "deploy" / "proposal-bridge.lock.json").read_text(
+                encoding="utf-8"
+            )
+        )
+    except (OSError, ValueError):
+        pass
+    bridge_connection = proposal_bridge_lock.get("connection", {})
+    bridge_network = proposal_bridge_lock.get("network", {})
+    bridge_authority = proposal_bridge_lock.get("authority", {})
+    bridge_test = proposal_bridge_lock.get("acceptance_test", {})
+    bridge_hashes = proposal_bridge_lock.get("source_sha256", {})
+    expected_bridge_sources = {
+        "proposal_server": project_root / "deploy" / "proposal-server" / "server.js",
+        "compose": project_root / "deploy" / "compose.yaml",
+        "activation_script": project_root / "scripts" / "Start-JosieProposalInterface.ps1",
+    }
+    bridge_sources_match = bool(
+        isinstance(bridge_hashes, dict)
+        and all(
+            path.is_file()
+            and bridge_hashes.get(name)
+            == hashlib.sha256(path.read_bytes()).hexdigest()
+            for name, path in expected_bridge_sources.items()
+        )
+    )
+    openwebui_bridge_ready = bool(
+        proposal_bridge_lock.get("status") == "active"
+        and isinstance(bridge_connection, dict)
+        and bridge_connection.get("id") == "josie-core-review"
+        and bridge_connection.get("authentication") == "bearer"
+        and bridge_connection.get("enabled") is True
+        and bridge_connection.get("secret_in_git") is False
+        and isinstance(bridge_network, dict)
+        and bridge_network.get("docker_internal") is True
+        and bridge_network.get("published_host_port") is False
+        and bridge_network.get("internet_listener") is False
+        and bridge_network.get("cors_allowed_origins")
+        == [
+            "http://127.0.0.1:3000",
+            "http://localhost:3000",
+            "https://refurb.tail0ab4d2.ts.net",
+        ]
+        and isinstance(bridge_authority, dict)
+        and bridge_authority.get("operation_ids") == ["record_review_proposal"]
+        and bridge_authority.get("actions_executable") is False
+        and bridge_authority.get("shell_available") is False
+        and bridge_authority.get("cloud_activity_allowed") is False
+        and isinstance(bridge_test, dict)
+        and bridge_test.get("proposal_status") == "review_required"
+        and bridge_test.get("actions_queued") == 0
+        and bridge_test.get("actions_executed") == 0
+        and bridge_test.get("cloud_activity") is False
+        and bridge_test.get("new_jobs_queued") == 0
+        and bridge_test.get("unsupported_shell_kind_http_status") == 400
+        and bridge_test.get("cors_allowlist_verified") is True
+        and bridge_test.get("untrusted_origin_allowed") is False
+        and bridge_sources_match
+    )
 
     criteria = {
         "repository_present": {
@@ -210,6 +272,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "private_remote_access": {
             "state": "proven" if remote_access["status"] == "ready" else "human_gate",
             "evidence": remote_access,
+        },
+        "authenticated_openwebui_proposal_bridge": {
+            "state": "proven" if openwebui_bridge_ready else "human_gate",
+            "evidence": proposal_bridge_lock or "deploy/proposal-bridge.lock.json is missing",
         },
     }
     counts = {

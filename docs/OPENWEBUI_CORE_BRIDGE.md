@@ -2,10 +2,12 @@
 
 ## Current state
 
-The bridge is installed in the repository but disabled by default. Normal
-`docker compose up -d` does not start it. Activation is attended because adding
-a global tool server changes the permissions of Dustin's authenticated Open
-WebUI account.
+The bridge is active and registered as the authenticated global Open WebUI tool
+`Josie Core Review`. Its server remains inside Docker's private network and has
+no Windows, LAN, Tailscale, or internet listening port. Open WebUI loads the
+connection from its ignored local service environment so the registration
+survives a restart without weakening the infrastructure-as-code policy. Web
+origins are restricted to Josie's loopback interface and private Tailscale URL.
 
 The bridge is intentionally record-only:
 
@@ -33,7 +35,7 @@ Official references:
 - https://docs.openwebui.com/features/extensibility/plugin/tools/openapi-servers/
 - https://docs.openwebui.com/features/extensibility/plugin/tools/openapi-servers/open-webui/
 
-## Attended activation
+## Start or repair
 
 From PowerShell in `C:\Josie`:
 
@@ -42,24 +44,9 @@ From PowerShell in `C:\Josie`:
 ```
 
 The script creates the local credential if needed, restricts its Windows file
-permissions, starts only the proposal server and Open WebUI, and verifies both
-the server and the private container-to-container route.
-
-In Open WebUI, use Admin Settings, Integrations, then the global Tools section.
-Add this server:
-
-```text
-http://proposal-server:3030
-```
-
-Choose bearer-token authentication and paste the contents of:
-
-```text
-D:\Josie-Storage\secrets\proposal-token.txt
-```
-
-Do not paste the token into chat, source code, Git, screenshots, or this
-document. Enable the resulting tool only in a deliberate test chat. Open WebUI
+permissions, generates the ignored Open WebUI connection setting, starts only
+the proposal server and Open WebUI, and verifies the private
+container-to-container route. It never prints the bearer token. Open WebUI
 documents that global tools are hidden by default and must be explicitly
 enabled per user/chat.
 

@@ -47,18 +47,19 @@ trigger. The workflow never receives model-generated parameters.
 
 ## Open WebUI proposal boundary
 
-The `proposal-interface` Compose profile is disabled by default. When explicitly
+The approved `proposal-interface` Compose profile is active and registered in
+Open WebUI through ignored local environment configuration. When explicitly
 started, it adds a dependency-free OpenAPI record server to an internal Docker
 network shared only with Open WebUI. It publishes no host port, requires a
 random bearer token stored outside Git on D:, accepts only `kind` and `summary`,
 and writes only three allowlisted review proposal kinds. It has no process,
 shell, tool, queue, transaction, messaging, or cloud execution capability.
 
-Open WebUI must be connected as a backend/global OpenAPI tool because the
-private service name is reachable only from the Open WebUI container. That
-authenticated Admin UI change remains an attended gate. See
-`docs/OPENWEBUI_CORE_BRIDGE.md` for the exact start, connect, stop, and recovery
-sequence.
+Open WebUI uses it as a backend/global OpenAPI tool because the private service
+name is reachable only from the Open WebUI container. The approved activation
+script rebuilds this registration from the protected D: credential without
+printing it or relying on a saved Admin UI override. See
+`docs/OPENWEBUI_CORE_BRIDGE.md` for the exact start, stop, and recovery sequence.
 
 ## Recovery
 

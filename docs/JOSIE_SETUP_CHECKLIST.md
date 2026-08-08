@@ -161,8 +161,8 @@ confirmed on Josie or by the repository test suite.
 
 ## Critical path
 
-1. Complete the attended Open WebUI Admin connection to the staged authenticated, local-only proposal interface; model execution authority remains absent.
-2. Import selected origin/history records through the provenance review workflow.
+1. [x] Activate the authenticated, local-only Open WebUI proposal interface; model execution authority remains absent.
+2. [x] Import selected origin/history records through the provenance review workflow.
 3. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
 
 ## Change-control rule

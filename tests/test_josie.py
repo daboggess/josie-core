@@ -971,6 +971,11 @@ class JosieTests(unittest.TestCase):
     def test_openwebui_proposal_bridge_is_internal_profile_and_record_only(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
         compose = (project_root / "deploy" / "compose.yaml").read_text(encoding="utf-8")
+        lock = json.loads(
+            (project_root / "deploy" / "proposal-bridge.lock.json").read_text(
+                encoding="utf-8"
+            )
+        )
         server = (project_root / "deploy" / "proposal-server" / "server.js").read_text(
             encoding="utf-8"
         )
@@ -992,6 +997,25 @@ class JosieTests(unittest.TestCase):
         self.assertIn("proposal-token.txt", start)
         self.assertIn("randomnumbergenerator", start)
         self.assertIn("published_host_port = $false", start)
+        self.assertIn("josie_tool_server_connections", compose.lower())
+        self.assertIn("cors_allow_origin:", compose.lower())
+        self.assertNotIn('cors_allow_origin: "*"', compose.lower())
+        self.assertIn("josie-core-review", start)
+        self.assertIn("convertto-json -inputobject $connection -compress", start)
+        self.assertIn("access_grants = @()", start)
+        self.assertIn("global_tool_enabled = $true", start)
+        self.assertEqual(lock["status"], "active")
+        self.assertEqual(lock["connection"]["id"], "josie-core-review")
+        self.assertFalse(lock["connection"]["secret_in_git"])
+        self.assertFalse(lock["network"]["published_host_port"])
+        self.assertEqual(len(lock["network"]["cors_allowed_origins"]), 3)
+        self.assertEqual(lock["authority"]["operation_ids"], ["record_review_proposal"])
+        self.assertFalse(lock["authority"]["actions_executable"])
+        self.assertEqual(lock["acceptance_test"]["actions_queued"], 0)
+        self.assertEqual(lock["acceptance_test"]["actions_executed"], 0)
+        self.assertEqual(lock["acceptance_test"]["unsupported_shell_kind_http_status"], 400)
+        self.assertTrue(lock["acceptance_test"]["cors_allowlist_verified"])
+        self.assertFalse(lock["acceptance_test"]["untrusted_origin_allowed"])
 
 
 if __name__ == "__main__":

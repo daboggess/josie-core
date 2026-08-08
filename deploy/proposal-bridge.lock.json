@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "active",
+  "activated_at": "2026-08-08T22:51:08Z",
+  "connection": {
+    "id": "josie-core-review",
+    "name": "Josie Core Review",
+    "type": "openapi",
+    "server": "http://proposal-server:3030",
+    "specification_path": "/openapi.json",
+    "authentication": "bearer",
+    "enabled": true,
+    "secret_in_git": false
+  },
+  "network": {
+    "docker_internal": true,
+    "published_host_port": false,
+    "lan_listener": false,
+    "tailscale_listener": false,
+    "internet_listener": false,
+    "cors_allowed_origins": [
+      "http://127.0.0.1:3000",
+      "http://localhost:3000",
+      "https://refurb.tail0ab4d2.ts.net"
+    ]
+  },
+  "authority": {
+    "operation_ids": [
+      "record_review_proposal"
+    ],
+    "allowed_kinds": [
+      "health_check",
+      "memory_export",
+      "restore_drill"
+    ],
+    "actions_executable": false,
+    "shell_available": false,
+    "cloud_activity_allowed": false
+  },
+  "acceptance_test": {
+    "proposal_external_id": "2d4e0992-f659-4f1d-a2f9-67e846c4e24c",
+    "proposal_kind": "health_check",
+    "proposal_status": "review_required",
+    "actions_queued": 0,
+    "actions_executed": 0,
+    "cloud_activity": false,
+    "new_jobs_queued": 0,
+    "unsupported_shell_kind_http_status": 400,
+    "cors_allowlist_verified": true,
+    "untrusted_origin_allowed": false,
+    "inbox_remaining": 0,
+    "rejected_files_remaining": 0
+  },
+  "source_sha256": {
+    "proposal_server": "c23f8f4637b51cb268a35158290c2a61fd71e90fc3c8fd1b8deaab2b6a0d1d18",
+    "compose": "7d2cfe04e5d98d7dbfed0f0b7855b4af68b8e48cd2d48d378830a7f4e9ba3784",
+    "activation_script": "bdfa4a9709c8babd523b4bbf3ffa02696f68e17af4af7d0bb30a223a48a6c866"
+  },
+  "recovery": {
+    "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260808-183926.tgz",
+    "n8n_backup": "D:\\Josie-Storage\\backups\\services\\n8n-20260808-183926.tgz",
+    "backups_verified": true,
+    "destructive_change": false
+  }
+}
