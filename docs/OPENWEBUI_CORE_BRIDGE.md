@@ -23,6 +23,8 @@ The bridge is intentionally record-only:
   queue, or action execution path;
 - every accepted record says `review_required`, `actions_queued: 0`, and
   `actions_executed: 0`;
+- every success response includes a fixed, evidence-only assistant message so
+  the small local model does not need to invent an interpretation;
 - Core independently validates every field before recording a proposal in its
   local SQLite audit trail.
 

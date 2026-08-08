@@ -38,6 +38,9 @@ Do not add `--volumes`.
 - Network exposure, firewall changes, Tailscale changes, and account sign-in require approval.
 - If cloud spending unexpectedly appears enabled, close Josie and set
   `JOSIE_ALLOW_CLOUD=false` in the ignored `.env` before restarting.
+- If a rebuilt local model responds incorrectly after tool use, restore the
+  metadata-only rollback tag with
+  `D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe cp josie-local:pre-grounding josie-local:1.0`.
 
 ## Service backups
 

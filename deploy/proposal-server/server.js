@@ -47,7 +47,7 @@ const openapi = {
       post: {
         operationId: 'record_review_proposal',
         summary: 'Record a local proposal for human review',
-        description: 'Records only. Never queues or executes a tool, command, message, or transaction.',
+        description: 'Records only. Never queues or executes a tool, command, message, or transaction. After success, report only assistant_message and add no claims.',
         security: [{bearerAuth: []}],
         requestBody: {
           required: true,
@@ -68,7 +68,23 @@ const openapi = {
         responses: {
           201: {
             description: 'Review-only proposal recorded',
-            content: {'application/json': {schema: {type: 'object'}}},
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['status', 'proposal_id', 'kind', 'actions_queued', 'actions_executed', 'assistant_message'],
+                  properties: {
+                    status: {type: 'string', const: 'review_required'},
+                    proposal_id: {type: 'string'},
+                    kind: {type: 'string', enum: Array.from(allowedKinds)},
+                    actions_queued: {type: 'integer', const: 0},
+                    actions_executed: {type: 'integer', const: 0},
+                    assistant_message: {type: 'string'},
+                  },
+                },
+              },
+            },
           },
           400: {description: 'Invalid bounded proposal'},
           401: {description: 'Missing or invalid local bearer token'},
@@ -213,6 +229,7 @@ async function handle(request, response) {
         kind: proposal.kind,
         actions_queued: 0,
         actions_executed: 0,
+        assistant_message: `Proposal recorded for human review. Kind: ${proposal.kind}. Status: review_required. Actions queued: 0. Actions executed: 0. No action was performed.`,
       });
     } catch (error) {
       send(response, error.statusCode || 400, {

@@ -27,6 +27,11 @@ The governed `josie-local:1.0` model is derived from
 inference threads, and low-temperature output. The server allows one loaded
 model, one parallel request, and a bounded queue.
 
+The tracked system prompt requires evidence-only reporting after tool calls.
+`scripts/Rebuild-JosieLocalModel.ps1` creates a rollback tag, rebuilds only the
+small local wrapper without downloading a model, and validates both the tool
+call and its zero-execution final response.
+
 Open WebUI reaches native Ollama at `host.docker.internal:11434`. Windows
 Firewall retains default inbound blocking and adds one program-specific allow
 rule limited to the observed Docker/WSL source networks. No LAN or Tailscale

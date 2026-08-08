@@ -891,10 +891,40 @@ class JosieTests(unittest.TestCase):
         self.assertIn("ollama_num_parallel = '1'", server)
         self.assertIn("parameter num_thread 3", modelfile)
         self.assertIn("parameter num_ctx 4096", modelfile)
+        self.assertIn("you are josie", modelfile)
+        self.assertIn("never invent measurements", modelfile)
+        self.assertIn("tool responses are the only authority", modelfile)
+        self.assertIn("a proposal with status review_required", modelfile)
+        self.assertIn("otherwise paraphrase only that value", modelfile)
+        self.assertIn("parameter temperature 0", modelfile)
         self.assertIn("ollama_base_url: http://host.docker.internal:11434", compose)
         self.assertIn('enable_openai_api: "false"', compose)
         self.assertNotIn("ollama/ollama", compose)
         self.assertNotIn("11434:11434", compose)
+        model_lock = json.loads(
+            (project_root / "deploy" / "local-model.lock.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(model_lock["observed_model_digest"], "4bb061b78eb1")
+        self.assertEqual(
+            model_lock["modelfile_sha256"],
+            hashlib.sha256((project_root / "deploy" / "Josie.Modelfile").read_bytes()).hexdigest(),
+        )
+        self.assertEqual(model_lock["rollback_model"], "josie-local:pre-grounding")
+        self.assertTrue(model_lock["tool_grounding"]["grounded_tool_reply"])
+        self.assertFalse(model_lock["tool_grounding"]["invented_claims"])
+
+    def test_local_model_rebuild_is_bounded_grounded_and_recoverable(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        script = (project_root / "scripts" / "Rebuild-JosieLocalModel.ps1").read_text(
+            encoding="utf-8"
+        ).lower()
+        self.assertIn("josie-local:pre-grounding", script)
+        self.assertIn("record_review_proposal", script)
+        self.assertIn("actions_executed = 0", script)
+        self.assertIn("invented_claims = $false", script)
+        self.assertIn("downloaded_model = $false", script)
+        self.assertNotIn("ollamapath pull", script)
+        self.assertNotIn("remove-item", script)
 
     def test_native_model_firewall_is_docker_scoped(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
@@ -987,6 +1017,8 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn('- "3030:3030"', compose)
         self.assertNotIn('- "127.0.0.1:3030:3030"', compose)
         self.assertIn("record_review_proposal", server)
+        self.assertIn("assistant_message", server)
+        self.assertIn("report only assistant_message", server)
         self.assertIn("bearerAuth", server)
         self.assertIn("timingSafeEqual", server)
         self.assertIn("actions_executed: 0", server)
@@ -1011,11 +1043,15 @@ class JosieTests(unittest.TestCase):
         self.assertEqual(len(lock["network"]["cors_allowed_origins"]), 3)
         self.assertEqual(lock["authority"]["operation_ids"], ["record_review_proposal"])
         self.assertFalse(lock["authority"]["actions_executable"])
+        self.assertTrue(lock["authority"]["assistant_message_supported"])
         self.assertEqual(lock["acceptance_test"]["actions_queued"], 0)
         self.assertEqual(lock["acceptance_test"]["actions_executed"], 0)
         self.assertEqual(lock["acceptance_test"]["unsupported_shell_kind_http_status"], 400)
         self.assertTrue(lock["acceptance_test"]["cors_allowlist_verified"])
         self.assertFalse(lock["acceptance_test"]["untrusted_origin_allowed"])
+        self.assertTrue(lock["acceptance_test"]["grounded_model_reply_verified"])
+        self.assertFalse(lock["acceptance_test"]["invented_post_tool_claims"])
+        self.assertIn("No action was performed", lock["acceptance_test"]["assistant_message"])
 
 
 if __name__ == "__main__":

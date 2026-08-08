@@ -90,7 +90,9 @@ An authenticated OpenAPI bridge is active so Open WebUI can record those same
 three proposal types. It has no host port, uses a private Docker network and
 bearer token, and can only write bounded JSON records. The
 host monitor validates and imports those records into Core; it never executes
-them. See [docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
+them. Successful tool results include a fixed evidence-only reply, and the local
+model is tested to avoid invented post-tool claims. See
+[docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
 
 Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
 `ask Sophie ...` and `ask Bernie ...` in the GUI save a secret-screened draft

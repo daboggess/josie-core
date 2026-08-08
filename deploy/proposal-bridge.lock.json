@@ -35,10 +35,11 @@
     ],
     "actions_executable": false,
     "shell_available": false,
-    "cloud_activity_allowed": false
+    "cloud_activity_allowed": false,
+    "assistant_message_supported": true
   },
   "acceptance_test": {
-    "proposal_external_id": "2d4e0992-f659-4f1d-a2f9-67e846c4e24c",
+    "proposal_external_id": "1f9ee802-01a7-41c7-b76f-162b18c7293c",
     "proposal_kind": "health_check",
     "proposal_status": "review_required",
     "actions_queued": 0,
@@ -48,11 +49,14 @@
     "unsupported_shell_kind_http_status": 400,
     "cors_allowlist_verified": true,
     "untrusted_origin_allowed": false,
+    "grounded_model_reply_verified": true,
+    "invented_post_tool_claims": false,
+    "assistant_message": "Proposal recorded for human review. Kind: health_check. Status: review_required. Actions queued: 0. Actions executed: 0. No action was performed.",
     "inbox_remaining": 0,
     "rejected_files_remaining": 0
   },
   "source_sha256": {
-    "proposal_server": "c23f8f4637b51cb268a35158290c2a61fd71e90fc3c8fd1b8deaab2b6a0d1d18",
+    "proposal_server": "9d0b469f688f01bb9c0f510a20a4ba6c307c9e9e288f41327e78d9faf0718840",
     "compose": "7d2cfe04e5d98d7dbfed0f0b7855b4af68b8e48cd2d48d378830a7f4e9ba3784",
     "activation_script": "bdfa4a9709c8babd523b4bbf3ffa02696f68e17af4af7d0bb30a223a48a6c866"
   },

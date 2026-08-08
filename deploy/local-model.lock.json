@@ -9,7 +9,10 @@
   "base_model": "qwen2.5:1.5b-instruct-q4_K_M",
   "base_model_observed_digest": "65ec06548149",
   "model": "josie-local:1.0",
-  "observed_model_digest": "b57dec3f116c",
+  "observed_model_digest": "4bb061b78eb1",
+  "prompt_updated_at": "2026-08-08T19:32:33-04:00",
+  "modelfile_sha256": "e4fe410997397ede2d10458281a02c648348a8bf13480d64230a6983e7620edb",
+  "rollback_model": "josie-local:pre-grounding",
   "storage": "D:\\Josie-Storage\\models\\ollama",
   "limits": {
     "inference_threads": 3,
@@ -30,5 +33,12 @@
   },
   "cloud_spend_enabled": false,
   "gpu_enabled": false,
-  "structured_output_verified": true
+  "structured_output_verified": true,
+  "tool_grounding": {
+    "expected_tool_call": true,
+    "grounded_tool_reply": true,
+    "invented_claims": false,
+    "cloud_activity": false,
+    "downloaded_model": false
+  }
 }

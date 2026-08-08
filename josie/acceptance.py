@@ -50,6 +50,13 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
     except (OSError, ValueError):
         pass
     firewall = model_lock.get("firewall", {})
+    model_grounding = model_lock.get("tool_grounding", {})
+    modelfile_path = project_root / "deploy" / "Josie.Modelfile"
+    modelfile_matches = bool(
+        modelfile_path.is_file()
+        and model_lock.get("modelfile_sha256")
+        == hashlib.sha256(modelfile_path.read_bytes()).hexdigest()
+    )
     native_model_security_ready = bool(
         model_lock.get("model") == "josie-local:1.0"
         and model_lock.get("cloud_spend_enabled") is False
@@ -57,6 +64,14 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and isinstance(firewall, dict)
         and firewall.get("lan_allowed") is False
         and firewall.get("tailscale_allowed") is False
+        and modelfile_matches
+        and model_lock.get("rollback_model") == "josie-local:pre-grounding"
+        and isinstance(model_grounding, dict)
+        and model_grounding.get("expected_tool_call") is True
+        and model_grounding.get("grounded_tool_reply") is True
+        and model_grounding.get("invented_claims") is False
+        and model_grounding.get("cloud_activity") is False
+        and model_grounding.get("downloaded_model") is False
     )
     planner_path = project_root / "josie" / "local_model.py"
     planner_text = planner_path.read_text(encoding="utf-8") if planner_path.is_file() else ""
@@ -172,6 +187,7 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_authority.get("actions_executable") is False
         and bridge_authority.get("shell_available") is False
         and bridge_authority.get("cloud_activity_allowed") is False
+        and bridge_authority.get("assistant_message_supported") is True
         and isinstance(bridge_test, dict)
         and bridge_test.get("proposal_status") == "review_required"
         and bridge_test.get("actions_queued") == 0
@@ -181,6 +197,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("unsupported_shell_kind_http_status") == 400
         and bridge_test.get("cors_allowlist_verified") is True
         and bridge_test.get("untrusted_origin_allowed") is False
+        and bridge_test.get("grounded_model_reply_verified") is True
+        and bridge_test.get("invented_post_tool_claims") is False
+        and bridge_test.get("assistant_message")
+        == "Proposal recorded for human review. Kind: health_check. Status: review_required. Actions queued: 0. Actions executed: 0. No action was performed."
         and bridge_sources_match
     )
 
