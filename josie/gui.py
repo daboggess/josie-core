@@ -11,8 +11,8 @@ from tkinter import ttk
 
 from .config import Config
 from .diagnostics import (
-    external_storage_snapshot, health_check, recovery_snapshot, repository_snapshot, storage_snapshot,
-    system_snapshot, uptime_snapshot,
+    external_storage_snapshot, health_check, memory_export_snapshot, recovery_snapshot,
+    repository_snapshot, restore_drill_snapshot, storage_snapshot, system_snapshot, uptime_snapshot,
 )
 from .providers import provider_status
 from .storage import LocalStore
@@ -132,6 +132,23 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"Recovery: {snapshot['backup_count']} backup(s); latest {snapshot['latest_backup']}; "
             f"integrity {snapshot['integrity']}."
         )
+    if text in {"restore drill", "test restore", "verify restore"}:
+        snapshot = restore_drill_snapshot(config=config, project_root=project_root)
+        if snapshot["status"] != "ok":
+            return "Restore drill is waiting because no usable backup is available. Live data was unchanged."
+        if store:
+            store.audit("restore_drill", str(snapshot["backup"]))
+        return (
+            f"Restore drill passed using {snapshot['backup']}; integrity {snapshot['integrity']}. "
+            "The live database was unchanged."
+        )
+    if text in {"export memory", "memory export", "export memories"}:
+        snapshot = memory_export_snapshot(config=config, project_root=project_root)
+        if snapshot["status"] != "ok":
+            return "Memory export is waiting because no local database exists."
+        if store:
+            store.audit("memory_exported", Path(str(snapshot["path"])).name)
+        return f"Memory and task records exported locally to {snapshot['path']}. No cloud service was used."
     if text in {"external drive", "usb drive", "10tb drive", "external storage"}:
         snapshot = external_storage_snapshot(config=config, project_root=project_root)
         if not snapshot["drives"]:

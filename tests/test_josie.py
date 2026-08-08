@@ -11,7 +11,9 @@ from josie.tools import available_tools, run_tool
 from josie.providers import probe_openai, provider_status
 from josie.gui import respond
 from josie.storage import LocalStore
-from josie.diagnostics import recovery_snapshot, system_snapshot, uptime_snapshot
+from josie.diagnostics import (
+    memory_export_snapshot, recovery_snapshot, restore_drill_snapshot, system_snapshot, uptime_snapshot,
+)
 from josie.reports import export_diagnostics, warning_snapshot
 from josie.instance import gui_instance
 from josie.roadmap import roadmap_summary
@@ -110,6 +112,35 @@ class JosieTests(unittest.TestCase):
         self.assertIn("uptime", available_tools())
         self.assertIn("recovery", available_tools())
         self.assertIn("external-storage", available_tools())
+        self.assertIn("memory-export", available_tools())
+        self.assertIn("restore-drill", available_tools())
+
+    def test_memory_export_is_local_and_secret_free(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".env").write_text("OPENAI_API_KEY=never-export-this\n", encoding="utf-8")
+            store = LocalStore(root / "data" / "josie.db")
+            store.remember("governed memory")
+            store.add_task("governed task")
+            result = memory_export_snapshot(config=load_config(root / ".env"), project_root=root)
+            exported = Path(str(result["path"])).read_text(encoding="utf-8")
+            self.assertEqual(result["status"], "ok")
+            self.assertFalse(result["cloud_activity"])
+            self.assertIn("governed memory", exported)
+            self.assertNotIn("never-export-this", exported)
+
+    def test_restore_drill_never_changes_live_database(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            store.remember("before backup")
+            store.create_daily_backup(root / "data" / "backups")
+            store.remember("after backup")
+            result = restore_drill_snapshot(config=load_config(root / ".env"), project_root=root)
+            self.assertEqual(result["status"], "ok")
+            self.assertFalse(result["live_database_changed"])
+            self.assertEqual(result["record_counts"]["memories"], 1)
+            self.assertEqual(len(store.memories()), 2)
 
     def test_uptime_monitor_is_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -104,6 +104,8 @@ confirmed on Josie or by the repository test suite.
 - [ ] Build the origin interview process for Sophie and Bernie.
 - [ ] Record project rules, philosophy, major decisions, and provenance.
 - [ ] Add explicit memory review, correction, deletion, export, and restore workflows.
+- [x] Add secret-free local memory/task export and a non-overwriting restore drill.
+- [ ] Add approval-gated correction and deletion workflows; current approval records execute nothing.
 
 ## Safety and permissions
 

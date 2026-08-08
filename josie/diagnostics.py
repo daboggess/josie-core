@@ -10,6 +10,7 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+from datetime import datetime
 
 from .config import Config
 
@@ -152,6 +153,81 @@ def recovery_snapshot(*, config: Config, project_root: Path) -> dict[str, object
         "backup_count": len(backups),
         "latest_backup": latest.name if latest else None,
         "integrity": integrity,
+    }
+
+
+def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
+    """Restore the newest backup into memory and verify it without touching live data."""
+    del config
+    backup_dir = project_root / "data" / "backups"
+    backups = sorted(backup_dir.glob("josie-????-??-??.db"), reverse=True)
+    if not backups:
+        return {"status": "waiting", "reason": "No backup exists", "live_database_changed": False}
+    source = sqlite3.connect(f"file:{backups[0]}?mode=ro", uri=True)
+    restored = sqlite3.connect(":memory:")
+    try:
+        source.backup(restored)
+        integrity = str(restored.execute("PRAGMA quick_check").fetchone()[0])
+        tables = {
+            row[0] for row in restored.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        }
+        required = {"messages", "memories", "tasks", "approvals", "audit", "reminders"}
+        counts = {
+            table: int(restored.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+            for table in sorted(required & tables)
+        }
+    finally:
+        source.close()
+        restored.close()
+    ready = integrity == "ok" and required.issubset(tables)
+    return {
+        "status": "ok" if ready else "degraded",
+        "backup": backups[0].name,
+        "integrity": integrity,
+        "required_tables_present": required.issubset(tables),
+        "record_counts": counts,
+        "live_database_changed": False,
+    }
+
+
+def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
+    """Export governed memory/task records locally; never includes provider secrets."""
+    database = project_root / "data" / "josie.db"
+    if not database.is_file():
+        return {"status": "waiting", "reason": "No Josie database exists"}
+    export_root = (
+        config.external_storage / "archives" / "memory-exports"
+        if config.external_storage and config.external_storage.is_dir()
+        else project_root / "data" / "exports"
+    )
+    export_root.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().astimezone().strftime("%Y%m%d-%H%M%S")
+    destination = export_root / f"josie-memory-{stamp}.json"
+    connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
+    connection.row_factory = sqlite3.Row
+    try:
+        data = {
+            "schema_version": 1,
+            "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "source": "Josie local database",
+            "memories": [dict(row) for row in connection.execute(
+                "SELECT id,created_at,content FROM memories ORDER BY id"
+            )],
+            "tasks": [dict(row) for row in connection.execute(
+                "SELECT id,created_at,description,status FROM tasks ORDER BY id"
+            )],
+        }
+    finally:
+        connection.close()
+    destination.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+    return {
+        "status": "ok",
+        "path": str(destination),
+        "memory_count": len(data["memories"]),
+        "task_count": len(data["tasks"]),
+        "cloud_activity": False,
     }
 
 
