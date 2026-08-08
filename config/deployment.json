@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "components": [
+    {"id": "external_storage", "phase": "safe", "gate": null},
+    {"id": "local_backups", "phase": "safe", "gate": null},
+    {"id": "diagnostics_baseline", "phase": "safe", "gate": null},
+    {"id": "tailscale", "phase": "system", "gate": "admin_and_authentication"},
+    {"id": "wsl", "phase": "system", "gate": "admin_and_reboot"},
+    {"id": "container_runtime", "phase": "system", "gate": "admin_and_download"},
+    {"id": "n8n", "phase": "services", "gate": "network_download"},
+    {"id": "browser_worker", "phase": "services", "gate": "network_download"},
+    {"id": "open_webui", "phase": "services", "gate": "network_download"}
+  ]
+}

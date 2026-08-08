@@ -46,6 +46,8 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py health --json
 .\.venv\Scripts\python.exe .\core.py tools list
 .\.venv\Scripts\python.exe .\core.py providers status
+.\.venv\Scripts\python.exe .\core.py deploy status
+.\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
 .\.venv\Scripts\python.exe .\core.py providers check gemini
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v

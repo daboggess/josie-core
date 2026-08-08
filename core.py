@@ -10,6 +10,7 @@ from josie.config import load_config
 from josie.logging_setup import configure_logging
 from josie.gui import launch_gui
 from josie.instance import gui_instance
+from josie.deployment import DeploymentController
 from josie.providers import probe_gemini, probe_openai, provider_status
 from josie.tools import available_tools, run_tool
 
@@ -35,6 +36,8 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("provider", choices=("openai", "gemini"))
 
     subcommands.add_parser("gui", help="Open Josie's local graphical interface")
+    deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
+    deploy.add_argument("action", choices=("status", "safe"))
     return parser
 
 
@@ -64,6 +67,12 @@ def main() -> int:
                 return 0
             logger.info("Starting local GUI")
             launch_gui(config=config, project_root=project_root)
+        return 0
+
+    if args.command == "deploy":
+        controller = DeploymentController(config=config, project_root=project_root)
+        result = controller.status() if args.action == "status" else controller.run_safe_phase()
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
     tool_name = "health" if args.command == "health" else args.name

@@ -15,6 +15,7 @@ from josie.diagnostics import recovery_snapshot, system_snapshot, uptime_snapsho
 from josie.reports import export_diagnostics, warning_snapshot
 from josie.instance import gui_instance
 from josie.roadmap import roadmap_summary
+from josie.deployment import DeploymentController
 
 
 class JosieTests(unittest.TestCase):
@@ -197,6 +198,20 @@ class JosieTests(unittest.TestCase):
             config = load_config(root / ".env")
             self.assertIn("1 completed", respond("roadmap", config=config, project_root=root))
             self.assertIn("First safe step", respond("next step", config=config, project_root=root))
+
+    def test_deployment_state_is_idempotent_and_spend_locked(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "config" / "deployment.json").write_text(
+                '{"schema_version":1,"components":[{"id":"wsl","phase":"system","gate":"admin_and_reboot"}]}',
+                encoding="utf-8",
+            )
+            config = load_config(root / ".env")
+            controller = DeploymentController(config=config, project_root=root)
+            status = controller.status()
+            self.assertFalse(status["cloud_calls_allowed"])
+            self.assertEqual(status["pending_human_gates"][0]["id"], "wsl")
 
 
 if __name__ == "__main__":
