@@ -121,8 +121,9 @@ confirmed on Josie or by the repository test suite.
 
 ## Economic-agent foundation
 
-- [ ] Create a Josie Upgrade Fund ledger.
-- [ ] Separate actual revenue, expenses, API costs, electricity, and profit from estimated savings.
+- [x] Create a local, non-transactional Josie Upgrade Fund ledger.
+- [x] Separate actual revenue, expenses, API costs, electricity, and balance from estimated savings.
+- [x] Prevent estimated savings from being counted as earned money; ledger records cannot move or spend money.
 - [ ] Keep tax, contracting, identity verification, and regulated business actions human-controlled.
 - [ ] Evaluate wallet capability only after strict non-self-modifiable limits exist.
 - [ ] Build opportunity discovery within platform rules and applicable law.

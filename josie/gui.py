@@ -42,6 +42,38 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"Approvals waiting: {counts['pending_approvals']}. Conversation entries: {counts['messages']}. "
             f"Cloud: {cloud}."
         )
+    if text in {"ledger", "upgrade fund", "fund status", "upgrade fund ledger"}:
+        summary = store.ledger_summary() if store else {
+            "actual_revenue_cents": 0, "actual_cost_cents": 0, "actual_balance_cents": 0,
+            "estimated_revenue_cents": 0, "estimated_cost_cents": 0,
+            "estimated_savings_cents": 0,
+        }
+        return (
+            f"Upgrade Fund actual: revenue ${summary['actual_revenue_cents']/100:.2f}, "
+            f"costs ${summary['actual_cost_cents']/100:.2f}, balance ${summary['actual_balance_cents']/100:.2f}. "
+            f"Estimates (not earned money): revenue ${summary['estimated_revenue_cents']/100:.2f}, "
+            f"costs ${summary['estimated_cost_cents']/100:.2f}, savings ${summary['estimated_savings_cents']/100:.2f}. "
+            "This ledger cannot spend or move money."
+        )
+    ledger_match = re.fullmatch(
+        r"record (actual|estimated) (revenue|expense|api cost|electricity|savings) "
+        r"\$?(\d+(?:\.\d{1,2})?) for (.+)", text
+    )
+    if ledger_match:
+        if store is None:
+            return "The local ledger is unavailable."
+        basis, category, amount, description = ledger_match.groups()
+        category = category.replace(" ", "_")
+        try:
+            entry_id = store.record_ledger_entry(
+                basis=basis, category=category, amount=amount, description=description
+            )
+        except ValueError as exc:
+            return str(exc) + ". No ledger entry was created."
+        return (
+            f"Ledger entry {entry_id} recorded locally as {basis} {category.replace('_', ' ')} "
+            f"${float(amount):.2f}. This recorded a fact only; no transaction occurred."
+        )
     if text.startswith("request action "):
         if store is None:
             return "Approval inbox is unavailable."
@@ -247,6 +279,7 @@ class JosieApp:
             ("Backups", "backup status"),
             ("Activity", "activity"),
             ("Warnings", "warnings"),
+            ("Ledger", "ledger"),
         ):
             ttk.Button(
                 quick_bar,

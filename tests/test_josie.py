@@ -82,6 +82,47 @@ class JosieTests(unittest.TestCase):
             self.assertIn("marked complete", respond("complete task 1", config=config, project_root=root, store=store))
             self.assertEqual(respond("tasks", config=config, project_root=root, store=store), "No pending tasks.")
 
+    def test_upgrade_fund_separates_actuals_from_estimates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            store.record_ledger_entry(
+                basis="actual", category="revenue", amount="25.00", description="paid work"
+            )
+            store.record_ledger_entry(
+                basis="actual", category="api_cost", amount="2.50", description="provider invoice"
+            )
+            store.record_ledger_entry(
+                basis="estimated", category="savings", amount="100.00", description="time estimate"
+            )
+            summary = store.ledger_summary()
+            self.assertEqual(summary["actual_balance_cents"], 2250)
+            self.assertEqual(summary["estimated_savings_cents"], 10000)
+            self.assertNotEqual(summary["actual_balance_cents"], 12250)
+            answer = respond("ledger", config=load_config(root / ".env"), project_root=root, store=store)
+            self.assertIn("balance $22.50", answer)
+            self.assertIn("not earned money", answer)
+            self.assertIn("cannot spend", answer)
+
+    def test_upgrade_fund_rejects_actual_savings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "data" / "josie.db")
+            with self.assertRaisesRegex(ValueError, "estimated"):
+                store.record_ledger_entry(
+                    basis="actual", category="savings", amount="10", description="not cash"
+                )
+
+    def test_gui_records_ledger_fact_without_transaction(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            result = respond(
+                "record estimated savings $15.25 for local processing",
+                config=load_config(root / ".env"), project_root=root, store=store,
+            )
+            self.assertIn("no transaction occurred", result.lower())
+            self.assertEqual(store.ledger_summary()["estimated_savings_cents"], 1525)
+
     def test_local_status_dashboard(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
