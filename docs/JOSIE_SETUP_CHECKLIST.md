@@ -68,6 +68,10 @@ confirmed on Josie or by the repository test suite.
 - [x] Verified 2026-08-07: `wsl.exe` exists but Windows Subsystem for Linux is not installed/enabled.
 - [ ] Evaluate Docker Desktop versus a lighter Windows/WSL container runtime.
 - [ ] Install container tooling only after explicit approval.
+- [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
+- [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
+- [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
+- [x] Deployment safety suite passes 21 tests on 2026-08-08.
 - [ ] Install and configure n8n with persistent data outside disposable containers.
 - [ ] Build Josie as the orchestrator rather than a single chatbot.
 - [ ] Add narrowly allowlisted Python and JavaScript workers.
@@ -77,6 +81,7 @@ confirmed on Josie or by the repository test suite.
 ## Computer-use capability
 
 - [ ] Add Playwright browser workers in an isolated profile.
+- [x] Staged browser-worker health endpoint; navigation and execution remain disabled pending capability review.
 - [ ] Support permitted navigation, form entry, downloads, uploads, and extraction.
 - [ ] Prefer APIs or dedicated connectors over browser automation when available.
 - [ ] Do not bypass platform rules, access controls, CAPTCHAs, or anti-bot systems.
