@@ -27,3 +27,12 @@ human approval.
 Answers are recorded locally with a source label and remain unverified until
 Dustin confirms them. Sophie and Bernie may be interviewed only through an
 explicitly approved cloud interaction or through text Dustin supplies locally.
+
+## Initial organized history
+
+`PROJECT_HISTORY_SEED.json` contains eight narrowly scoped statements taken
+from Dustin's setup brief, approvals, constraints, running checklist, and the
+Bernie review that Dustin relayed. They are imported as `unverified`; the source
+bundle is tracked in Git so the local database entries are reproducible and
+auditable. Use `origin records`, then `confirm origin N` or `reject origin N` in
+Josie's local GUI. No record is auto-confirmed.

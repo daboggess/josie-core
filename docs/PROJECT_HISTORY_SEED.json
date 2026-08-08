@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "source_scope": "Dustin's Josie setup conversation and the Bernie review relayed by Dustin on 2026-08-08",
+  "confirmation_policy": "Every imported record remains unverified until Dustin explicitly confirms or rejects it.",
+  "records": [
+    {
+      "source": "Dustin setup brief",
+      "statement": "Josie 1.0 uses an Advantech AIMB-205G2, Intel i7-7700, 32 GB DDR4-2400, a 128 GB SQF SATA system SSD, Intel HD 630, and the current 200 W PSU; no discrete GPU is installed."
+    },
+    {
+      "source": "Dustin setup brief",
+      "statement": "Josie's goal is a local-first AI and orchestration kernel that can coordinate local tools plus Sophie/ChatGPT and Bernie/Gemini while preserving a path toward greater privacy and local inference."
+    },
+    {
+      "source": "Dustin setup constraints",
+      "statement": "Large local models and GPU-dependent packages are deferred while Josie has integrated graphics and a 128 GB internal SSD; lightweight CPU-safe components are preferred."
+    },
+    {
+      "source": "Dustin explicit approval",
+      "statement": "Dustin approved native Ollama on D:, the Qwen 2.5 model download, and required local firewall configuration."
+    },
+    {
+      "source": "Dustin cost constraint",
+      "statement": "Dustin does not want additional OpenAI API spending; the ChatGPT subscription and Codex Remote are the Sophie control surface unless a future paid API action is separately approved."
+    },
+    {
+      "source": "Bernie review relayed by Dustin",
+      "statement": "Bernie identified the 128 GB C: drive as the immediate operational risk and recommended native Windows Ollama with models on D:, Qwen 2.5 1.5B, three inference threads, and one parallel request."
+    },
+    {
+      "source": "Dustin running checklist",
+      "statement": "Josie 1.0 should combine private Tailscale access, Open WebUI, n8n, persistent local memory, explicit permissions, approval gates, bounded browser capability, and recoverable checkpoints."
+    },
+    {
+      "source": "Dustin safety direction",
+      "statement": "Destructive, privileged, security-sensitive, account-authentication, spending, contractual, and externally communicative actions require Dustin's approval; model-generated text must not receive arbitrary shell authority."
+    }
+  ]
+}
