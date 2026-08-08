@@ -107,6 +107,15 @@ class LocalStore:
                     status TEXT NOT NULL DEFAULT 'review_required'
                     CHECK (status IN ('review_required','accepted','rejected'))
                 );
+                CREATE TABLE IF NOT EXISTS external_proposals (
+                    id INTEGER PRIMARY KEY, received_at TEXT NOT NULL,
+                    external_id TEXT NOT NULL UNIQUE, external_created_at TEXT NOT NULL,
+                    source TEXT NOT NULL CHECK (source='openwebui'),
+                    kind TEXT NOT NULL CHECK (kind IN ('health_check','memory_export','restore_drill')),
+                    summary TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'review_required'
+                    CHECK (status IN ('review_required','accepted','rejected'))
+                );
                 """
             )
             memory_columns = {
@@ -274,6 +283,33 @@ class LocalStore:
             rows = connection.execute(
                 "SELECT id,created_at,model,response_json,status FROM model_proposals "
                 "ORDER BY id DESC LIMIT ?", (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def record_external_proposal(
+        self, *, external_id: str, source: str, kind: str, summary: str,
+        external_created_at: str,
+    ) -> dict[str, object]:
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT OR IGNORE INTO external_proposals("
+                "received_at,external_id,external_created_at,source,kind,summary"
+                ") VALUES (?,?,?,?,?,?)",
+                (self._now(), external_id, external_created_at, source, kind, summary),
+            )
+            inserted = cursor.rowcount == 1
+            row = connection.execute(
+                "SELECT id FROM external_proposals WHERE external_id=?", (external_id,)
+            ).fetchone()
+        if inserted:
+            self.audit("external_proposal_recorded", f"{row['id']}: {kind}")
+        return {"id": int(row["id"]), "inserted": inserted}
+
+    def recent_external_proposals(self, limit: int = 20) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,received_at,external_id,source,kind,summary,status "
+                "FROM external_proposals ORDER BY id DESC LIMIT ?", (limit,),
             ).fetchall()
         return [dict(row) for row in rows]
 

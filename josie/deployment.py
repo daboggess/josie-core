@@ -259,12 +259,27 @@ class DeploymentController:
                 'N8N_RESTRICT_FILE_ACCESS_TO: /josie-storage/staging',
                 'n8n-nodes-base.executeCommand',
                 'n8n-nodes-base.localFileTrigger',
+                'profiles: ["proposal-interface"]',
+                './proposal-server/server.js:/app/server.js:ro',
+                '/secrets/proposal-token.txt:/run/secrets/proposal_token:ro',
+                'internal: true',
             )
             for value in required_controls:
                 if value not in compose:
                     issues.append(f"missing Open WebUI control: {value}")
             if "11434:11434" in compose:
                 issues.append("Ollama must not be published by Docker")
+            if '- "3030:3030"' in compose or '- "127.0.0.1:3030:3030"' in compose:
+                issues.append("Proposal interface must not publish a host port")
+
+        proposal_server_path = deploy_root / "proposal-server" / "server.js"
+        if not proposal_server_path.is_file():
+            issues.append("bounded proposal server is missing")
+        else:
+            proposal_server = proposal_server_path.read_text(encoding="utf-8")
+            for forbidden_api in ("child_process", "eval(", "exec(", "spawn("):
+                if forbidden_api in proposal_server:
+                    issues.append(f"proposal server contains forbidden capability: {forbidden_api}")
 
         workflow_path = deploy_root / "n8n" / "workflows" / "storage-headroom-guard.json"
         if not workflow_path.is_file():

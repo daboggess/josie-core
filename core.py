@@ -17,6 +17,7 @@ from josie.acceptance import acceptance_audit
 from josie.jobs import JobRunner, available_job_handlers
 from josie.storage import LocalStore
 from josie.local_model import propose_local_actions
+from josie.proposal_inbox import ingest_proposal_inbox
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -51,6 +52,8 @@ def build_parser() -> argparse.ArgumentParser:
     queue.add_argument("handler", choices=available_job_handlers())
     propose = subcommands.add_parser("propose", help="Ask the local model for non-executing proposals")
     propose.add_argument("request", nargs="+", help="Untrusted request text")
+    proposals = subcommands.add_parser("proposals", help="Manage the bounded external proposal inbox")
+    proposals.add_argument("action", choices=("ingest", "status"))
     return parser
 
 
@@ -122,6 +125,15 @@ def main() -> int:
             response_json=json.dumps(result, sort_keys=True),
         )
         result["proposal_id"] = proposal_id
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "proposals":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.action == "ingest":
+            result = ingest_proposal_inbox(config=config, project_root=project_root, store=store)
+        else:
+            result = {"status": "ok", "proposals": store.recent_external_proposals()}
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

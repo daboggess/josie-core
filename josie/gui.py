@@ -109,6 +109,14 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"{item['id']}. [{item['status']}] {item['model']} | {item['created_at']}"
             for item in items
         )
+    if text in {"external proposals", "webui proposals", "proposal inbox"}:
+        items = store.recent_external_proposals() if store else []
+        if not items:
+            return "No external proposals are awaiting review."
+        return "External review proposals:\n" + "\n".join(
+            f"{item['id']}. [{item['status']}] {item['kind']}: {item['summary']}"
+            for item in items
+        )
     if text in {"origin interview", "origin questions", "provenance interview"}:
         status = origin_workflow_status(project_root)
         return (

@@ -73,11 +73,12 @@ confirmed on Josie or by the repository test suite.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Expanded orchestration and deployment safety suite passes 47 tests on 2026-08-08.
+- [x] Expanded orchestration and deployment safety suite passes 50 tests on 2026-08-08.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [x] Add a governed local-model proposal boundary: deterministic intent mapping, durable review records, and zero model-triggered execution.
+- [x] Stage and isolate an authenticated Open WebUI-to-Core record-only bridge; the profile is disabled pending attended Admin UI activation.
 - [x] Add a persistent local orchestration queue with an explicit handler registry.
 - [x] Add narrowly allowlisted Python job handlers; unrestricted Python/JavaScript text execution remains forbidden.
 - [x] Add structured error handling and bounded retries capped at three attempts.
@@ -159,7 +160,7 @@ confirmed on Josie or by the repository test suite.
 
 ## Critical path
 
-1. Connect Open WebUI to Core through an authenticated, local-only proposal interface without granting model execution authority.
+1. Complete the attended Open WebUI Admin connection to the staged authenticated, local-only proposal interface; model execution authority remains absent.
 2. Define the zero-spend Sophie workflow and explicitly budgeted Bernie bridge.
 3. Import selected origin/history records through the provenance review workflow.
 4. Review a narrow browser capability allowlist before enabling navigation.

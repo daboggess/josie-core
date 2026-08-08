@@ -38,6 +38,35 @@ services:
       ENABLE_VERSION_UPDATE_CHECK: "false"
     volumes:
       - open_webui_data:/app/backend/data
+    networks:
+      - default
+      - josie_tools
+
+  proposal-server:
+    profiles: ["proposal-interface"]
+    image: ${N8N_IMAGE:?Reuse the pinned local N8N image}
+    restart: unless-stopped
+    entrypoint: ["node"]
+    command: ["/app/server.js"]
+    read_only: true
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    volumes:
+      - ./proposal-server/server.js:/app/server.js:ro
+      - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}/proposals:/proposals
+      - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}/secrets/proposal-token.txt:/run/secrets/proposal_token:ro
+    networks:
+      - josie_tools
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3030/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
   browser-worker:
     build:
@@ -66,3 +95,7 @@ services:
 volumes:
   n8n_data:
   open_webui_data:
+
+networks:
+  josie_tools:
+    internal: true

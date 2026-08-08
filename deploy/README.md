@@ -45,6 +45,21 @@ nodes are explicitly excluded. Import the canonical workflow with the n8n CLI,
 publish its stable ID, restart n8n, and verify it with the internal validation
 trigger. The workflow never receives model-generated parameters.
 
+## Open WebUI proposal boundary
+
+The `proposal-interface` Compose profile is disabled by default. When explicitly
+started, it adds a dependency-free OpenAPI record server to an internal Docker
+network shared only with Open WebUI. It publishes no host port, requires a
+random bearer token stored outside Git on D:, accepts only `kind` and `summary`,
+and writes only three allowlisted review proposal kinds. It has no process,
+shell, tool, queue, transaction, messaging, or cloud execution capability.
+
+Open WebUI must be connected as a backend/global OpenAPI tool because the
+private service name is reachable only from the Open WebUI container. That
+authenticated Admin UI change remains an attended gate. See
+`docs/OPENWEBUI_CORE_BRIDGE.md` for the exact start, connect, stop, and recovery
+sequence.
+
 ## Recovery
 
 Stop services with `docker compose --env-file deploy/.env.services -f deploy/compose.yaml down`.

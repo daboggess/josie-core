@@ -53,6 +53,8 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py tools list
 .\.venv\Scripts\python.exe .\core.py providers status
 .\.venv\Scripts\python.exe .\core.py propose "Please check Josie system health"
+.\.venv\Scripts\python.exe .\core.py proposals status
+.\.venv\Scripts\python.exe .\core.py proposals ingest
 .\.venv\Scripts\python.exe .\core.py deploy status
 .\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
@@ -78,6 +80,12 @@ governed Core proposal boundary is available from the local GUI with
 `ask Josie ...` or from the `core.py propose` command. It accepts only three
 review-only intents: health check, secret-free memory export, and non-overwriting
 restore drill. Model text cannot queue or execute any of them.
+
+An optional OpenAPI bridge is staged so Open WebUI can record those same three
+proposal types. It is disabled by default, has no host port, uses a private
+Docker network and bearer token, and can only write bounded JSON records. The
+host monitor validates and imports those records into Core; it never executes
+them. See [docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
 
 Start or repair the local model and containers:
 
@@ -109,11 +117,13 @@ Josie's GUI and storage monitor start at sign-in. The storage monitor refreshes
 `D:\Josie-Storage\staging\storage-status.json` every five minutes; the active
 n8n headroom guard checks it daily and records a failed execution if C: reaches
 warning or critical status. It sends no external message and uses no network node.
+The same monitor also ingests and validates any records in the proposal inbox.
 
 The `gui` command opens Josie's local chat-style command center. It understands
 `help`, `status`, `system status`, `repository status`, `health`, `cloud status`,
 `storage health`, `uptime`, `backup status`, `tools`, `time`, `remember ...`, `memories`,
-`add task ...`, `tasks`, `complete task N`, and `ask Josie ...`. Conversations, memories, and task
+`add task ...`, `tasks`, `complete task N`, `ask Josie ...`, and
+`external proposals`. Conversations, memories, and task
 records are stored locally in the ignored `data/josie.db` SQLite database.
 Tasks are records only and never execute automatically. Unrecognized requests
 stay local and are never forwarded to a cloud provider.
@@ -177,3 +187,9 @@ git switch -c experiment-name
 ```
 
 The `.env`, `.venv`, and logs are local and are not restored by Git. Keep API keys in a password manager; revoke and replace any key that is accidentally exposed.
+
+The optional proposal bridge can be stopped without deleting its inbox:
+
+```powershell
+.\scripts\Stop-JosieProposalInterface.ps1
+```

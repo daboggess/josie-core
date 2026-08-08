@@ -8,6 +8,7 @@ import hashlib
 from contextlib import closing
 from unittest.mock import patch
 from pathlib import Path
+from uuid import uuid4
 
 from josie.config import load_config
 from josie.tools import available_tools, run_tool
@@ -26,6 +27,7 @@ from josie.provenance import INTERVIEW_QUESTIONS, origin_workflow_status
 from josie.acceptance import acceptance_audit
 from josie.jobs import JobRunner, available_job_handlers
 from josie.local_model import propose_local_actions
+from josie.proposal_inbox import ingest_proposal_inbox
 
 
 class JosieTests(unittest.TestCase):
@@ -250,6 +252,76 @@ class JosieTests(unittest.TestCase):
             with patch("josie.local_model.urlopen", return_value=FakeResponse()):
                 with self.assertRaisesRegex(ValueError, "non-allowlisted"):
                     propose_local_actions("unsafe", config=load_config(root / ".env"), project_root=root)
+
+    def test_external_proposal_inbox_records_only_bounded_review_data(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            external = root / "external"
+            inbox = external / "proposals" / "inbox"
+            inbox.mkdir(parents=True)
+            (root / "config").mkdir()
+            (root / "config" / "permissions.json").write_text(
+                '{"schema_version":1,"default":"forbidden",'
+                '"autonomous":["record_local_fact"],"approval_required":[],"forbidden":[]}',
+                encoding="utf-8",
+            )
+            (root / ".env").write_text(f"JOSIE_EXTERNAL_STORAGE={external}\n", encoding="utf-8")
+            external_id = str(uuid4())
+            proposal = {
+                "schema_version": 1,
+                "external_id": external_id,
+                "created_at": "2026-08-08T18:00:00Z",
+                "source": "openwebui",
+                "kind": "health_check",
+                "summary": "Review local health",
+                "status": "review_required",
+                "actions_queued": 0,
+                "actions_executed": 0,
+                "model_parameters_accepted": False,
+                "cloud_activity": False,
+            }
+            (inbox / f"{external_id}.json").write_text(json.dumps(proposal), encoding="utf-8")
+            store = LocalStore(root / "data" / "josie.db")
+            result = ingest_proposal_inbox(
+                config=load_config(root / ".env"), project_root=root, store=store
+            )
+            self.assertEqual(result["ingested"], 1)
+            self.assertEqual(result["actions_queued"], 0)
+            self.assertEqual(result["actions_executed"], 0)
+            self.assertFalse(result["cloud_activity"])
+            self.assertFalse((inbox / f"{external_id}.json").exists())
+            self.assertTrue((external / "proposals" / "processed" / f"{external_id}.json").exists())
+            self.assertEqual(store.recent_external_proposals()[0]["kind"], "health_check")
+
+    def test_external_proposal_inbox_rejects_claimed_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            external = root / "external"
+            inbox = external / "proposals" / "inbox"
+            inbox.mkdir(parents=True)
+            (root / "config").mkdir()
+            (root / "config" / "permissions.json").write_text(
+                '{"schema_version":1,"default":"forbidden",'
+                '"autonomous":["record_local_fact"],"approval_required":[],"forbidden":[]}',
+                encoding="utf-8",
+            )
+            (root / ".env").write_text(f"JOSIE_EXTERNAL_STORAGE={external}\n", encoding="utf-8")
+            external_id = str(uuid4())
+            proposal = {
+                "schema_version": 1, "external_id": external_id,
+                "created_at": "2026-08-08T18:00:00Z", "source": "openwebui",
+                "kind": "health_check", "summary": "unsafe", "status": "review_required",
+                "actions_queued": 0, "actions_executed": 1,
+                "model_parameters_accepted": False, "cloud_activity": False,
+            }
+            (inbox / f"{external_id}.json").write_text(json.dumps(proposal), encoding="utf-8")
+            store = LocalStore(root / "data" / "josie.db")
+            result = ingest_proposal_inbox(
+                config=load_config(root / ".env"), project_root=root, store=store
+            )
+            self.assertEqual(result["rejected"], 1)
+            self.assertEqual(store.recent_external_proposals(), [])
+            self.assertTrue((external / "proposals" / "rejected" / f"{external_id}.json").exists())
 
     def test_upgrade_fund_separates_actuals_from_estimates(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -773,6 +845,31 @@ class JosieTests(unittest.TestCase):
         self.assertFalse(workflow_lock["validation"]["external_communication"])
         self.assertFalse(workflow_lock["validation"]["executable_node_enabled"])
         self.assertFalse(workflow_lock["validation"]["model_parameters_accepted"])
+
+    def test_openwebui_proposal_bridge_is_internal_profile_and_record_only(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        compose = (project_root / "deploy" / "compose.yaml").read_text(encoding="utf-8")
+        server = (project_root / "deploy" / "proposal-server" / "server.js").read_text(
+            encoding="utf-8"
+        )
+        start = (project_root / "scripts" / "Start-JosieProposalInterface.ps1").read_text(
+            encoding="utf-8"
+        ).lower()
+        self.assertIn('profiles: ["proposal-interface"]', compose)
+        self.assertIn("internal: true", compose)
+        self.assertNotIn('- "3030:3030"', compose)
+        self.assertNotIn('- "127.0.0.1:3030:3030"', compose)
+        self.assertIn("record_review_proposal", server)
+        self.assertIn("bearerAuth", server)
+        self.assertIn("timingSafeEqual", server)
+        self.assertIn("actions_executed: 0", server)
+        self.assertIn("model_parameters_accepted: false", server)
+        self.assertNotIn("child_process", server)
+        self.assertNotIn("eval(", server)
+        self.assertIn("proposal-server:3030", start)
+        self.assertIn("proposal-token.txt", start)
+        self.assertIn("randomnumbergenerator", start)
+        self.assertIn("published_host_port = $false", start)
 
 
 if __name__ == "__main__":

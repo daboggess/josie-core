@@ -9,6 +9,10 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $snapshotScript = Join-Path $PSScriptRoot 'Write-JosieStorageSnapshot.ps1'
 if (-not (Test-Path -LiteralPath $snapshotScript)) { throw 'The storage snapshot script is unavailable.' }
+$pythonPath = 'C:\Josie\.venv\Scripts\python.exe'
+$corePath = 'C:\Josie\core.py'
+if (-not (Test-Path -LiteralPath $pythonPath)) { throw 'Josie Python is unavailable.' }
+if (-not (Test-Path -LiteralPath $corePath)) { throw 'Josie Core is unavailable.' }
 
 $createdNew = $false
 $mutex = [Threading.Mutex]::new($true, 'Local\JosieStorageMonitor', [ref]$createdNew)
@@ -23,6 +27,8 @@ $stopEvent = [Threading.EventWaitHandle]::new(
 try {
     do {
         & $snapshotScript | Out-Null
+        & $pythonPath $corePath proposals ingest | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Proposal inbox ingestion failed.' }
         if ($Once) { break }
         if ($stopEvent.WaitOne($IntervalSeconds * 1000)) { break }
     } while ($true)
