@@ -20,6 +20,7 @@ from josie.roadmap import roadmap_summary
 from josie.deployment import DeploymentController
 from josie.policy import load_policy, permission_for
 from josie.provenance import INTERVIEW_QUESTIONS, origin_workflow_status
+from josie.acceptance import acceptance_audit
 
 
 class JosieTests(unittest.TestCase):
@@ -189,6 +190,32 @@ class JosieTests(unittest.TestCase):
             self.assertFalse(workflow["cloud_activity"])
             self.assertFalse(workflow["automatic_import"])
             self.assertEqual(workflow["question_count"], len(INTERVIEW_QUESTIONS))
+
+    def test_acceptance_audit_distinguishes_human_gates_from_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".git").mkdir()
+            (root / ".venv" / "Scripts").mkdir(parents=True)
+            (root / ".venv" / "Scripts" / "python.exe").touch()
+            (root / "config").mkdir()
+            (root / "config" / "permissions.json").write_text(
+                '{"default":"forbidden","autonomous":[],"approval_required":[],"forbidden":[]}',
+                encoding="utf-8",
+            )
+            (root / "config" / "deployment.json").write_text(
+                '{"schema_version":1,"components":[]}', encoding="utf-8"
+            )
+            (root / "deploy").mkdir()
+            (root / "deploy" / "compose.yaml").write_text(
+                'ports:\n- "127.0.0.1:5678:5678"\n- "127.0.0.1:3000:8080"\n- "127.0.0.1:3010:3010"\n',
+                encoding="utf-8",
+            )
+            LocalStore(root / "data" / "josie.db").create_daily_backup(root / "data" / "backups")
+            result = acceptance_audit(config=load_config(root / ".env"), project_root=root)
+            self.assertFalse(result["audit_mutated_machine"])
+            self.assertFalse(result["arbitrary_shell_available"])
+            self.assertGreater(result["counts"]["human_gate"], 0)
+            self.assertGreater(result["counts"]["failed"], 0)
 
     def test_local_status_dashboard(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

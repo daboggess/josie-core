@@ -13,6 +13,7 @@ from josie.instance import gui_instance
 from josie.deployment import DeploymentController
 from josie.providers import probe_gemini, probe_openai, provider_status
 from josie.tools import available_tools, run_tool
+from josie.acceptance import acceptance_audit
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,6 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
     subcommands.add_parser("gui", help="Open Josie's local graphical interface")
     deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
     deploy.add_argument("action", choices=("status", "safe", "services-preflight"))
+    subcommands.add_parser("audit", help="Audit Josie 1.0 acceptance evidence")
     return parser
 
 
@@ -79,6 +81,11 @@ def main() -> int:
             result = controller.run_safe_phase()
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
+
+    if args.command == "audit":
+        result = acceptance_audit(config=config, project_root=project_root)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0 if result["status"] != "failed" else 1
 
     tool_name = "health" if args.command == "health" else args.name
     logger.info("Running allowed tool: %s", tool_name)

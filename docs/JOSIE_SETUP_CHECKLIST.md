@@ -118,7 +118,8 @@ confirmed on Josie or by the repository test suite.
 - [ ] Prohibit human impersonation where disallowed.
 - [ ] Prohibit debt, contracts, significant spending, or wallet transfers without authorization.
 - [ ] Create spending and wallet limits that Josie cannot modify herself.
-- [ ] Add restore drills and incident-response documentation.
+- [x] Add a tested non-overwriting restore drill and incident/recovery runbook with exact commands.
+- [x] Add a machine-readable Josie 1.0 acceptance audit that separates failures from human gates.
 
 ## Economic-agent foundation
 

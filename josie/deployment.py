@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -36,9 +37,13 @@ class DeploymentController:
     def status(self) -> dict[str, object]:
         state = self._load_state()
         manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        wsl_result = subprocess.run(
+            ["wsl.exe", "--status"], capture_output=True, text=True,
+            timeout=10, check=False,
+        ) if shutil.which("wsl.exe") else None
         installed = {
             "tailscale": bool(shutil.which("tailscale")),
-            "wsl": False,
+            "wsl": bool(wsl_result and wsl_result.returncode == 0),
             "docker": bool(shutil.which("docker")),
             "node": bool(shutil.which("node")),
             "n8n": bool(shutil.which("n8n")),
