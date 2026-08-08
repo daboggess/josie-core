@@ -17,6 +17,7 @@ from .diagnostics import (
 from .providers import provider_status
 from .storage import LocalStore
 from .reports import export_diagnostics, warning_snapshot
+from .roadmap import roadmap_summary
 from .tools import available_tools
 
 
@@ -85,6 +86,20 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
         if store:
             store.audit("diagnostics_exported", path.name)
         return f"Diagnostics exported locally to {path}."
+    if text in {"roadmap", "checklist", "project roadmap", "setup checklist"}:
+        summary = roadmap_summary(project_root)
+        if summary["status"] != "ok":
+            return "The canonical roadmap is missing."
+        return (
+            f"Roadmap: {summary['completed']} completed items and {summary['pending']} pending items. "
+            f"Canonical file: {summary['path']}."
+        )
+    if text in {"next", "next step", "what next", "critical path"}:
+        summary = roadmap_summary(project_root)
+        steps = summary.get("critical_path", [])
+        if not steps:
+            return "No critical-path steps are recorded."
+        return "Current critical path:\n" + "\n".join(f"{index}. {step}" for index, step in enumerate(steps, 1))
     if text in {"system", "system status", "hardware", "hardware status", "resources"}:
         snapshot = system_snapshot(config=config, project_root=project_root)
         return (

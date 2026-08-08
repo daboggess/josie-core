@@ -14,6 +14,7 @@ from josie.storage import LocalStore
 from josie.diagnostics import recovery_snapshot, system_snapshot, uptime_snapshot
 from josie.reports import export_diagnostics, warning_snapshot
 from josie.instance import gui_instance
+from josie.roadmap import roadmap_summary
 
 
 class JosieTests(unittest.TestCase):
@@ -179,6 +180,23 @@ class JosieTests(unittest.TestCase):
             self.assertTrue(first)
             with gui_instance("Local\\JosieCoreTestMutex") as second:
                 self.assertFalse(second)
+
+    def test_canonical_roadmap_is_queryable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "JOSIE_SETUP_CHECKLIST.md").write_text(
+                "# Roadmap\n\n- [x] Done\n- [ ] Pending\n\n## Critical path\n\n1. First safe step.\n",
+                encoding="utf-8",
+            )
+            summary = roadmap_summary(root)
+            self.assertEqual(summary["completed"], 1)
+            self.assertEqual(summary["pending"], 1)
+            self.assertEqual(summary["critical_path"], ["First safe step."])
+            config = load_config(root / ".env")
+            self.assertIn("1 completed", respond("roadmap", config=config, project_root=root))
+            self.assertIn("First safe step", respond("next step", config=config, project_root=root))
 
 
 if __name__ == "__main__":

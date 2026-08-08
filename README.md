@@ -2,6 +2,7 @@
 
 The canonical build roadmap is [docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_CHECKLIST.md).
 The non-destructive external-drive procedure is [docs/EXTERNAL_DRIVE_PLAN.md](docs/EXTERNAL_DRIVE_PLAN.md).
+The capability policy is [docs/PERMISSIONS_MATRIX.md](docs/PERMISSIONS_MATRIX.md).
 
 Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The current checkpoint uses only the Python standard library, runs safely on the Intel HD 630 system, and does not install local models or GPU packages.
 
