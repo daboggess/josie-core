@@ -52,10 +52,16 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
     firewall = model_lock.get("firewall", {})
     model_grounding = model_lock.get("tool_grounding", {})
     modelfile_path = project_root / "deploy" / "Josie.Modelfile"
+    rebuild_script_path = project_root / "scripts" / "Rebuild-JosieLocalModel.ps1"
     modelfile_matches = bool(
         modelfile_path.is_file()
         and model_lock.get("modelfile_sha256")
         == hashlib.sha256(modelfile_path.read_bytes()).hexdigest()
+    )
+    rebuild_script_matches = bool(
+        rebuild_script_path.is_file()
+        and model_lock.get("rebuild_script_sha256")
+        == hashlib.sha256(rebuild_script_path.read_bytes()).hexdigest()
     )
     native_model_security_ready = bool(
         model_lock.get("model") == "josie-local:1.0"
@@ -65,6 +71,7 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and firewall.get("lan_allowed") is False
         and firewall.get("tailscale_allowed") is False
         and modelfile_matches
+        and rebuild_script_matches
         and model_lock.get("rollback_model") == "josie-local:pre-grounding"
         and isinstance(model_grounding, dict)
         and model_grounding.get("expected_tool_call") is True
@@ -200,7 +207,13 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("grounded_model_reply_verified") is True
         and bridge_test.get("invented_post_tool_claims") is False
         and bridge_test.get("assistant_message")
-        == "Proposal recorded for human review. Kind: health_check. Status: review_required. Actions queued: 0. Actions executed: 0. No action was performed."
+        == "No action was performed. A health_check proposal was recorded for human review. Status: review_required. Actions queued: 0. Actions executed: 0."
+        and bridge_test.get("duplicate_suppression_verified") is True
+        and bridge_test.get("duplicate_retry_same_proposal_id") is True
+        and bridge_test.get("duplicate_retry_created_records") == 0
+        and bridge_test.get("matching_records_after_two_calls") == 1
+        and bridge_test.get("dedupe_window_seconds") == 300
+        and bridge_test.get("dedupe_persistence_healthy") is True
         and bridge_sources_match
     )
 

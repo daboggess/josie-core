@@ -12,6 +12,7 @@
   "observed_model_digest": "4bb061b78eb1",
   "prompt_updated_at": "2026-08-08T19:32:33-04:00",
   "modelfile_sha256": "e4fe410997397ede2d10458281a02c648348a8bf13480d64230a6983e7620edb",
+  "rebuild_script_sha256": "988a20fadc901a332fb51955a73fc16df6c26586e2dd4cb55565d0975b82eb63",
   "rollback_model": "josie-local:pre-grounding",
   "storage": "D:\\Josie-Storage\\models\\ollama",
   "limits": {

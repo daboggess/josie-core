@@ -910,6 +910,10 @@ class JosieTests(unittest.TestCase):
             hashlib.sha256((project_root / "deploy" / "Josie.Modelfile").read_bytes()).hexdigest(),
         )
         self.assertEqual(model_lock["rollback_model"], "josie-local:pre-grounding")
+        self.assertEqual(
+            model_lock["rebuild_script_sha256"],
+            hashlib.sha256((project_root / "scripts" / "Rebuild-JosieLocalModel.ps1").read_bytes()).hexdigest(),
+        )
         self.assertTrue(model_lock["tool_grounding"]["grounded_tool_reply"])
         self.assertFalse(model_lock["tool_grounding"]["invented_claims"])
 
@@ -1019,6 +1023,10 @@ class JosieTests(unittest.TestCase):
         self.assertIn("record_review_proposal", server)
         self.assertIn("assistant_message", server)
         self.assertIn("report only assistant_message", server)
+        self.assertIn("dedupewindowms = 5 * 60_000", server.lower())
+        self.assertIn("proposalFingerprint", server)
+        self.assertIn("duplicate_suppression", server)
+        self.assertIn("dedupe_persistence_healthy", server)
         self.assertIn("bearerAuth", server)
         self.assertIn("timingSafeEqual", server)
         self.assertIn("actions_executed: 0", server)
@@ -1052,6 +1060,10 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["acceptance_test"]["grounded_model_reply_verified"])
         self.assertFalse(lock["acceptance_test"]["invented_post_tool_claims"])
         self.assertIn("No action was performed", lock["acceptance_test"]["assistant_message"])
+        self.assertTrue(lock["acceptance_test"]["duplicate_suppression_verified"])
+        self.assertTrue(lock["acceptance_test"]["duplicate_retry_same_proposal_id"])
+        self.assertEqual(lock["acceptance_test"]["duplicate_retry_created_records"], 0)
+        self.assertEqual(lock["acceptance_test"]["matching_records_after_two_calls"], 1)
 
 
 if __name__ == "__main__":

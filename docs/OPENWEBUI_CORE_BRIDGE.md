@@ -19,6 +19,8 @@ The bridge is intentionally record-only:
   `restore_drill`;
 - exactly two accepted model fields: `kind` and `summary`;
 - three writes per minute and 1,000 waiting records maximum;
+- identical kind-and-summary retries within five minutes return the original
+  proposal ID and create no duplicate record;
 - no shell, process launch, arbitrary code, browser, message, payment, cloud,
   queue, or action execution path;
 - every accepted record says `review_required`, `actions_queued: 0`, and

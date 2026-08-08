@@ -39,8 +39,9 @@
     "assistant_message_supported": true
   },
   "acceptance_test": {
-    "proposal_external_id": "1f9ee802-01a7-41c7-b76f-162b18c7293c",
+    "proposal_external_id": "3f7bb892-8fc4-45e8-8d9b-91c66a5de6e0",
     "proposal_kind": "health_check",
+    "proposal_summary": "Duplicate suppression live validation",
     "proposal_status": "review_required",
     "actions_queued": 0,
     "actions_executed": 0,
@@ -51,12 +52,18 @@
     "untrusted_origin_allowed": false,
     "grounded_model_reply_verified": true,
     "invented_post_tool_claims": false,
-    "assistant_message": "Proposal recorded for human review. Kind: health_check. Status: review_required. Actions queued: 0. Actions executed: 0. No action was performed.",
+    "assistant_message": "No action was performed. A health_check proposal was recorded for human review. Status: review_required. Actions queued: 0. Actions executed: 0.",
+    "duplicate_suppression_verified": true,
+    "duplicate_retry_same_proposal_id": true,
+    "duplicate_retry_created_records": 0,
+    "matching_records_after_two_calls": 1,
+    "dedupe_window_seconds": 300,
+    "dedupe_persistence_healthy": true,
     "inbox_remaining": 0,
     "rejected_files_remaining": 0
   },
   "source_sha256": {
-    "proposal_server": "9d0b469f688f01bb9c0f510a20a4ba6c307c9e9e288f41327e78d9faf0718840",
+    "proposal_server": "71f7060e7e95e90b6ae9a8e96f9619de752411cf02f5ee8efe26944e5fab0365",
     "compose": "7d2cfe04e5d98d7dbfed0f0b7855b4af68b8e48cd2d48d378830a7f4e9ba3784",
     "activation_script": "bdfa4a9709c8babd523b4bbf3ffa02696f68e17af4af7d0bb30a223a48a6c866"
   },

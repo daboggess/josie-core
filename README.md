@@ -93,6 +93,8 @@ host monitor validates and imports those records into Core; it never executes
 them. Successful tool results include a fixed evidence-only reply, and the local
 model is tested to avoid invented post-tool claims. See
 [docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
+UI retries of an identical proposal within five minutes are deduplicated by the
+private server before a second record can be written.
 
 Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
 `ask Sophie ...` and `ask Bernie ...` in the GUI save a secret-screened draft

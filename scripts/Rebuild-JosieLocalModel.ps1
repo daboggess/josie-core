@@ -70,7 +70,8 @@ $toolResult = @{
     kind = 'health_check'
     actions_queued = 0
     actions_executed = 0
-    assistant_message = 'Proposal recorded for human review. Kind: health_check. Status: review_required. Actions queued: 0. Actions executed: 0. No action was performed.'
+    duplicate = $false
+    assistant_message = 'No action was performed. A health_check proposal was recorded for human review. Status: review_required. Actions queued: 0. Actions executed: 0.'
 } | ConvertTo-Json -Compress
 $secondPayload = @{
     model = $model
