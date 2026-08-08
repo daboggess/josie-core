@@ -74,6 +74,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
 - [x] Deployment safety suite passes 21 tests on 2026-08-08.
 - [ ] Install and configure n8n with persistent data outside disposable containers.
+- [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [ ] Build Josie as the orchestrator rather than a single chatbot.
 - [ ] Add narrowly allowlisted Python and JavaScript workers.
 - [ ] Add structured error handling and bounded retries.

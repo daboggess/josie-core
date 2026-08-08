@@ -232,6 +232,19 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn("--accept-license", lowered)
         self.assertNotIn("set-executionpolicy", lowered)
 
+    def test_service_gate_requires_immutable_images_and_local_preflight(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        script = (project_root / "scripts" / "Invoke-JosieServiceGate.ps1").read_text(encoding="utf-8")
+        lowered = script.lower()
+        self.assertIn("sha256", lowered)
+        self.assertIn("services-preflight", lowered)
+        self.assertIn("docker.exe compose", lowered)
+        self.assertIn("d:\\josie-storage", lowered)
+        self.assertNotIn("--volumes", lowered)
+        self.assertNotIn("tailscale up", lowered)
+        self.assertNotIn("0.0.0.0:", lowered)
+        self.assertNotIn("set-executionpolicy", lowered)
+
     def test_local_status_dashboard(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
