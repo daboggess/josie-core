@@ -48,7 +48,7 @@ def main() -> int:
         meta={
             "profile_image_url": "/static/favicon.png",
             "description": "Local Josie with a bounded read-only status and review bridge.",
-            "capabilities": {"builtin_tools": False},
+            "capabilities": {"builtin_tools": False, "file_context": False},
             "toolIds": [TOOL_ID],
         },
         params={
@@ -79,6 +79,7 @@ def main() -> int:
         and configured.is_active
         and meta.get("toolIds") == [TOOL_ID]
         and (meta.get("capabilities") or {}).get("builtin_tools") is False
+        and (meta.get("capabilities") or {}).get("file_context") is False
         and params.get("function_calling") == "default"
         and "MUST call get_josie_status" in str(params.get("system", ""))
     )
@@ -93,6 +94,8 @@ def main() -> int:
                 "function_calling": "default",
                 "routing": "bounded_json_preflight",
                 "builtin_tools_enabled": False,
+                "file_context_enabled": False,
+                "authenticated_message_passthrough": True,
                 "cloud_activity": False,
                 "actions_executed": 0,
             },

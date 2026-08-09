@@ -166,6 +166,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "status_snapshot_module": project_root / "josie" / "status_snapshot.py",
         "storage_monitor": project_root / "scripts" / "Start-JosieStorageMonitor.ps1",
         "model_binding": project_root / "deploy" / "open-webui" / "configure-model.py",
+        "passthrough_verifier": project_root
+        / "deploy"
+        / "open-webui"
+        / "verify-passthrough.py",
     }
     bridge_sources_match = bool(
         isinstance(bridge_hashes, dict)
@@ -213,6 +217,8 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_model_binding.get("native_plain_text_call_observed") is True
         and bridge_model_binding.get("routing_corpus_verified") is True
         and bridge_model_binding.get("builtin_tools_enabled") is False
+        and bridge_model_binding.get("file_context_enabled") is False
+        and bridge_model_binding.get("authenticated_message_passthrough") is True
         and bridge_model_binding.get("current_status_requires_tool") is True
         and bridge_model_binding.get("generic_status_guess_allowed") is False
         and bridge_model_binding.get("idempotency_verified") is True
@@ -253,6 +259,15 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("status_router_parameters") == {}
         and bridge_test.get("status_inbox_before")
         == bridge_test.get("status_inbox_after")
+        and bridge_test.get("observed_status_rewrite_rejected") is True
+        and bridge_test.get("observed_rewrite_misreported_pending_proposals") is True
+        and bridge_test.get("passthrough_verifier_status") == "verified"
+        and bridge_test.get("passthrough_status_message_exact") is True
+        and bridge_test.get("passthrough_proposal_message_exact") is True
+        and bridge_test.get("passthrough_file_context_enabled") is False
+        and bridge_test.get("passthrough_fixture_recorded") is False
+        and bridge_test.get("passthrough_actions_queued") == 0
+        and bridge_test.get("passthrough_actions_executed") == 0
         and bridge_test.get("model_default_tool_bound") is True
         and bridge_test.get("model_builtin_tools_disabled") is True
         and bridge_test.get("model_status_rule_verified") is True

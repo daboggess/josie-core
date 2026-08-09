@@ -101,6 +101,9 @@ for ($attempt = 0; $attempt -lt 30; $attempt++) {
 }
 if (-not $webuiReady) { throw 'Open WebUI did not recover after model binding.' }
 
+$passthroughVerification = & $dockerPath exec $webuiContainerName python /opt/josie/verify-passthrough.py
+if ($LASTEXITCODE -ne 0) { throw 'Authenticated tool responses are not grounded exactly.' }
+
 [ordered]@{
     status = 'registered_and_ready'
     server = 'http://proposal-server:3030'
@@ -113,5 +116,6 @@ if (-not $webuiReady) { throw 'Open WebUI did not recover after model binding.' 
     docker_network = 'internal'
     actions_executable = $false
     default_model_binding = ($modelBinding | ConvertFrom-Json)
+    authenticated_message_passthrough = ($passthroughVerification | ConvertFrom-Json)
     backend_probe = ($backendProbe | ConvertFrom-Json)
 } | ConvertTo-Json -Depth 5

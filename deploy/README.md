@@ -68,6 +68,12 @@ chat pass. This avoids relying on the 1.5B model to emit Ollama's native
 tool-call envelope while leaving all authentication, validation, and execution
 limits at the private server boundary.
 
+The default Open WebUI source-summarization template is replaced with a tracked
+passthrough rule for authenticated `server:josie-core-review/*` results. When a
+successful result contains `assistant_message`, the local model must copy it
+exactly. File context is disabled for the governed model, preventing an uploaded
+file from imitating that trusted source name.
+
 Open WebUI uses it as a backend/global OpenAPI tool because the private service
 name is reachable only from the Open WebUI container. The approved activation
 script rebuilds this registration from the protected D: credential without

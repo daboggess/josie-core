@@ -59,6 +59,14 @@ and still leaves the private server responsible for authentication, schema
 validation, rate limits, and the zero-execution boundary. The binding is
 idempotent and is reapplied during bridge repair.
 
+Open WebUI's generic source-summarization prompt is not used for this bridge.
+The tracked source template recognizes only this private server's source name
+and requires the model to copy its `assistant_message` value byte-for-byte,
+without a citation, preface, or reinterpretation. File context is disabled on
+the governed Josie model so a user-named file cannot imitate the trusted tool
+source. Repeated fixtures cover both status and proposal responses; the private
+server remains the authority for the actual wording and facts.
+
 This follows Open WebUI's documented backend/global OpenAPI server pattern. A
 global connection is required because requests originate from the Open WebUI
 container; a phone browser cannot reach the private Docker service directly.
@@ -79,7 +87,10 @@ From PowerShell in `C:\Josie`:
 The script creates the local credential if needed, restricts its Windows file
 permissions, generates the ignored Open WebUI connection setting, starts only
 the proposal server and Open WebUI, and verifies the private
-container-to-container route. It never prints the bearer token. Open WebUI
+container-to-container route. It then runs a no-write status result and a
+proposal fixture through the live local model and fails closed unless both
+`assistant_message` values are returned exactly. The fixture is never submitted
+to the proposal server. The script never prints the bearer token. Open WebUI
 documents that global tools are hidden by default and must be explicitly
 enabled per user/chat.
 

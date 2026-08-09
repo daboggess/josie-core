@@ -1018,6 +1018,9 @@ class JosieTests(unittest.TestCase):
         model_binding = (
             project_root / "deploy" / "open-webui" / "configure-model.py"
         ).read_text(encoding="utf-8")
+        passthrough = (
+            project_root / "deploy" / "open-webui" / "verify-passthrough.py"
+        ).read_text(encoding="utf-8")
         start = (project_root / "scripts" / "Start-JosieProposalInterface.ps1").read_text(
             encoding="utf-8"
         ).lower()
@@ -1027,6 +1030,7 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn('- "127.0.0.1:3030:3030"', compose)
         self.assertIn("/status:/status:ro", compose)
         self.assertIn("configure-model.py:/opt/josie/configure-model.py:ro", compose)
+        self.assertIn("verify-passthrough.py:/opt/josie/verify-passthrough.py:ro", compose)
         self.assertIn("get_josie_status", server)
         self.assertIn("/v1/status", server)
         self.assertIn("accepts no parameters", server)
@@ -1055,6 +1059,9 @@ class JosieTests(unittest.TestCase):
         self.assertIn("you are a strict tool router", compose.lower())
         self.assertIn('query: what is a restore drill?', compose.lower())
         self.assertIn('{"tool_calls":[]}', compose.lower())
+        self.assertIn("rag_template:", compose.lower())
+        self.assertIn("copy its value byte-for-byte", compose.lower())
+        self.assertIn("server:josie-core-review/", compose.lower())
         self.assertIn("cors_allow_origin:", compose.lower())
         self.assertNotIn('cors_allow_origin: "*"', compose.lower())
         self.assertIn("josie-core-review", start)
@@ -1062,14 +1069,21 @@ class JosieTests(unittest.TestCase):
         self.assertIn("access_grants = @()", start)
         self.assertIn("global_tool_enabled = $true", start)
         self.assertIn("python /opt/josie/configure-model.py", start)
+        self.assertIn("python /opt/josie/verify-passthrough.py", start)
         self.assertIn("dockerpath restart", start)
         self.assertIn('tool_id = "server:josie-core-review"', model_binding.lower())
         self.assertIn('"builtin_tools": false', model_binding.lower())
+        self.assertIn('"file_context": false', model_binding.lower())
+        self.assertIn('"authenticated_message_passthrough": true', model_binding.lower())
         self.assertIn('"function_calling": "default"', model_binding.lower())
         self.assertIn('"routing": "bounded_json_preflight"', model_binding.lower())
         self.assertIn("must call get_josie_status", model_binding.lower())
         self.assertNotIn("subprocess", model_binding)
         self.assertNotIn("urllib", model_binding)
+        self.assertIn("status_message_exact", passthrough)
+        self.assertIn("proposal_message_exact", passthrough)
+        self.assertIn('"fixture_recorded": False', passthrough)
+        self.assertNotIn("subprocess", passthrough)
         self.assertEqual(lock["status"], "active")
         self.assertEqual(lock["connection"]["id"], "josie-core-review")
         self.assertFalse(lock["connection"]["secret_in_git"])
@@ -1096,6 +1110,8 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["model_binding"]["native_plain_text_call_observed"])
         self.assertTrue(lock["model_binding"]["routing_corpus_verified"])
         self.assertFalse(lock["model_binding"]["builtin_tools_enabled"])
+        self.assertFalse(lock["model_binding"]["file_context_enabled"])
+        self.assertTrue(lock["model_binding"]["authenticated_message_passthrough"])
         self.assertTrue(lock["model_binding"]["current_status_requires_tool"])
         self.assertFalse(lock["model_binding"]["generic_status_guess_allowed"])
         self.assertTrue(lock["model_binding"]["idempotency_verified"])
@@ -1133,6 +1149,16 @@ class JosieTests(unittest.TestCase):
             lock["acceptance_test"]["status_inbox_before"],
             lock["acceptance_test"]["status_inbox_after"],
         )
+        self.assertTrue(lock["acceptance_test"]["observed_status_rewrite_rejected"])
+        self.assertTrue(
+            lock["acceptance_test"]["observed_rewrite_misreported_pending_proposals"]
+        )
+        self.assertEqual(
+            lock["acceptance_test"]["passthrough_verifier_status"], "verified"
+        )
+        self.assertTrue(lock["acceptance_test"]["passthrough_status_message_exact"])
+        self.assertTrue(lock["acceptance_test"]["passthrough_proposal_message_exact"])
+        self.assertFalse(lock["acceptance_test"]["passthrough_fixture_recorded"])
 
     def test_public_status_counts_proposals_without_exposing_content(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
