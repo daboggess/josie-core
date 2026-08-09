@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "active",
+  "activated_at": "2026-08-09T20:15:00Z",
+  "expires_at": "2026-09-08T23:59:59-04:00",
+  "mode": "read_only_research",
+  "scope": {
+    "allowed_hosts": [
+      "www.advantech.com",
+      "advdownload.advantech.com"
+    ],
+    "exact_urls": 2,
+    "forms": false,
+    "downloads_saved": false,
+    "uploads": false,
+    "cookies": false,
+    "javascript": false,
+    "model_direct_access": false,
+    "write_actions": false
+  },
+  "isolation": {
+    "published_address": "127.0.0.1:3010",
+    "authentication": "protected_bearer",
+    "credential_in_git": false,
+    "read_only_container": true,
+    "linux_capabilities_dropped": true,
+    "no_new_privileges": true,
+    "private_and_tailscale_ranges_blocked": true,
+    "redirects_revalidated": true
+  },
+  "acceptance_test": {
+    "approved_url_status": "ok",
+    "approved_title": "User Manual for AIMB-205 - Advantech Support - Advantech",
+    "approved_bytes_received": 124357,
+    "off_allowlist_blocked": true,
+    "alternate_query_blocked": true,
+    "pdf_content_rejected": true,
+    "page_content_persisted": false,
+    "downloads_saved": false,
+    "forms_submitted": false,
+    "cookies_used": false,
+    "model_direct_access": false,
+    "actions_queued": 0,
+    "actions_executed": 0,
+    "cloud_model_activity": false,
+    "spending_cents": 0
+  },
+  "container_image": "sha256:2e4d82fcce44974c1a476ef7079106dc37eac088a4b881128aaf295b757af67c",
+  "source_sha256": {
+    "policy": "94ed9491a2301b2c09715315c5edfcaa94d5c9b82b3f784b6bc98f6e123c25d7",
+    "worker": "be304c813ce3fca3b79c72edf576cb4defd6e6ba238fbca49d3a8beab5d35240",
+    "compose": "9caa66558283f2a9fd528c877dd106d467bd7d57ee4e8e962fc16bc2ce54404c",
+    "activation_script": "6a0c0d3674797a43d3530d02a02091711156e966ba687915466557ed70f401ac",
+    "stop_script": "7912c01f415ebf8e1d8e52cc6c75a38ef84f8cb082f16ddfc41f9c9b960d7781",
+    "policy_reader": "46dc50fd1d53df6dbcfc477381f136052976978b2abf9e502fba96840eefd6cf",
+    "client": "71a8bcfb1d02d7e268194e6955269431903b689fb0f2571e07ee274d9af192aa"
+  },
+  "recovery": {
+    "stop_script": "C:\\Josie\\scripts\\Stop-JosieResearchPilot.ps1",
+    "automatic_restart": "unless-stopped",
+    "policy_expiration_fail_closed": true,
+    "stateful_browser_data": false,
+    "destructive_change": false
+  }
+}

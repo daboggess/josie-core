@@ -167,7 +167,7 @@ confirmed on Josie or by the repository test suite.
 1. [x] Activate the authenticated, local-only Open WebUI proposal interface; model execution authority remains absent.
 2. [x] Import selected origin/history records through the provenance review workflow.
 3. [x] Add research-only profitability and upgrade tracking behind zero-action boundaries.
-4. Select the first permitted research sources and browser/API allowlist only after human review.
+4. [x] Approve the first expiring, read-only research pilot for two exact official Advantech document paths; keep login, forms, files, writes, and model access locked.
 
 ## Change-control rule
 

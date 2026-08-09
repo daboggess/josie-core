@@ -109,7 +109,7 @@
     "status_snapshot_age_seconds_at_test": 79,
     "status_inbox_before": 0,
     "status_inbox_after": 0,
-    "status_assistant_message": "Read-only Josie status: ok. C: free 46.3 GB; external free 9016.7 GB. Services: Ollama ok, Open WebUI ok, n8n ok, proposal bridge ok. Backups: ok, integrity ok, latest age 22.8 hours. Proposals awaiting review: 8. Safety locks: cloud calls locked, spending locked, browser execution locked, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.",
+    "status_assistant_message": "Read-only Josie status: ok. C: free 46.5 GB; external free 9015.8 GB. Services: Ollama ok, Open WebUI ok, n8n ok, proposal bridge ok. Backups: ok, integrity ok, latest age 1.6 hours. Proposals awaiting review: 0. Safety locks: cloud calls locked, spending locked, official-source research enabled read-only; forms, downloads, uploads, and browser write actions locked, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.",
     "observed_status_rewrite_rejected": true,
     "observed_rewrite_misreported_pending_proposals": true,
     "passthrough_verifier_status": "verified",
@@ -140,10 +140,10 @@
     "model_status_rule_verified": true
   },
   "source_sha256": {
-    "proposal_server": "3a400815be787f06692bc45a3f3e6deb341db35d1bfc06c9f5f077289f68abeb",
-    "compose": "c29e459febe8af54c138162885dc500de9eeb3beb23714bc9bc9e0919a6efdc2",
+    "proposal_server": "41b1886665b671319ea9e6b2ff267a67cf4aaa43d2120abf6dd38d73802c3e0b",
+    "compose": "9caa66558283f2a9fd528c877dd106d467bd7d57ee4e8e962fc16bc2ce54404c",
     "activation_script": "1c97d54cdc41dee6cda5316f851fe3f5ca02588be972d0a157ef2c4f6dfcfd33",
-    "status_snapshot_module": "0f5159c64f92ecc42a9a68ae75fcfe12c29a08944518371af78c566fb58236a3",
+    "status_snapshot_module": "8f4619ea4ebc12a721a40276179630ee9c3f6e529d9ca95a7eaeb46e879aa8f4",
     "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae",
     "model_binding": "45c045ae6bcc8abcaef064a62bbb3e3b26718e3dd9e1f4f5bc35a50e8c2c8352",
     "passthrough_verifier": "7024ea54548870ad9bbf68d11ce19ebceb91bfde5f3cd864655720ca0e2c9d7e",

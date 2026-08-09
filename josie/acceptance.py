@@ -128,10 +128,63 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         browser_policy = load_browser_policy(project_root)
     except (OSError, ValueError, TypeError):
         browser_policy = {}
+    browser_pilot_lock: dict[str, object] = {}
+    try:
+        browser_pilot_lock = __import__("json").loads(
+            (project_root / "deploy" / "browser-pilot.lock.json").read_text(
+                encoding="utf-8"
+            )
+        )
+    except (OSError, ValueError):
+        pass
+    browser_hashes = browser_pilot_lock.get("source_sha256", {})
+    expected_browser_sources = {
+        "policy": project_root / "config" / "browser-policy.json",
+        "worker": project_root / "deploy" / "browser-worker" / "server.js",
+        "compose": project_root / "deploy" / "compose.yaml",
+        "activation_script": project_root / "scripts" / "Start-JosieResearchPilot.ps1",
+        "stop_script": project_root / "scripts" / "Stop-JosieResearchPilot.ps1",
+        "policy_reader": project_root / "josie" / "browser_policy.py",
+        "client": project_root / "josie" / "browser_research.py",
+    }
+    browser_sources_match = bool(
+        isinstance(browser_hashes, dict)
+        and all(
+            path.is_file()
+            and browser_hashes.get(name) == hashlib.sha256(path.read_bytes()).hexdigest()
+            for name, path in expected_browser_sources.items()
+        )
+    )
+    browser_test = browser_pilot_lock.get("acceptance_test", {})
+    browser_isolation = browser_pilot_lock.get("isolation", {})
     browser_policy_ready = bool(
-        browser_policy.get("status") == "locked"
-        and browser_policy.get("allowed_host_count") == 0
+        browser_policy.get("status") in {"locked", "read_only_pilot"}
+        and isinstance(browser_policy.get("allowed_host_count"), int)
+        and browser_policy.get("write_actions_locked") is True
+        and browser_policy.get("model_direct_access") is False
         and browser_policy.get("external_activity") is False
+        and browser_pilot_lock.get("status") == "active"
+        and browser_pilot_lock.get("mode") == "read_only_research"
+        and isinstance(browser_isolation, dict)
+        and browser_isolation.get("published_address") == "127.0.0.1:3010"
+        and browser_isolation.get("credential_in_git") is False
+        and browser_isolation.get("private_and_tailscale_ranges_blocked") is True
+        and browser_isolation.get("redirects_revalidated") is True
+        and isinstance(browser_test, dict)
+        and browser_test.get("approved_url_status") == "ok"
+        and browser_test.get("off_allowlist_blocked") is True
+        and browser_test.get("alternate_query_blocked") is True
+        and browser_test.get("pdf_content_rejected") is True
+        and browser_test.get("page_content_persisted") is False
+        and browser_test.get("downloads_saved") is False
+        and browser_test.get("forms_submitted") is False
+        and browser_test.get("cookies_used") is False
+        and browser_test.get("model_direct_access") is False
+        and browser_test.get("actions_queued") == 0
+        and browser_test.get("actions_executed") == 0
+        and browser_test.get("cloud_model_activity") is False
+        and browser_test.get("spending_cents") == 0
+        and browser_sources_match
     )
     try:
         economic_policy = load_economic_policy(project_root)
@@ -372,7 +425,11 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         },
         "fail_closed_browser_policy": {
             "state": "proven" if browser_policy_ready else "human_gate",
-            "evidence": browser_policy or str(project_root / "config" / "browser-policy.json"),
+            "evidence": {
+                "policy": browser_policy,
+                "pilot_lock": browser_pilot_lock,
+                "source_hashes_match": browser_sources_match,
+            },
         },
         "zero_dollar_economic_policy": {
             "state": "proven" if economic_policy_ready else "human_gate",

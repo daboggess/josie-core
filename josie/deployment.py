@@ -119,11 +119,28 @@ class DeploymentController:
             except Exception as exc:
                 results[name] = {"ok": False, "error": type(exc).__name__}
         browser_safe = False
+        browser_research_enabled = False
+        browser_mode = "unavailable"
         browser = results.get("browser_worker", {})
         if isinstance(browser, dict) and browser.get("ok"):
             try:
                 browser_data = json.loads(str(browser.get("body", "{}")))
-                browser_safe = browser_data.get("execution") is False and browser_data.get("allowedHosts") == 0
+                locked = (
+                    browser_data.get("execution") is False
+                    and browser_data.get("allowedHosts") == 0
+                )
+                read_only = (
+                    browser_data.get("execution") is True
+                    and browser_data.get("mode") == "read_only_research"
+                    and isinstance(browser_data.get("allowedHosts"), int)
+                    and browser_data.get("allowedHosts") > 0
+                    and browser_data.get("writeActions") is False
+                    and browser_data.get("authRequired") is True
+                    and browser_data.get("modelDirectAccess") is False
+                )
+                browser_safe = locked or read_only
+                browser_research_enabled = read_only
+                browser_mode = "read_only_research" if read_only else "locked" if locked else "unsafe"
             except json.JSONDecodeError:
                 pass
         model_ready = False
@@ -177,7 +194,11 @@ class DeploymentController:
         return {
             "status": "ready" if all_healthy and browser_safe and model_ready and storage_monitor["ready"] else "waiting",
             "services": results,
-            "browser_execution_locked": browser_safe,
+            "browser_safe": browser_safe,
+            "browser_mode": browser_mode,
+            "browser_execution_locked": browser_safe and not browser_research_enabled,
+            "browser_research_enabled": browser_research_enabled,
+            "browser_write_actions_locked": browser_safe,
             "local_model": LOCAL_MODEL,
             "local_model_ready": model_ready,
             "storage_monitor": storage_monitor,

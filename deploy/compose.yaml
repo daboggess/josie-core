@@ -122,12 +122,16 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    mem_limit: 512m
+    cpus: "1.0"
+    pids_limit: 128
     tmpfs:
       - /tmp:size=512m,mode=1777
     ports:
       - "127.0.0.1:3010:3010"
-    environment:
-      JOSIE_BROWSER_ALLOWLIST: ${JOSIE_BROWSER_ALLOWLIST:-}
+    volumes:
+      - ../config/browser-policy.json:/app/browser-policy.json:ro
+      - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}/secrets/browser-token.txt:/run/secrets/browser_token:ro
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3010/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s

@@ -29,7 +29,7 @@ from josie.jobs import JobRunner, available_job_handlers
 from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
-from josie.browser_policy import load_browser_policy
+from josie.browser_policy import load_browser_policy, validate_research_url
 from josie.economic_policy import load_economic_policy
 from josie.research import record_opportunity, record_upgrade_target
 from josie.status_snapshot import _pending_proposals
@@ -133,17 +133,33 @@ class JosieTests(unittest.TestCase):
             self.assertIn("$0.00", response)
             self.assertFalse(store.recent_model_handoffs()[0]["external_activity"])
 
-    def test_browser_policy_is_empty_disabled_and_fail_closed(self) -> None:
+    def test_browser_policy_is_read_only_exact_and_fail_closed(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
         policy = load_browser_policy(project_root)
-        self.assertEqual(policy["status"], "locked")
-        self.assertEqual(policy["allowed_host_count"], 0)
-        self.assertFalse(policy["enabled"])
+        self.assertEqual(policy["status"], "read_only_pilot")
+        self.assertEqual(policy["allowed_host_count"], 2)
+        self.assertTrue(policy["enabled"])
         self.assertFalse(policy["external_activity"])
         self.assertTrue(policy["prefer_dedicated_connectors"])
-        self.assertTrue(all(value is False for value in policy["capabilities"].values()))
+        self.assertTrue(policy["write_actions_locked"])
+        self.assertTrue(policy["capabilities"]["navigation"])
+        self.assertTrue(policy["capabilities"]["extraction"])
+        self.assertFalse(policy["capabilities"]["form_entry"])
+        self.assertFalse(policy["capabilities"]["downloads"])
+        self.assertFalse(policy["capabilities"]["uploads"])
+        approved = "https://www.advantech.com/en-us/support/details/manual?id=1-1DXQYC7"
+        self.assertEqual(validate_research_url(policy, approved), approved)
+        for rejected in (
+            "http://www.advantech.com/en-us/support/details/manual?id=1-1DXQYC7",
+            "https://example.com/",
+            "https://www.advantech.com/",
+            "https://www.advantech.com/en-us/support/details/manual?id=DIFFERENT",
+            "https://user:password@www.advantech.com/en-us/support/details/manual",
+        ):
+            with self.assertRaises(ValueError):
+                validate_research_url(policy, rejected)
 
-    def test_browser_policy_rejects_enabled_or_wildcard_configuration(self) -> None:
+    def test_browser_policy_rejects_wildcard_or_write_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "config").mkdir()
@@ -151,8 +167,17 @@ class JosieTests(unittest.TestCase):
                 (Path(__file__).resolve().parents[1] / "config" / "browser-policy.json")
                 .read_text(encoding="utf-8")
             )
-            policy["enabled"] = True
             policy["allowed_hosts"] = ["*"]
+            (root / "config" / "browser-policy.json").write_text(
+                json.dumps(policy), encoding="utf-8"
+            )
+            with self.assertRaises(ValueError):
+                load_browser_policy(root)
+            policy = json.loads(
+                (Path(__file__).resolve().parents[1] / "config" / "browser-policy.json")
+                .read_text(encoding="utf-8")
+            )
+            policy["capabilities"]["form_entry"] = True
             (root / "config" / "browser-policy.json").write_text(
                 json.dumps(policy), encoding="utf-8"
             )
@@ -931,7 +956,24 @@ class JosieTests(unittest.TestCase):
                     return FakeResponse('{"models":[{"name":"josie-local:1.0"}]}')
                 return FakeResponse('{"status":true}')
             with patch("josie.deployment.urllib.request.urlopen", side_effect=locked_response):
-                self.assertEqual(controller.service_runtime_status()["status"], "ready")
+                result = controller.service_runtime_status()
+                self.assertEqual(result["status"], "ready")
+                self.assertTrue(result["browser_execution_locked"])
+                self.assertFalse(result["browser_research_enabled"])
+            def research_response(request, timeout=0):
+                del timeout
+                url = request if isinstance(request, str) else request.full_url
+                if url.endswith("3010/health"):
+                    return FakeResponse('{"execution":true,"mode":"read_only_research","allowedHosts":2,"writeActions":false,"authRequired":true,"modelDirectAccess":false}')
+                if url.endswith("11434/api/tags"):
+                    return FakeResponse('{"models":[{"name":"josie-local:1.0"}]}')
+                return FakeResponse('{"status":true}')
+            with patch("josie.deployment.urllib.request.urlopen", side_effect=research_response):
+                result = controller.service_runtime_status()
+                self.assertEqual(result["status"], "ready")
+                self.assertTrue(result["browser_research_enabled"])
+                self.assertTrue(result["browser_write_actions_locked"])
+                self.assertFalse(result["browser_execution_locked"])
             def unlocked_response(request, timeout=0):
                 del timeout
                 url = request if isinstance(request, str) else request.full_url
@@ -944,6 +986,31 @@ class JosieTests(unittest.TestCase):
                 result = controller.service_runtime_status()
                 self.assertEqual(result["status"], "waiting")
                 self.assertFalse(result["browser_execution_locked"])
+
+    def test_research_connector_is_authenticated_bounded_and_non_persistent(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        server = (project_root / "deploy" / "browser-worker" / "server.js").read_text(
+            encoding="utf-8"
+        ).lower()
+        compose = (project_root / "deploy" / "compose.yaml").read_text(encoding="utf-8").lower()
+        start = (project_root / "scripts" / "Start-JosieResearchPilot.ps1").read_text(
+            encoding="utf-8"
+        ).lower()
+        self.assertIn("timingsafeequal", server)
+        self.assertIn("safelookup", server)
+        self.assertIn("100.64.0.0", server)
+        self.assertIn("redirect left the exact allowlist", server)
+        self.assertIn("javascript_execution !== false", server)
+        self.assertIn("downloads_saved: false", server)
+        self.assertIn("model_direct_access: false", server)
+        self.assertNotIn("chromium.launch", server)
+        self.assertIn('"127.0.0.1:3010:3010"', compose)
+        self.assertIn("no-new-privileges:true", compose)
+        self.assertIn("cap_drop", compose)
+        self.assertIn("browser-token.txt", compose)
+        self.assertIn("randomnumbergenerator", start)
+        self.assertIn("example.com", start)
+        self.assertIn("off_allowlist_blocked = $true", start)
 
     def test_tailscale_serve_policy_allows_only_private_open_webui(self) -> None:
         safe = (

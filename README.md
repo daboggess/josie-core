@@ -74,6 +74,19 @@ cd C:\Josie
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
+The approved Advantech pilot is a local-only, authenticated, read-only research
+connector. It has no login, forms, JavaScript, cookies, saved downloads,
+uploads, purchases, messages, or model-direct access. Start or stop it with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Josie\scripts\Start-JosieResearchPilot.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Josie\scripts\Stop-JosieResearchPilot.ps1
+```
+
+Its exact scope and recovery boundary are documented in
+`docs/BROWSER_CAPABILITY_REVIEW.md`. The first official-source result is in
+`docs/ADVANTECH_AIMB205_GPU_RESEARCH_2026-08-09.md`.
+
 ## Private local chat
 
 From a device connected to Dustin's Tailscale network, open:

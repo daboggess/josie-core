@@ -142,8 +142,17 @@ def build_status_snapshot(*, config: Config, project_root: Path) -> dict[str, ob
 
     try:
         browser = load_browser_policy(project_root)
-        browser_locked = browser.get("status") == "locked" and browser.get("enabled") is False
+        browser_research_enabled = bool(
+            browser.get("status") == "read_only_pilot"
+            and browser.get("enabled") is True
+            and browser.get("write_actions_locked") is True
+            and runtime.get("browser_research_enabled") is True
+        )
+        browser_safe = bool(runtime.get("browser_safe") is True)
+        browser_locked = browser_safe and not browser_research_enabled
     except (OSError, ValueError, TypeError):
+        browser_research_enabled = False
+        browser_safe = False
         browser_locked = False
     try:
         economic = load_economic_policy(project_root)
@@ -162,13 +171,17 @@ def build_status_snapshot(*, config: Config, project_root: Path) -> dict[str, ob
         "cloud_calls_locked": config.allow_cloud is False,
         "cloud_spending_locked": spending_locked,
         "browser_execution_locked": browser_locked,
+        "browser_research_enabled": browser_research_enabled,
+        "browser_write_actions_locked": browser_safe,
         "arbitrary_shell_available": False,
         "actions_executable": False,
     }
     safety_healthy = all((
         safety["cloud_calls_locked"],
         safety["cloud_spending_locked"],
-        safety["browser_execution_locked"],
+        safety["browser_execution_locked"] or (
+            safety["browser_research_enabled"] and safety["browser_write_actions_locked"]
+        ),
         not safety["arbitrary_shell_available"],
         not safety["actions_executable"],
     ))

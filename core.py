@@ -20,6 +20,7 @@ from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
+from josie.browser_research import extract_official_source
 from josie.economic_policy import load_economic_policy
 from josie.status_snapshot import build_status_snapshot, write_status_snapshot
 from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
@@ -80,8 +81,9 @@ def build_parser() -> argparse.ArgumentParser:
     handoff_answer = handoff_commands.add_parser("answer", help="Record a manually relayed answer")
     handoff_answer.add_argument("handoff_id", type=int)
     handoff_answer.add_argument("response", nargs="+")
-    browser = subcommands.add_parser("browser", help="Inspect the locked browser policy")
-    browser.add_argument("action", choices=("status",))
+    browser = subcommands.add_parser("browser", help="Inspect or use bounded read-only research")
+    browser.add_argument("action", choices=("status", "extract"))
+    browser.add_argument("url", nargs="?")
     economics = subcommands.add_parser("economics", help="Inspect zero-dollar economic limits")
     economics.add_argument("action", choices=("status",))
     backups = subcommands.add_parser("backups", help="Create or inspect local recovery snapshots")
@@ -236,7 +238,28 @@ def main() -> int:
         return 0
 
     if args.command == "browser":
-        print(json.dumps(load_browser_policy(project_root), indent=2, sort_keys=True))
+        if args.action == "status":
+            result = load_browser_policy(project_root)
+        else:
+            if not args.url:
+                raise SystemExit("browser extract requires one approved URL")
+            try:
+                result = extract_official_source(
+                    config=config, project_root=project_root, url=args.url
+                )
+            except (OSError, ValueError, RuntimeError) as exc:
+                print(json.dumps({
+                    "status": "rejected",
+                    "reason": str(exc),
+                    "external_activity_may_have_occurred": isinstance(exc, RuntimeError),
+                    "actions_queued": 0,
+                    "actions_executed": 0,
+                }, indent=2, sort_keys=True))
+                return 1
+            LocalStore(project_root / "data" / "josie.db").audit(
+                "browser_research_completed", str(result.get("final_url", "approved source"))
+            )
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
     if args.command == "economics":

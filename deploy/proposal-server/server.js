@@ -213,9 +213,10 @@ function sanitizeStatusSnapshot(input) {
     throw new Error('Status snapshot proposal section is invalid');
   }
 
-  const safetyKeys = ['cloud_calls_locked', 'cloud_spending_locked', 'browser_execution_locked', 'arbitrary_shell_available', 'actions_executable'];
+  const safetyKeys = ['cloud_calls_locked', 'cloud_spending_locked', 'browser_execution_locked', 'browser_research_enabled', 'browser_write_actions_locked', 'arbitrary_shell_available', 'actions_executable'];
   if (!hasExactKeys(input.safety, safetyKeys)
       || safetyKeys.some(name => typeof input.safety[name] !== 'boolean')
+      || input.safety.browser_write_actions_locked !== true
       || input.safety.arbitrary_shell_available !== false
       || input.safety.actions_executable !== false
       || input.read_only !== true
@@ -247,7 +248,10 @@ function statusResponse(snapshot) {
   const ageSeconds = Math.max(0, Math.floor((Date.now() - snapshot.generated_at_ms) / 1000));
   const status = ageSeconds > maxStatusAgeMs / 1000 ? 'stale' : snapshot.overall;
   const services = {...snapshot.services, proposal_bridge: 'ok'};
-  const assistantMessage = `Read-only Josie status: ${status}. C: free ${snapshot.storage.system_free_gb ?? 'unknown'} GB; external free ${snapshot.storage.external_free_gb ?? 'unknown'} GB. Services: Ollama ${services.ollama}, Open WebUI ${services.open_webui}, n8n ${services.n8n}, proposal bridge ${services.proposal_bridge}. Backups: ${snapshot.backups.status}, integrity ${snapshot.backups.integrity}, latest age ${snapshot.backups.latest_age_hours ?? 'unknown'} hours. Proposals awaiting review: ${snapshot.proposals.review_required}. Safety locks: cloud calls ${snapshot.safety.cloud_calls_locked ? 'locked' : 'NOT LOCKED'}, spending ${snapshot.safety.cloud_spending_locked ? 'locked' : 'NOT LOCKED'}, browser execution ${snapshot.safety.browser_execution_locked ? 'locked' : 'NOT LOCKED'}, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.`;
+  const browserState = snapshot.safety.browser_research_enabled
+    ? 'official-source research enabled read-only; forms, downloads, uploads, and browser write actions locked'
+    : `browser execution ${snapshot.safety.browser_execution_locked ? 'locked' : 'NOT LOCKED'}`;
+  const assistantMessage = `Read-only Josie status: ${status}. C: free ${snapshot.storage.system_free_gb ?? 'unknown'} GB; external free ${snapshot.storage.external_free_gb ?? 'unknown'} GB. Services: Ollama ${services.ollama}, Open WebUI ${services.open_webui}, n8n ${services.n8n}, proposal bridge ${services.proposal_bridge}. Backups: ${snapshot.backups.status}, integrity ${snapshot.backups.integrity}, latest age ${snapshot.backups.latest_age_hours ?? 'unknown'} hours. Proposals awaiting review: ${snapshot.proposals.review_required}. Safety locks: cloud calls ${snapshot.safety.cloud_calls_locked ? 'locked' : 'NOT LOCKED'}, spending ${snapshot.safety.cloud_spending_locked ? 'locked' : 'NOT LOCKED'}, ${browserState}, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.`;
   return {
     status,
     read_only: true,
@@ -471,7 +475,7 @@ if (process.argv.includes('--self-test')) {
     services: {ollama: 'ok', open_webui: 'ok', n8n: 'ok', browser_worker: 'ok', storage_monitor: 'ok'},
     backups: {status: 'ok', count: 1, latest_age_hours: 1, integrity: 'ok'},
     proposals: {review_required: 0, external: 0, model: 0, repair: 0},
-    safety: {cloud_calls_locked: true, cloud_spending_locked: true, browser_execution_locked: true, arbitrary_shell_available: false, actions_executable: false},
+    safety: {cloud_calls_locked: true, cloud_spending_locked: true, browser_execution_locked: false, browser_research_enabled: true, browser_write_actions_locked: true, arbitrary_shell_available: false, actions_executable: false},
     read_only: true,
     actions_queued: 0,
     actions_executed: 0,
