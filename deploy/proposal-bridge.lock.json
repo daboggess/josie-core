@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "active",
-  "activated_at": "2026-08-09T02:41:16Z",
+  "activated_at": "2026-08-09T14:10:44Z",
   "connection": {
     "id": "josie-core-review",
     "name": "Josie Core Review",
@@ -48,6 +48,10 @@
     "default_tool_ids": [
       "server:josie-core-review"
     ],
+    "response_filter_ids": [
+      "josie_exact_tool_response"
+    ],
+    "response_filter_loader_verified": true,
     "function_calling": "default",
     "routing": "bounded_json_preflight",
     "native_plain_text_call_observed": true,
@@ -55,6 +59,7 @@
     "builtin_tools_enabled": false,
     "file_context_enabled": false,
     "authenticated_message_passthrough": true,
+    "authenticated_message_enforced_after_model": true,
     "status_context": "minimal_authenticated_response",
     "cold_start_warmup_before_verification": true,
     "current_status_requires_tool": true,
@@ -104,7 +109,7 @@
     "status_snapshot_age_seconds_at_test": 79,
     "status_inbox_before": 0,
     "status_inbox_after": 0,
-    "status_assistant_message": "Read-only Josie status: ok. C: free 46.1 GB; external free 9016.7 GB. Services: Ollama ok, Open WebUI ok, n8n ok, proposal bridge ok. Backups: ok, integrity ok, latest age 11.5 hours. Proposals awaiting review: 8. Safety locks: cloud calls locked, spending locked, browser execution locked, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.",
+    "status_assistant_message": "Read-only Josie status: ok. C: free 46.3 GB; external free 9016.7 GB. Services: Ollama ok, Open WebUI ok, n8n ok, proposal bridge ok. Backups: ok, integrity ok, latest age 22.8 hours. Proposals awaiting review: 8. Safety locks: cloud calls locked, spending locked, browser execution locked, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.",
     "observed_status_rewrite_rejected": true,
     "observed_rewrite_misreported_pending_proposals": true,
     "passthrough_verifier_status": "verified",
@@ -120,18 +125,29 @@
     "openwebui_formatted_status_message_exact": true,
     "cold_start_warmup_completed": true,
     "consecutive_exact_rechecks": 5,
+    "observed_live_model_rewrite_after_minimization": true,
+    "pre_gate_status_message_exact": false,
+    "pre_gate_proposal_message_exact": true,
+    "post_model_response_gate_status": "verified",
+    "post_model_status_source_exact": true,
+    "post_model_status_fallback_exact": true,
+    "post_model_proposal_source_exact": true,
+    "post_model_ordinary_response_unchanged": true,
+    "response_filter_active": true,
+    "response_filter_global": false,
     "model_default_tool_bound": true,
     "model_builtin_tools_disabled": true,
     "model_status_rule_verified": true
   },
   "source_sha256": {
     "proposal_server": "3a400815be787f06692bc45a3f3e6deb341db35d1bfc06c9f5f077289f68abeb",
-    "compose": "714a83ceaa74b25b7a321d84584a582a954c1e25021c83b2bfa196bdd1d16157",
+    "compose": "c29e459febe8af54c138162885dc500de9eeb3beb23714bc9bc9e0919a6efdc2",
     "activation_script": "1c97d54cdc41dee6cda5316f851fe3f5ca02588be972d0a157ef2c4f6dfcfd33",
     "status_snapshot_module": "0f5159c64f92ecc42a9a68ae75fcfe12c29a08944518371af78c566fb58236a3",
     "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae",
-    "model_binding": "b2ce3035ec70b176283cd5f2ff109a625361685b758defdc7fc517f596b49872",
-    "passthrough_verifier": "b51912926535dd9a7c591c6478d5e1cef6483cee441b9a7a621221fa845ee287"
+    "model_binding": "45c045ae6bcc8abcaef064a62bbb3e3b26718e3dd9e1f4f5bc35a50e8c2c8352",
+    "passthrough_verifier": "7024ea54548870ad9bbf68d11ce19ebceb91bfde5f3cd864655720ca0e2c9d7e",
+    "response_filter": "14659692f40e0b9a806a64e635a581cfa4cfff86c43e632c4f80a881c4d4c9d0"
   },
   "recovery": {
     "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260808-205802.tgz",

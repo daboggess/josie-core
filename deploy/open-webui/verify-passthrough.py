@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import os
 from pathlib import Path
 import sqlite3
@@ -10,6 +11,8 @@ from urllib.request import Request, urlopen
 
 
 MODEL_ID = "josie-local:1.0"
+FILTER_ID = "josie_exact_tool_response"
+FILTER_PATH = Path("/opt/josie/exact-tool-response-filter.py")
 OLLAMA_CHAT_URL = "http://host.docker.internal:11434/api/chat"
 STATUS_URL = "http://proposal-server:3030/v1/status"
 TRUSTED_SOURCE_PREFIX = "server:josie-core-review/"
@@ -89,6 +92,10 @@ def main() -> int:
         row = db.execute(
             "SELECT meta,params,is_active FROM model WHERE id=?", (MODEL_ID,)
         ).fetchone()
+        filter_row = db.execute(
+            "SELECT type,content,is_active,is_global FROM function WHERE id=?",
+            (FILTER_ID,),
+        ).fetchone()
     if row is None:
         raise RuntimeError("The governed Open WebUI model binding is missing")
     meta = json.loads(row[0])
@@ -97,12 +104,28 @@ def main() -> int:
     binding_valid = bool(
         row[2]
         and meta.get("toolIds") == ["server:josie-core-review"]
+        and meta.get("filterIds") == [FILTER_ID]
         and capabilities.get("builtin_tools") is False
         and capabilities.get("file_context") is False
         and params.get("function_calling") == "default"
     )
     if not binding_valid:
         raise RuntimeError("The governed model binding is not fail-closed")
+    if (
+        filter_row is None
+        or filter_row[0] != "filter"
+        or filter_row[1] != FILTER_PATH.read_text(encoding="utf-8")
+        or not filter_row[2]
+        or filter_row[3]
+    ):
+        raise RuntimeError("The exact authenticated response filter is not active")
+
+    module_spec = importlib.util.spec_from_file_location(FILTER_ID, FILTER_PATH)
+    if module_spec is None or module_spec.loader is None:
+        raise RuntimeError("The exact authenticated response filter cannot be loaded")
+    filter_module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(filter_module)
+    response_filter = filter_module.Filter()
 
     status_prompt = render_prompt(
         template,
@@ -119,7 +142,45 @@ def main() -> int:
         params.get("system", ""),
         status_prompt,
     )
-    status_exact = status_reply == expected_status
+    status_pre_gate_exact = status_reply == expected_status
+    status_source = {
+        "source": {"name": f"{TRUSTED_SOURCE_PREFIX}get_josie_status"},
+        "document": [json.dumps(status_result, indent=2, ensure_ascii=False)],
+        "metadata": [
+            {
+                "source": f"{TRUSTED_SOURCE_PREFIX}get_josie_status",
+                "parameters": {},
+            }
+        ],
+        "tool_result": True,
+    }
+    status_body = response_filter.outlet(
+        {
+            "model": MODEL_ID,
+            "messages": [
+                {"role": "user", "content": "What is your current system status?"},
+                {
+                    "role": "assistant",
+                    "content": status_reply,
+                    "sources": [status_source],
+                },
+            ],
+        },
+        {"id": MODEL_ID},
+    )
+    status_exact = status_body["messages"][-1]["content"] == expected_status
+
+    fallback_body = response_filter.outlet(
+        {
+            "model": MODEL_ID,
+            "messages": [
+                {"role": "user", "content": "What is your current system status?"},
+                {"role": "assistant", "content": "untrusted rewrite"},
+            ],
+        },
+        {"id": MODEL_ID},
+    )
+    status_fallback_exact = fallback_body["messages"][-1]["content"] == expected_status
 
     expected_proposal = (
         "No action was performed. A health_check proposal was recorded for human "
@@ -143,14 +204,56 @@ def main() -> int:
             "Record a health_check proposal saying passthrough fixture.",
         ),
     )
-    proposal_exact = proposal_reply == expected_proposal
+    proposal_pre_gate_exact = proposal_reply == expected_proposal
+    proposal_source = {
+        "source": {"name": f"{TRUSTED_SOURCE_PREFIX}record_review_proposal"},
+        "document": [json.dumps(proposal_fixture, indent=2, ensure_ascii=False)],
+        "metadata": [
+            {
+                "source": f"{TRUSTED_SOURCE_PREFIX}record_review_proposal",
+                "parameters": {"kind": "health_check"},
+            }
+        ],
+        "tool_result": True,
+    }
+    proposal_body = response_filter.outlet(
+        {
+            "model": MODEL_ID,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Record a health_check proposal saying passthrough fixture.",
+                },
+                {
+                    "role": "assistant",
+                    "content": proposal_reply,
+                    "sources": [proposal_source],
+                },
+            ],
+        },
+        {"id": MODEL_ID},
+    )
+    proposal_exact = proposal_body["messages"][-1]["content"] == expected_proposal
 
-    if not status_exact or not proposal_exact:
+    ordinary = {
+        "model": MODEL_ID,
+        "messages": [
+            {"role": "user", "content": "Tell me a joke."},
+            {"role": "assistant", "content": "ordinary local response"},
+        ],
+    }
+    ordinary_unchanged = response_filter.outlet(ordinary, {"id": MODEL_ID}) == ordinary
+
+    if not status_exact or not status_fallback_exact or not proposal_exact or not ordinary_unchanged:
         print(
             json.dumps(
                 {
                     "status_message_exact": status_exact,
+                    "status_fallback_exact": status_fallback_exact,
+                    "status_pre_gate_exact": status_pre_gate_exact,
                     "proposal_message_exact": proposal_exact,
+                    "proposal_pre_gate_exact": proposal_pre_gate_exact,
+                    "ordinary_response_unchanged": ordinary_unchanged,
                     "status_expected": expected_status,
                     "status_received": status_reply,
                     "proposal_expected": expected_proposal,
@@ -168,7 +271,14 @@ def main() -> int:
                 "status": "verified",
                 "model": MODEL_ID,
                 "status_message_exact": True,
+                "status_fallback_exact": True,
+                "status_pre_gate_exact": status_pre_gate_exact,
                 "proposal_message_exact": True,
+                "proposal_pre_gate_exact": proposal_pre_gate_exact,
+                "ordinary_response_unchanged": True,
+                "response_filter": FILTER_ID,
+                "response_filter_active": True,
+                "response_filter_global": False,
                 "file_context_enabled": False,
                 "fixture_recorded": False,
                 "actions_queued": 0,

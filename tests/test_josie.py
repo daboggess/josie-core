@@ -1021,6 +1021,12 @@ class JosieTests(unittest.TestCase):
         passthrough = (
             project_root / "deploy" / "open-webui" / "verify-passthrough.py"
         ).read_text(encoding="utf-8")
+        response_filter = (
+            project_root
+            / "deploy"
+            / "open-webui"
+            / "exact-tool-response-filter.py"
+        ).read_text(encoding="utf-8")
         start = (project_root / "scripts" / "Start-JosieProposalInterface.ps1").read_text(
             encoding="utf-8"
         ).lower()
@@ -1030,6 +1036,10 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn('- "127.0.0.1:3030:3030"', compose)
         self.assertIn("/status:/status:ro", compose)
         self.assertIn("configure-model.py:/opt/josie/configure-model.py:ro", compose)
+        self.assertIn(
+            "exact-tool-response-filter.py:/opt/josie/exact-tool-response-filter.py:ro",
+            compose,
+        )
         self.assertIn("verify-passthrough.py:/opt/josie/verify-passthrough.py:ro", compose)
         self.assertIn("get_josie_status", server)
         self.assertIn("/v1/status", server)
@@ -1076,20 +1086,36 @@ class JosieTests(unittest.TestCase):
         self.assertIn("dockerpath restart $containername", start)
         self.assertIn("dockerpath restart", start)
         self.assertIn('tool_id = "server:josie-core-review"', model_binding.lower())
+        self.assertIn('filter_id = "josie_exact_tool_response"', model_binding.lower())
+        self.assertIn("load_function_module_by_id", model_binding)
         self.assertIn('"builtin_tools": false', model_binding.lower())
         self.assertIn('"file_context": false', model_binding.lower())
         self.assertIn('"authenticated_message_passthrough": true', model_binding.lower())
+        self.assertIn(
+            '"authenticated_message_enforced_after_model": true', model_binding.lower()
+        )
+        self.assertIn('"response_filter_loader_verified": true', model_binding.lower())
         self.assertIn('"function_calling": "default"', model_binding.lower())
         self.assertIn('"routing": "bounded_json_preflight"', model_binding.lower())
         self.assertIn("must call get_josie_status", model_binding.lower())
         self.assertNotIn("subprocess", model_binding)
         self.assertNotIn("urllib", model_binding)
         self.assertIn("status_message_exact", passthrough)
+        self.assertIn("status_fallback_exact", passthrough)
+        self.assertIn("status_pre_gate_exact", passthrough)
+        self.assertIn("ordinary_response_unchanged", passthrough)
         self.assertIn("proposal_message_exact", passthrough)
         self.assertIn("indent=2", passthrough)
         self.assertIn("Warm that generation privately", passthrough)
         self.assertIn('"fixture_recorded": False', passthrough)
         self.assertNotIn("subprocess", passthrough)
+        self.assertIn("http://proposal-server:3030/v1/status", response_filter)
+        self.assertIn("STATUS_KEYS", response_filter)
+        self.assertIn("PROPOSAL_KEYS", response_filter)
+        self.assertIn("tool_result", response_filter)
+        self.assertNotIn("subprocess", response_filter)
+        self.assertNotIn("os.system", response_filter)
+        self.assertNotIn("requests", response_filter)
         self.assertEqual(lock["status"], "active")
         self.assertEqual(lock["connection"]["id"], "josie-core-review")
         self.assertFalse(lock["connection"]["secret_in_git"])
@@ -1109,6 +1135,11 @@ class JosieTests(unittest.TestCase):
             lock["model_binding"]["default_tool_ids"],
             ["server:josie-core-review"],
         )
+        self.assertEqual(
+            lock["model_binding"]["response_filter_ids"],
+            ["josie_exact_tool_response"],
+        )
+        self.assertTrue(lock["model_binding"]["response_filter_loader_verified"])
         self.assertEqual(lock["model_binding"]["function_calling"], "default")
         self.assertEqual(
             lock["model_binding"]["routing"], "bounded_json_preflight"
@@ -1118,6 +1149,9 @@ class JosieTests(unittest.TestCase):
         self.assertFalse(lock["model_binding"]["builtin_tools_enabled"])
         self.assertFalse(lock["model_binding"]["file_context_enabled"])
         self.assertTrue(lock["model_binding"]["authenticated_message_passthrough"])
+        self.assertTrue(
+            lock["model_binding"]["authenticated_message_enforced_after_model"]
+        )
         self.assertEqual(
             lock["model_binding"]["status_context"], "minimal_authenticated_response"
         )
@@ -1175,6 +1209,19 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["acceptance_test"]["openwebui_formatted_status_message_exact"])
         self.assertTrue(lock["acceptance_test"]["cold_start_warmup_completed"])
         self.assertGreaterEqual(lock["acceptance_test"]["consecutive_exact_rechecks"], 5)
+        self.assertTrue(
+            lock["acceptance_test"]["observed_live_model_rewrite_after_minimization"]
+        )
+        self.assertFalse(lock["acceptance_test"]["pre_gate_status_message_exact"])
+        self.assertEqual(
+            lock["acceptance_test"]["post_model_response_gate_status"], "verified"
+        )
+        self.assertTrue(lock["acceptance_test"]["post_model_status_source_exact"])
+        self.assertTrue(lock["acceptance_test"]["post_model_status_fallback_exact"])
+        self.assertTrue(lock["acceptance_test"]["post_model_proposal_source_exact"])
+        self.assertTrue(lock["acceptance_test"]["post_model_ordinary_response_unchanged"])
+        self.assertTrue(lock["acceptance_test"]["response_filter_active"])
+        self.assertFalse(lock["acceptance_test"]["response_filter_global"])
 
     def test_public_status_counts_proposals_without_exposing_content(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

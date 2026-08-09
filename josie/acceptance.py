@@ -170,6 +170,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         / "deploy"
         / "open-webui"
         / "verify-passthrough.py",
+        "response_filter": project_root
+        / "deploy"
+        / "open-webui"
+        / "exact-tool-response-filter.py",
     }
     bridge_sources_match = bool(
         isinstance(bridge_hashes, dict)
@@ -212,6 +216,9 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_model_binding.get("model_id") == "josie-local:1.0"
         and bridge_model_binding.get("default_tool_ids")
         == ["server:josie-core-review"]
+        and bridge_model_binding.get("response_filter_ids")
+        == ["josie_exact_tool_response"]
+        and bridge_model_binding.get("response_filter_loader_verified") is True
         and bridge_model_binding.get("function_calling") == "default"
         and bridge_model_binding.get("routing") == "bounded_json_preflight"
         and bridge_model_binding.get("native_plain_text_call_observed") is True
@@ -219,6 +226,8 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_model_binding.get("builtin_tools_enabled") is False
         and bridge_model_binding.get("file_context_enabled") is False
         and bridge_model_binding.get("authenticated_message_passthrough") is True
+        and bridge_model_binding.get("authenticated_message_enforced_after_model")
+        is True
         and bridge_model_binding.get("status_context")
         == "minimal_authenticated_response"
         and bridge_model_binding.get("cold_start_warmup_before_verification") is True
@@ -277,6 +286,15 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("openwebui_formatted_status_message_exact") is True
         and bridge_test.get("cold_start_warmup_completed") is True
         and bridge_test.get("consecutive_exact_rechecks", 0) >= 5
+        and bridge_test.get("observed_live_model_rewrite_after_minimization") is True
+        and bridge_test.get("pre_gate_status_message_exact") is False
+        and bridge_test.get("post_model_response_gate_status") == "verified"
+        and bridge_test.get("post_model_status_source_exact") is True
+        and bridge_test.get("post_model_status_fallback_exact") is True
+        and bridge_test.get("post_model_proposal_source_exact") is True
+        and bridge_test.get("post_model_ordinary_response_unchanged") is True
+        and bridge_test.get("response_filter_active") is True
+        and bridge_test.get("response_filter_global") is False
         and bridge_test.get("model_default_tool_bound") is True
         and bridge_test.get("model_builtin_tools_disabled") is True
         and bridge_test.get("model_status_rule_verified") is True

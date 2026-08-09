@@ -51,6 +51,14 @@ remains available to trusted Core on D:. The server rejects an invalid file and
 marks a snapshot stale after fifteen minutes. A status read cannot write a
 proposal, queue a job, or execute anything.
 
+Exact final wording does not depend on the 1.5B model following an instruction.
+A model-scoped Open WebUI outlet filter validates the authenticated source name,
+the complete allowlisted response schema, and the zero-action safety fields,
+then replaces the final assistant content with `assistant_message`. For a narrow
+current-status question, the same filter can read the private status endpoint as
+a fallback. It has no shell, cloud, browser, spending, or action interface and is
+not applied to other models or ordinary Josie conversation.
+
 Open WebUI's global servers are otherwise hidden per chat. Josie's activation
 script therefore applies a supported model-level binding to
 `josie-local:1.0`: `server:josie-core-review` is the only default attached

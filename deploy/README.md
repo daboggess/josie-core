@@ -78,6 +78,13 @@ The status tool derives its wording from the validated full snapshot but returns
 only overall state, `assistant_message`, and fixed read-only/zero-action fields
 to the model. The full diagnostic snapshot stays outside the chat context on D:.
 
+The governed Josie model also has a model-scoped outlet filter. It accepts only
+the two authenticated Josie tool source names and their exact allowlisted JSON
+schemas. For a recognized current-status question it can independently re-read
+the private status endpoint. It replaces the final model text with the validated
+`assistant_message`, so a small-model paraphrase cannot become the stored answer.
+The filter is not global and leaves ordinary local-model conversation unchanged.
+
 Open WebUI uses it as a backend/global OpenAPI tool because the private service
 name is reachable only from the Open WebUI container. The approved activation
 script rebuilds this registration from the protected D: credential without
