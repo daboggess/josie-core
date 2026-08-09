@@ -3,6 +3,7 @@
 The canonical build roadmap is [docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_CHECKLIST.md).
 The non-destructive external-drive procedure is [docs/EXTERNAL_DRIVE_PLAN.md](docs/EXTERNAL_DRIVE_PLAN.md).
 The capability policy is [docs/PERMISSIONS_MATRIX.md](docs/PERMISSIONS_MATRIX.md).
+The current human proposal-review packet is [docs/PROPOSAL_REVIEW_2026-08-09.md](docs/PROPOSAL_REVIEW_2026-08-09.md).
 
 Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The Python kernel uses only the standard library. Native Windows Ollama runs the CPU-only `josie-local:1.0` model from the external drive; no GPU packages are installed and cloud providers remain locked off.
 
@@ -55,6 +56,11 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py providers status
 .\.venv\Scripts\python.exe .\core.py propose "Please check Josie system health"
 .\.venv\Scripts\python.exe .\core.py proposals status
+.\.venv\Scripts\python.exe .\core.py proposals review external 1 reject --reason "Acceptance test only"
+.\.venv\Scripts\python.exe .\core.py backups create-local
+.\.venv\Scripts\python.exe .\core.py backups create-checkpoint --label before-change
+.\.venv\Scripts\python.exe .\core.py research status
+.\.venv\Scripts\python.exe .\core.py research add-upgrade --component "RTX 3060 12GB" --target-price 0 --capability "Larger local inference" --compatibility needs_review --notes "Research only; no purchase authority."
 .\.venv\Scripts\python.exe .\core.py proposals ingest
 .\.venv\Scripts\python.exe .\core.py handoffs create sophie "Review Josie's health"
 .\.venv\Scripts\python.exe .\core.py handoffs list
@@ -104,9 +110,17 @@ counts, and the cloud/spending/browser/shell safety locks. The bridge receives
 no Docker socket, database, shell, cloud access, or broad Windows filesystem;
 its only read mount is `D:\Josie-Storage\status\josie-status.json`.
 The `josie-local:1.0` Open WebUI model override attaches this bridge by default,
-uses native function calling, disables unrelated built-in tools, and requires a
-fresh status call before Josie may describe current health. New chats therefore
+uses a bounded JSON routing preflight, disables unrelated built-in tools, and
+requires a fresh status call before Josie may describe current health. A
+model-scoped post-response gate copies validated authenticated tool wording, so
+the small local model cannot omit or rewrite status facts. New chats therefore
 do not depend on a per-chat tool toggle.
+
+`proposals status` lists external and local-model records together. A human can
+use `proposals review ... accept|reject --reason ...` to close a review record;
+the decision never queues or executes the proposed action. The `research`
+commands store opportunity estimates and hardware targets locally with explicit
+zero external activity, transaction, contract, and purchase authority.
 
 Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
 `ask Sophie ...` and `ask Bernie ...` in the GUI save a secret-screened draft

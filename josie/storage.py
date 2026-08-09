@@ -116,6 +116,38 @@ class LocalStore:
                     status TEXT NOT NULL DEFAULT 'review_required'
                     CHECK (status IN ('review_required','accepted','rejected'))
                 );
+                CREATE TABLE IF NOT EXISTS economic_opportunities (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    title TEXT NOT NULL, source TEXT NOT NULL,
+                    estimated_revenue_cents INTEGER NOT NULL
+                    CHECK (estimated_revenue_cents >= 0),
+                    estimated_cost_cents INTEGER NOT NULL
+                    CHECK (estimated_cost_cents >= 0),
+                    estimated_hours_milli INTEGER NOT NULL
+                    CHECK (estimated_hours_milli > 0),
+                    risk TEXT NOT NULL CHECK (risk IN ('low','medium','high')),
+                    notes TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'research_only'
+                    CHECK (status IN ('research_only','rejected','approved_for_human_review')),
+                    external_activity INTEGER NOT NULL DEFAULT 0
+                    CHECK (external_activity = 0),
+                    action_authorized INTEGER NOT NULL DEFAULT 0
+                    CHECK (action_authorized = 0)
+                );
+                CREATE TABLE IF NOT EXISTS hardware_targets (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    component TEXT NOT NULL,
+                    target_price_cents INTEGER NOT NULL
+                    CHECK (target_price_cents >= 0),
+                    expected_capability TEXT NOT NULL,
+                    compatibility_status TEXT NOT NULL
+                    CHECK (compatibility_status IN ('unknown','needs_review','compatible','incompatible')),
+                    notes TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'tracking'
+                    CHECK (status IN ('tracking','rejected','acquired')),
+                    purchase_authorized INTEGER NOT NULL DEFAULT 0
+                    CHECK (purchase_authorized = 0)
+                );
                 CREATE TABLE IF NOT EXISTS model_handoffs (
                     id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
                     target TEXT NOT NULL CHECK (target IN ('sophie','bernie')),
@@ -142,6 +174,15 @@ class LocalStore:
                 connection.execute("ALTER TABLE memories ADD COLUMN status TEXT NOT NULL DEFAULT 'active'")
             if "updated_at" not in memory_columns:
                 connection.execute("ALTER TABLE memories ADD COLUMN updated_at TEXT")
+            for table in ("model_proposals", "external_proposals"):
+                proposal_columns = {
+                    str(row[1])
+                    for row in connection.execute(f"PRAGMA table_info({table})").fetchall()
+                }
+                if "decided_at" not in proposal_columns:
+                    connection.execute(f"ALTER TABLE {table} ADD COLUMN decided_at TEXT")
+                if "decision_reason" not in proposal_columns:
+                    connection.execute(f"ALTER TABLE {table} ADD COLUMN decision_reason TEXT")
 
     @staticmethod
     def _now() -> str:
@@ -298,7 +339,8 @@ class LocalStore:
     def recent_model_proposals(self, limit: int = 20) -> list[dict[str, object]]:
         with self._connect() as connection:
             rows = connection.execute(
-                "SELECT id,created_at,model,response_json,status FROM model_proposals "
+                "SELECT id,created_at,model,response_json,status,decided_at,decision_reason "
+                "FROM model_proposals "
                 "ORDER BY id DESC LIMIT ?", (limit,),
             ).fetchall()
         return [dict(row) for row in rows]
@@ -325,10 +367,68 @@ class LocalStore:
     def recent_external_proposals(self, limit: int = 20) -> list[dict[str, object]]:
         with self._connect() as connection:
             rows = connection.execute(
-                "SELECT id,received_at,external_id,source,kind,summary,status "
+                "SELECT id,received_at,external_id,source,kind,summary,status,"
+                "decided_at,decision_reason "
                 "FROM external_proposals ORDER BY id DESC LIMIT ?", (limit,),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def decide_proposal(
+        self, *, proposal_type: str, proposal_id: int, decision: str, reason: str
+    ) -> dict[str, object]:
+        tables = {"external": "external_proposals", "model": "model_proposals"}
+        if proposal_type not in tables:
+            raise ValueError("Proposal type must be external or model")
+        statuses = {"accept": "accepted", "reject": "rejected"}
+        if decision not in statuses:
+            raise ValueError("Decision must be accept or reject")
+        clean_reason = reason.strip()
+        if not clean_reason or len(clean_reason) > 500:
+            raise ValueError("Decision reason must contain 1 to 500 characters")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                f"UPDATE {tables[proposal_type]} "
+                "SET status=?,decided_at=?,decision_reason=? "
+                "WHERE id=? AND status='review_required'",
+                (statuses[decision], self._now(), clean_reason, proposal_id),
+            )
+            changed = cursor.rowcount == 1
+        if changed:
+            self.audit(
+                "proposal_reviewed",
+                f"{proposal_type} {proposal_id}: {statuses[decision]}; no execution",
+            )
+        return {
+            "status": statuses[decision] if changed else "not_found_or_already_reviewed",
+            "proposal_type": proposal_type,
+            "proposal_id": proposal_id,
+            "actions_queued": 0,
+            "actions_executed": 0,
+            "external_activity": False,
+        }
+
+    def proposal_review_summary(self) -> dict[str, object]:
+        with self._connect() as connection:
+            counts: dict[str, dict[str, int]] = {}
+            for label, table in (
+                ("external", "external_proposals"),
+                ("model", "model_proposals"),
+                ("repair", "repair_proposals"),
+            ):
+                rows = connection.execute(
+                    f"SELECT status,COUNT(*) total FROM {table} GROUP BY status"
+                ).fetchall()
+                counts[label] = {str(row["status"]): int(row["total"]) for row in rows}
+        return {
+            "counts": counts,
+            "review_required": sum(
+                group.get("review_required", 0) for group in counts.values()
+            ),
+            "external": self.recent_external_proposals(),
+            "model": self.recent_model_proposals(),
+            "actions_queued": 0,
+            "actions_executed": 0,
+        }
 
     @staticmethod
     def _bounded_handoff_text(value: str, *, label: str) -> str:
@@ -495,7 +595,7 @@ class LocalStore:
         if not clean_label:
             raise ValueError("Checkpoint label is invalid")
         backup_dir.mkdir(parents=True, exist_ok=True)
-        stamp = datetime.now().astimezone().strftime("%Y-%m-%d-%H%M%S")
+        stamp = datetime.now().astimezone().strftime("%Y-%m-%d-%H%M%S-%f")
         destination = backup_dir / f"josie-{stamp}-{clean_label}.db"
         with closing(sqlite3.connect(self.path)) as source, closing(sqlite3.connect(destination)) as target:
             source.backup(target)
@@ -598,6 +698,158 @@ class LocalStore:
             (int(row["id"]), row["basis"], row["category"], int(row["amount_cents"]), row["description"])
             for row in rows
         ]
+
+    @staticmethod
+    def _research_text(value: str, *, label: str, maximum: int) -> str:
+        clean = value.strip()
+        if not clean or len(clean) > maximum:
+            raise ValueError(f"{label} must contain 1 to {maximum} characters")
+        return clean
+
+    def record_economic_opportunity(
+        self,
+        *,
+        title: str,
+        source: str,
+        estimated_revenue_cents: int,
+        estimated_cost_cents: int,
+        estimated_hours_milli: int,
+        risk: str,
+        notes: str,
+    ) -> dict[str, object]:
+        clean_title = self._research_text(title, label="Title", maximum=200)
+        clean_source = self._research_text(source, label="Source", maximum=300)
+        clean_notes = self._research_text(notes, label="Notes", maximum=2_000)
+        if risk not in {"low", "medium", "high"}:
+            raise ValueError("Risk must be low, medium, or high")
+        if (
+            type(estimated_revenue_cents) is not int
+            or type(estimated_cost_cents) is not int
+            or min(estimated_revenue_cents, estimated_cost_cents) < 0
+        ):
+            raise ValueError("Estimated revenue and cost must be non-negative cents")
+        if type(estimated_hours_milli) is not int or estimated_hours_milli <= 0:
+            raise ValueError("Estimated hours must be positive")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO economic_opportunities("
+                "created_at,title,source,estimated_revenue_cents,estimated_cost_cents,"
+                "estimated_hours_milli,risk,notes) VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    self._now(), clean_title, clean_source, estimated_revenue_cents,
+                    estimated_cost_cents, estimated_hours_milli, risk, clean_notes,
+                ),
+            )
+            opportunity_id = int(cursor.lastrowid)
+        self.audit("opportunity_research_recorded", str(opportunity_id))
+        return self.economic_opportunity(opportunity_id)
+
+    def economic_opportunity(self, opportunity_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT id,created_at,title,source,estimated_revenue_cents,"
+                "estimated_cost_cents,estimated_hours_milli,risk,notes,status,"
+                "external_activity,action_authorized FROM economic_opportunities WHERE id=?",
+                (opportunity_id,),
+            ).fetchone()
+        if row is None:
+            raise ValueError("Opportunity was not found")
+        result = dict(row)
+        profit = int(result["estimated_revenue_cents"]) - int(result["estimated_cost_cents"])
+        result["estimated_profit_cents"] = profit
+        result["estimated_hourly_profit_cents"] = (
+            profit * 1_000 // int(result["estimated_hours_milli"])
+        )
+        result["external_activity"] = bool(result["external_activity"])
+        result["action_authorized"] = bool(result["action_authorized"])
+        return result
+
+    def recent_economic_opportunities(self, limit: int = 20) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            ids = [
+                int(row["id"])
+                for row in connection.execute(
+                    "SELECT id FROM economic_opportunities ORDER BY id DESC LIMIT ?", (limit,)
+                ).fetchall()
+            ]
+        return [self.economic_opportunity(opportunity_id) for opportunity_id in ids]
+
+    def record_hardware_target(
+        self,
+        *,
+        component: str,
+        target_price_cents: int,
+        expected_capability: str,
+        compatibility_status: str,
+        notes: str,
+    ) -> dict[str, object]:
+        clean_component = self._research_text(component, label="Component", maximum=200)
+        clean_capability = self._research_text(
+            expected_capability, label="Expected capability", maximum=1_000
+        )
+        clean_notes = self._research_text(notes, label="Notes", maximum=2_000)
+        if type(target_price_cents) is not int or target_price_cents < 0:
+            raise ValueError("Target price must be non-negative cents")
+        if compatibility_status not in {
+            "unknown", "needs_review", "compatible", "incompatible"
+        }:
+            raise ValueError("Compatibility status is invalid")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO hardware_targets("
+                "created_at,component,target_price_cents,expected_capability,"
+                "compatibility_status,notes) VALUES (?,?,?,?,?,?)",
+                (
+                    self._now(), clean_component, target_price_cents,
+                    clean_capability, compatibility_status, clean_notes,
+                ),
+            )
+            target_id = int(cursor.lastrowid)
+        self.audit("hardware_target_recorded", str(target_id))
+        return self.hardware_target(target_id)
+
+    def hardware_target(self, target_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT id,created_at,component,target_price_cents,expected_capability,"
+                "compatibility_status,notes,status,purchase_authorized "
+                "FROM hardware_targets WHERE id=?",
+                (target_id,),
+            ).fetchone()
+        if row is None:
+            raise ValueError("Hardware target was not found")
+        result = dict(row)
+        result["purchase_authorized"] = bool(result["purchase_authorized"])
+        return result
+
+    def recent_hardware_targets(self, limit: int = 20) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            ids = [
+                int(row["id"])
+                for row in connection.execute(
+                    "SELECT id FROM hardware_targets ORDER BY id DESC LIMIT ?", (limit,)
+                ).fetchall()
+            ]
+        return [self.hardware_target(target_id) for target_id in ids]
+
+    def research_summary(self) -> dict[str, object]:
+        with self._connect() as connection:
+            opportunity_count = int(
+                connection.execute("SELECT COUNT(*) FROM economic_opportunities").fetchone()[0]
+            )
+            hardware_count = int(
+                connection.execute("SELECT COUNT(*) FROM hardware_targets").fetchone()[0]
+            )
+        return {
+            "opportunity_count": opportunity_count,
+            "hardware_target_count": hardware_count,
+            "opportunities": self.recent_economic_opportunities(),
+            "hardware_targets": self.recent_hardware_targets(),
+            "external_activity": False,
+            "transactions_executed": 0,
+            "purchases_executed": 0,
+            "contracts_accepted": 0,
+        }
 
     def record_provenance(self, *, source: str, statement: str) -> int:
         clean_source = source.strip()

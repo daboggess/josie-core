@@ -31,6 +31,7 @@ from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
 from josie.economic_policy import load_economic_policy
+from josie.research import record_opportunity, record_upgrade_target
 from josie.status_snapshot import _pending_proposals
 
 
@@ -440,6 +441,44 @@ class JosieTests(unittest.TestCase):
             self.assertEqual(store.recent_external_proposals(), [])
             self.assertTrue((external / "proposals" / "rejected" / f"{external_id}.json").exists())
 
+    def test_proposal_review_records_decision_without_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "data" / "josie.db")
+            external_id = str(uuid4())
+            external = store.record_external_proposal(
+                external_id=external_id,
+                source="openwebui",
+                kind="health_check",
+                summary="test-only proposal",
+                external_created_at="2026-08-09T00:00:00Z",
+            )
+            model_id = store.record_model_proposal(
+                user_input="test", model="local-test", response_json='{"proposals": []}'
+            )
+            external_result = store.decide_proposal(
+                proposal_type="external",
+                proposal_id=int(external["id"]),
+                decision="reject",
+                reason="Acceptance test only",
+            )
+            model_result = store.decide_proposal(
+                proposal_type="model",
+                proposal_id=model_id,
+                decision="accept",
+                reason="Reviewed as a record only",
+            )
+            self.assertEqual(external_result["actions_executed"], 0)
+            self.assertEqual(model_result["actions_queued"], 0)
+            self.assertFalse(model_result["external_activity"])
+            self.assertEqual(store.proposal_review_summary()["review_required"], 0)
+            repeated = store.decide_proposal(
+                proposal_type="model",
+                proposal_id=model_id,
+                decision="reject",
+                reason="Cannot change an already reviewed record",
+            )
+            self.assertEqual(repeated["status"], "not_found_or_already_reviewed")
+
     def test_upgrade_fund_separates_actuals_from_estimates(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -468,6 +507,49 @@ class JosieTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "estimated"):
                 store.record_ledger_entry(
                     basis="actual", category="savings", amount="10", description="not cash"
+                )
+
+    def test_research_records_estimates_without_external_authority(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "data" / "josie.db")
+            opportunity = record_opportunity(
+                store=store,
+                title="Document processing research",
+                source="manual note",
+                estimated_revenue="100.00",
+                estimated_cost="25.00",
+                estimated_hours="5",
+                risk="medium",
+                notes="Research only; no bid or contract.",
+            )
+            target = record_upgrade_target(
+                store=store,
+                component="RTX 3060 12GB",
+                target_price="0",
+                expected_capability="Larger local inference",
+                compatibility="needs_review",
+                notes="No purchase authority.",
+            )
+            self.assertEqual(opportunity["estimated_profit_cents"], 7500)
+            self.assertEqual(opportunity["estimated_hourly_profit_cents"], 1500)
+            self.assertFalse(opportunity["external_activity"])
+            self.assertFalse(opportunity["action_authorized"])
+            self.assertFalse(target["purchase_authorized"])
+            summary = store.research_summary()
+            self.assertEqual(summary["opportunity_count"], 1)
+            self.assertEqual(summary["hardware_target_count"], 1)
+            self.assertEqual(summary["transactions_executed"], 0)
+            self.assertEqual(summary["contracts_accepted"], 0)
+            with self.assertRaises(ValueError):
+                record_opportunity(
+                    store=store,
+                    title="Invalid estimate",
+                    source="manual note",
+                    estimated_revenue="NaN",
+                    estimated_cost="0",
+                    estimated_hours="1",
+                    risk="low",
+                    notes="Must fail closed.",
                 )
 
     def test_gui_records_ledger_fact_without_transaction(self) -> None:
@@ -688,6 +770,19 @@ class JosieTests(unittest.TestCase):
             recovery = recovery_snapshot(config=config, project_root=root)
             self.assertEqual(recovery["integrity"], "ok")
             self.assertEqual(recovery["backup_count"], 1)
+
+    def test_checkpoint_backup_is_non_overwriting(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            store.remember("checkpoint content")
+            first = store.create_checkpoint_backup(root / "data" / "backups", "safe")
+            second = store.create_checkpoint_backup(root / "data" / "backups", "safe")
+            self.assertTrue(first.exists())
+            self.assertTrue(second.exists())
+            self.assertNotEqual(first, second)
+            recovery = recovery_snapshot(config=load_config(root / ".env"), project_root=root)
+            self.assertEqual(recovery["latest_backup"], second.name)
 
     def test_local_reminder_is_persistent_and_nonexecuting(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

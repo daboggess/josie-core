@@ -22,6 +22,8 @@ from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
 from josie.economic_policy import load_economic_policy
 from josie.status_snapshot import build_status_snapshot, write_status_snapshot
+from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
+from josie.research import record_opportunity, record_upgrade_target
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -57,7 +59,16 @@ def build_parser() -> argparse.ArgumentParser:
     propose = subcommands.add_parser("propose", help="Ask the local model for non-executing proposals")
     propose.add_argument("request", nargs="+", help="Untrusted request text")
     proposals = subcommands.add_parser("proposals", help="Manage the bounded external proposal inbox")
-    proposals.add_argument("action", choices=("ingest", "status"))
+    proposal_commands = proposals.add_subparsers(dest="proposal_command", required=True)
+    proposal_commands.add_parser("ingest", help="Ingest bounded external proposal files")
+    proposal_commands.add_parser("status", help="List all governed proposal reviews")
+    proposal_review = proposal_commands.add_parser(
+        "review", help="Record a human proposal decision without executing it"
+    )
+    proposal_review.add_argument("proposal_type", choices=("external", "model"))
+    proposal_review.add_argument("proposal_id", type=int)
+    proposal_review.add_argument("decision", choices=("accept", "reject"))
+    proposal_review.add_argument("--reason", required=True)
     handoffs = subcommands.add_parser("handoffs", help="Manage zero-spend manual model handoffs")
     handoff_commands = handoffs.add_subparsers(dest="handoff_command", required=True)
     handoff_commands.add_parser("list", help="List local handoff drafts")
@@ -73,6 +84,38 @@ def build_parser() -> argparse.ArgumentParser:
     browser.add_argument("action", choices=("status",))
     economics = subcommands.add_parser("economics", help="Inspect zero-dollar economic limits")
     economics.add_argument("action", choices=("status",))
+    backups = subcommands.add_parser("backups", help="Create or inspect local recovery snapshots")
+    backups.add_argument(
+        "action", choices=("status", "create-local", "create-checkpoint")
+    )
+    backups.add_argument("--label", default="manual-checkpoint")
+    research = subcommands.add_parser(
+        "research", help="Track research-only opportunities and hardware targets"
+    )
+    research_commands = research.add_subparsers(dest="research_command", required=True)
+    research_commands.add_parser("status", help="List local research records")
+    opportunity = research_commands.add_parser(
+        "add-opportunity", help="Record an opportunity estimate without accepting work"
+    )
+    opportunity.add_argument("--title", required=True)
+    opportunity.add_argument("--source", required=True)
+    opportunity.add_argument("--estimated-revenue", required=True)
+    opportunity.add_argument("--estimated-cost", required=True)
+    opportunity.add_argument("--estimated-hours", required=True)
+    opportunity.add_argument("--risk", choices=("low", "medium", "high"), required=True)
+    opportunity.add_argument("--notes", required=True)
+    upgrade = research_commands.add_parser(
+        "add-upgrade", help="Record a hardware target without authorizing a purchase"
+    )
+    upgrade.add_argument("--component", required=True)
+    upgrade.add_argument("--target-price", default="0")
+    upgrade.add_argument("--capability", required=True)
+    upgrade.add_argument(
+        "--compatibility",
+        choices=("unknown", "needs_review", "compatible", "incompatible"),
+        default="unknown",
+    )
+    upgrade.add_argument("--notes", required=True)
     status_snapshot = subcommands.add_parser(
         "status-snapshot", help="Show or publish the secret-free read-only status snapshot"
     )
@@ -153,10 +196,17 @@ def main() -> int:
 
     if args.command == "proposals":
         store = LocalStore(project_root / "data" / "josie.db")
-        if args.action == "ingest":
+        if args.proposal_command == "ingest":
             result = ingest_proposal_inbox(config=config, project_root=project_root, store=store)
+        elif args.proposal_command == "review":
+            result = store.decide_proposal(
+                proposal_type=args.proposal_type,
+                proposal_id=args.proposal_id,
+                decision=args.decision,
+                reason=args.reason,
+            )
         else:
-            result = {"status": "ok", "proposals": store.recent_external_proposals()}
+            result = {"status": "ok", **store.proposal_review_summary()}
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
@@ -191,6 +241,94 @@ def main() -> int:
 
     if args.command == "economics":
         print(json.dumps(load_economic_policy(project_root), indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "backups":
+        store = LocalStore(project_root / "data" / "josie.db")
+        created: list[str] = []
+        backup_directories = [project_root / "data" / "backups"]
+        if config.external_storage and config.external_storage.is_dir():
+            backup_directories.append(
+                config.external_storage / "backups" / "josie-database"
+            )
+        before = {
+            str(path.resolve())
+            for directory in backup_directories
+            if directory.exists()
+            for path in directory.glob("josie-*.db")
+        }
+        if args.action == "create-local":
+            created.append(str(store.create_daily_backup(project_root / "data" / "backups")))
+            if config.external_storage and config.external_storage.is_dir():
+                created.append(
+                    str(
+                        store.create_daily_backup(
+                            config.external_storage / "backups" / "josie-database"
+                        )
+                    )
+                )
+        elif args.action == "create-checkpoint":
+            created.append(
+                str(
+                    store.create_checkpoint_backup(
+                        project_root / "data" / "backups", label=args.label
+                    )
+                )
+            )
+            if config.external_storage and config.external_storage.is_dir():
+                created.append(
+                    str(
+                        store.create_checkpoint_backup(
+                            config.external_storage / "backups" / "josie-database",
+                            label=args.label,
+                        )
+                    )
+                )
+        after = {
+            str(path.resolve())
+            for directory in backup_directories
+            if directory.exists()
+            for path in directory.glob("josie-*.db")
+        }
+        deleted = sorted(before - after)
+        result = {
+            "status": "ok",
+            "created_or_verified": created,
+            "local": recovery_snapshot(config=config, project_root=project_root),
+            "restore_drill": restore_drill_snapshot(
+                config=config, project_root=project_root
+            ),
+            "deletion_performed": bool(deleted),
+            "deleted_by_retention": deleted,
+        }
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "research":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.research_command == "add-opportunity":
+            result = record_opportunity(
+                store=store,
+                title=args.title,
+                source=args.source,
+                estimated_revenue=args.estimated_revenue,
+                estimated_cost=args.estimated_cost,
+                estimated_hours=args.estimated_hours,
+                risk=args.risk,
+                notes=args.notes,
+            )
+        elif args.research_command == "add-upgrade":
+            result = record_upgrade_target(
+                store=store,
+                component=args.component,
+                target_price=args.target_price,
+                expected_capability=args.capability,
+                compatibility=args.compatibility,
+                notes=args.notes,
+            )
+        else:
+            result = store.research_summary()
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
     if args.command == "status-snapshot":

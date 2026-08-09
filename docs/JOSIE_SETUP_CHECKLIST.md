@@ -1,6 +1,6 @@
 # JOSIE 0.99 / 1.0 — Running Setup State
 
-Last reconciled: 2026-08-07
+Last reconciled: 2026-08-09
 
 This is the canonical project roadmap. Update it when work is completed,
 rejected, deferred, or materially changed. Claims marked **verified** have been
@@ -34,7 +34,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Warning thresholds and secret-free diagnostics exports.
 - [x] Cloud API spending locked off with `JOSIE_ALLOW_CLOUD=false`.
 - [x] Gemini connectivity previously verified; live calls are now locked.
-- [ ] OpenAI API connectivity blocked by zero API credit; ChatGPT subscription remains the Sophie control surface.
+- [x] Keep OpenAI API connectivity intentionally disabled; the ChatGPT subscription remains the Sophie/Codex control surface without API charges.
 - [x] ChatGPT Remote paired for monitoring and steering from a phone.
 - [x] Windows is configured not to sleep while on AC power; display timeout remains enabled.
 - [x] Single-instance guard prevents duplicate Josie GUI processes.
@@ -73,12 +73,13 @@ confirmed on Josie or by the repository test suite.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Expanded orchestration and deployment safety suite passes 57 tests on 2026-08-08.
+- [x] Expanded orchestration and deployment safety suite passes 62 tests on 2026-08-09.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [x] Add a governed local-model proposal boundary: deterministic intent mapping, durable review records, and zero model-triggered execution.
-- [x] Stage and isolate an authenticated Open WebUI-to-Core record-only bridge; the profile is disabled pending attended Admin UI activation.
+- [x] Activate and isolate the authenticated Open WebUI-to-Core status and record-only proposal bridge; exact authenticated wording is enforced after the local model responds.
+- [x] Add explicit proposal accept/reject review records that never queue or execute actions.
 - [x] Add a persistent local orchestration queue with an explicit handler registry.
 - [x] Add narrowly allowlisted Python job handlers; unrestricted Python/JavaScript text execution remains forbidden.
 - [x] Add structured error handling and bounded retries capped at three attempts.
@@ -138,6 +139,8 @@ confirmed on Josie or by the repository test suite.
 - [x] Separate actual revenue, expenses, API costs, electricity, and balance from estimated savings.
 - [x] Prevent estimated savings from being counted as earned money; ledger records cannot move or spend money.
 - [x] Keep tax, contracting, identity verification, and regulated business actions human-controlled.
+- [x] Add a local research-only opportunity ledger that calculates estimated profit and hourly return while authorizing no bid, contract, transaction, or external activity.
+- [x] Add a local hardware-target tracker with compatibility state and zero purchase authority.
 - [ ] Evaluate wallet capability only after strict non-self-modifiable limits exist.
 - [ ] Build opportunity discovery within platform rules and applicable law.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.
@@ -163,7 +166,8 @@ confirmed on Josie or by the repository test suite.
 
 1. [x] Activate the authenticated, local-only Open WebUI proposal interface; model execution authority remains absent.
 2. [x] Import selected origin/history records through the provenance review workflow.
-3. Add profitability research and upgrade tracking only after the external-action approval gates are proven.
+3. [x] Add research-only profitability and upgrade tracking behind zero-action boundaries.
+4. Select the first permitted research sources and browser/API allowlist only after human review.
 
 ## Change-control rule
 

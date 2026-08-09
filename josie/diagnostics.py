@@ -139,7 +139,15 @@ def storage_snapshot(*, config: Config, project_root: Path) -> dict[str, object]
 def recovery_snapshot(*, config: Config, project_root: Path) -> dict[str, object]:
     del config
     backup_dir = project_root / "data" / "backups"
-    backups = sorted(backup_dir.glob("josie-*.db"), reverse=True) if backup_dir.exists() else []
+    backups = (
+        sorted(
+            backup_dir.glob("josie-*.db"),
+            key=lambda path: path.stat().st_mtime_ns,
+            reverse=True,
+        )
+        if backup_dir.exists()
+        else []
+    )
     latest = backups[0] if backups else None
     integrity = "missing"
     if latest is not None:
@@ -160,7 +168,11 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
     """Restore the newest backup into memory and verify it without touching live data."""
     del config
     backup_dir = project_root / "data" / "backups"
-    backups = sorted(backup_dir.glob("josie-*.db"), reverse=True)
+    backups = sorted(
+        backup_dir.glob("josie-*.db"),
+        key=lambda path: path.stat().st_mtime_ns,
+        reverse=True,
+    )
     if not backups:
         return {"status": "waiting", "reason": "No backup exists", "live_database_changed": False}
     source = sqlite3.connect(f"file:{backups[0]}?mode=ro", uri=True)
