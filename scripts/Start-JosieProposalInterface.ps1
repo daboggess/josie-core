@@ -8,6 +8,7 @@ $dockerPath = Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\
 $composePath = Join-Path $projectRoot 'deploy\compose.yaml'
 $environmentPath = Join-Path $projectRoot 'deploy\.env.services'
 $proposalRoot = 'D:\Josie-Storage\proposals'
+$statusRoot = 'D:\Josie-Storage\status'
 $secretRoot = 'D:\Josie-Storage\secrets'
 $tokenPath = Join-Path $secretRoot 'proposal-token.txt'
 $containerName = 'josie-proposal-server-1'
@@ -19,6 +20,7 @@ foreach ($directory in 'inbox', 'processed', 'rejected') {
     New-Item -ItemType Directory -Force -Path (Join-Path $proposalRoot $directory) | Out-Null
 }
 New-Item -ItemType Directory -Force -Path $secretRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $statusRoot | Out-Null
 if (-not (Test-Path -LiteralPath $tokenPath)) {
     $tokenBytes = New-Object byte[] 32
     $generator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
@@ -47,7 +49,7 @@ $connection = @(
         info = [ordered]@{
             id = 'josie-core-review'
             name = 'Josie Core Review'
-            description = 'Records bounded local proposals for human review and never executes actions.'
+            description = 'Reports secret-free read-only status and records bounded local proposals; it never executes actions.'
         }
     }
 )

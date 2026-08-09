@@ -162,6 +162,8 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "proposal_server": project_root / "deploy" / "proposal-server" / "server.js",
         "compose": project_root / "deploy" / "compose.yaml",
         "activation_script": project_root / "scripts" / "Start-JosieProposalInterface.ps1",
+        "status_snapshot_module": project_root / "josie" / "status_snapshot.py",
+        "storage_monitor": project_root / "scripts" / "Start-JosieStorageMonitor.ps1",
     }
     bridge_sources_match = bool(
         isinstance(bridge_hashes, dict)
@@ -190,11 +192,15 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
             "https://refurb.tail0ab4d2.ts.net",
         ]
         and isinstance(bridge_authority, dict)
-        and bridge_authority.get("operation_ids") == ["record_review_proposal"]
+        and bridge_authority.get("operation_ids")
+        == ["get_josie_status", "record_review_proposal"]
         and bridge_authority.get("actions_executable") is False
         and bridge_authority.get("shell_available") is False
         and bridge_authority.get("cloud_activity_allowed") is False
         and bridge_authority.get("assistant_message_supported") is True
+        and bridge_authority.get("status_read_only") is True
+        and bridge_authority.get("status_secret_free") is True
+        and bridge_authority.get("status_parameters_accepted") is False
         and isinstance(bridge_test, dict)
         and bridge_test.get("proposal_status") == "review_required"
         and bridge_test.get("actions_queued") == 0
@@ -214,6 +220,15 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("matching_records_after_two_calls") == 1
         and bridge_test.get("dedupe_window_seconds") == 300
         and bridge_test.get("dedupe_persistence_healthy") is True
+        and bridge_test.get("status_http_status") == 200
+        and bridge_test.get("status_unauthorized_http_status") == 401
+        and bridge_test.get("status_snapshot_fresh") is True
+        and bridge_test.get("status_response_allowlisted") is True
+        and bridge_test.get("status_proposals_unchanged") is True
+        and bridge_test.get("status_jobs_unchanged") is True
+        and bridge_test.get("status_actions_queued") == 0
+        and bridge_test.get("status_actions_executed") == 0
+        and bridge_test.get("status_cloud_activity") is False
         and bridge_sources_match
     )
 
@@ -306,7 +321,7 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
             "state": "proven" if remote_access["status"] == "ready" else "human_gate",
             "evidence": remote_access,
         },
-        "authenticated_openwebui_proposal_bridge": {
+        "authenticated_openwebui_status_and_proposal_bridge": {
             "state": "proven" if openwebui_bridge_ready else "human_gate",
             "evidence": proposal_bridge_lock or "deploy/proposal-bridge.lock.json is missing",
         },

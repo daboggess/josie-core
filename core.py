@@ -21,6 +21,7 @@ from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
 from josie.economic_policy import load_economic_policy
+from josie.status_snapshot import build_status_snapshot, write_status_snapshot
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -72,6 +73,10 @@ def build_parser() -> argparse.ArgumentParser:
     browser.add_argument("action", choices=("status",))
     economics = subcommands.add_parser("economics", help="Inspect zero-dollar economic limits")
     economics.add_argument("action", choices=("status",))
+    status_snapshot = subcommands.add_parser(
+        "status-snapshot", help="Show or publish the secret-free read-only status snapshot"
+    )
+    status_snapshot.add_argument("action", choices=("show", "write"))
     return parser
 
 
@@ -187,6 +192,14 @@ def main() -> int:
     if args.command == "economics":
         print(json.dumps(load_economic_policy(project_root), indent=2, sort_keys=True))
         return 0
+
+    if args.command == "status-snapshot":
+        if args.action == "write":
+            result = write_status_snapshot(config=config, project_root=project_root)
+        else:
+            result = build_status_snapshot(config=config, project_root=project_root)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0 if args.action == "write" or result["overall"] != "critical" else 1
 
     tool_name = "health" if args.command == "health" else args.name
     logger.info("Running allowed tool: %s", tool_name)

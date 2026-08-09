@@ -29,6 +29,8 @@ try {
         & $snapshotScript | Out-Null
         & $pythonPath $corePath proposals ingest | Out-Null
         if ($LASTEXITCODE -ne 0) { throw 'Proposal inbox ingestion failed.' }
+        & $pythonPath $corePath status-snapshot write | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Read-only status publication failed.' }
         if ($Once) { break }
         if ($stopEvent.WaitOne($IntervalSeconds * 1000)) { break }
     } while ($true)

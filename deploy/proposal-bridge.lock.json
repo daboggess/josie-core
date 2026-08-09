@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "active",
-  "activated_at": "2026-08-08T22:51:08Z",
+  "activated_at": "2026-08-09T00:22:16Z",
   "connection": {
     "id": "josie-core-review",
     "name": "Josie Core Review",
@@ -26,6 +26,7 @@
   },
   "authority": {
     "operation_ids": [
+      "get_josie_status",
       "record_review_proposal"
     ],
     "allowed_kinds": [
@@ -36,7 +37,10 @@
     "actions_executable": false,
     "shell_available": false,
     "cloud_activity_allowed": false,
-    "assistant_message_supported": true
+    "assistant_message_supported": true,
+    "status_read_only": true,
+    "status_secret_free": true,
+    "status_parameters_accepted": false
   },
   "acceptance_test": {
     "proposal_external_id": "3f7bb892-8fc4-45e8-8d9b-91c66a5de6e0",
@@ -60,12 +64,24 @@
     "dedupe_window_seconds": 300,
     "dedupe_persistence_healthy": true,
     "inbox_remaining": 0,
-    "rejected_files_remaining": 0
+    "rejected_files_remaining": 0,
+    "status_http_status": 200,
+    "status_unauthorized_http_status": 401,
+    "status_snapshot_fresh": true,
+    "status_response_allowlisted": true,
+    "status_proposals_unchanged": true,
+    "status_jobs_unchanged": true,
+    "status_actions_queued": 0,
+    "status_actions_executed": 0,
+    "status_cloud_activity": false,
+    "status_overall": "ok"
   },
   "source_sha256": {
-    "proposal_server": "71f7060e7e95e90b6ae9a8e96f9619de752411cf02f5ee8efe26944e5fab0365",
-    "compose": "7d2cfe04e5d98d7dbfed0f0b7855b4af68b8e48cd2d48d378830a7f4e9ba3784",
-    "activation_script": "bdfa4a9709c8babd523b4bbf3ffa02696f68e17af4af7d0bb30a223a48a6c866"
+    "proposal_server": "b7a1dacd66bb3aede337893b87e5f0cafc6861c5e13efb7e251c23c046b38f62",
+    "compose": "451d7776324fcb50e5159ca2186493b80266bcd6a08584835a46cfa848fb7c2d",
+    "activation_script": "2314cdf1adbef4ac1a058bc8f630a7617215a0e6fc194988c16d07e4d7bbea2f",
+    "status_snapshot_module": "0f5159c64f92ecc42a9a68ae75fcfe12c29a08944518371af78c566fb58236a3",
+    "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae"
   },
   "recovery": {
     "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260808-183926.tgz",

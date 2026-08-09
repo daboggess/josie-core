@@ -268,6 +268,7 @@ class DeploymentController:
                 'n8n-nodes-base.localFileTrigger',
                 'profiles: ["proposal-interface"]',
                 './proposal-server/server.js:/app/server.js:ro',
+                '/status:/status:ro',
                 '/secrets/proposal-token.txt:/run/secrets/proposal_token:ro',
                 'internal: true',
             )

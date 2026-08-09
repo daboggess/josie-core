@@ -61,6 +61,7 @@ services:
     volumes:
       - ./proposal-server/server.js:/app/server.js:ro
       - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}/proposals:/proposals
+      - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}/status:/status:ro
       - ${JOSIE_STORAGE:?Set JOSIE_STORAGE}/secrets/proposal-token.txt:/run/secrets/proposal_token:ro
     networks:
       - josie_tools

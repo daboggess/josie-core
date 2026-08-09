@@ -31,6 +31,7 @@ from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
 from josie.browser_policy import load_browser_policy
 from josie.economic_policy import load_economic_policy
+from josie.status_snapshot import _pending_proposals
 
 
 class JosieTests(unittest.TestCase):
@@ -974,6 +975,7 @@ class JosieTests(unittest.TestCase):
         self.assertIn("start-josiestoragemonitor.ps1", startup)
         self.assertIn("local\\josiestoragemonitor", monitor)
         self.assertIn("write-josiestoragesnapshot.ps1", monitor)
+        self.assertIn("status-snapshot write", monitor)
         self.assertIn("josiestoragemonitorstop", monitor)
         self.assertIn("openexisting", stop_monitor)
         self.assertIn("--network none", installer)
@@ -1002,7 +1004,7 @@ class JosieTests(unittest.TestCase):
         self.assertFalse(workflow_lock["validation"]["executable_node_enabled"])
         self.assertFalse(workflow_lock["validation"]["model_parameters_accepted"])
 
-    def test_openwebui_proposal_bridge_is_internal_profile_and_record_only(self) -> None:
+    def test_openwebui_status_and_proposal_bridge_is_internal_and_bounded(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
         compose = (project_root / "deploy" / "compose.yaml").read_text(encoding="utf-8")
         lock = json.loads(
@@ -1020,6 +1022,13 @@ class JosieTests(unittest.TestCase):
         self.assertIn("internal: true", compose)
         self.assertNotIn('- "3030:3030"', compose)
         self.assertNotIn('- "127.0.0.1:3030:3030"', compose)
+        self.assertIn("/status:/status:ro", compose)
+        self.assertIn("get_josie_status", server)
+        self.assertIn("/v1/status", server)
+        self.assertIn("accepts no parameters", server)
+        self.assertIn("sanitizeStatusSnapshot", server)
+        self.assertIn("hasExactKeys", server)
+        self.assertIn("status snapshot exceeds size limit", server.lower())
         self.assertIn("record_review_proposal", server)
         self.assertIn("assistant_message", server)
         self.assertIn("report only assistant_message", server)
@@ -1049,8 +1058,14 @@ class JosieTests(unittest.TestCase):
         self.assertFalse(lock["connection"]["secret_in_git"])
         self.assertFalse(lock["network"]["published_host_port"])
         self.assertEqual(len(lock["network"]["cors_allowed_origins"]), 3)
-        self.assertEqual(lock["authority"]["operation_ids"], ["record_review_proposal"])
+        self.assertEqual(
+            lock["authority"]["operation_ids"],
+            ["get_josie_status", "record_review_proposal"],
+        )
         self.assertFalse(lock["authority"]["actions_executable"])
+        self.assertTrue(lock["authority"]["status_read_only"])
+        self.assertTrue(lock["authority"]["status_secret_free"])
+        self.assertFalse(lock["authority"]["status_parameters_accepted"])
         self.assertTrue(lock["authority"]["assistant_message_supported"])
         self.assertEqual(lock["acceptance_test"]["actions_queued"], 0)
         self.assertEqual(lock["acceptance_test"]["actions_executed"], 0)
@@ -1064,6 +1079,38 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["acceptance_test"]["duplicate_retry_same_proposal_id"])
         self.assertEqual(lock["acceptance_test"]["duplicate_retry_created_records"], 0)
         self.assertEqual(lock["acceptance_test"]["matching_records_after_two_calls"], 1)
+        self.assertEqual(lock["acceptance_test"]["status_http_status"], 200)
+        self.assertEqual(lock["acceptance_test"]["status_unauthorized_http_status"], 401)
+        self.assertTrue(lock["acceptance_test"]["status_snapshot_fresh"])
+        self.assertTrue(lock["acceptance_test"]["status_response_allowlisted"])
+        self.assertTrue(lock["acceptance_test"]["status_proposals_unchanged"])
+        self.assertTrue(lock["acceptance_test"]["status_jobs_unchanged"])
+        self.assertEqual(lock["acceptance_test"]["status_actions_queued"], 0)
+        self.assertEqual(lock["acceptance_test"]["status_actions_executed"], 0)
+        self.assertFalse(lock["acceptance_test"]["status_cloud_activity"])
+
+    def test_public_status_counts_proposals_without_exposing_content(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "josie.db"
+            store = LocalStore(database)
+            store.record_model_proposal(
+                user_input="private request text",
+                model="local-test",
+                response_json='{"proposals": []}',
+            )
+            store.record_external_proposal(
+                external_id=str(uuid4()),
+                source="openwebui",
+                kind="health_check",
+                summary="private summary text",
+                external_created_at="2026-08-08T00:00:00Z",
+            )
+            counts = _pending_proposals(database)
+            self.assertEqual(counts["review_required"], 2)
+            self.assertEqual(counts["external"], 1)
+            self.assertEqual(counts["model"], 1)
+            self.assertEqual(counts["repair"], 0)
+            self.assertNotIn("private", json.dumps(counts))
 
 
 if __name__ == "__main__":

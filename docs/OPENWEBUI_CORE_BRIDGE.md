@@ -1,4 +1,4 @@
-# Open WebUI to Josie Core proposal bridge
+# Open WebUI to Josie Core status and proposal bridge
 
 ## Current state
 
@@ -9,12 +9,21 @@ connection from its ignored local service environment so the registration
 survives a restart without weakening the infrastructure-as-code policy. Web
 origins are restricted to Josie's loopback interface and private Tailscale URL.
 
-The bridge is intentionally record-only:
+The bridge has two intentionally bounded operations:
+
+- `get_josie_status` accepts no parameters and returns only the strict,
+  secret-free snapshot published by the trusted Windows monitor;
+- `record_review_proposal` accepts exactly `kind` and `summary`, then writes a
+  review record without queuing or executing it.
+
+Its boundary is intentionally narrow:
 
 - no published Windows, LAN, or Tailscale port;
 - a Docker-internal network shared only with Open WebUI;
 - a random bearer token stored at
   `D:\Josie-Storage\secrets\proposal-token.txt`, outside Git;
+- a read-only mount containing only
+  `D:\Josie-Storage\status\josie-status.json`;
 - exactly three proposal kinds: `health_check`, `memory_export`, and
   `restore_drill`;
 - exactly two accepted model fields: `kind` and `summary`;
@@ -29,6 +38,13 @@ The bridge is intentionally record-only:
   the small local model does not need to invent an interpretation;
 - Core independently validates every field before recording a proposal in its
   local SQLite audit trail.
+
+The status snapshot exposes only drive headroom, local service availability,
+backup count/age/integrity, review-required counts, and boolean safety-lock
+state. It contains no keys, prompts, messages, summaries, usernames, paths,
+container controls, or model-generated fields. The private server rejects an
+invalid file and marks a snapshot stale after fifteen minutes. A status read
+cannot write a proposal, queue a job, or execute anything.
 
 This follows Open WebUI's documented backend/global OpenAPI server pattern. A
 global connection is required because requests originate from the Open WebUI
@@ -66,6 +82,10 @@ Ask the model to record a `health_check` proposal. Then, on Josie:
 Pass criteria are one new `review_required` proposal, zero queued actions, zero
 executed actions, and no cloud activity. A request for any other kind must be
 rejected.
+
+For status, ask: `Use Josie status to tell me your current health.` Pass criteria
+are a fresh read-only snapshot, zero new proposals or jobs, zero queued or
+executed actions, and a reply limited to the server's evidence-only message.
 
 ## Stop and recover
 

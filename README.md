@@ -60,6 +60,7 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py handoffs list
 .\.venv\Scripts\python.exe .\core.py browser status
 .\.venv\Scripts\python.exe .\core.py economics status
+.\.venv\Scripts\python.exe .\core.py status-snapshot show
 .\.venv\Scripts\python.exe .\core.py deploy status
 .\.venv\Scripts\python.exe .\core.py deploy safe
 .\.venv\Scripts\python.exe .\core.py providers check openai
@@ -95,6 +96,13 @@ model is tested to avoid invented post-tool claims. See
 [docs/OPENWEBUI_CORE_BRIDGE.md](docs/OPENWEBUI_CORE_BRIDGE.md).
 UI retries of an identical proposal within five minutes are deduplicated by the
 private server before a second record can be written.
+
+The same authenticated bridge also exposes `get_josie_status`, a parameter-free
+read-only operation backed by a strict, secret-free snapshot. It reports drive
+headroom, local service reachability, backup age and integrity, pending review
+counts, and the cloud/spending/browser/shell safety locks. The bridge receives
+no Docker socket, database, shell, cloud access, or broad Windows filesystem;
+its only read mount is `D:\Josie-Storage\status\josie-status.json`.
 
 Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
 `ask Sophie ...` and `ask Bernie ...` in the GUI save a secret-screened draft
@@ -142,6 +150,9 @@ Josie's GUI and storage monitor start at sign-in. The storage monitor refreshes
 n8n headroom guard checks it daily and records a failed execution if C: reaches
 warning or critical status. It sends no external message and uses no network node.
 The same monitor also ingests and validates any records in the proposal inbox.
+After ingestion it atomically publishes the smaller public status snapshot used
+by Open WebUI. Stop the monitor to freeze publication; restarting Josie or
+running `scripts\Start-JosieStorageMonitor.ps1` resumes it.
 
 The `gui` command opens Josie's local chat-style command center. It understands
 `help`, `status`, `system status`, `repository status`, `health`, `cloud status`,

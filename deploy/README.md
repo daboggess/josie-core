@@ -50,14 +50,15 @@ nodes are explicitly excluded. Import the canonical workflow with the n8n CLI,
 publish its stable ID, restart n8n, and verify it with the internal validation
 trigger. The workflow never receives model-generated parameters.
 
-## Open WebUI proposal boundary
+## Open WebUI status and proposal boundary
 
 The approved `proposal-interface` Compose profile is active and registered in
 Open WebUI through ignored local environment configuration. When explicitly
 started, it adds a dependency-free OpenAPI record server to an internal Docker
 network shared only with Open WebUI. It publishes no host port, requires a
 random bearer token stored outside Git on D:, accepts only `kind` and `summary`,
-and writes only three allowlisted review proposal kinds. It has no process,
+and writes only three allowlisted review proposal kinds. It can also read one
+strict host-published status file from a separate read-only mount. It has no process,
 shell, tool, queue, transaction, messaging, or cloud execution capability.
 
 Open WebUI uses it as a backend/global OpenAPI tool because the private service
