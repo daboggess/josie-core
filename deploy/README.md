@@ -62,7 +62,11 @@ strict host-published status file from a separate read-only mount. It has no pro
 shell, tool, queue, transaction, messaging, or cloud execution capability.
 The activation script also applies an idempotent Open WebUI model override that
 binds only this private server to `josie-local:1.0` by default and disables
-unrelated built-in tools.
+unrelated built-in tools. A tracked strict JSON preflight prompt routes current
+status questions and explicit allowlisted proposal requests before the ordinary
+chat pass. This avoids relying on the 1.5B model to emit Ollama's native
+tool-call envelope while leaving all authentication, validation, and execution
+limits at the private server boundary.
 
 Open WebUI uses it as a backend/global OpenAPI tool because the private service
 name is reachable only from the Open WebUI container. The approved activation

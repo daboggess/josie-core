@@ -1051,6 +1051,10 @@ class JosieTests(unittest.TestCase):
         self.assertIn("randomnumbergenerator", start)
         self.assertIn("published_host_port = $false", start)
         self.assertIn("josie_tool_server_connections", compose.lower())
+        self.assertIn("tools_function_calling_prompt_template", compose.lower())
+        self.assertIn("you are a strict tool router", compose.lower())
+        self.assertIn('query: what is a restore drill?', compose.lower())
+        self.assertIn('{"tool_calls":[]}', compose.lower())
         self.assertIn("cors_allow_origin:", compose.lower())
         self.assertNotIn('cors_allow_origin: "*"', compose.lower())
         self.assertIn("josie-core-review", start)
@@ -1061,7 +1065,8 @@ class JosieTests(unittest.TestCase):
         self.assertIn("dockerpath restart", start)
         self.assertIn('tool_id = "server:josie-core-review"', model_binding.lower())
         self.assertIn('"builtin_tools": false', model_binding.lower())
-        self.assertIn('"function_calling": "native"', model_binding.lower())
+        self.assertIn('"function_calling": "default"', model_binding.lower())
+        self.assertIn('"routing": "bounded_json_preflight"', model_binding.lower())
         self.assertIn("must call get_josie_status", model_binding.lower())
         self.assertNotIn("subprocess", model_binding)
         self.assertNotIn("urllib", model_binding)
@@ -1084,7 +1089,12 @@ class JosieTests(unittest.TestCase):
             lock["model_binding"]["default_tool_ids"],
             ["server:josie-core-review"],
         )
-        self.assertEqual(lock["model_binding"]["function_calling"], "native")
+        self.assertEqual(lock["model_binding"]["function_calling"], "default")
+        self.assertEqual(
+            lock["model_binding"]["routing"], "bounded_json_preflight"
+        )
+        self.assertTrue(lock["model_binding"]["native_plain_text_call_observed"])
+        self.assertTrue(lock["model_binding"]["routing_corpus_verified"])
         self.assertFalse(lock["model_binding"]["builtin_tools_enabled"])
         self.assertTrue(lock["model_binding"]["current_status_requires_tool"])
         self.assertFalse(lock["model_binding"]["generic_status_guess_allowed"])
@@ -1112,6 +1122,17 @@ class JosieTests(unittest.TestCase):
         self.assertEqual(lock["acceptance_test"]["status_actions_queued"], 0)
         self.assertEqual(lock["acceptance_test"]["status_actions_executed"], 0)
         self.assertFalse(lock["acceptance_test"]["status_cloud_activity"])
+        self.assertTrue(lock["acceptance_test"]["status_router_live_prompt_loaded"])
+        self.assertTrue(lock["acceptance_test"]["status_router_selection_verified"])
+        self.assertEqual(
+            lock["acceptance_test"]["status_router_selected_operation"],
+            "get_josie_status",
+        )
+        self.assertEqual(lock["acceptance_test"]["status_router_parameters"], {})
+        self.assertEqual(
+            lock["acceptance_test"]["status_inbox_before"],
+            lock["acceptance_test"]["status_inbox_after"],
+        )
 
     def test_public_status_counts_proposals_without_exposing_content(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

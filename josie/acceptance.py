@@ -208,7 +208,10 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_model_binding.get("model_id") == "josie-local:1.0"
         and bridge_model_binding.get("default_tool_ids")
         == ["server:josie-core-review"]
-        and bridge_model_binding.get("function_calling") == "native"
+        and bridge_model_binding.get("function_calling") == "default"
+        and bridge_model_binding.get("routing") == "bounded_json_preflight"
+        and bridge_model_binding.get("native_plain_text_call_observed") is True
+        and bridge_model_binding.get("routing_corpus_verified") is True
         and bridge_model_binding.get("builtin_tools_enabled") is False
         and bridge_model_binding.get("current_status_requires_tool") is True
         and bridge_model_binding.get("generic_status_guess_allowed") is False
@@ -243,6 +246,13 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("status_actions_queued") == 0
         and bridge_test.get("status_actions_executed") == 0
         and bridge_test.get("status_cloud_activity") is False
+        and bridge_test.get("status_router_live_prompt_loaded") is True
+        and bridge_test.get("status_router_selection_verified") is True
+        and bridge_test.get("status_router_selected_operation")
+        == "get_josie_status"
+        and bridge_test.get("status_router_parameters") == {}
+        and bridge_test.get("status_inbox_before")
+        == bridge_test.get("status_inbox_after")
         and bridge_test.get("model_default_tool_bound") is True
         and bridge_test.get("model_builtin_tools_disabled") is True
         and bridge_test.get("model_status_rule_verified") is True

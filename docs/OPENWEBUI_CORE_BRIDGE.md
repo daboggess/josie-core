@@ -49,9 +49,15 @@ cannot write a proposal, queue a job, or execute anything.
 Open WebUI's global servers are otherwise hidden per chat. Josie's activation
 script therefore applies a supported model-level binding to
 `josie-local:1.0`: `server:josie-core-review` is the only default attached
-tool, native function calling is enabled, unrelated built-in tools are disabled,
-and the system instruction forbids an unverified current-status answer. The
-binding is idempotent and is reapplied during bridge repair.
+tool, unrelated built-in tools are disabled, and the system instruction forbids
+an unverified current-status answer. Tool selection uses Open WebUI's bounded
+JSON preflight mode because the 1.5B local model was observed emitting a valid
+tool name as ordinary assistant text instead of Ollama's structured native
+tool-call field. The tracked routing prompt allows current-state reads and
+explicitly requested allowlisted proposals, returns no tool for ordinary chat,
+and still leaves the private server responsible for authentication, schema
+validation, rate limits, and the zero-execution boundary. The binding is
+idempotent and is reapplied during bridge repair.
 
 This follows Open WebUI's documented backend/global OpenAPI server pattern. A
 global connection is required because requests originate from the Open WebUI
@@ -90,7 +96,7 @@ Pass criteria are one new `review_required` proposal, zero queued actions, zero
 executed actions, and no cloud activity. A request for any other kind must be
 rejected.
 
-For status, ask: `Use Josie status to tell me your current health.` Pass criteria
+For status, ask: `What is your current system status?` Pass criteria
 are a fresh read-only snapshot, zero new proposals or jobs, zero queued or
 executed actions, and a reply limited to the server's evidence-only message.
 

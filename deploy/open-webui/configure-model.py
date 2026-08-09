@@ -1,4 +1,4 @@
-"""Idempotently bind Josie's private tool server to the local Open WebUI model."""
+"""Idempotently bind Josie's bounded tools to the local Open WebUI model."""
 
 from __future__ import annotations
 
@@ -52,7 +52,12 @@ def main() -> int:
             "toolIds": [TOOL_ID],
         },
         params={
-            "function_calling": "native",
+            # Qwen 2.5 1.5B can emit a plausible tool call as ordinary text
+            # instead of Ollama's structured tool_calls field. Open WebUI's
+            # default mode performs a separate, bounded JSON routing pass,
+            # validates the selected name/parameters, and only then invokes
+            # the private OpenAPI server.
+            "function_calling": "default",
             "system": SYSTEM_PROMPT,
             "temperature": 0,
         },
@@ -74,7 +79,7 @@ def main() -> int:
         and configured.is_active
         and meta.get("toolIds") == [TOOL_ID]
         and (meta.get("capabilities") or {}).get("builtin_tools") is False
-        and params.get("function_calling") == "native"
+        and params.get("function_calling") == "default"
         and "MUST call get_josie_status" in str(params.get("system", ""))
     )
     if not valid:
@@ -85,7 +90,8 @@ def main() -> int:
                 "status": "configured",
                 "model": MODEL_ID,
                 "default_tool_ids": [TOOL_ID],
-                "function_calling": "native",
+                "function_calling": "default",
+                "routing": "bounded_json_preflight",
                 "builtin_tools_enabled": False,
                 "cloud_activity": False,
                 "actions_executed": 0,

@@ -38,6 +38,29 @@ services:
       ENABLE_VERSION_UPDATE_CHECK: "false"
       CORS_ALLOW_ORIGIN: 'http://127.0.0.1:3000;http://localhost:3000;https://refurb.tail0ab4d2.ts.net'
       TOOL_SERVER_CONNECTIONS: '${JOSIE_TOOL_SERVER_CONNECTIONS:-[]}'
+      TOOLS_FUNCTION_CALLING_PROMPT_TEMPLATE: |-
+        You are a strict tool router. Available tool specifications: {{TOOLS}}
+        Return exactly one JSON object and no prose.
+
+        Rules, in order:
+        1. Choose get_josie_status with empty parameters when the query asks for Josie's actual current health, status, disk or storage space, service availability, backup condition, pending proposal count, or safety-lock state. Words such as current or now are not required when the user asks how much disk space is left or whether a service is running.
+        2. Choose record_review_proposal only when the query explicitly commands you to record, create, save, add, or submit a proposal AND the kind is exactly health_check, memory_export, or restore_drill. Copy the requested summary faithfully. A question asking what a proposal or restore drill is does not record anything.
+        3. Otherwise choose no tool. Never invent a kind or turn an ordinary question into a proposal.
+
+        Exact output forms:
+        {"tool_calls":[{"name":"get_josie_status","parameters":{}}]}
+        {"tool_calls":[{"name":"record_review_proposal","parameters":{"kind":"health_check","summary":"requested text"}}]}
+        {"tool_calls":[]}
+
+        Examples:
+        Query: How much space is left on C drive?
+        Answer: {"tool_calls":[{"name":"get_josie_status","parameters":{}}]}
+        Query: What is a restore drill?
+        Answer: {"tool_calls":[]}
+        Query: Tell me a joke.
+        Answer: {"tool_calls":[]}
+        Query: Record a health_check proposal saying phone test successful.
+        Answer: {"tool_calls":[{"name":"record_review_proposal","parameters":{"kind":"health_check","summary":"phone test successful"}}]}
     volumes:
       - open_webui_data:/app/backend/data
       - ./open-webui/configure-model.py:/opt/josie/configure-model.py:ro

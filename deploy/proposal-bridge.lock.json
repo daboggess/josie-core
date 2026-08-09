@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "active",
-  "activated_at": "2026-08-09T01:03:13Z",
+  "activated_at": "2026-08-09T01:29:01Z",
   "connection": {
     "id": "josie-core-review",
     "name": "Josie Core Review",
@@ -48,7 +48,10 @@
     "default_tool_ids": [
       "server:josie-core-review"
     ],
-    "function_calling": "native",
+    "function_calling": "default",
+    "routing": "bounded_json_preflight",
+    "native_plain_text_call_observed": true,
+    "routing_corpus_verified": true,
     "builtin_tools_enabled": false,
     "current_status_requires_tool": true,
     "generic_status_guess_allowed": false,
@@ -89,17 +92,26 @@
     "status_actions_executed": 0,
     "status_cloud_activity": false,
     "status_overall": "ok",
+    "status_router_live_prompt_loaded": true,
+    "status_router_selection_verified": true,
+    "status_router_selected_operation": "get_josie_status",
+    "status_router_parameters": {},
+    "status_router_output_tokens": 18,
+    "status_snapshot_age_seconds_at_test": 79,
+    "status_inbox_before": 0,
+    "status_inbox_after": 0,
+    "status_assistant_message": "Read-only Josie status: ok. C: free 46.1 GB; external free 9016.7 GB. Services: Ollama ok, Open WebUI ok, n8n ok, proposal bridge ok. Backups: ok, integrity ok, latest age 10.4 hours. Proposals awaiting review: 8. Safety locks: cloud calls locked, spending locked, browser execution locked, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.",
     "model_default_tool_bound": true,
     "model_builtin_tools_disabled": true,
     "model_status_rule_verified": true
   },
   "source_sha256": {
     "proposal_server": "b7a1dacd66bb3aede337893b87e5f0cafc6861c5e13efb7e251c23c046b38f62",
-    "compose": "9a8bcf78156821147f1839daf1c3a5114413a60eda8f00a4ca82d5151469a7f2",
+    "compose": "71225af730fb1ecbdb0c296baf8de42e6295e7fe215d5e884bfb1a578e5cefe1",
     "activation_script": "c7a8c3fc7f252722bb9978dfb14b46f484f9f601409464b957b4fe9fccbd1ff5",
     "status_snapshot_module": "0f5159c64f92ecc42a9a68ae75fcfe12c29a08944518371af78c566fb58236a3",
     "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae",
-    "model_binding": "320a551000724ade792966d33b3f597eac0d70a081a0ea5fd4e7a130eac5f3ad"
+    "model_binding": "f8c04c46eda9b2af9b4bd499b91c0ad9ee25a1154dc817249eabca5d9212498e"
   },
   "recovery": {
     "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260808-205802.tgz",
