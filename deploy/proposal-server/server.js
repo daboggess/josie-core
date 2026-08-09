@@ -66,7 +66,7 @@ const openapi = {
   openapi: '3.1.0',
   info: {
     title: 'Josie Core Read-only Status and Review Proposals',
-    version: '1.2.0',
+    version: '1.3.0',
     description: 'Reports a secret-free read-only status snapshot and records bounded local proposals. It never executes actions.',
   },
   servers: [{url: 'http://proposal-server:3030'}],
@@ -90,16 +90,9 @@ const openapi = {
                 schema: {
                   type: 'object',
                   additionalProperties: false,
-                  required: ['status', 'generated_at', 'snapshot_age_seconds', 'storage', 'services', 'backups', 'proposals', 'safety', 'read_only', 'actions_queued', 'actions_executed', 'cloud_activity', 'assistant_message'],
+                  required: ['status', 'read_only', 'actions_queued', 'actions_executed', 'cloud_activity', 'assistant_message'],
                   properties: {
                     status: {type: 'string', enum: ['ok', 'warning', 'critical', 'stale']},
-                    generated_at: {type: 'string', format: 'date-time'},
-                    snapshot_age_seconds: {type: 'integer', minimum: 0},
-                    storage: {type: 'object'},
-                    services: {type: 'object'},
-                    backups: {type: 'object'},
-                    proposals: {type: 'object'},
-                    safety: {type: 'object'},
                     read_only: {type: 'boolean', const: true},
                     actions_queued: {type: 'integer', const: 0},
                     actions_executed: {type: 'integer', const: 0},
@@ -257,13 +250,6 @@ function statusResponse(snapshot) {
   const assistantMessage = `Read-only Josie status: ${status}. C: free ${snapshot.storage.system_free_gb ?? 'unknown'} GB; external free ${snapshot.storage.external_free_gb ?? 'unknown'} GB. Services: Ollama ${services.ollama}, Open WebUI ${services.open_webui}, n8n ${services.n8n}, proposal bridge ${services.proposal_bridge}. Backups: ${snapshot.backups.status}, integrity ${snapshot.backups.integrity}, latest age ${snapshot.backups.latest_age_hours ?? 'unknown'} hours. Proposals awaiting review: ${snapshot.proposals.review_required}. Safety locks: cloud calls ${snapshot.safety.cloud_calls_locked ? 'locked' : 'NOT LOCKED'}, spending ${snapshot.safety.cloud_spending_locked ? 'locked' : 'NOT LOCKED'}, browser execution ${snapshot.safety.browser_execution_locked ? 'locked' : 'NOT LOCKED'}, arbitrary shell unavailable. No action was performed. Actions queued: 0. Actions executed: 0.`;
   return {
     status,
-    generated_at: snapshot.generated_at,
-    snapshot_age_seconds: ageSeconds,
-    storage: snapshot.storage,
-    services,
-    backups: snapshot.backups,
-    proposals: snapshot.proposals,
-    safety: snapshot.safety,
     read_only: true,
     actions_queued: 0,
     actions_executed: 0,

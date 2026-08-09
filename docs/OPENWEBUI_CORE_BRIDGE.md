@@ -39,12 +39,17 @@ Its boundary is intentionally narrow:
 - Core independently validates every field before recording a proposal in its
   local SQLite audit trail.
 
-The status snapshot exposes only drive headroom, local service availability,
-backup count/age/integrity, review-required counts, and boolean safety-lock
-state. It contains no keys, prompts, messages, summaries, usernames, paths,
-container controls, or model-generated fields. The private server rejects an
-invalid file and marks a snapshot stale after fifteen minutes. A status read
-cannot write a proposal, queue a job, or execute anything.
+The host status snapshot contains only drive headroom, local service
+availability, backup count/age/integrity, review-required counts, and boolean
+safety-lock state. It contains no keys, prompts, messages, summaries,
+usernames, paths, container controls, or model-generated fields. The private
+server validates that full snapshot and converts it into one fixed
+`assistant_message`; the model-facing response includes only that message,
+overall state, and the fixed read-only/zero-action fields. This keeps the 1.5B
+model's context small enough for exact copying while the full diagnostic source
+remains available to trusted Core on D:. The server rejects an invalid file and
+marks a snapshot stale after fifteen minutes. A status read cannot write a
+proposal, queue a job, or execute anything.
 
 Open WebUI's global servers are otherwise hidden per chat. Josie's activation
 script therefore applies a supported model-level binding to

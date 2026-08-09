@@ -75,6 +75,8 @@ $connectionJson = $null
 & $dockerPath compose --profile proposal-interface --env-file $environmentPath `
     -f $composePath up -d proposal-server open-webui
 if ($LASTEXITCODE -ne 0) { throw 'The internal proposal interface did not start.' }
+& $dockerPath restart $containerName | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'The private proposal and status server did not restart.' }
 
 $ready = $false
 for ($attempt = 0; $attempt -lt 30; $attempt++) {

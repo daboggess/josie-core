@@ -1037,6 +1037,9 @@ class JosieTests(unittest.TestCase):
         self.assertIn("sanitizeStatusSnapshot", server)
         self.assertIn("hasExactKeys", server)
         self.assertIn("status snapshot exceeds size limit", server.lower())
+        self.assertIn("version: '1.3.0'", server)
+        self.assertNotIn("generated_at: snapshot.generated_at", server)
+        self.assertNotIn("storage: snapshot.storage", server)
         self.assertIn("record_review_proposal", server)
         self.assertIn("assistant_message", server)
         self.assertIn("report only assistant_message", server)
@@ -1070,6 +1073,7 @@ class JosieTests(unittest.TestCase):
         self.assertIn("global_tool_enabled = $true", start)
         self.assertIn("python /opt/josie/configure-model.py", start)
         self.assertIn("python /opt/josie/verify-passthrough.py", start)
+        self.assertIn("dockerpath restart $containername", start)
         self.assertIn("dockerpath restart", start)
         self.assertIn('tool_id = "server:josie-core-review"', model_binding.lower())
         self.assertIn('"builtin_tools": false', model_binding.lower())
@@ -1082,6 +1086,8 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn("urllib", model_binding)
         self.assertIn("status_message_exact", passthrough)
         self.assertIn("proposal_message_exact", passthrough)
+        self.assertIn("indent=2", passthrough)
+        self.assertIn("Warm that generation privately", passthrough)
         self.assertIn('"fixture_recorded": False', passthrough)
         self.assertNotIn("subprocess", passthrough)
         self.assertEqual(lock["status"], "active")
@@ -1112,6 +1118,10 @@ class JosieTests(unittest.TestCase):
         self.assertFalse(lock["model_binding"]["builtin_tools_enabled"])
         self.assertFalse(lock["model_binding"]["file_context_enabled"])
         self.assertTrue(lock["model_binding"]["authenticated_message_passthrough"])
+        self.assertEqual(
+            lock["model_binding"]["status_context"], "minimal_authenticated_response"
+        )
+        self.assertTrue(lock["model_binding"]["cold_start_warmup_before_verification"])
         self.assertTrue(lock["model_binding"]["current_status_requires_tool"])
         self.assertFalse(lock["model_binding"]["generic_status_guess_allowed"])
         self.assertTrue(lock["model_binding"]["idempotency_verified"])
@@ -1159,6 +1169,12 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["acceptance_test"]["passthrough_status_message_exact"])
         self.assertTrue(lock["acceptance_test"]["passthrough_proposal_message_exact"])
         self.assertFalse(lock["acceptance_test"]["passthrough_fixture_recorded"])
+        self.assertTrue(lock["acceptance_test"]["model_facing_status_payload_minimized"])
+        self.assertTrue(lock["acceptance_test"]["full_status_snapshot_retained_for_core"])
+        self.assertFalse(lock["acceptance_test"]["full_status_snapshot_exposed_to_model"])
+        self.assertTrue(lock["acceptance_test"]["openwebui_formatted_status_message_exact"])
+        self.assertTrue(lock["acceptance_test"]["cold_start_warmup_completed"])
+        self.assertGreaterEqual(lock["acceptance_test"]["consecutive_exact_rechecks"], 5)
 
     def test_public_status_counts_proposals_without_exposing_content(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

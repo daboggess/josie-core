@@ -219,6 +219,9 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_model_binding.get("builtin_tools_enabled") is False
         and bridge_model_binding.get("file_context_enabled") is False
         and bridge_model_binding.get("authenticated_message_passthrough") is True
+        and bridge_model_binding.get("status_context")
+        == "minimal_authenticated_response"
+        and bridge_model_binding.get("cold_start_warmup_before_verification") is True
         and bridge_model_binding.get("current_status_requires_tool") is True
         and bridge_model_binding.get("generic_status_guess_allowed") is False
         and bridge_model_binding.get("idempotency_verified") is True
@@ -268,6 +271,12 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("passthrough_fixture_recorded") is False
         and bridge_test.get("passthrough_actions_queued") == 0
         and bridge_test.get("passthrough_actions_executed") == 0
+        and bridge_test.get("model_facing_status_payload_minimized") is True
+        and bridge_test.get("full_status_snapshot_retained_for_core") is True
+        and bridge_test.get("full_status_snapshot_exposed_to_model") is False
+        and bridge_test.get("openwebui_formatted_status_message_exact") is True
+        and bridge_test.get("cold_start_warmup_completed") is True
+        and bridge_test.get("consecutive_exact_rechecks", 0) >= 5
         and bridge_test.get("model_default_tool_bound") is True
         and bridge_test.get("model_builtin_tools_disabled") is True
         and bridge_test.get("model_status_rule_verified") is True
