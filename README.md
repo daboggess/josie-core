@@ -103,6 +103,10 @@ headroom, local service reachability, backup age and integrity, pending review
 counts, and the cloud/spending/browser/shell safety locks. The bridge receives
 no Docker socket, database, shell, cloud access, or broad Windows filesystem;
 its only read mount is `D:\Josie-Storage\status\josie-status.json`.
+The `josie-local:1.0` Open WebUI model override attaches this bridge by default,
+uses native function calling, disables unrelated built-in tools, and requires a
+fresh status call before Josie may describe current health. New chats therefore
+do not depend on a per-chat tool toggle.
 
 Sophie and Bernie coordination uses local handoff drafts, not provider APIs.
 `ask Sophie ...` and `ask Bernie ...` in the GUI save a secret-screened draft

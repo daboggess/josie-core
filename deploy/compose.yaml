@@ -40,6 +40,7 @@ services:
       TOOL_SERVER_CONNECTIONS: '${JOSIE_TOOL_SERVER_CONNECTIONS:-[]}'
     volumes:
       - open_webui_data:/app/backend/data
+      - ./open-webui/configure-model.py:/opt/josie/configure-model.py:ro
     networks:
       - default
       - josie_tools

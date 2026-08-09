@@ -157,6 +157,7 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
     bridge_network = proposal_bridge_lock.get("network", {})
     bridge_authority = proposal_bridge_lock.get("authority", {})
     bridge_test = proposal_bridge_lock.get("acceptance_test", {})
+    bridge_model_binding = proposal_bridge_lock.get("model_binding", {})
     bridge_hashes = proposal_bridge_lock.get("source_sha256", {})
     expected_bridge_sources = {
         "proposal_server": project_root / "deploy" / "proposal-server" / "server.js",
@@ -164,6 +165,7 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         "activation_script": project_root / "scripts" / "Start-JosieProposalInterface.ps1",
         "status_snapshot_module": project_root / "josie" / "status_snapshot.py",
         "storage_monitor": project_root / "scripts" / "Start-JosieStorageMonitor.ps1",
+        "model_binding": project_root / "deploy" / "open-webui" / "configure-model.py",
     }
     bridge_sources_match = bool(
         isinstance(bridge_hashes, dict)
@@ -201,6 +203,18 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_authority.get("status_read_only") is True
         and bridge_authority.get("status_secret_free") is True
         and bridge_authority.get("status_parameters_accepted") is False
+        and isinstance(bridge_model_binding, dict)
+        and bridge_model_binding.get("status") == "active"
+        and bridge_model_binding.get("model_id") == "josie-local:1.0"
+        and bridge_model_binding.get("default_tool_ids")
+        == ["server:josie-core-review"]
+        and bridge_model_binding.get("function_calling") == "native"
+        and bridge_model_binding.get("builtin_tools_enabled") is False
+        and bridge_model_binding.get("current_status_requires_tool") is True
+        and bridge_model_binding.get("generic_status_guess_allowed") is False
+        and bridge_model_binding.get("idempotency_verified") is True
+        and bridge_model_binding.get("cloud_activity") is False
+        and bridge_model_binding.get("actions_executed") == 0
         and isinstance(bridge_test, dict)
         and bridge_test.get("proposal_status") == "review_required"
         and bridge_test.get("actions_queued") == 0
@@ -229,6 +243,9 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("status_actions_queued") == 0
         and bridge_test.get("status_actions_executed") == 0
         and bridge_test.get("status_cloud_activity") is False
+        and bridge_test.get("model_default_tool_bound") is True
+        and bridge_test.get("model_builtin_tools_disabled") is True
+        and bridge_test.get("model_status_rule_verified") is True
         and bridge_sources_match
     )
 

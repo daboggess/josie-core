@@ -46,6 +46,13 @@ container controls, or model-generated fields. The private server rejects an
 invalid file and marks a snapshot stale after fifteen minutes. A status read
 cannot write a proposal, queue a job, or execute anything.
 
+Open WebUI's global servers are otherwise hidden per chat. Josie's activation
+script therefore applies a supported model-level binding to
+`josie-local:1.0`: `server:josie-core-review` is the only default attached
+tool, native function calling is enabled, unrelated built-in tools are disabled,
+and the system instruction forbids an unverified current-status answer. The
+binding is idempotent and is reapplied during bridge repair.
+
 This follows Open WebUI's documented backend/global OpenAPI server pattern. A
 global connection is required because requests originate from the Open WebUI
 container; a phone browser cannot reach the private Docker service directly.

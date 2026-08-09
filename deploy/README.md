@@ -60,6 +60,9 @@ random bearer token stored outside Git on D:, accepts only `kind` and `summary`,
 and writes only three allowlisted review proposal kinds. It can also read one
 strict host-published status file from a separate read-only mount. It has no process,
 shell, tool, queue, transaction, messaging, or cloud execution capability.
+The activation script also applies an idempotent Open WebUI model override that
+binds only this private server to `josie-local:1.0` by default and disables
+unrelated built-in tools.
 
 Open WebUI uses it as a backend/global OpenAPI tool because the private service
 name is reachable only from the Open WebUI container. The approved activation

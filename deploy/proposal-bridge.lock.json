@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "active",
-  "activated_at": "2026-08-09T00:22:16Z",
+  "activated_at": "2026-08-09T01:03:13Z",
   "connection": {
     "id": "josie-core-review",
     "name": "Josie Core Review",
@@ -42,6 +42,20 @@
     "status_secret_free": true,
     "status_parameters_accepted": false
   },
+  "model_binding": {
+    "status": "active",
+    "model_id": "josie-local:1.0",
+    "default_tool_ids": [
+      "server:josie-core-review"
+    ],
+    "function_calling": "native",
+    "builtin_tools_enabled": false,
+    "current_status_requires_tool": true,
+    "generic_status_guess_allowed": false,
+    "idempotency_verified": true,
+    "cloud_activity": false,
+    "actions_executed": 0
+  },
   "acceptance_test": {
     "proposal_external_id": "3f7bb892-8fc4-45e8-8d9b-91c66a5de6e0",
     "proposal_kind": "health_check",
@@ -74,18 +88,22 @@
     "status_actions_queued": 0,
     "status_actions_executed": 0,
     "status_cloud_activity": false,
-    "status_overall": "ok"
+    "status_overall": "ok",
+    "model_default_tool_bound": true,
+    "model_builtin_tools_disabled": true,
+    "model_status_rule_verified": true
   },
   "source_sha256": {
     "proposal_server": "b7a1dacd66bb3aede337893b87e5f0cafc6861c5e13efb7e251c23c046b38f62",
-    "compose": "451d7776324fcb50e5159ca2186493b80266bcd6a08584835a46cfa848fb7c2d",
-    "activation_script": "2314cdf1adbef4ac1a058bc8f630a7617215a0e6fc194988c16d07e4d7bbea2f",
+    "compose": "9a8bcf78156821147f1839daf1c3a5114413a60eda8f00a4ca82d5151469a7f2",
+    "activation_script": "c7a8c3fc7f252722bb9978dfb14b46f484f9f601409464b957b4fe9fccbd1ff5",
     "status_snapshot_module": "0f5159c64f92ecc42a9a68ae75fcfe12c29a08944518371af78c566fb58236a3",
-    "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae"
+    "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae",
+    "model_binding": "320a551000724ade792966d33b3f597eac0d70a081a0ea5fd4e7a130eac5f3ad"
   },
   "recovery": {
-    "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260808-183926.tgz",
-    "n8n_backup": "D:\\Josie-Storage\\backups\\services\\n8n-20260808-183926.tgz",
+    "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260808-205802.tgz",
+    "n8n_backup": "D:\\Josie-Storage\\backups\\services\\n8n-20260808-205802.tgz",
     "backups_verified": true,
     "destructive_change": false
   }

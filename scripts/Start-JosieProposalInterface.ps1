@@ -12,6 +12,7 @@ $statusRoot = 'D:\Josie-Storage\status'
 $secretRoot = 'D:\Josie-Storage\secrets'
 $tokenPath = Join-Path $secretRoot 'proposal-token.txt'
 $containerName = 'josie-proposal-server-1'
+$webuiContainerName = 'josie-open-webui-1'
 
 foreach ($required in $dockerPath, $composePath, $environmentPath) {
     if (-not (Test-Path -LiteralPath $required)) { throw "Required deployment file is missing: $required" }
@@ -88,6 +89,18 @@ $backendProbe = & $dockerPath exec josie-open-webui-1 python -c `
     "import json,urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://proposal-server:3030/health',timeout=5))))"
 if ($LASTEXITCODE -ne 0) { throw 'Open WebUI cannot reach the internal proposal interface.' }
 
+$modelBinding = & $dockerPath exec $webuiContainerName python /opt/josie/configure-model.py
+if ($LASTEXITCODE -ne 0) { throw 'The default Josie model/tool binding could not be configured.' }
+& $dockerPath restart $webuiContainerName | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Open WebUI could not restart after model binding.' }
+$webuiReady = $false
+for ($attempt = 0; $attempt -lt 30; $attempt++) {
+    Start-Sleep -Seconds 1
+    $health = & $dockerPath inspect --format '{{.State.Health.Status}}' $webuiContainerName
+    if ($LASTEXITCODE -eq 0 -and $health -contains 'healthy') { $webuiReady = $true; break }
+}
+if (-not $webuiReady) { throw 'Open WebUI did not recover after model binding.' }
+
 [ordered]@{
     status = 'registered_and_ready'
     server = 'http://proposal-server:3030'
@@ -99,5 +112,6 @@ if ($LASTEXITCODE -ne 0) { throw 'Open WebUI cannot reach the internal proposal 
     published_host_port = $false
     docker_network = 'internal'
     actions_executable = $false
+    default_model_binding = ($modelBinding | ConvertFrom-Json)
     backend_probe = ($backendProbe | ConvertFrom-Json)
 } | ConvertTo-Json -Depth 5

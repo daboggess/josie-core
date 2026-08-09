@@ -261,6 +261,7 @@ class DeploymentController:
                 'ENABLE_PERSISTENT_CONFIG: "false"',
                 'ENABLE_OLLAMA_API: "true"',
                 'OLLAMA_BASE_URL: http://host.docker.internal:11434',
+                './open-webui/configure-model.py:/opt/josie/configure-model.py:ro',
                 'ENABLE_OPENAI_API: "false"',
                 'N8N_BLOCK_ENV_ACCESS_IN_NODE: "true"',
                 'N8N_RESTRICT_FILE_ACCESS_TO: /josie-storage/staging',

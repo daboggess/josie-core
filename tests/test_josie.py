@@ -1015,6 +1015,9 @@ class JosieTests(unittest.TestCase):
         server = (project_root / "deploy" / "proposal-server" / "server.js").read_text(
             encoding="utf-8"
         )
+        model_binding = (
+            project_root / "deploy" / "open-webui" / "configure-model.py"
+        ).read_text(encoding="utf-8")
         start = (project_root / "scripts" / "Start-JosieProposalInterface.ps1").read_text(
             encoding="utf-8"
         ).lower()
@@ -1023,6 +1026,7 @@ class JosieTests(unittest.TestCase):
         self.assertNotIn('- "3030:3030"', compose)
         self.assertNotIn('- "127.0.0.1:3030:3030"', compose)
         self.assertIn("/status:/status:ro", compose)
+        self.assertIn("configure-model.py:/opt/josie/configure-model.py:ro", compose)
         self.assertIn("get_josie_status", server)
         self.assertIn("/v1/status", server)
         self.assertIn("accepts no parameters", server)
@@ -1053,6 +1057,14 @@ class JosieTests(unittest.TestCase):
         self.assertIn("convertto-json -inputobject $connection -compress", start)
         self.assertIn("access_grants = @()", start)
         self.assertIn("global_tool_enabled = $true", start)
+        self.assertIn("python /opt/josie/configure-model.py", start)
+        self.assertIn("dockerpath restart", start)
+        self.assertIn('tool_id = "server:josie-core-review"', model_binding.lower())
+        self.assertIn('"builtin_tools": false', model_binding.lower())
+        self.assertIn('"function_calling": "native"', model_binding.lower())
+        self.assertIn("must call get_josie_status", model_binding.lower())
+        self.assertNotIn("subprocess", model_binding)
+        self.assertNotIn("urllib", model_binding)
         self.assertEqual(lock["status"], "active")
         self.assertEqual(lock["connection"]["id"], "josie-core-review")
         self.assertFalse(lock["connection"]["secret_in_git"])
@@ -1067,6 +1079,18 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["authority"]["status_secret_free"])
         self.assertFalse(lock["authority"]["status_parameters_accepted"])
         self.assertTrue(lock["authority"]["assistant_message_supported"])
+        self.assertEqual(lock["model_binding"]["model_id"], "josie-local:1.0")
+        self.assertEqual(
+            lock["model_binding"]["default_tool_ids"],
+            ["server:josie-core-review"],
+        )
+        self.assertEqual(lock["model_binding"]["function_calling"], "native")
+        self.assertFalse(lock["model_binding"]["builtin_tools_enabled"])
+        self.assertTrue(lock["model_binding"]["current_status_requires_tool"])
+        self.assertFalse(lock["model_binding"]["generic_status_guess_allowed"])
+        self.assertTrue(lock["model_binding"]["idempotency_verified"])
+        self.assertFalse(lock["model_binding"]["cloud_activity"])
+        self.assertEqual(lock["model_binding"]["actions_executed"], 0)
         self.assertEqual(lock["acceptance_test"]["actions_queued"], 0)
         self.assertEqual(lock["acceptance_test"]["actions_executed"], 0)
         self.assertEqual(lock["acceptance_test"]["unsupported_shell_kind_http_status"], 400)
