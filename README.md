@@ -1,5 +1,18 @@
 # Josie Core
 
+The governing project context is [JOSIE_CODEX_MASTER_CONTEXT.md](JOSIE_CODEX_MASTER_CONTEXT.md).
+Before significant work, read it together with
+[docs/JOSIE_MASTER_BUILD_STATE.yaml](docs/JOSIE_MASTER_BUILD_STATE.yaml) and
+[docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_CHECKLIST.md). The current
+authority order is Dustin's explicit instruction, Master Build State,
+Constitution/locked decisions, Decision Log, master context, historical
+material, then inference.
+
+Operational readiness is called **Foundation Readiness**. **Genesis** is the
+separate, not-yet-started identity-formation process described in
+[docs/identity/GENESIS_PROTOCOL.md](docs/identity/GENESIS_PROTOCOL.md); service
+health or imported setup records must never be described as completed Genesis.
+
 The canonical build roadmap is [docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_CHECKLIST.md).
 The non-destructive external-drive procedure is [docs/EXTERNAL_DRIVE_PLAN.md](docs/EXTERNAL_DRIVE_PLAN.md).
 The capability policy is [docs/PERMISSIONS_MATRIX.md](docs/PERMISSIONS_MATRIX.md).
@@ -65,6 +78,8 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py handoffs create sophie "Review Josie's health"
 .\.venv\Scripts\python.exe .\core.py handoffs list
 .\.venv\Scripts\python.exe .\core.py browser status
+.\.venv\Scripts\python.exe .\core.py foundation status
+.\.venv\Scripts\python.exe .\core.py genesis status
 .\.venv\Scripts\python.exe .\core.py economics status
 .\.venv\Scripts\python.exe .\core.py status-snapshot show
 .\.venv\Scripts\python.exe .\core.py deploy status

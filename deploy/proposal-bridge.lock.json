@@ -144,7 +144,7 @@
     "compose": "9caa66558283f2a9fd528c877dd106d467bd7d57ee4e8e962fc16bc2ce54404c",
     "activation_script": "1c97d54cdc41dee6cda5316f851fe3f5ca02588be972d0a157ef2c4f6dfcfd33",
     "status_snapshot_module": "8f4619ea4ebc12a721a40276179630ee9c3f6e529d9ca95a7eaeb46e879aa8f4",
-    "storage_monitor": "5b12d54fc46a0ac979306602857b83e446d2c857151764ba0ba71611bac6b3ae",
+    "storage_monitor": "743d1b1fd5fe6d87e9e2656e89404de812931bfa9fcd870788179899e019e5eb",
     "model_binding": "45c045ae6bcc8abcaef064a62bbb3e3b26718e3dd9e1f4f5bc35a50e8c2c8352",
     "passthrough_verifier": "7024ea54548870ad9bbf68d11ce19ebceb91bfde5f3cd864655720ca0e2c9d7e",
     "response_filter": "14659692f40e0b9a806a64e635a581cfa4cfff86c43e632c4f80a881c4d4c9d0"

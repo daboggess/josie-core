@@ -1,0 +1,60 @@
+schema_version: 1
+updated_at: "2026-08-09"
+secrets_documented_here: false
+services:
+  - service: "Josie Core"
+    purpose: "Policy, local state, audit, diagnostics, and bounded orchestration"
+    status: WORKING
+    exposure: local
+    recurring_cost: "$0 incremental"
+    credential_location: "none or ignored environment file; never this registry"
+    dependency_level: critical
+  - service: "Ollama"
+    purpose: "Replaceable local reasoning engine"
+    status: WORKING
+    exposure: loopback/container access only
+    recurring_cost: "$0 software; local electricity"
+    credential_location: none
+    dependency_level: replaceable
+  - service: "Open WebUI"
+    purpose: "Authenticated user interface"
+    status: WORKING
+    exposure: "localhost plus private Tailscale Serve"
+    recurring_cost: "$0 software"
+    credential_location: "service database/ignored secret; not Git"
+    dependency_level: replaceable interface
+  - service: "n8n"
+    purpose: "Workflow infrastructure, not identity or brain"
+    status: WORKING
+    exposure: localhost
+    recurring_cost: "$0 self-hosted software"
+    credential_location: "ignored service environment"
+    dependency_level: replaceable workflow layer
+  - service: "Tailscale"
+    purpose: "Private remote access without router ports"
+    status: WORKING
+    exposure: tailnet only
+    recurring_cost: "Current account tier; verify before assuming paid features"
+    credential_location: "Tailscale authenticated environment"
+    dependency_level: important remote access
+  - service: "Docker Desktop / WSL 2"
+    purpose: "Container isolation"
+    status: WORKING
+    exposure: local runtime
+    recurring_cost: "License applicability must remain verified for use context"
+    credential_location: none
+    dependency_level: important but replaceable
+  - service: "ChatGPT / Sophie / Codex"
+    purpose: "Historical witness, remote engineering, frontier reasoning"
+    status: WORKING_MANUAL_CONTROL_SURFACE
+    exposure: cloud via Dustin-controlled app/session
+    recurring_cost: "Existing subscription; API billing disabled for Josie"
+    credential_location: "authenticated app/browser environment"
+    dependency_level: important witness and engineering tool
+  - service: "Gemini / Bernie"
+    purpose: "Independent historical witness and reviewer"
+    status: MANUAL_RELAY_ONLY
+    exposure: cloud via Dustin-controlled session
+    recurring_cost: "$0 API budget in Josie; account tier must be verified"
+    credential_location: "authenticated browser environment"
+    dependency_level: optional witness/provider

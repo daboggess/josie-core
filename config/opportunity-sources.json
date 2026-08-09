@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "default": "deny",
+  "live_discovery": false,
+  "approved_sources": [],
+  "research_categories": [
+    "coding_bounties",
+    "document_processing",
+    "data_quality",
+    "machine_native_services",
+    "local_batch_processing"
+  ],
+  "allowed_output": [
+    "local_research_note",
+    "profit_estimate",
+    "risk_estimate",
+    "human_review_proposal"
+  ],
+  "prohibited_actions": [
+    "account_creation",
+    "authentication",
+    "application_submission",
+    "bid_submission",
+    "contract_acceptance",
+    "external_message",
+    "file_upload",
+    "identity_verification",
+    "payment",
+    "purchase",
+    "wallet_activity"
+  ],
+  "human_approval_required_to_add_source": true,
+  "model_may_modify_policy": false,
+  "external_activity": false,
+  "transactions_executed": 0,
+  "contracts_accepted": 0
+}

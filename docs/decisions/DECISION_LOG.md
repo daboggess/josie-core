@@ -1,0 +1,67 @@
+# Decision Log
+
+## DEC-0001 — Josie identity replaces Hydra
+
+- Date codified: 2026-08-09; original decision date not asserted.
+- Status: `LOCKED`
+- Decision: Use Josie/Joseph and stewardship as the core metaphor; Hydra is
+  retired.
+- Reason: interpretation, preparation, storehouse management, and stewardship
+  fit the intended relationship better than multiple heads/power.
+- Supersedes: Hydra identity concept.
+
+## DEC-0002 — Identity remains above model weights
+
+- Date codified: 2026-08-09.
+- Status: `LOCKED`
+- Decision: Local/cloud models are replaceable reasoning providers, not Josie.
+- Reason: continuity must survive model upgrades and vendor changes.
+
+## DEC-0003 — Least-exposure remote architecture
+
+- Date codified: 2026-08-09.
+- Status: `WORKING`
+- Decision: Use Tailscale/private Serve; do not expose public router ports or
+  Funnel.
+- Evidence: verified running deployment and acceptance lock.
+
+## DEC-0004 — Native Ollama on D:
+
+- Date codified: 2026-08-09.
+- Status: `WORKING`
+- Decision: Run native Windows Ollama and store model data on external storage.
+- Reason: protect limited C: headroom and avoid unnecessary WSL VHDX growth.
+
+## DEC-0005 — Genesis is identity formation
+
+- Date: 2026-08-09.
+- Status: `LOCKED`
+- Decision: Rename operational readiness to Foundation Readiness. Reserve
+  Genesis for independent Sophie/Bernie origin interviews, evidence
+  reconciliation, and an Origin Record reviewed with Dustin.
+- Reason: service health cannot truthfully establish identity or origin.
+
+## DEC-0006 — Opportunity discovery remains staged
+
+- Date: 2026-08-09.
+- Status: `LATER / HUMAN-GATED`
+- Decision: Keep source allowlist empty and live discovery off. Permit only
+  local scoring, research notes, and human-review proposals.
+- Reason: platforms, authentication, messaging, contracts, and economics need
+  separate authority and security review.
+
+## Template
+
+```yaml
+decision_id: DEC-0007
+date: YYYY-MM-DD
+topic: ""
+status: considering|locked|working|later|rejected|superseded
+decision: ""
+reason: []
+requirements: []
+alternatives: []
+supersedes: null
+authority: ""
+evidence: []
+```

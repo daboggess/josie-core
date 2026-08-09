@@ -33,6 +33,9 @@ from josie.browser_policy import load_browser_policy, validate_research_url
 from josie.economic_policy import load_economic_policy
 from josie.research import record_opportunity, record_upgrade_target
 from josie.status_snapshot import _pending_proposals
+from josie.foundation import derive_foundation_state
+from josie.genesis import build_genesis_status
+from josie.opportunity_policy import load_opportunity_policy
 
 
 class JosieTests(unittest.TestCase):
@@ -73,6 +76,51 @@ class JosieTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "multiple"):
                 load_policy(root)
+
+    def test_foundation_readiness_does_not_claim_genesis(self) -> None:
+        state, ready = derive_foundation_state({"services": True, "backups": True})
+        self.assertEqual(state, "foundation_ready_for_genesis")
+        self.assertTrue(ready)
+        state, ready = derive_foundation_state({"services": True, "backups": False})
+        self.assertEqual(state, "foundation_attention_required")
+        self.assertFalse(ready)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "data").mkdir()
+            genesis = build_genesis_status(project_root=root)
+            self.assertEqual(genesis["phase"], "not_started")
+            self.assertEqual(
+                genesis["status"], "awaiting_independent_witness_interviews"
+            )
+            self.assertFalse(genesis["self_confirmation_allowed"])
+            self.assertFalse(genesis["external_activity"])
+            self.assertEqual(genesis["actions_executed"], 0)
+
+    def test_opportunity_policy_is_local_only_and_fail_closed(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        policy = load_opportunity_policy(project_root)
+        self.assertEqual(policy["status"], "research_framework_only")
+        self.assertFalse(policy["enabled"])
+        self.assertFalse(policy["live_discovery"])
+        self.assertEqual(policy["approved_source_count"], 0)
+        self.assertFalse(policy["external_activity"])
+        self.assertIn("purchase", policy["prohibited_actions"])
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            source = json.loads(
+                (project_root / "config" / "opportunity-sources.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            source["live_discovery"] = True
+            (root / "config" / "opportunity-sources.json").write_text(
+                json.dumps(source), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "human approval"):
+                load_opportunity_policy(root)
 
     def test_model_handoffs_are_zero_spend_manual_drafts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -1138,6 +1186,9 @@ class JosieTests(unittest.TestCase):
         self.assertIn("local\\josiestoragemonitor", monitor)
         self.assertIn("write-josiestoragesnapshot.ps1", monitor)
         self.assertIn("status-snapshot write", monitor)
+        self.assertIn("backups create-local", monitor)
+        self.assertIn("foundation write", monitor)
+        self.assertNotIn("genesis write", monitor)
         self.assertIn("josiestoragemonitorstop", monitor)
         self.assertIn("openexisting", stop_monitor)
         self.assertIn("--network none", installer)
@@ -1407,6 +1458,42 @@ class JosieTests(unittest.TestCase):
             self.assertEqual(counts["model"], 1)
             self.assertEqual(counts["repair"], 0)
             self.assertNotIn("private", json.dumps(counts))
+
+    def test_canonical_foundation_documents_exist_and_state_is_explicit(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        required = [
+            "JOSIE_CODEX_MASTER_CONTEXT.md",
+            "docs/JOSIE_MASTER_BUILD_STATE.yaml",
+            "docs/constitution/JOSIE_CONSTITUTION.md",
+            "docs/identity/GENESIS_PROTOCOL.md",
+            "docs/identity/GENESIS_INTERVIEW_PACKETS.md",
+            "docs/identity/ORIGIN_RECORD.md",
+            "docs/learning/JOSIE_MASTER_LEARNING_LIST.md",
+            "docs/memory/MEMORY_SCHEMA.md",
+            "docs/memory/PROVENANCE_SCHEMA.md",
+            "docs/architecture/AUTHORITY_MODEL.md",
+            "docs/architecture/SECURITY_MODEL.md",
+            "docs/decisions/DECISION_LOG.md",
+            "docs/security/SECRETS_POLICY.md",
+            "docs/security/THREAT_MODEL.md",
+            "docs/state/HARDWARE_INVENTORY.yaml",
+            "docs/state/SERVICE_REGISTRY.yaml",
+        ]
+        for relative in required:
+            self.assertTrue((project_root / relative).is_file(), relative)
+        master = (project_root / "docs" / "JOSIE_MASTER_BUILD_STATE.yaml").read_text(
+            encoding="utf-8"
+        )
+        for state in (
+            "LOCKED", "OWNED", "INSTALLED", "WORKING", "NEXT", "CONSIDERING",
+            "RESEARCH", "LATER", "REJECTED", "BLOCKED",
+        ):
+            self.assertIn(f"  - {state}", master)
+        origin = (project_root / "docs" / "identity" / "ORIGIN_RECORD.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("GENESIS NOT STARTED", origin)
+        self.assertIn("None.", origin)
 
 
 if __name__ == "__main__":

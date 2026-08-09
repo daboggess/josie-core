@@ -25,6 +25,8 @@ from .jobs import JobRunner, available_job_handlers
 from .local_model import propose_local_actions
 from .browser_policy import load_browser_policy
 from .economic_policy import load_economic_policy
+from .foundation import build_foundation_report
+from .genesis import build_genesis_status
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -38,7 +40,7 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             "manage tasks, ask the local planning model, and draft manual Sophie/Bernie handoffs. "
             "Try: 'ask Josie ...', 'ask Sophie ...', 'ask Bernie ...', 'remember ...', "
             "'memories', 'add task ...', 'tasks', or 'complete task 1'. Model proposals are review-only; "
-            "cloud calls are locked off."
+            "cloud calls are locked off. Type 'foundation' for readiness or 'genesis' for origin status."
         )
     if text in {"status", "dashboard", "summary", "josie status"}:
         health = health_check(config=config, project_root=project_root)
@@ -69,8 +71,24 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"browser", "browser policy", "browser status", "web automation"}:
         policy = load_browser_policy(project_root)
         return (
-            "Browser capability is LOCKED: zero allowed sites and navigation, extraction, forms, "
-            "downloads, and uploads are disabled. Dedicated connectors are preferred."
+            f"Official-source research is {policy['status']}: {policy['allowed_host_count']} exact "
+            "hosts. Navigation and text extraction are bounded; forms, saved downloads, uploads, "
+            "cookies, JavaScript, browser writes, and model-direct access are locked."
+        )
+    if text in {"foundation", "foundation status", "foundation readiness", "are you ready for genesis"}:
+        report = build_foundation_report(config=config, project_root=project_root)
+        return (
+            f"Foundation state: {report['state']}. Operational criteria: "
+            f"{report['criteria_proven']}/{report['criteria_total']}. "
+            f"Ready to begin Genesis: {report['ready_to_begin_genesis']}. "
+            f"Human gates: {report['human_gate_count']}. No action was queued or executed."
+        )
+    if text in {"genesis", "genesis status", "genesis readiness", "are you genesis ready"}:
+        report = build_genesis_status(project_root=project_root)
+        return (
+            f"Genesis phase: {report['phase']}; {report['status']}. Sophie and Bernie have not "
+            "been interviewed. Existing setup provenance is not an Origin Record, and I cannot "
+            "confirm it myself. No action was queued or executed."
         )
     if text in {"economic policy", "spending limits", "wallet policy", "wallet status"}:
         policy = load_economic_policy(project_root)

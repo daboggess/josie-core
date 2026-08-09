@@ -25,6 +25,9 @@ from josie.economic_policy import load_economic_policy
 from josie.status_snapshot import build_status_snapshot, write_status_snapshot
 from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
 from josie.research import record_opportunity, record_upgrade_target
+from josie.opportunity_policy import load_opportunity_policy
+from josie.foundation import build_foundation_report, write_foundation_report
+from josie.genesis import build_genesis_status
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -96,6 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     research_commands = research.add_subparsers(dest="research_command", required=True)
     research_commands.add_parser("status", help="List local research records")
+    research_commands.add_parser("sources", help="Inspect the locked opportunity-source policy")
     opportunity = research_commands.add_parser(
         "add-opportunity", help="Record an opportunity estimate without accepting work"
     )
@@ -122,6 +126,14 @@ def build_parser() -> argparse.ArgumentParser:
         "status-snapshot", help="Show or publish the secret-free read-only status snapshot"
     )
     status_snapshot.add_argument("action", choices=("show", "write"))
+    foundation = subcommands.add_parser(
+        "foundation", help="Assess or publish operational readiness for Genesis"
+    )
+    foundation.add_argument("action", choices=("status", "write", "gates"))
+    genesis = subcommands.add_parser(
+        "genesis", help="Show the identity-formation protocol status"
+    )
+    genesis.add_argument("action", choices=("status",))
     return parser
 
 
@@ -329,7 +341,9 @@ def main() -> int:
 
     if args.command == "research":
         store = LocalStore(project_root / "data" / "josie.db")
-        if args.research_command == "add-opportunity":
+        if args.research_command == "sources":
+            result = load_opportunity_policy(project_root)
+        elif args.research_command == "add-opportunity":
             result = record_opportunity(
                 store=store,
                 title=args.title,
@@ -352,6 +366,30 @@ def main() -> int:
         else:
             result = store.research_summary()
         print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "foundation":
+        result = (
+            write_foundation_report(config=config, project_root=project_root)
+            if args.action == "write"
+            else build_foundation_report(config=config, project_root=project_root)
+        )
+        if args.action == "gates":
+            result = {
+                "state": result["state"],
+                "foundation_ready": result["foundation_ready"],
+                "ready_to_begin_genesis": result["ready_to_begin_genesis"],
+                "human_gate_count": result["human_gate_count"],
+                "human_gates": result["human_gates"],
+                "actions_queued": 0,
+                "actions_executed": 0,
+                "external_activity": False,
+            }
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "genesis":
+        print(json.dumps(build_genesis_status(project_root=project_root), indent=2, sort_keys=True))
         return 0
 
     if args.command == "status-snapshot":

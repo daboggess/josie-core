@@ -1,0 +1,43 @@
+schema_version: 1
+updated_at: "2026-08-09"
+rule: "Only verified current ownership belongs under owned. Historical references require reverification."
+owned:
+  - item: "Advantech AIMB-205G2 motherboard"
+    installed: true
+    working: true
+  - item: "Intel Core i7-7700"
+    installed: true
+    working: true
+  - item: "32 GB DDR4-2400"
+    installed: true
+    working: true
+  - item: "128 GB Advantech SQF SATA SSD"
+    role: "Windows boot drive"
+    installed: true
+    working: true
+  - item: "Intel HD 630"
+    installed: true
+    working: true
+  - item: "200 W PSU"
+    installed: true
+    working: true
+  - item: "10 TB UnionSine USB 3.2 HDD"
+    installed: true
+    working: true
+    mount: "D:"
+  - item: "Two 4 TB NVMe drives"
+    installed: false
+    role: "reserved for future system"
+  - item: "Two 24 TB HDDs"
+    installed: false
+    role: "reserved for later storage build"
+not_installed:
+  - "Discrete GPU"
+research_requires_reverification:
+  - "Beelink S12 / N100"
+  - "Intel NUC units"
+  - "Other Advantech systems/boards"
+  - "HP Z440"
+  - "Dell Precision T7820"
+  - "Skytech Ryzen 5 3600 / GTX 1660"
+  - "Dell shop PC/chassis"

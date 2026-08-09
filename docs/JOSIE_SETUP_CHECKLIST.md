@@ -73,7 +73,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Offline-ready Compose package staged for n8n, Open WebUI, and a locked browser worker.
 - [x] All service ports bind to loopback only; no LAN or Tailscale exposure is enabled.
 - [x] Container preflight rejects mutable/unverified images, privileged mode, and Docker socket mounts.
-- [x] Expanded orchestration and deployment safety suite passes 62 tests on 2026-08-09.
+- [x] Expanded orchestration and deployment safety suite passes its current full test suite; exact count is recorded in the latest commit/test evidence.
 - [x] Install n8n 2.30.5 by immutable digest with persistent volume and localhost-only port.
 - [x] Add verified, non-deleting n8n and Open WebUI volume backups on the external drive.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
@@ -88,10 +88,11 @@ confirmed on Josie or by the repository test suite.
 
 ## Computer-use capability
 
-- [x] Deploy an isolated Playwright 1.62.0 browser worker with all capabilities dropped and execution locked.
-- [x] Staged browser-worker health endpoint; navigation and execution remain disabled pending capability review.
-- [x] Add a machine-readable, default-deny browser policy with an empty host allowlist, private-network blocks, untrusted-content controls, and all capabilities disabled.
-- [ ] Support permitted navigation, form entry, downloads, uploads, and extraction.
+- [x] Deploy an isolated Playwright 1.62.0 browser worker with all capabilities dropped; only the separately approved read-only research mode can navigate.
+- [x] Activate the first expiring read-only pilot for two exact official Advantech document paths; redirects are revalidated and private/Tailscale ranges remain blocked.
+- [x] Add a machine-readable, default-deny browser policy with an exact URL allowlist, private-network blocks, untrusted-content controls, and write capabilities disabled.
+- [x] Support bounded text extraction from the exact approved public pages without cookies, JavaScript, persistence, downloads, forms, uploads, or model-direct access.
+- [ ] Support any permitted form entry, saved downloads, uploads, or authenticated browsing only through a new capability-specific human gate.
 - [x] Prefer APIs or dedicated connectors over browser automation when available.
 - [x] Prohibit bypass of platform rules, access controls, CAPTCHAs, and anti-bot systems in both the general and browser-specific policies.
 
@@ -106,7 +107,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Add governed `josie-local:1.0` from Qwen 2.5 1.5B Q4_K_M with three threads and 4096-token context.
 - [x] Keep model blobs on D:, OpenAI disabled, and native Ollama inaccessible from LAN/Tailscale clients.
 - [x] Qwen 2.5 passed benign and adversarial structured-proposal evaluation; the conditional Qwen3 A/B test was not triggered.
-- [ ] Reconfirm whether Claude should serve as an optional editor/checker.
+- [x] Preserve a provider-neutral optional editor/checker role; no Claude dependency or subscription is selected.
 
 ## Persistent memory and continuity
 
@@ -118,6 +119,18 @@ confirmed on Josie or by the repository test suite.
 - [x] Add explicit memory review, correction, soft deletion, export, and restore workflows.
 - [x] Add secret-free local memory/task export and a non-overwriting restore drill.
 - [x] Require a recorded approval plus a separate apply command for correction, soft deletion, and restoration; preserve original values for recovery.
+
+## Foundation and Genesis
+
+- [x] Save the complete canonical Codex handoff and authority hierarchy.
+- [x] Create a canonical Master Build State with explicit `LOCKED`, `OWNED`, `INSTALLED`, `WORKING`, `NEXT`, `CONSIDERING`, `RESEARCH`, `LATER`, `REJECTED`, and `BLOCKED` states.
+- [x] Create versioned Constitution, authority, architecture, security, service, hardware, decision, memory, provenance, learning, and Genesis scaffolding.
+- [x] Separate operational **Foundation Readiness** from **Genesis identity formation** in code, monitoring, CLI, and local GUI.
+- [x] Prepare independent Sophie and Bernie interview packets without sending them.
+- [ ] Dustin ratifies or revises the Constitution draft.
+- [ ] Conduct independent Sophie and Bernie Genesis interviews through the approved manual relay.
+- [ ] Reconcile witness claims against historical evidence and ask Dustin only the unresolved intent questions.
+- [ ] Review, confirm, back up, and version the final Origin Record. Genesis remains `NOT_STARTED` until these steps begin.
 
 ## Safety and permissions
 
@@ -141,17 +154,17 @@ confirmed on Josie or by the repository test suite.
 - [x] Keep tax, contracting, identity verification, and regulated business actions human-controlled.
 - [x] Add a local research-only opportunity ledger that calculates estimated profit and hourly return while authorizing no bid, contract, transaction, or external activity.
 - [x] Add a local hardware-target tracker with compatibility state and zero purchase authority.
-- [ ] Evaluate wallet capability only after strict non-self-modifiable limits exist.
-- [ ] Build opportunity discovery within platform rules and applicable law.
+- [x] Evaluate wallet capability for Josie 1.0 and deliberately keep it disabled behind strict non-self-modifiable zero-dollar limits.
+- [x] Build a default-deny local opportunity-research framework with an empty approved-source allowlist; live discovery remains disabled.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.
-- [ ] Estimate expected profit and risk before accepting work.
+- [x] Calculate estimated profit, hourly return, and risk locally before any future human review; the calculator cannot accept work.
 - [ ] Track actual profitability and ROI by job type.
 - [ ] Allow reinvestment proposals subject to human approval.
 
 ## Self-improvement and hardware research
 
-- [ ] Track compatible upgrade components and target prices.
-- [ ] Record expected capability improvement and total upgrade cost.
+- [x] Track research-only upgrade components, target prices, expected capability, and compatibility state with zero purchase authority.
+- [x] Record expected capability improvement and known cost inputs; total platform cost still requires complete parts and compatibility evidence.
 - [ ] Potential first major GPU target: RTX 3060 12 GB, subject to chassis, PSU, slot-power, thermals, and compatibility review.
 
 ## GPU and chassis path — not required for Josie 1.0
@@ -168,6 +181,8 @@ confirmed on Josie or by the repository test suite.
 2. [x] Import selected origin/history records through the provenance review workflow.
 3. [x] Add research-only profitability and upgrade tracking behind zero-action boundaries.
 4. [x] Approve the first expiring, read-only research pilot for two exact official Advantech document paths; keep login, forms, files, writes, and model access locked.
+5. [x] Establish the canonical Foundation documents and correct the readiness/Genesis distinction.
+6. [ ] Begin Genesis only with independent witness interviews and Dustin available for unresolved intent.
 
 ## Change-control rule
 

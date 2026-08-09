@@ -25,12 +25,21 @@ $stopEvent = [Threading.EventWaitHandle]::new(
 )
 
 try {
+    $lastBackupDate = ''
     do {
         & $snapshotScript | Out-Null
         & $pythonPath $corePath proposals ingest | Out-Null
         if ($LASTEXITCODE -ne 0) { throw 'Proposal inbox ingestion failed.' }
         & $pythonPath $corePath status-snapshot write | Out-Null
         if ($LASTEXITCODE -ne 0) { throw 'Read-only status publication failed.' }
+        $currentBackupDate = [DateTimeOffset]::Now.ToString('yyyy-MM-dd')
+        if ($currentBackupDate -ne $lastBackupDate) {
+            & $pythonPath $corePath backups create-local | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw 'Bounded daily database backup failed.' }
+            $lastBackupDate = $currentBackupDate
+        }
+        & $pythonPath $corePath foundation write | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Foundation readiness publication failed.' }
         if ($Once) { break }
         if ($stopEvent.WaitOne($IntervalSeconds * 1000)) { break }
     } while ($true)
