@@ -97,6 +97,25 @@
 - Next phase: bounded foundational learning under the ratified Constitution and
   existing capability-specific gates.
 
+## DEC-0010 — Foundational learning begins with deterministic grounding
+
+- Date: 2026-08-09.
+- Status: `WORKING / BOUNDED LOCAL FOUNDATION`
+- Authority: Dustin instructed Codex to proceed with the post-Genesis learning
+  phase.
+- Decision: Establish Foundational Curriculum 0.1.0 and persist governed units
+  with objectives, exact source hashes, evidence checks, claims,
+  contradictions, corrections, assessment results, capability impact, and
+  append-only unit versions. Read-only status detects source/curriculum drift.
+- Initial result: identity/authority, epistemology/provenance, and
+  security/trust units completed with 9/9 exact source-grounding checks.
+- Boundaries: completed Genesis required; sources restricted to versioned
+  `docs/`; zero network requests; zero API spending; no model assessment; and
+  database-enforced `capability_change: none`.
+- Next: bounded scenario-based moral/behavioral and model-orchestration
+  reasoning assessments. Completion evidence must not be mistaken for new tool
+  authority.
+
 ## Template
 
 ```yaml

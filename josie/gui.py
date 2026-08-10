@@ -27,6 +27,7 @@ from .browser_policy import load_browser_policy
 from .economic_policy import load_economic_policy
 from .foundation import build_foundation_report
 from .genesis import build_genesis_status
+from .learning import foundational_learning_status, foundational_learning_unit
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -40,7 +41,8 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             "manage tasks, ask the local planning model, and draft manual Sophie/Bernie handoffs. "
             "Try: 'ask Josie ...', 'ask Sophie ...', 'ask Bernie ...', 'remember ...', "
             "'memories', 'add task ...', 'tasks', or 'complete task 1'. Model proposals are review-only; "
-            "cloud calls are locked off. Type 'foundation' for readiness or 'genesis' for origin status."
+            "cloud calls are locked off. Type 'foundation' for readiness, 'genesis' for origin status, "
+            "or 'learning' for grounded curriculum progress."
         )
     if text in {"status", "dashboard", "summary", "josie status"}:
         health = health_check(config=config, project_root=project_root)
@@ -90,6 +92,30 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             f"Sophie: {report['witnesses']['sophie']}; Bernie: {report['witnesses']['bernie']}. "
             "Witness testimony remains evidence rather than authority, and I cannot confirm my "
             "own origin. No action was queued or executed by this status check."
+        )
+    if text in {"learning", "learning status", "what have you learned"}:
+        if store is None:
+            return "The local learning record is unavailable."
+        report = foundational_learning_status(project_root=project_root, store=store)
+        complete = report["units_by_status"]["complete"]
+        return (
+            f"Foundational learning: {complete}/{report['curriculum_units']} grounded units "
+            f"complete; {report['attention_count']} need attention. "
+            "The curriculum is local-only, zero-spend, and grants no new capability."
+        )
+    if text.startswith("learning unit "):
+        if store is None:
+            return "The local learning record is unavailable."
+        learning_id = message.strip()[len("learning unit "):].strip()
+        try:
+            unit = foundational_learning_unit(store=store, learning_id=learning_id)
+        except ValueError as exc:
+            return f"{exc}."
+        claims = " ".join(str(item["statement"]) for item in unit["claims"])
+        return (
+            f"{unit['learning_id']} — {unit['title']} [{unit['status']}]. "
+            f"Objective: {unit['objective']} Claims: {claims} "
+            "Capability change: none."
         )
     if text in {"economic policy", "spending limits", "wallet policy", "wallet status"}:
         policy = load_economic_policy(project_root)

@@ -28,6 +28,11 @@ from josie.research import record_opportunity, record_upgrade_target
 from josie.opportunity_policy import load_opportunity_policy
 from josie.foundation import build_foundation_report, write_foundation_report
 from josie.genesis import build_genesis_status
+from josie.learning import (
+    foundational_learning_status,
+    foundational_learning_unit,
+    sync_foundational_curriculum,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -134,6 +139,11 @@ def build_parser() -> argparse.ArgumentParser:
         "genesis", help="Show the identity-formation protocol status"
     )
     genesis.add_argument("action", choices=("status",))
+    learning = subcommands.add_parser(
+        "learning", help="Inspect or synchronize bounded local foundational learning"
+    )
+    learning.add_argument("action", choices=("status", "sync", "show"))
+    learning.add_argument("learning_id", nargs="?")
     return parser
 
 
@@ -390,6 +400,23 @@ def main() -> int:
 
     if args.command == "genesis":
         print(json.dumps(build_genesis_status(project_root=project_root), indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "learning":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.action == "sync":
+            if args.learning_id is not None:
+                raise ValueError("Learning sync does not accept a learning ID")
+            result = sync_foundational_curriculum(project_root=project_root, store=store)
+        elif args.action == "show":
+            if args.learning_id is None:
+                raise ValueError("Learning show requires a learning ID")
+            result = foundational_learning_unit(store=store, learning_id=args.learning_id)
+        else:
+            if args.learning_id is not None:
+                raise ValueError("Learning status does not accept a learning ID")
+            result = foundational_learning_status(project_root=project_root, store=store)
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
     if args.command == "status-snapshot":

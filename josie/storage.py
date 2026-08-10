@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from contextlib import closing, contextmanager
 from collections.abc import Iterator
@@ -164,6 +165,39 @@ class LocalStore:
                     CHECK (external_activity = 0),
                     response_untrusted INTEGER NOT NULL DEFAULT 1
                     CHECK (response_untrusted = 1)
+                );
+                CREATE TABLE IF NOT EXISTS learning_units (
+                    learning_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    curriculum_version TEXT NOT NULL,
+                    unit_digest TEXT NOT NULL,
+                    track TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    objective TEXT NOT NULL,
+                    status TEXT NOT NULL
+                    CHECK (status IN ('prepared','complete','attention_required')),
+                    authority TEXT NOT NULL,
+                    budgets_json TEXT NOT NULL,
+                    sources_json TEXT NOT NULL,
+                    evidence_json TEXT NOT NULL,
+                    claims_json TEXT NOT NULL,
+                    contradictions_json TEXT NOT NULL,
+                    corrections_json TEXT NOT NULL,
+                    assessment_json TEXT NOT NULL,
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none')
+                );
+                CREATE TABLE IF NOT EXISTS learning_unit_versions (
+                    version_id INTEGER PRIMARY KEY,
+                    learning_id TEXT NOT NULL,
+                    recorded_at TEXT NOT NULL,
+                    curriculum_version TEXT NOT NULL,
+                    unit_digest TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    record_json TEXT NOT NULL,
+                    UNIQUE (learning_id, unit_digest),
+                    FOREIGN KEY(learning_id) REFERENCES learning_units(learning_id)
                 );
                 """
             )
@@ -520,10 +554,204 @@ class LocalStore:
             messages = connection.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
             approvals = connection.execute("SELECT COUNT(*) FROM approvals WHERE status='pending'").fetchone()[0]
             reminders = connection.execute("SELECT COUNT(*) FROM reminders WHERE status='pending'").fetchone()[0]
+            learning_units = connection.execute("SELECT COUNT(*) FROM learning_units").fetchone()[0]
+            completed_learning_units = connection.execute(
+                "SELECT COUNT(*) FROM learning_units WHERE status='complete'"
+            ).fetchone()[0]
         return {
             "memories": int(memories), "pending_tasks": int(pending),
             "messages": int(messages), "pending_approvals": int(approvals),
             "pending_reminders": int(reminders),
+            "learning_units": int(learning_units),
+            "completed_learning_units": int(completed_learning_units),
+        }
+
+    @staticmethod
+    def _learning_text(value: object, *, label: str, maximum: int) -> str:
+        if not isinstance(value, str):
+            raise ValueError(f"{label} must be text")
+        clean = value.strip()
+        if not clean or len(clean) > maximum:
+            raise ValueError(f"{label} must contain 1 to {maximum} characters")
+        return clean
+
+    def upsert_learning_unit(self, record: dict[str, object]) -> dict[str, object]:
+        required = {
+            "learning_id", "curriculum_version", "unit_digest", "track", "title",
+            "objective", "status", "authority", "budgets", "sources", "evidence",
+            "claims", "contradictions", "corrections", "assessment", "capability_change",
+        }
+        if set(record) != required:
+            raise ValueError("Learning unit fields do not match the governed schema")
+        learning_id = self._learning_text(
+            record["learning_id"], label="Learning ID", maximum=64
+        ).upper()
+        if any(character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" for character in learning_id):
+            raise ValueError("Learning ID contains unsupported characters")
+        status = self._learning_text(record["status"], label="Learning status", maximum=32)
+        if status not in {"prepared", "complete", "attention_required"}:
+            raise ValueError("Learning status is invalid")
+        capability_change = self._learning_text(
+            record["capability_change"], label="Capability change", maximum=32
+        )
+        if capability_change != "none":
+            raise ValueError("A learning unit cannot grant capability")
+        unit_digest = self._learning_text(
+            record["unit_digest"], label="Unit digest", maximum=64
+        ).lower()
+        if len(unit_digest) != 64 or any(character not in "0123456789abcdef" for character in unit_digest):
+            raise ValueError("Unit digest must be a SHA-256 value")
+        text_fields = {
+            "curriculum_version": self._learning_text(
+                record["curriculum_version"], label="Curriculum version", maximum=32
+            ),
+            "track": self._learning_text(record["track"], label="Learning track", maximum=64),
+            "title": self._learning_text(record["title"], label="Learning title", maximum=200),
+            "objective": self._learning_text(
+                record["objective"], label="Learning objective", maximum=1_000
+            ),
+            "authority": self._learning_text(
+                record["authority"], label="Learning authority", maximum=500
+            ),
+        }
+        json_fields: dict[str, str] = {}
+        for key in (
+            "budgets", "sources", "evidence", "claims", "contradictions",
+            "corrections", "assessment",
+        ):
+            encoded = json.dumps(record[key], separators=(",", ":"), sort_keys=True)
+            if len(encoded) > 100_000:
+                raise ValueError(f"Learning {key} exceeds the storage limit")
+            json_fields[f"{key}_json"] = encoded
+        now = self._now()
+        version_record = {
+            "learning_id": learning_id,
+            "curriculum_version": text_fields["curriculum_version"],
+            "unit_digest": unit_digest,
+            "track": text_fields["track"],
+            "title": text_fields["title"],
+            "objective": text_fields["objective"],
+            "status": status,
+            "authority": text_fields["authority"],
+            "budgets": record["budgets"],
+            "sources": record["sources"],
+            "evidence": record["evidence"],
+            "claims": record["claims"],
+            "contradictions": record["contradictions"],
+            "corrections": record["corrections"],
+            "assessment": record["assessment"],
+            "capability_change": capability_change,
+        }
+        version_json = json.dumps(version_record, separators=(",", ":"), sort_keys=True)
+        if len(version_json) > 500_000:
+            raise ValueError("Learning unit version exceeds the storage limit")
+        with self._connect() as connection:
+            existing = connection.execute(
+                "SELECT unit_digest,status FROM learning_units WHERE learning_id=?",
+                (learning_id,),
+            ).fetchone()
+            changed = existing is None or (
+                str(existing["unit_digest"]) != unit_digest
+                or str(existing["status"]) != status
+            )
+            if changed:
+                connection.execute(
+                    """
+                    INSERT INTO learning_units(
+                        learning_id,created_at,updated_at,curriculum_version,unit_digest,
+                        track,title,objective,status,authority,budgets_json,sources_json,
+                        evidence_json,claims_json,contradictions_json,corrections_json,
+                        assessment_json,capability_change
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ON CONFLICT(learning_id) DO UPDATE SET
+                        updated_at=excluded.updated_at,
+                        curriculum_version=excluded.curriculum_version,
+                        unit_digest=excluded.unit_digest,
+                        track=excluded.track,title=excluded.title,objective=excluded.objective,
+                        status=excluded.status,authority=excluded.authority,
+                        budgets_json=excluded.budgets_json,sources_json=excluded.sources_json,
+                        evidence_json=excluded.evidence_json,claims_json=excluded.claims_json,
+                        contradictions_json=excluded.contradictions_json,
+                        corrections_json=excluded.corrections_json,
+                        assessment_json=excluded.assessment_json,
+                        capability_change=excluded.capability_change
+                    """,
+                    (
+                        learning_id, now, now, text_fields["curriculum_version"],
+                        unit_digest, text_fields["track"], text_fields["title"],
+                        text_fields["objective"], status, text_fields["authority"],
+                        json_fields["budgets_json"], json_fields["sources_json"],
+                        json_fields["evidence_json"], json_fields["claims_json"],
+                        json_fields["contradictions_json"], json_fields["corrections_json"],
+                        json_fields["assessment_json"], capability_change,
+                    ),
+                )
+            version_cursor = connection.execute(
+                "INSERT OR IGNORE INTO learning_unit_versions("
+                "learning_id,recorded_at,curriculum_version,unit_digest,status,record_json"
+                ") VALUES (?,?,?,?,?,?)",
+                (
+                    learning_id, now, text_fields["curriculum_version"], unit_digest,
+                    status, version_json,
+                ),
+            )
+            version_added = version_cursor.rowcount == 1
+        if changed:
+            self.audit("learning_unit_synced", f"{learning_id}: {status}")
+        elif version_added:
+            self.audit("learning_version_backfilled", learning_id)
+        return {
+            **self.learning_unit(learning_id),
+            "changed": changed,
+            "version_added": version_added,
+        }
+
+    def learning_unit(self, learning_id: str) -> dict[str, object]:
+        clean_id = learning_id.strip().upper()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM learning_units WHERE learning_id=?", (clean_id,)
+            ).fetchone()
+        if row is None:
+            raise ValueError("Learning unit was not found")
+        record = dict(row)
+        for key in (
+            "budgets", "sources", "evidence", "claims", "contradictions",
+            "corrections", "assessment",
+        ):
+            record[key] = json.loads(str(record.pop(f"{key}_json")))
+        return record
+
+    def learning_units(self) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            ids = [
+                str(row["learning_id"])
+                for row in connection.execute(
+                    "SELECT learning_id FROM learning_units ORDER BY learning_id"
+                ).fetchall()
+            ]
+        return [self.learning_unit(learning_id) for learning_id in ids]
+
+    def learning_summary(self) -> dict[str, object]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT status,COUNT(*) total FROM learning_units GROUP BY status"
+            ).fetchall()
+            version_count = int(
+                connection.execute("SELECT COUNT(*) FROM learning_unit_versions").fetchone()[0]
+            )
+        counts = {status: 0 for status in ("prepared", "complete", "attention_required")}
+        counts.update({str(row["status"]): int(row["total"]) for row in rows})
+        return {
+            "status": "ok" if counts["attention_required"] == 0 else "attention_required",
+            "units_total": sum(counts.values()),
+            "version_records": version_count,
+            "units_by_status": counts,
+            "capability_change": "none",
+            "external_activity": False,
+            "api_spending_cents": 0,
+            "actions_queued": 0,
+            "actions_executed": 0,
         }
 
     def audit(self, event: str, detail: str) -> None:

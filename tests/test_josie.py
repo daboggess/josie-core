@@ -39,6 +39,11 @@ from josie.foundation import (
     derive_foundation_state,
 )
 from josie.genesis import build_genesis_status
+from josie.learning import (
+    foundational_learning_status,
+    load_foundational_curriculum,
+    sync_foundational_curriculum,
+)
 from josie.opportunity_policy import load_opportunity_policy
 
 
@@ -186,6 +191,169 @@ class JosieTests(unittest.TestCase):
             gate_ids = [item["id"] for item in _human_gates(genesis_status=genesis)]
             self.assertNotIn("origin_reconciliation", gate_ids)
             self.assertNotIn("origin_and_constitution_ratification", gate_ids)
+
+    def test_foundational_learning_is_grounded_local_and_non_authorizing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "data").mkdir()
+            origin = root / "docs" / "identity" / "ORIGIN_RECORD.md"
+            origin.parent.mkdir(parents=True)
+            origin.write_text(
+                "# Origin\n\nStatus: `GENESIS COMPLETE / RATIFIED BY DUSTIN`\n"
+                "\nCapability is not authority.\n",
+                encoding="utf-8",
+            )
+            constitution = root / "docs" / "constitution" / "JOSIE_CONSTITUTION.md"
+            constitution.parent.mkdir(parents=True)
+            constitution.write_text(
+                "# Constitution\n\nStatus: `LOCKED / RATIFIED BY DUSTIN`\n",
+                encoding="utf-8",
+            )
+            reconciliation = (
+                root / "docs" / "identity" / "genesis" / "GENESIS_RECONCILIATION.md"
+            )
+            reconciliation.parent.mkdir(parents=True)
+            reconciliation.write_text(
+                "Status: `DUSTIN QUESTIONS RESOLVED`\n", encoding="utf-8"
+            )
+            curriculum_path = root / "docs" / "learning" / "FOUNDATIONAL_CURRICULUM.json"
+            curriculum_path.parent.mkdir(parents=True)
+            curriculum = {
+                "schema_version": 1,
+                "curriculum_version": "test-1",
+                "status": "ACTIVE_BOUNDED_LOCAL_ONLY",
+                "requirements": {
+                    "genesis_phase": "complete",
+                    "api_budget_cents": 0,
+                    "network_requests": 0,
+                    "capability_change": "none",
+                },
+                "units": [{
+                    "learning_id": "FOUND-TEST-001",
+                    "track": "identity",
+                    "title": "Test identity grounding",
+                    "objective": "Verify one ratified claim from a local document.",
+                    "authority": "Dustin-ratified Origin Record",
+                    "budgets": {
+                        "time_minutes": 1,
+                        "api_cents": 0,
+                        "network_requests": 0,
+                        "storage_kb": 1,
+                    },
+                    "sources": ["docs/identity/ORIGIN_RECORD.md"],
+                    "claims": [{
+                        "claim_id": "TEST-CLM-001",
+                        "statement": "Capability is not authority.",
+                        "status": "ratified",
+                        "source": "docs/identity/ORIGIN_RECORD.md",
+                    }],
+                    "contradictions": [],
+                    "corrections": [],
+                    "assessment": [{
+                        "check_id": "TEST-CHECK-001",
+                        "source": "docs/identity/ORIGIN_RECORD.md",
+                        "contains": "Capability is not authority.",
+                    }],
+                    "capability_change": "none",
+                }],
+            }
+            curriculum_path.write_text(json.dumps(curriculum), encoding="utf-8")
+            store = LocalStore(root / "data" / "josie.db")
+            for target in ("sophie", "bernie"):
+                handoff = store.create_model_handoff(
+                    target=target, request=f"Independent {target} witness request"
+                )
+                store.record_model_handoff_answer(
+                    handoff_id=int(handoff["id"]), response=f"Untrusted {target} answer"
+                )
+            result = sync_foundational_curriculum(project_root=root, store=store)
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["network_requests"], 0)
+            self.assertEqual(result["api_spending_cents"], 0)
+            self.assertEqual(result["capability_change"], "none")
+            self.assertEqual(result["summary"]["units_by_status"]["complete"], 1)
+            self.assertTrue(result["units"][0]["assessment"]["passed"])
+            self.assertTrue(result["units"][0]["changed"])
+            self.assertTrue(result["units"][0]["version_added"])
+            repeated = sync_foundational_curriculum(project_root=root, store=store)
+            self.assertFalse(repeated["units"][0]["changed"])
+            self.assertFalse(repeated["units"][0]["version_added"])
+            self.assertEqual(repeated["summary"]["version_records"], 1)
+            status = foundational_learning_status(project_root=root, store=store)
+            self.assertTrue(status["read_only"])
+            self.assertEqual(status["units_total"], 1)
+            answer = respond(
+                "learning", config=load_config(root / ".env"), project_root=root, store=store
+            )
+            self.assertIn("1/1 grounded units complete", answer)
+            self.assertIn(
+                "Capability is not authority",
+                respond(
+                    "learning unit FOUND-TEST-001",
+                    config=load_config(root / ".env"),
+                    project_root=root,
+                    store=store,
+                ),
+            )
+            exported = memory_export_snapshot(
+                config=load_config(root / ".env"), project_root=root
+            )
+            export_payload = json.loads(Path(str(exported["path"])).read_text(encoding="utf-8"))
+            self.assertEqual(exported["learning_unit_count"], 1)
+            self.assertEqual(exported["learning_version_count"], 1)
+            self.assertEqual(
+                export_payload["learning_units"][0]["learning_id"], "FOUND-TEST-001"
+            )
+            self.assertEqual(
+                export_payload["learning_unit_versions"][0]["learning_id"],
+                "FOUND-TEST-001",
+            )
+            origin.write_text(
+                origin.read_text(encoding="utf-8") + "\nVersioned clarification.\n",
+                encoding="utf-8",
+            )
+            drifted = foundational_learning_status(project_root=root, store=store)
+            self.assertEqual(drifted["status"], "attention_required")
+            self.assertTrue(drifted["source_drift_detected"])
+            self.assertEqual(drifted["drifted_or_missing_units"], ["FOUND-TEST-001"])
+            refreshed = sync_foundational_curriculum(project_root=root, store=store)
+            self.assertTrue(refreshed["units"][0]["changed"])
+            self.assertTrue(refreshed["units"][0]["version_added"])
+            self.assertEqual(refreshed["summary"]["version_records"], 2)
+            self.assertFalse(
+                foundational_learning_status(project_root=root, store=store)[
+                    "source_drift_detected"
+                ]
+            )
+
+    def test_foundational_curriculum_fails_closed_on_authority_expansion(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        curriculum = load_foundational_curriculum(project_root)
+        self.assertEqual(curriculum["requirements"]["api_budget_cents"], 0)
+        self.assertEqual(curriculum["requirements"]["network_requests"], 0)
+        self.assertEqual(curriculum["requirements"]["capability_change"], "none")
+        self.assertEqual(len(curriculum["units"]), 3)
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "josie.db")
+            with self.assertRaisesRegex(ValueError, "cannot grant capability"):
+                store.upsert_learning_unit({
+                    "learning_id": "FOUND-UNSAFE-001",
+                    "curriculum_version": "test-1",
+                    "unit_digest": "0" * 64,
+                    "track": "unsafe",
+                    "title": "Unsafe capability expansion",
+                    "objective": "This record must fail closed.",
+                    "status": "complete",
+                    "authority": "none",
+                    "budgets": {},
+                    "sources": [],
+                    "evidence": [],
+                    "claims": [],
+                    "contradictions": [],
+                    "corrections": [],
+                    "assessment": {},
+                    "capability_change": "browser_write",
+                })
 
     def test_opportunity_policy_is_local_only_and_fail_closed(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
@@ -1566,6 +1734,7 @@ class JosieTests(unittest.TestCase):
             "docs/identity/genesis/GENESIS_RECONCILIATION.md",
             "docs/identity/genesis/GENESIS_SESSION_001.yaml",
             "docs/learning/JOSIE_MASTER_LEARNING_LIST.md",
+            "docs/learning/FOUNDATIONAL_CURRICULUM.json",
             "docs/memory/MEMORY_SCHEMA.md",
             "docs/memory/PROVENANCE_SCHEMA.md",
             "docs/architecture/AUTHORITY_MODEL.md",

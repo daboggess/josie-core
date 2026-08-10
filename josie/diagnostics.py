@@ -185,7 +185,11 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
                 "SELECT name FROM sqlite_master WHERE type='table'"
             ).fetchall()
         }
-        required = {"messages", "memories", "tasks", "approvals", "audit", "reminders"}
+        required = {
+            "messages", "memories", "tasks", "approvals", "audit", "reminders",
+            "learning_units",
+            "learning_unit_versions",
+        }
         counts = {
             table: int(restored.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
             for table in sorted(required & tables)
@@ -231,7 +235,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             ).fetchall()
         }
         data = {
-            "schema_version": 2,
+            "schema_version": 3,
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": "Josie local database",
             "memories": [dict(row) for row in connection.execute(
@@ -244,6 +248,16 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
                 "SELECT id,created_at,memory_id,action,replacement_content,approval_id,status,"
                 "applied_at,original_content FROM memory_changes ORDER BY id"
             )] if "memory_changes" in tables else [],
+            "learning_units": [dict(row) for row in connection.execute(
+                "SELECT learning_id,created_at,updated_at,curriculum_version,unit_digest,"
+                "track,title,objective,status,authority,budgets_json,sources_json,evidence_json,"
+                "claims_json,contradictions_json,corrections_json,assessment_json,"
+                "capability_change FROM learning_units ORDER BY learning_id"
+            )] if "learning_units" in tables else [],
+            "learning_unit_versions": [dict(row) for row in connection.execute(
+                "SELECT version_id,learning_id,recorded_at,curriculum_version,unit_digest,"
+                "status,record_json FROM learning_unit_versions ORDER BY version_id"
+            )] if "learning_unit_versions" in tables else [],
         }
     finally:
         connection.close()
@@ -253,6 +267,8 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
         "path": str(destination),
         "memory_count": len(data["memories"]),
         "task_count": len(data["tasks"]),
+        "learning_unit_count": len(data["learning_units"]),
+        "learning_version_count": len(data["learning_unit_versions"]),
         "cloud_activity": False,
     }
 

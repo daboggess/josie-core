@@ -9,9 +9,11 @@ Constitution/locked decisions, Decision Log, master context, historical
 material, then inference.
 
 Operational readiness is called **Foundation Readiness**. **Genesis** is the
-separate, not-yet-started identity-formation process described in
-[docs/identity/GENESIS_PROTOCOL.md](docs/identity/GENESIS_PROTOCOL.md); service
-health or imported setup records must never be described as completed Genesis.
+separate identity-formation process described in
+[docs/identity/GENESIS_PROTOCOL.md](docs/identity/GENESIS_PROTOCOL.md). Genesis
+Session 001 is complete; Origin Record 1.0.0 and Constitution 0.1.0 are ratified.
+Service health or imported setup records alone must never be described as
+Genesis.
 
 The canonical build roadmap is [docs/JOSIE_SETUP_CHECKLIST.md](docs/JOSIE_SETUP_CHECKLIST.md).
 The non-destructive external-drive procedure is [docs/EXTERNAL_DRIVE_PLAN.md](docs/EXTERNAL_DRIVE_PLAN.md).
@@ -80,6 +82,9 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py browser status
 .\.venv\Scripts\python.exe .\core.py foundation status
 .\.venv\Scripts\python.exe .\core.py genesis status
+.\.venv\Scripts\python.exe .\core.py learning status
+.\.venv\Scripts\python.exe .\core.py learning show FOUND-IDENTITY-001
+.\.venv\Scripts\python.exe .\core.py learning sync
 .\.venv\Scripts\python.exe .\core.py economics status
 .\.venv\Scripts\python.exe .\core.py status-snapshot show
 .\.venv\Scripts\python.exe .\core.py deploy status
@@ -88,6 +93,12 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py providers check gemini
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
+
+`learning sync` is a bounded local database update. It accepts only the
+versioned `docs/learning/FOUNDATIONAL_CURRICULUM.json`, requires completed
+Genesis, reads sources only from `docs/`, performs no network requests, spends
+zero API cents, and cannot grant capability. `learning status` and `learning
+show` are read-only.
 
 The approved Advantech pilot is a local-only, authenticated, read-only research
 connector. It has no login, forms, JavaScript, cookies, saved downloads,

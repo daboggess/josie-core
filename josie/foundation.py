@@ -13,6 +13,7 @@ from .config import Config
 from .diagnostics import restore_drill_snapshot
 from .economic_policy import load_economic_policy
 from .genesis import build_genesis_status
+from .learning import foundational_learning_status
 from .opportunity_policy import load_opportunity_policy
 from .roadmap import roadmap_summary
 from .status_snapshot import build_status_snapshot
@@ -121,6 +122,7 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
     genesis_status = build_genesis_status(project_root=project_root)
     counts = store.counts()
     jobs = store.job_summary()
+    learning = foundational_learning_status(project_root=project_root, store=store)
     provenance = store.provenance_records()
     unverified_origins = sum(1 for item in provenance if item[3] == "unverified")
     confirmed_origins = sum(1 for item in provenance if item[3] == "confirmed")
@@ -222,6 +224,10 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
             "unverified_origin_claims": unverified_origins,
             "self_confirmation_allowed": False,
         },
+        "learning": {
+            **learning,
+            "authority_expanded": False,
+        },
         "local_state": {
             "pending_tasks": counts.get("pending_tasks", 0),
             "pending_approvals": counts.get("pending_approvals", 0),
@@ -230,6 +236,9 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
             "proposals_awaiting_review": proposals.get("review_required", 0),
             "roadmap_completed": roadmap.get("completed", 0),
             "roadmap_human_gated_or_deferred": roadmap.get("pending", 0),
+            "learning_units": learning["units_total"],
+            "learning_units_complete": learning["units_by_status"]["complete"],
+            "learning_units_attention_required": learning["attention_count"],
         },
         "human_gates": gates,
         "human_gate_count": len(gates),

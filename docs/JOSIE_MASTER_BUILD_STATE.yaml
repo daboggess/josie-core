@@ -86,10 +86,11 @@ working:
   - "Draft Origin Record, claim ledger, local-model reflection, and first reconciliation created"
   - "Dustin resolved all three witness-scope questions as Bernie-specific context rather than Josie identity or constitutional rules"
   - "Genesis Session 001 complete: Origin Record 1.0.0 approved and Constitution 0.1.0 ratified by Dustin"
+  - "Foundational Curriculum 0.1.0 active locally with 3/3 identity, epistemology, and security units deterministically grounded"
 
 next:
-  - id: foundational_learning
-    action: "Begin the first bounded post-Genesis track from the Master Learning List without expanding execution authority."
+  - id: foundational_learning_wave_2
+    action: "Add bounded moral/behavioral scenario practice and model-orchestration reasoning assessments without network access or capability expansion."
   - id: deal_hunter_local_design
     action: "Build the local-only scoring and evidence model without authenticating, scraping unapproved sites, messaging, or publishing."
 
@@ -126,8 +127,6 @@ rejected:
     reason: "Bounded retries and explicit allowlists are required"
 
 blocked:
-  - item: "Genesis completion"
-    dependency: "Independent Sophie and Bernie witness interviews, evidence reconciliation, and Dustin resolution of remaining intent conflicts"
   - item: "Discrete GPU purchase/install on current board"
     dependency: "Verified slot power, exact card draw, PSU, chassis, thermals, compatibility, budget, and Dustin approval"
   - item: "Live opportunity discovery"
@@ -145,3 +144,14 @@ genesis:
   constitution: "version 0.1.0 ratified by Dustin"
   existing_setup_provenance: "unverified evidence; not the Origin Record"
   self_confirmation_allowed: false
+
+learning:
+  phase: "foundational_learning"
+  curriculum: "0.1.0"
+  units_total: 3
+  units_complete: 3
+  units_attention_required: 0
+  assessment: "deterministic source grounding; no model assessment"
+  api_spending_cents: 0
+  network_requests: 0
+  capability_change: "none"

@@ -2,18 +2,18 @@
 
 Status labels: `LOCKED`, `NEXT`, `LATER`, `BLOCKED`, `COMPLETE`.
 
-1. **Genesis / Identity Formation — NEXT, HUMAN-GATED**
-   Learn origin, purpose, relationships, Constitution, and authority through the
-   Genesis Protocol.
+1. **Genesis / Identity Formation — COMPLETE**
+   Origin Record 1.0.0 and Constitution 0.1.0 are ratified. The initial
+   identity/authority grounding unit is complete.
 2. **Dustin — LATER, PRIVACY-GOVERNED**
    Preserve relevant preferences, projects, decision patterns, and values
    without converting personal knowledge into manipulation.
-3. **Epistemology — NEXT**
-   Practice fact/inference/opinion separation, source quality, staleness,
-   confidence, contradiction, and unresolved-question reporting.
+3. **Epistemology — ACTIVE; INITIAL UNIT COMPLETE**
+   The first provenance, contradiction, correction, and retrieval-authority
+   unit passed deterministic grounding checks. Scenario practice remains next.
 4. **Moral / Behavioral Formation — NEXT AFTER GENESIS**
    Apply constitutional principles to concrete scenarios.
-5. **Security / Trust — ACTIVE**
+5. **Security / Trust — ACTIVE; INITIAL UNIT COMPLETE**
    Secrets, authentication, prompt injection, hostile content, least privilege,
    incident recovery, and trust boundaries.
 6. **Tool Competence — ACTIVE, BOUNDED**
@@ -38,3 +38,8 @@ Status labels: `LOCKED`, `NEXT`, `LATER`, `BLOCKED`, `COMPLETE`.
 
 Every completed learning unit must record objective, sources, provenance,
 assessment, contradictions, corrections, and resulting permitted capability.
+
+Current bounded curriculum: `FOUNDATIONAL_CURRICULUM.json` version 0.1.0.
+Completed units are persisted in SQLite with exact source hashes, append-only
+version records, and read-only drift detection. Learning does not grant
+execution authority; all current units record `capability_change: none`.

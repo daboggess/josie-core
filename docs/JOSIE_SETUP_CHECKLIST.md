@@ -133,6 +133,16 @@ confirmed on Josie or by the repository test suite.
 - [x] Dustin resolves the three remaining intent questions as Bernie-specific relationship/directive context rather than Josie identity or constitutional rules.
 - [x] Review, confirm, back up, and version Origin Record 1.0.0. Genesis Session 001 is `COMPLETE`.
 
+## Foundational learning
+
+- [x] Create a versioned, local-only curriculum gated on completed Genesis.
+- [x] Persist learning objectives, source hashes, evidence, claims, contradictions, corrections, assessments, and capability impact in SQLite.
+- [x] Preserve append-only learning-unit versions and flag source/curriculum drift until an explicit governed resync.
+- [x] Complete the first identity/authority, epistemology/provenance, and security/trust units with 9/9 deterministic source-grounding checks.
+- [x] Enforce zero API spend, zero network requests, and `capability_change: none` in both curriculum validation and database constraints.
+- [x] Add read-only CLI and local-GUI learning status/unit views plus backup/export coverage.
+- [ ] Add bounded moral/behavioral scenario practice and model-orchestration reasoning assessments.
+
 ## Safety and permissions
 
 - [x] Explicit tool allowlist.
@@ -183,7 +193,8 @@ confirmed on Josie or by the repository test suite.
 3. [x] Add research-only profitability and upgrade tracking behind zero-action boundaries.
 4. [x] Approve the first expiring, read-only research pilot for two exact official Advantech document paths; keep login, forms, files, writes, and model access locked.
 5. [x] Establish the canonical Foundation documents and correct the readiness/Genesis distinction.
-6. [ ] Begin Genesis only with independent witness interviews and Dustin available for unresolved intent.
+6. [x] Complete Genesis through independent witness interviews, Dustin reconciliation, Origin Record approval, and Constitution ratification.
+7. [x] Establish the bounded foundational-learning kernel and complete its first three grounded units.
 
 ## Change-control rule
 
