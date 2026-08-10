@@ -5,6 +5,7 @@ import unittest
 import sqlite3
 import json
 import hashlib
+from datetime import datetime
 from contextlib import closing
 from unittest.mock import patch
 from pathlib import Path
@@ -44,8 +45,14 @@ from josie.learning import (
     load_foundational_curriculum,
     sync_foundational_curriculum,
 )
-from josie.learning_assessment import score_local_judgment_response
+from josie.learning_assessment import (
+    _run_local_assessment,
+    load_foundational_holdout,
+    score_local_judgment_response,
+)
 from josie.opportunity_policy import load_opportunity_policy
+from josie.evidence_policy import evaluate_claim_evidence, load_evidence_policy
+from josie.deal_hunter import evaluate_deal_candidate, score_and_record_deal
 
 
 class JosieTests(unittest.TestCase):
@@ -463,6 +470,156 @@ class JosieTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "human approval"):
                 load_opportunity_policy(root)
+
+    def test_evidence_gate_requires_fresh_sufficient_sources(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        policy = load_evidence_policy(project_root)
+        as_of = datetime.fromisoformat("2026-08-10T02:00:00+00:00")
+        verified = evaluate_claim_evidence(
+            policy=policy,
+            stability="unstable",
+            source_kind="primary_authoritative",
+            observed_at="2026-08-10T01:00:00+00:00",
+            as_of=as_of,
+        )
+        self.assertTrue(verified["verified_for_analysis"])
+        self.assertFalse(verified["external_action_authorized"])
+        for source_kind, observed_at, reason in (
+            ("model_output", "2026-08-10T01:00:00+00:00", "source_kind_not_sufficient"),
+            ("retrieved_memory", "2026-08-10T01:00:00+00:00", "source_kind_not_sufficient"),
+            ("primary_authoritative", "2026-08-08T01:00:00+00:00", "evidence_stale"),
+        ):
+            result = evaluate_claim_evidence(
+                policy=policy,
+                stability="unstable",
+                source_kind=source_kind,
+                observed_at=observed_at,
+                as_of=as_of,
+            )
+            self.assertFalse(result["verified_for_analysis"])
+            self.assertIn(reason, result["reasons"])
+            self.assertEqual(result["decision"], "verification_required")
+
+    def test_offline_deal_score_never_authorizes_purchase(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        as_of = datetime.fromisoformat("2026-08-10T02:00:00+00:00")
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "josie.db")
+            candidate = score_and_record_deal(
+                store=store,
+                project_root=project_root,
+                title="Manual RTX research candidate",
+                source_reference="manual phone note",
+                source_kind="user_supplied",
+                observed_at="2026-08-10T01:30:00+00:00",
+                ask_price="200",
+                shipping="0",
+                tax="0",
+                required_platform_cost="100",
+                benchmark_index="100",
+                vram_gb="12",
+                power_watts=170,
+                compatibility="needs_review",
+                condition="used_good",
+                seller_risk="medium",
+                notes="Research only; current listing not independently verified.",
+                as_of=as_of,
+            )
+            self.assertEqual(candidate["recommendation"], "verify_before_review")
+            self.assertEqual(candidate["evidence"]["decision"], "verification_required")
+            self.assertFalse(candidate["purchase_authorized"])
+            self.assertFalse(candidate["action_authorized"])
+            self.assertEqual(candidate["actions_executed"], 0)
+            self.assertEqual(store.research_summary()["deal_candidate_count"], 1)
+            unsafe = dict(candidate)
+            unsafe["purchase_authorized"] = True
+            with self.assertRaisesRegex(ValueError, "purchase authority"):
+                store.record_deal_candidate(unsafe)
+            incompatible = evaluate_deal_candidate(
+                project_root=project_root,
+                title="Known incompatible candidate",
+                source_reference="https://example.com/listing/1",
+                source_kind="direct_system_observation",
+                observed_at="2026-08-10T01:30:00+00:00",
+                ask_price="1",
+                shipping="0",
+                tax="0",
+                required_platform_cost="0",
+                benchmark_index="1000",
+                vram_gb="24",
+                power_watts=100,
+                compatibility="incompatible",
+                condition="new",
+                seller_risk="low",
+                notes="Incompatibility must override a high heuristic score.",
+                as_of=as_of,
+            )
+            self.assertEqual(incompatible["recommendation"], "reject_incompatible")
+            self.assertFalse(incompatible["purchase_authorized"])
+
+    def test_holdout_pack_is_grounded_and_one_use(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        pack = load_foundational_holdout(project_root)
+        self.assertEqual(pack["checks_passed"], pack["checks_total"])
+        self.assertEqual(len(pack["scenarios"]), 6)
+        scenarios = [{
+            "scenario_id": "HOLDOUT-TEST-001",
+            "prompt": "Unseen local test.",
+            "expected_decision": "verify_evidence",
+            "reasoning_standard": "Verify evidence.",
+        }]
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, traceback):
+                return False
+
+            def read(self, limit=-1):
+                del limit
+                content = json.dumps({
+                    "answers": [{
+                        "scenario_id": "HOLDOUT-TEST-001",
+                        "decision": "verify_evidence",
+                        "reason": "Current evidence is required.",
+                    }]
+                })
+                return json.dumps({"message": {"content": content}}).encode("utf-8")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "josie.db")
+            config = load_config(root / ".env")
+            with patch(
+                "josie.learning_assessment.urlopen", return_value=FakeResponse()
+            ) as mocked:
+                first = _run_local_assessment(
+                    config=config,
+                    store=store,
+                    content_version="holdout-test",
+                    content_sha256="3" * 64,
+                    protocol_version="HOLDOUT-TEST-001",
+                    governed_claims=["Model consensus is not truth."],
+                    scenarios=scenarios,
+                    one_use=True,
+                )
+                second = _run_local_assessment(
+                    config=config,
+                    store=store,
+                    content_version="holdout-test",
+                    content_sha256="3" * 64,
+                    protocol_version="HOLDOUT-TEST-001",
+                    governed_claims=["Model consensus is not truth."],
+                    scenarios=scenarios,
+                    one_use=True,
+                )
+            self.assertEqual(first["status"], "passed")
+            self.assertFalse(first["reused_existing_record"])
+            self.assertTrue(second["reused_existing_record"])
+            self.assertEqual(second["local_model_requests_this_run"], 0)
+            self.assertEqual(mocked.call_count, 1)
+            self.assertEqual(store.learning_summary()["model_assessments_total"], 1)
 
     def test_model_handoffs_are_zero_spend_manual_drafts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -190,6 +190,7 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             "learning_units",
             "learning_unit_versions",
             "learning_model_assessments",
+            "deal_candidates",
         }
         counts = {
             table: int(restored.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
@@ -236,7 +237,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             ).fetchall()
         }
         data = {
-            "schema_version": 4,
+            "schema_version": 5,
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": "Josie local database",
             "memories": [dict(row) for row in connection.execute(
@@ -265,6 +266,13 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
                 "output_untrusted,external_activity,api_spending_cents,local_model_requests,"
                 "capability_change FROM learning_model_assessments ORDER BY assessment_id"
             )] if "learning_model_assessments" in tables else [],
+            "deal_candidates": [dict(row) for row in connection.execute(
+                "SELECT candidate_id,created_at,title,source_reference,source_kind,"
+                "observed_at,total_acquisition_cents,research_score_milli,evidence_status,"
+                "recommendation,result_json,external_activity,action_authorized,"
+                "purchase_authorized,capability_change FROM deal_candidates "
+                "ORDER BY candidate_id"
+            )] if "deal_candidates" in tables else [],
         }
     finally:
         connection.close()
@@ -277,6 +285,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
         "learning_unit_count": len(data["learning_units"]),
         "learning_version_count": len(data["learning_unit_versions"]),
         "learning_model_assessment_count": len(data["learning_model_assessments"]),
+        "deal_candidate_count": len(data["deal_candidates"]),
         "cloud_activity": False,
     }
 

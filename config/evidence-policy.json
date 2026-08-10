@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "default": "verification_required",
+  "model_consensus_sufficient": false,
+  "retrieved_memory_sufficient": false,
+  "external_action_authority": false,
+  "stability_rules": {
+    "unstable": {
+      "max_age_hours": 24,
+      "accepted_source_kinds": [
+        "primary_authoritative",
+        "direct_system_observation"
+      ]
+    },
+    "stable": {
+      "max_age_hours": 8760,
+      "accepted_source_kinds": [
+        "canonical_versioned",
+        "primary_authoritative",
+        "direct_system_observation"
+      ]
+    }
+  },
+  "untrusted_source_kinds": [
+    "model_output",
+    "retrieved_memory",
+    "secondary",
+    "unknown",
+    "user_supplied"
+  ],
+  "unstable_topics": [
+    "availability",
+    "compatibility_current",
+    "law",
+    "listing",
+    "market_price",
+    "policy",
+    "product_status",
+    "schedule",
+    "software_version"
+  ],
+  "capability_change": "none"
+}

@@ -8,10 +8,11 @@ Status labels: `LOCKED`, `NEXT`, `LATER`, `BLOCKED`, `COMPLETE`.
 2. **Dustin — LATER, PRIVACY-GOVERNED**
    Preserve relevant preferences, projects, decision patterns, and values
    without converting personal knowledge into manipulation.
-3. **Epistemology — ACTIVE; INITIAL UNIT COMPLETE**
+3. **Epistemology — ACTIVE; DETERMINISTIC EVIDENCE GATE WORKING**
    The first provenance, contradiction, correction, and retrieval-authority
    unit passed deterministic grounding checks. Evidence-verification routing
-   remains an explicit local-model remediation target.
+   remains an explicit local-model weakness. Source kind and freshness are now
+   enforced in code rather than entrusted to model routing.
 4. **Moral / Behavioral Formation — ACTIVE; INITIAL SCENARIOS COMPLETE**
    Human dignity and outward-approval scenarios are grounded. Local-model
    answers remain untrusted and cannot promote capability.
@@ -23,15 +24,17 @@ Status labels: `LOCKED`, `NEXT`, `LATER`, `BLOCKED`, `COMPLETE`.
    extraction, and explicit approval workflows.
 7. **Coding / Engineering — ACTIVE, BOUNDED**
    Tests, debugging, version control, bounded retries, rollback, and evidence.
-8. **AI / Model Orchestration — ACTIVE; INITIAL UNIT NEEDS MODEL REMEDIATION**
+8. **AI / Model Orchestration — ACTIVE; LOCAL MODEL NOT ROUTING-RELIABLE**
    Independent answers, adversarial review, provider-neutral routing,
-   reconciliation, live-source verification, and provenance.
+   reconciliation, live-source verification, and provenance. The one-use
+   Wave 3 holdout scored 0/6 exact despite conservative non-execution choices;
+   model authority remains absent.
 9. **Long-Term Memory — ACTIVE; INITIAL SCENARIOS COMPLETE**
    Layering, provenance, confidence, correction, soft deletion, supersession,
    and retention.
-10. **Business / Resource Stewardship — LATER, SUPERVISED**
-    Begin only in domains Dustin can validate and only with explicit account and
-    action authority.
+10. **Business / Resource Stewardship — ACTIVE LOCAL RESEARCH ONLY**
+    Offline deal scoring is working for manually supplied candidates. Live
+    discovery, accounts, messages, bids, purchases, and payments remain blocked.
 11. **Autonomous Learning — BLOCKED**
     Requires completed Genesis, budgets, source policy, security maturity, and
     demonstrated reliability.

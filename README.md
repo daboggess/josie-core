@@ -86,6 +86,9 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py learning show FOUND-IDENTITY-001
 .\.venv\Scripts\python.exe .\core.py learning sync
 .\.venv\Scripts\python.exe .\core.py learning assess-local
+.\.venv\Scripts\python.exe .\core.py learning assess-holdout
+.\.venv\Scripts\python.exe .\core.py evidence status
+.\.venv\Scripts\python.exe .\core.py evidence check --stability unstable --source-kind user_supplied --observed-at "2026-08-09T21:00:00-04:00"
 .\.venv\Scripts\python.exe .\core.py economics status
 .\.venv\Scripts\python.exe .\core.py status-snapshot show
 .\.venv\Scripts\python.exe .\core.py deploy status
@@ -102,6 +105,15 @@ zero API cents, and cannot grant capability. `learning assess-local` permits
 exactly one loopback Ollama request per run and records the answer as untrusted,
 non-authorizing evidence. It makes no cloud call, queues no action, and cannot
 change capability. `learning status` and `learning show` are read-only.
+`learning assess-holdout` is hash-bound and one-use: subsequent calls return
+the existing record and make zero new model requests.
+
+The evidence gate treats unstable facts as `verification_required` unless a
+current primary authoritative source or direct system observation satisfies the
+24-hour freshness window. Passing the gate permits analysis only, never an
+external action. The offline deal scorer is documented in
+`docs/workflows/deal_hunter/README.md`; it records manually supplied candidates
+without browsing or purchase authority.
 
 The approved Advantech pilot is a local-only, authenticated, read-only research
 connector. It has no login, forms, JavaScript, cookies, saved downloads,

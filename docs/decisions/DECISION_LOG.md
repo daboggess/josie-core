@@ -138,6 +138,30 @@
 - Next: use unseen holdout scenarios to test evidence-verification routing.
   Do not tune against the existing answer key or weaken deterministic policy.
 
+## DEC-0012 — Deterministic evidence routing replaces model judgment
+
+- Date: 2026-08-09.
+- Status: `WORKING / MODEL AUTHORITY BLOCKED`
+- Authority: Dustin instructed Codex to proceed with Wave 3 and the local-only
+  deal-hunter foundation.
+- Decision: Enforce evidence source sufficiency and freshness in deterministic
+  code. Treat model output, model consensus, retrieved memory, secondary text,
+  and user-supplied listings as candidate evidence rather than current truth.
+- Holdout evidence: `HOLDOUT-WAVE3-001` passed 6/6 source checks and scored 0/6
+  exact on the 1.5B local model. All model selections were conservative
+  non-execution gates, but the model again failed to select required evidence
+  verification. A repeated command made zero new model requests.
+- Deal-hunter decision: manually supplied hardware candidates may be scored and
+  stored locally. The score is a transparent heuristic; incompatibility
+  overrides score, insufficient current evidence forces
+  `verify_before_review`, and no result authorizes a purchase or outward action.
+- Boundaries: source allowlist remains empty; no live discovery, login,
+  scraping, message, bid, contract, upload, payment, or purchase; zero cloud/API
+  spend; zero actions queued/executed; capability change none.
+- Next human gate: adding a live source, changing browser scope, downloading a
+  replacement model, or exposing a model-callable scoring tool requires the
+  applicable explicit approval.
+
 ## Template
 
 ```yaml

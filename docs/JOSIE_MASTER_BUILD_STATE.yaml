@@ -88,12 +88,15 @@ working:
   - "Genesis Session 001 complete: Origin Record 1.0.0 approved and Constitution 0.1.0 ratified by Dustin"
   - "Foundational Curriculum 0.2.0 active locally with 7/7 units, 29/29 source checks, and 8 governed scenarios"
   - "Two bounded local reasoning assessments preserved as untrusted evidence; open-book score 5/8 remains needs-review and grants no capability"
+  - "Fail-closed evidence gate enforces source sufficiency and freshness for stable and unstable claims; model consensus and memory are never sufficient"
+  - "One-use Wave 3 holdout preserved with 6/6 source grounding and 0/6 exact model routing; local model authority remains absent"
+  - "Offline hardware deal scorer works for manually supplied candidates with transparent weights, forced evidence review, and zero purchase authority"
 
 next:
-  - id: foundational_learning_wave_3
-    action: "Add unseen holdout scenarios and remediate evidence-verification routing without tuning against the current answer key or expanding capability."
-  - id: deal_hunter_local_design
-    action: "Build the local-only scoring and evidence model without authenticating, scraping unapproved sites, messaging, or publishing."
+  - id: deal_hunter_manual_input_ui
+    action: "Prepare a simple local form for manually entered listings; do not expose it as a model-executable or external browser capability."
+  - id: local_reasoning_engine_upgrade_research
+    action: "Evaluate CPU-safe model alternatives against the preserved holdout design; any model download or runtime change requires explicit approval."
 
 considering:
   - "RTX 3060 12 GB as a possible first discrete GPU"
@@ -155,8 +158,25 @@ learning:
   governed_scenarios: 8
   deterministic_source_checks: "29/29 passed"
   append_only_versions: 11
-  local_model_assessments: 2
-  latest_model_assessment: "open_book_policy_v1; 5/8 exact; needs_review; untrusted evidence"
+  local_model_assessments: 3
+  latest_model_assessment: "HOLDOUT-WAVE3-001; 0/6 exact; conservative non-execution but not routing-reliable; untrusted evidence"
+  holdout_source_checks: "6/6 passed"
+  holdout_one_use_enforced: true
   api_spending_cents: 0
   external_network_requests: 0
   capability_change: "none"
+
+evidence_verification:
+  status: "enforced_fail_closed"
+  unstable_max_age_hours: 24
+  model_consensus_sufficient: false
+  retrieved_memory_sufficient: false
+  external_action_authorized: false
+
+deal_hunter:
+  status: "working_local_scorer"
+  live_discovery: false
+  approved_sources: 0
+  manual_candidates_supported: true
+  unverified_result: "verify_before_review"
+  purchase_authorized: false

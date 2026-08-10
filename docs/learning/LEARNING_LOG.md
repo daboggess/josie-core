@@ -102,6 +102,33 @@ history. The assessment review is
 Curriculum SHA-256 at Wave 2 completion:
 `c60f0e5423bb51367dfd32def7f51b31f64d5e5ace226188455e195dfbb66be0`.
 
+## Wave 3 — evidence gate and unseen holdout
+
+```yaml
+date: 2026-08-09
+status: deterministic_gate_working_local_model_not_routing_reliable
+evidence_policy: enforced_fail_closed
+holdout_pack: HOLDOUT-WAVE3-001
+holdout_source_grounding: 6/6
+holdout_exact_score: 0/6
+holdout_requests: 1
+repeat_requests: 0
+model_assessments_total: 3
+offline_deal_scorer: working_local_research_only
+external_network_requests: 0
+api_spending_cents: 0
+actions_queued: 0
+actions_executed: 0
+capability_change: none
+```
+
+The holdout result is preserved in
+`LOCAL_REASONING_HOLDOUT_2026-08-09.md`. Deterministic source-kind and freshness
+checks now enforce the verification route that the local model did not reliably
+select. The deal scorer may record and rank manually supplied candidates, but
+unverified listings are forced to `verify_before_review` and no score grants
+purchase authority.
+
 Use one entry per bounded learning objective:
 
 ```yaml

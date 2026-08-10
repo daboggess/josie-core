@@ -1,16 +1,38 @@
 # Deal Hunter — Local Design Boundary
 
-Status: `STAGED / LIVE DISCOVERY DISABLED`
+Status: `WORKING LOCAL SCORER / LIVE DISCOVERY DISABLED`
 
 The first useful Josie 0.99 workflow will evaluate hardware opportunities by
 price per performance. Current approved work is local schema, scoring, test
 fixtures, and review proposals only.
 
-Potential inputs include price, shipping/tax, model, condition, VRAM, benchmark,
-power, ReBAR, PCIe lanes, PSU/chassis/platform changes, compatibility, resale,
-seller risk, and evidence timestamps. Output should include total acquisition
-cost, estimated capability gain, PPP score, uncertainty, blockers, and a human
-review recommendation.
+The deterministic scorer accepts manually supplied price, shipping, tax,
+required platform cost, benchmark index, VRAM, power, compatibility, condition,
+seller risk, source kind, and evidence timestamp. It returns total acquisition
+cost, a transparent heuristic score, uncertainty, evidence status, and a local
+recommendation.
+
+Price performance contributes at most 40 points; VRAM 20; compatibility 20;
+condition 10; and verified evidence 10. Seller and power risks subtract points.
+Incompatibility always rejects a candidate. Missing or insufficient current
+listing evidence always produces `verify_before_review`, regardless of score.
+These weights are a versioned heuristic, not market truth.
+
+Example local-only input:
+
+```powershell
+.\.venv\Scripts\python.exe .\core.py research score-deal `
+  --title "Manually supplied GPU candidate" `
+  --source-reference "manual note" --source-kind user_supplied `
+  --observed-at "2026-08-09T21:00:00-04:00" `
+  --ask-price 200 --shipping 0 --tax 0 --required-platform-cost 100 `
+  --benchmark-index 100 --vram-gb 12 --power-watts 170 `
+  --compatibility needs_review --condition used_good --seller-risk medium `
+  --notes "Research only; no purchase authority."
+```
+
+This records a local research candidate. It performs no browsing, messaging,
+login, bid, purchase, payment, or external activity.
 
 Not authorized: account creation, login, scraping or navigation of unapproved
 sources, CAPTCHA/anti-bot bypass, saved downloads, uploads, seller contact,

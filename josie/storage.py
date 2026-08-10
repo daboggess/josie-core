@@ -135,6 +135,32 @@ class LocalStore:
                     action_authorized INTEGER NOT NULL DEFAULT 0
                     CHECK (action_authorized = 0)
                 );
+                CREATE TABLE IF NOT EXISTS deal_candidates (
+                    candidate_id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    source_reference TEXT NOT NULL,
+                    source_kind TEXT NOT NULL,
+                    observed_at TEXT NOT NULL,
+                    total_acquisition_cents INTEGER NOT NULL
+                    CHECK (total_acquisition_cents > 0),
+                    research_score_milli INTEGER NOT NULL
+                    CHECK (research_score_milli >= 0 AND research_score_milli <= 100000),
+                    evidence_status TEXT NOT NULL
+                    CHECK (evidence_status IN ('verified_for_analysis','verification_required')),
+                    recommendation TEXT NOT NULL
+                    CHECK (recommendation IN ('candidate_for_human_review','watchlist',
+                    'low_priority','verify_before_review','high_risk_hold','reject_incompatible')),
+                    result_json TEXT NOT NULL,
+                    external_activity INTEGER NOT NULL DEFAULT 0
+                    CHECK (external_activity = 0),
+                    action_authorized INTEGER NOT NULL DEFAULT 0
+                    CHECK (action_authorized = 0),
+                    purchase_authorized INTEGER NOT NULL DEFAULT 0
+                    CHECK (purchase_authorized = 0),
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none')
+                );
                 CREATE TABLE IF NOT EXISTS hardware_targets (
                     id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
                     component TEXT NOT NULL,
@@ -1153,6 +1179,96 @@ class LocalStore:
             ]
         return [self.economic_opportunity(opportunity_id) for opportunity_id in ids]
 
+    def record_deal_candidate(self, result: dict[str, object]) -> dict[str, object]:
+        if (
+            result.get("external_activity") is not False
+            or result.get("action_authorized") is not False
+            or result.get("purchase_authorized") is not False
+            or result.get("capability_change") != "none"
+            or result.get("actions_queued") != 0
+            or result.get("actions_executed") != 0
+            or result.get("heuristic_not_market_truth") is not True
+        ):
+            raise ValueError("Deal candidate attempts to create action or purchase authority")
+        title = self._research_text(str(result.get("title", "")), label="Deal title", maximum=200)
+        source_reference = self._research_text(
+            str(result.get("source_reference", "")), label="Deal source", maximum=500
+        )
+        source_kind = self._research_text(
+            str(result.get("source_kind", "")), label="Deal source kind", maximum=64
+        )
+        observed_at = self._research_text(
+            str(result.get("observed_at", "")), label="Deal observation time", maximum=64
+        )
+        costs = result.get("costs")
+        evidence = result.get("evidence")
+        if not isinstance(costs, dict) or not isinstance(evidence, dict):
+            raise ValueError("Deal candidate costs and evidence are required")
+        if (
+            evidence.get("external_action_authorized") is not False
+            or evidence.get("capability_change") != "none"
+        ):
+            raise ValueError("Deal evidence cannot create external authority")
+        total_cents = costs.get("total_acquisition_cents")
+        if not isinstance(total_cents, int) or total_cents <= 0:
+            raise ValueError("Deal candidate acquisition cost is invalid")
+        evidence_status = evidence.get("decision")
+        if evidence_status not in {"verified_for_analysis", "verification_required"}:
+            raise ValueError("Deal candidate evidence status is invalid")
+        recommendation = result.get("recommendation")
+        if recommendation not in {
+            "candidate_for_human_review", "watchlist", "low_priority",
+            "verify_before_review", "high_risk_hold", "reject_incompatible",
+        }:
+            raise ValueError("Deal candidate recommendation is invalid")
+        score = result.get("research_score")
+        if not isinstance(score, (int, float)) or isinstance(score, bool) or not 0 <= score <= 100:
+            raise ValueError("Deal candidate research score is invalid")
+        score_milli = round(float(score) * 1_000)
+        encoded = json.dumps(result, separators=(",", ":"), sort_keys=True)
+        if len(encoded) > 100_000:
+            raise ValueError("Deal candidate record exceeds the storage limit")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO deal_candidates(created_at,title,source_reference,source_kind,"
+                "observed_at,total_acquisition_cents,research_score_milli,evidence_status,"
+                "recommendation,result_json) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                (
+                    self._now(), title, source_reference, source_kind, observed_at,
+                    total_cents, score_milli, evidence_status, recommendation, encoded,
+                ),
+            )
+            candidate_id = int(cursor.lastrowid)
+        self.audit("deal_candidate_scored", f"{candidate_id}: {recommendation}; no action")
+        return self.deal_candidate(candidate_id)
+
+    def deal_candidate(self, candidate_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM deal_candidates WHERE candidate_id=?", (candidate_id,)
+            ).fetchone()
+        if row is None:
+            raise ValueError("Deal candidate was not found")
+        record = dict(row)
+        record["result"] = json.loads(str(record.pop("result_json")))
+        record["research_score"] = int(record.pop("research_score_milli")) / 1_000
+        for key in ("external_activity", "action_authorized", "purchase_authorized"):
+            record[key] = bool(record[key])
+        return record
+
+    def recent_deal_candidates(self, limit: int = 20) -> list[dict[str, object]]:
+        if not isinstance(limit, int) or not 1 <= limit <= 100:
+            raise ValueError("Deal candidate limit must be 1 to 100")
+        with self._connect() as connection:
+            ids = [
+                int(row["candidate_id"])
+                for row in connection.execute(
+                    "SELECT candidate_id FROM deal_candidates "
+                    "ORDER BY candidate_id DESC LIMIT ?", (limit,)
+                ).fetchall()
+            ]
+        return [self.deal_candidate(candidate_id) for candidate_id in ids]
+
     def record_hardware_target(
         self,
         *,
@@ -1219,11 +1335,16 @@ class LocalStore:
             hardware_count = int(
                 connection.execute("SELECT COUNT(*) FROM hardware_targets").fetchone()[0]
             )
+            deal_candidate_count = int(
+                connection.execute("SELECT COUNT(*) FROM deal_candidates").fetchone()[0]
+            )
         return {
             "opportunity_count": opportunity_count,
             "hardware_target_count": hardware_count,
+            "deal_candidate_count": deal_candidate_count,
             "opportunities": self.recent_economic_opportunities(),
             "hardware_targets": self.recent_hardware_targets(),
+            "deal_candidates": self.recent_deal_candidates(),
             "external_activity": False,
             "transactions_executed": 0,
             "purchases_executed": 0,

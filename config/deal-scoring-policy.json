@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "status": "local_research_only",
+  "weights": {
+    "price_performance": 40,
+    "vram": 20,
+    "compatibility": 20,
+    "condition": 10,
+    "evidence": 10
+  },
+  "reference_benchmark_per_dollar": 0.25,
+  "vram_reference_gb": 24,
+  "compatibility_points": {
+    "compatible": 20,
+    "needs_review": 8,
+    "unknown": 0,
+    "incompatible": 0
+  },
+  "condition_points": {
+    "new": 10,
+    "used_good": 8,
+    "used_unknown": 3,
+    "parts_only": 0
+  },
+  "risk_penalty": {
+    "low": 0,
+    "medium": 5,
+    "high": 15
+  },
+  "power_penalty": {
+    "free_watts": 200,
+    "maximum_watts": 500,
+    "maximum_points": 10
+  },
+  "thresholds": {
+    "candidate_for_human_review": 70,
+    "watchlist": 50
+  },
+  "live_discovery": false,
+  "external_activity": false,
+  "action_authorized": false,
+  "purchase_authorized": false,
+  "capability_change": "none"
+}

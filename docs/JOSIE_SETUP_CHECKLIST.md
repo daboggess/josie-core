@@ -144,6 +144,9 @@ confirmed on Josie or by the repository test suite.
 - [x] Add bounded moral/behavioral, model-routing, memory-governance, and safe-tool scenario practice: 7/7 units and 29/29 canonical source checks pass.
 - [x] Run two bounded loopback-only local-model assessments and preserve their outputs as untrusted evidence; the open-book result is 5/8 exact and remains `needs_review` with no capability promotion.
 - [x] Stop the remediation loop after two attempts; keep deterministic policy and allowlisted handlers as the enforcement boundary.
+- [x] Add a one-use six-scenario holdout with expected answers withheld from the model; source grounding passed 6/6 and exact routing scored 0/6.
+- [x] Enforce evidence source-kind and freshness checks in deterministic code; model agreement and retrieved memory cannot verify current claims.
+- [x] Preserve the holdout result without retrying or tuning against its answer key; local-model policy authority remains absent.
 
 ## Safety and permissions
 
@@ -169,6 +172,8 @@ confirmed on Josie or by the repository test suite.
 - [x] Add a local hardware-target tracker with compatibility state and zero purchase authority.
 - [x] Evaluate wallet capability for Josie 1.0 and deliberately keep it disabled behind strict non-self-modifiable zero-dollar limits.
 - [x] Build a default-deny local opportunity-research framework with an empty approved-source allowlist; live discovery remains disabled.
+- [x] Build a transparent offline hardware-deal scorer for manually supplied listings; unverified current listings are forced to `verify_before_review`.
+- [x] Persist deal candidates locally with evidence status, uncertainty, score breakdown, and database-enforced zero action/purchase authority.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.
 - [x] Calculate estimated profit, hourly return, and risk locally before any future human review; the calculator cannot accept work.
 - [ ] Track actual profitability and ROI by job type.
@@ -198,6 +203,7 @@ confirmed on Josie or by the repository test suite.
 6. [x] Complete Genesis through independent witness interviews, Dustin reconciliation, Origin Record approval, and Constitution ratification.
 7. [x] Establish the bounded foundational-learning kernel and complete its first three grounded units.
 8. [x] Complete Foundational Learning Wave 2 with eight governed scenarios and an auditable non-authorizing local reasoning assessment.
+9. [x] Complete Wave 3 with a deterministic evidence gate, one-use holdout, and offline deal scorer while keeping live discovery and model authority blocked.
 
 ## Change-control rule
 

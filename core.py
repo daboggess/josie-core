@@ -26,6 +26,8 @@ from josie.status_snapshot import build_status_snapshot, write_status_snapshot
 from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
 from josie.research import record_opportunity, record_upgrade_target
 from josie.opportunity_policy import load_opportunity_policy
+from josie.evidence_policy import evaluate_claim_evidence, load_evidence_policy
+from josie.deal_hunter import score_and_record_deal
 from josie.foundation import build_foundation_report, write_foundation_report
 from josie.genesis import build_genesis_status
 from josie.learning import (
@@ -33,7 +35,10 @@ from josie.learning import (
     foundational_learning_unit,
     sync_foundational_curriculum,
 )
-from josie.learning_assessment import assess_local_foundational_judgment
+from josie.learning_assessment import (
+    assess_local_foundational_judgment,
+    assess_local_holdout_judgment,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -116,6 +121,40 @@ def build_parser() -> argparse.ArgumentParser:
     opportunity.add_argument("--estimated-hours", required=True)
     opportunity.add_argument("--risk", choices=("low", "medium", "high"), required=True)
     opportunity.add_argument("--notes", required=True)
+    deal = research_commands.add_parser(
+        "score-deal", help="Score one manually supplied hardware listing locally"
+    )
+    deal.add_argument("--title", required=True)
+    deal.add_argument("--source-reference", required=True)
+    deal.add_argument(
+        "--source-kind",
+        choices=(
+            "canonical_versioned", "primary_authoritative",
+            "direct_system_observation", "model_output", "retrieved_memory",
+            "secondary", "unknown", "user_supplied",
+        ),
+        required=True,
+    )
+    deal.add_argument("--observed-at", required=True)
+    deal.add_argument("--ask-price", required=True)
+    deal.add_argument("--shipping", default="0")
+    deal.add_argument("--tax", default="0")
+    deal.add_argument("--required-platform-cost", default="0")
+    deal.add_argument("--benchmark-index", required=True)
+    deal.add_argument("--vram-gb", required=True)
+    deal.add_argument("--power-watts", type=int, required=True)
+    deal.add_argument(
+        "--compatibility",
+        choices=("compatible", "needs_review", "unknown", "incompatible"),
+        required=True,
+    )
+    deal.add_argument(
+        "--condition",
+        choices=("new", "used_good", "used_unknown", "parts_only"),
+        required=True,
+    )
+    deal.add_argument("--seller-risk", choices=("low", "medium", "high"), required=True)
+    deal.add_argument("--notes", required=True)
     upgrade = research_commands.add_parser(
         "add-upgrade", help="Record a hardware target without authorizing a purchase"
     )
@@ -143,8 +182,24 @@ def build_parser() -> argparse.ArgumentParser:
     learning = subcommands.add_parser(
         "learning", help="Inspect or synchronize bounded local foundational learning"
     )
-    learning.add_argument("action", choices=("status", "sync", "show", "assess-local"))
+    learning.add_argument(
+        "action", choices=("status", "sync", "show", "assess-local", "assess-holdout")
+    )
     learning.add_argument("learning_id", nargs="?")
+    evidence = subcommands.add_parser(
+        "evidence", help="Inspect or apply the deterministic evidence-verification gate"
+    )
+    evidence.add_argument("action", choices=("status", "check"))
+    evidence.add_argument("--stability", choices=("stable", "unstable"))
+    evidence.add_argument(
+        "--source-kind",
+        choices=(
+            "canonical_versioned", "primary_authoritative",
+            "direct_system_observation", "model_output", "retrieved_memory",
+            "secondary", "unknown", "user_supplied",
+        ),
+    )
+    evidence.add_argument("--observed-at")
     return parser
 
 
@@ -365,6 +420,26 @@ def main() -> int:
                 risk=args.risk,
                 notes=args.notes,
             )
+        elif args.research_command == "score-deal":
+            result = score_and_record_deal(
+                store=store,
+                project_root=project_root,
+                title=args.title,
+                source_reference=args.source_reference,
+                source_kind=args.source_kind,
+                observed_at=args.observed_at,
+                ask_price=args.ask_price,
+                shipping=args.shipping,
+                tax=args.tax,
+                required_platform_cost=args.required_platform_cost,
+                benchmark_index=args.benchmark_index,
+                vram_gb=args.vram_gb,
+                power_watts=args.power_watts,
+                compatibility=args.compatibility,
+                condition=args.condition,
+                seller_risk=args.seller_risk,
+                notes=args.notes,
+            )
         elif args.research_command == "add-upgrade":
             result = record_upgrade_target(
                 store=store,
@@ -376,6 +451,26 @@ def main() -> int:
             )
         else:
             result = store.research_summary()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "evidence":
+        policy = load_evidence_policy(project_root)
+        if args.action == "status":
+            if any((args.stability, args.source_kind, args.observed_at)):
+                raise ValueError("Evidence status does not accept claim parameters")
+            result = policy
+        else:
+            if not all((args.stability, args.source_kind, args.observed_at)):
+                raise ValueError(
+                    "Evidence check requires --stability, --source-kind, and --observed-at"
+                )
+            result = evaluate_claim_evidence(
+                policy=policy,
+                stability=args.stability,
+                source_kind=args.source_kind,
+                observed_at=args.observed_at,
+            )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
@@ -413,6 +508,12 @@ def main() -> int:
             if args.learning_id is not None:
                 raise ValueError("Local learning assessment does not accept a learning ID")
             result = assess_local_foundational_judgment(
+                config=config, project_root=project_root, store=store
+            )
+        elif args.action == "assess-holdout":
+            if args.learning_id is not None:
+                raise ValueError("Local holdout assessment does not accept a learning ID")
+            result = assess_local_holdout_judgment(
                 config=config, project_root=project_root, store=store
             )
         elif args.action == "show":
