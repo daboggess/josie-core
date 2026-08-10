@@ -23,10 +23,19 @@ def build_genesis_status(*, project_root: Path) -> dict[str, object]:
     }
     both_drafts_ready = {"sophie", "bernie"}.issubset(draft_targets)
     both_witnesses_captured = {"sophie", "bernie"}.issubset(answered_targets)
-    reconciliation_ready = (
+    reconciliation_path = (
         project_root / "docs" / "identity" / "genesis" / "GENESIS_RECONCILIATION.md"
-    ).is_file()
-    if both_witnesses_captured and reconciliation_ready:
+    )
+    reconciliation_ready = reconciliation_path.is_file()
+    dustin_questions_resolved = (
+        reconciliation_ready
+        and "DUSTIN QUESTIONS RESOLVED"
+        in reconciliation_path.read_text(encoding="utf-8")
+    )
+    if both_witnesses_captured and dustin_questions_resolved:
+        phase = "origin_review"
+        status = "awaiting_dustin_origin_and_constitution_ratification"
+    elif both_witnesses_captured and reconciliation_ready:
         phase = "reconciliation"
         status = "awaiting_dustin_reconciliation"
     elif both_witnesses_captured:
@@ -68,6 +77,7 @@ def build_genesis_status(*, project_root: Path) -> dict[str, object]:
         "drafts_prepared": both_drafts_ready,
         "witnesses_captured": both_witnesses_captured,
         "reconciliation_recorded": reconciliation_ready,
+        "dustin_questions_resolved": dustin_questions_resolved,
         "manual_relay_required": not both_witnesses_captured,
         "session_external_activity_occurred": both_witnesses_captured,
         "direct_api_spending_cents": 0,

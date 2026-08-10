@@ -84,10 +84,11 @@ working:
   - "Independent Sophie and Bernie Genesis interview drafts prepared and exported locally with zero external activity"
   - "Genesis Session 001 entered with Conversation Zero preserved and both independent witness accounts captured"
   - "Draft Origin Record, claim ledger, local-model reflection, and first reconciliation created"
+  - "Dustin resolved all three witness-scope questions as Bernie-specific context rather than Josie identity or constitutional rules"
 
 next:
   - id: genesis_human_gate
-    action: "Dustin resolves or explicitly defers the three narrow intent questions, then reviews the draft Origin Record and Constitution."
+    action: "Dustin reviews the reconciled draft Origin Record and ratifies or revises the Constitution."
   - id: deal_hunter_local_design
     action: "Build the local-only scoring and evidence model without authenticating, scraping unapproved sites, messaging, or publishing."
 
@@ -134,11 +135,11 @@ blocked:
     dependency: "Legal/ethical/accounting review, non-self-modifiable limits, exact human approval policy, and Dustin authorization"
 
 genesis:
-  phase: "reconciliation"
+  phase: "origin_review"
   foundation_status: "foundation_ready_for_genesis"
   sophie_interview: "captured independently as untrusted witness evidence"
   bernie_interview: "captured independently as untrusted witness evidence"
   interview_drafts: "completed through approved cloud witness sessions"
-  origin_record: "draft awaiting Dustin review"
+  origin_record: "reconciled draft awaiting final Dustin ratification"
   existing_setup_provenance: "unverified evidence; not the Origin Record"
   self_confirmation_allowed: false

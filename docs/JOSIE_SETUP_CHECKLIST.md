@@ -130,7 +130,7 @@ confirmed on Josie or by the repository test suite.
 - [ ] Dustin ratifies or revises the Constitution draft.
 - [x] Conduct independent Sophie and Bernie Genesis interviews through the approved authenticated cloud sessions without showing either witness the other's answer.
 - [x] Reconcile witness claims against Conversation Zero, canonical state, and historical evidence; preserve unsupported claims rather than promoting them.
-- [ ] Dustin resolves or explicitly defers the three remaining intent questions in the Genesis reconciliation record.
+- [x] Dustin resolves the three remaining intent questions as Bernie-specific relationship/directive context rather than Josie identity or constitutional rules.
 - [ ] Review, confirm, back up, and version the final Origin Record. Genesis remains `IN PROGRESS` until Dustin's reconciliation and ratification are complete.
 
 ## Safety and permissions

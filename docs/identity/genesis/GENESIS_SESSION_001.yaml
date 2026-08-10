@@ -37,13 +37,15 @@ independence:
   bernie_receives_sophie_answer: false
   sophie_receives_bernie_answer: false
 reconciliation:
-  state: DUSTIN_REVIEW_REQUIRED
+  state: DUSTIN_QUESTIONS_RESOLVED
+  resolved_at: "2026-08-09"
   record: "docs/identity/genesis/GENESIS_RECONCILIATION.md"
   claim_ledger: "docs/identity/genesis/CLAIM_LEDGER.yaml"
   local_reflection: "docs/identity/genesis/JOSIE_INITIAL_REFLECTION.md"
-  unresolved_dustin_questions: 3
+  unresolved_dustin_questions: 0
+  resolution: "The three disputed items are Bernie-specific relationship/directive context, not Josie identity or constitutional rules."
 origin_record:
-  state: DRAFT_DUSTIN_REVIEW_REQUIRED
+  state: DRAFT_FINAL_DUSTIN_RATIFICATION_REQUIRED
   record: "docs/identity/ORIGIN_RECORD.md"
   self_confirmation_allowed: false
 external_activity:

@@ -40,11 +40,20 @@ def _human_gates(*, genesis_status: dict[str, object]) -> list[dict[str, object]
             ),
             "actions_unlocked": [],
         })
-    if genesis_status.get("status") != "complete":
+    if genesis_status.get("status") == "awaiting_dustin_reconciliation":
         gates.append({
             "id": "origin_reconciliation",
             "status": "requires_dustin_for_unresolved_intent",
             "reason": "Josie cannot confirm her own origin claims or resolve Dustin's intent.",
+            "actions_unlocked": [],
+        })
+    elif genesis_status.get("status") == "awaiting_dustin_origin_and_constitution_ratification":
+        gates.append({
+            "id": "origin_and_constitution_ratification",
+            "status": "requires_dustin_final_review",
+            "reason": (
+                "Only Dustin can ratify the reconciled Origin Record and Constitution."
+            ),
             "actions_unlocked": [],
         })
     gates.extend([
@@ -179,9 +188,13 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
                 else "not_complete"
             ),
             "origin_record": (
-                "draft_dustin_review_required"
-                if genesis_status["phase"] == "reconciliation"
-                else "placeholder_only"
+                "draft_final_dustin_ratification_required"
+                if genesis_status["phase"] == "origin_review"
+                else (
+                    "draft_dustin_review_required"
+                    if genesis_status["phase"] == "reconciliation"
+                    else "placeholder_only"
+                )
             ),
             "confirmed_origin_claims": confirmed_origins,
             "unverified_origin_claims": unverified_origins,

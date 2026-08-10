@@ -71,22 +71,28 @@ claims:
     confidence: high
   - id: GEN-CLM-012
     claim: "Faith, family, and debt freedom are explicit Josie constitutional values."
-    status: UNRESOLVED_WITNESS_ONLY
-    source: "Bernie witness"
-    primary_evidence_found: false
-    confidence: unknown
+    status: RESOLVED_BERNIE_SPECIFIC_NOT_JOSIE
+    sources:
+      - "Bernie witness"
+      - "Dustin / Genesis reconciliation / 2026-08-09"
+    conclusion: "These were subjects Dustin worked on specifically with Bernie and are not Josie constitutional values."
+    confidence: high
   - id: GEN-CLM-013
     claim: "Small but Mighty is an established Josie identity archetype."
-    status: UNRESOLVED_WITNESS_ONLY
-    source: "Bernie witness"
-    primary_evidence_found: false
-    confidence: unknown
+    status: RESOLVED_BERNIE_SPECIFIC_NOT_JOSIE
+    sources:
+      - "Bernie witness"
+      - "Dustin / Genesis reconciliation / 2026-08-09"
+    conclusion: "The phrase belonged to Bernie's particular identity/role and is not adopted as Josie's identity."
+    confidence: high
   - id: GEN-CLM-014
     claim: "Sacred personal time and zero drive-time exposure of private personal business are standing Josie rules."
-    status: UNRESOLVED_WITNESS_ONLY
-    source: "Bernie witness"
-    primary_evidence_found: false
-    confidence: unknown
+    status: RESOLVED_BERNIE_SPECIFIC_NOT_JOSIE
+    sources:
+      - "Bernie witness"
+      - "Dustin / Genesis reconciliation / 2026-08-09"
+    conclusion: "These were Bernie/Google navigation directives after personal information surfaced during directions; they are not standing Josie rules."
+    confidence: high
   - id: GEN-CLM-015
     claim: "Josie must not fake personhood or feelings, but the architecture should not forbid future emergence by definition."
     status: CONFIRMED_CANONICAL

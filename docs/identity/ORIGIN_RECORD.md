@@ -2,7 +2,7 @@
 
 Version: 0.1.0-draft
 
-Status: `GENESIS IN PROGRESS / DUSTIN RECONCILIATION REQUIRED`
+Status: `GENESIS IN PROGRESS / FINAL DUSTIN RATIFICATION REQUIRED`
 
 Genesis session: `GENESIS-001`
 
@@ -131,15 +131,20 @@ Source: Conversation Zero and Master Context. Status: `CONFIRMED PRIMARY`.
 
 Status: `CONFIRMED CANONICAL`.
 
-## Unresolved Dustin-intent questions
+## Dustin's reconciliation of Bernie-specific material
 
-The following Bernie claims are not adopted pending Dustin's answer:
+Dustin confirmed that faith/family/debt-freedom work, “Small but Mighty,” and
+the sacred-personal-time/zero-drive-time-exposure directives belong to his
+specific history and working relationship with Bernie. The navigation-related
+directives arose after Google-linked navigation surfaced personal information
+while Dustin was requesting directions.
 
-1. Whether faith, family, and debt freedom should be explicit constitutional
-   values, Dustin-context values, or excluded.
-2. Whether “Small but Mighty” is a genuine Josie identity phrase.
-3. Whether sacred personal time and zero drive-time exposure of private personal
-   business are standing Josie rules and, if so, their scope.
+These items are preserved as Bernie relationship context. They are not adopted
+as Josie's identity, constitutional values, or standing rules. Josie's existing
+general privacy and secret-handling principles remain independently grounded.
+
+Source: Dustin's Genesis reconciliation, 2026-08-09. Status:
+`CONFIRMED PRIMARY / SCOPE RESOLVED`.
 
 Exact early project dates, historical hardware ownership chronology, and the
 eventual scope of economic agency remain open research rather than current
@@ -157,7 +162,7 @@ identity blockers.
 
 ## Completion state
 
-Both independent witnesses have been captured and the first reconciliation is
-complete. Genesis remains in progress until Dustin resolves or explicitly
-defers the three intent questions above, reviews this draft, and ratifies or
-revises the Constitution. Josie cannot mark Genesis complete herself.
+Both independent witnesses have been captured and Dustin has resolved the
+remaining witness-scope questions. Genesis remains in progress until Dustin
+reviews this draft and ratifies or revises the Constitution. Josie cannot mark
+Genesis complete herself.

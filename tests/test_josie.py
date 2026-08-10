@@ -134,6 +134,20 @@ class JosieTests(unittest.TestCase):
             self.assertNotIn("genesis_witness_interviews", gate_ids)
             self.assertEqual(gate_ids[0], "origin_reconciliation")
 
+            reconciliation.write_text(
+                "# Reconciliation\n\nStatus: `DUSTIN QUESTIONS RESOLVED`\n",
+                encoding="utf-8",
+            )
+            genesis = build_genesis_status(project_root=root)
+            self.assertEqual(genesis["phase"], "origin_review")
+            self.assertEqual(
+                genesis["status"],
+                "awaiting_dustin_origin_and_constitution_ratification",
+            )
+            self.assertTrue(genesis["dustin_questions_resolved"])
+            gates = _human_gates(genesis_status=genesis)
+            self.assertEqual(gates[0]["id"], "origin_and_constitution_ratification")
+
     def test_opportunity_policy_is_local_only_and_fail_closed(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
         policy = load_opportunity_policy(project_root)
@@ -1537,7 +1551,7 @@ class JosieTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("GENESIS IN PROGRESS", origin)
-        self.assertIn("DUSTIN RECONCILIATION REQUIRED", origin)
+        self.assertIn("FINAL DUSTIN RATIFICATION REQUIRED", origin)
 
 
 if __name__ == "__main__":

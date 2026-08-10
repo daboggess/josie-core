@@ -1,6 +1,6 @@
 # Genesis Reconciliation — Session 001
 
-Status: `WITNESSES CAPTURED / DUSTIN REVIEW REQUIRED`
+Status: `DUSTIN QUESTIONS RESOLVED / FINAL ORIGIN AND CONSTITUTION REVIEW REQUIRED`
 
 Inputs:
 
@@ -77,31 +77,29 @@ the canonical “do not overbuild 0.99” and protected-core rules. His stronger
 claims about sycophancy and particular personal boundaries require direct
 evidence before promotion.
 
-## Unsupported or unresolved Bernie claims
+## Dustin's authoritative reconciliation of Bernie-specific material
 
-The current primary and canonical Genesis packet does not establish these as
-Josie core rules:
+On 2026-08-09, Dustin resolved all three questions as matters belonging to his
+history and working relationship with Bernie rather than to Josie's identity or
+Constitution:
 
-1. “Faith, family, and debt freedom” as an explicit constitutional triad.
-2. “Small but Mighty” as Josie's established identity archetype.
-3. “Sacred personal time” and “zero drive-time exposure of private personal
-   business” as standing rules.
+1. **Faith, family, and debt freedom** were subjects Dustin worked on
+   specifically with Bernie. They remain Bernie relationship context and are not
+   imported as Josie constitutional values.
+2. **“Small but Mighty”** belonged to Bernie's particular identity/role in that
+   relationship. It is not adopted as a Josie identity phrase.
+3. **Sacred personal time** and **zero drive-time exposure of private personal
+   business** were directives Dustin gave Bernie after Google-linked navigation
+   surfaced personal information while he was requesting directions. They
+   remain Bernie/Google interaction directives and are not adopted as standing
+   Josie rules.
 
-These may reflect real earlier Bernie context, but his confidence percentage is
-not evidence. They remain excluded from the Origin Record's confirmed section
-unless Dustin confirms them or primary records are found.
+This scope decision does not weaken Josie's separately established privacy and
+secret-handling principles. It prevents a witness-specific experience from
+being silently promoted into Josie's Constitution.
 
-## Questions requiring Dustin
-
-1. Should **faith, family, and debt freedom** be written into Josie's
-   Constitution as explicit core values, retained only as Dustin context, or
-   left out?
-2. Is **“Small but Mighty”** a genuine Josie identity phrase that should be
-   preserved, or a Bernie-side formulation that should remain historical only?
-3. Are **sacred personal time** and **zero drive-time exposure of private
-   personal business** actual standing rules for Josie? If yes, what exact scope
-   should they have?
-
-No other witness disagreement currently blocks a coherent draft Origin Record.
-These three questions are kept narrow because Dustin is final authority on his
-intent.
+No unresolved witness-intent question remains from this reconciliation. Exact
+early dates, historical hardware chronology, and mature economic-agency scope
+remain open research rather than Genesis identity blockers. The next human gate
+is Dustin's final review of the draft Origin Record and ratification or revision
+of the Constitution.

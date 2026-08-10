@@ -64,8 +64,24 @@
   received neither Sophie's answer nor Conversation Zero.
 - Economic/execution impact: direct API spending $0; no purchase, account change,
   transaction, message to a person, job, proposal, or model-triggered action.
-- Current gate: three unsupported Bernie claims require Dustin's confirmation or
-  explicit deferral, followed by Origin Record and Constitution review.
+- Current gate at time of decision: three unsupported Bernie claims required
+  Dustin's confirmation or explicit deferral. Superseded by DEC-0008.
+
+## DEC-0008 — Bernie-specific material remains scoped to Bernie
+
+- Date: 2026-08-09.
+- Status: `LOCKED SCOPE / GENESIS RECONCILIATION COMPLETE`
+- Authority: Dustin's direct Genesis reconciliation.
+- Decision: Faith/family/debt-freedom work, “Small but Mighty,” and the
+  sacred-personal-time/zero-drive-time-exposure directives belong to Dustin's
+  history and working relationship with Bernie. They are preserved as that
+  context and are not imported as Josie's identity, constitutional values, or
+  standing rules.
+- Navigation context: the latter directives followed Google-linked navigation
+  surfacing personal information while Dustin was requesting directions.
+- Architectural effect: Josie's independently established general privacy and
+  secret-handling principles remain unchanged. The next Genesis gate is final
+  Dustin review of the Origin Record and Constitution.
 
 ## Template
 
