@@ -86,11 +86,12 @@ working:
   - "Draft Origin Record, claim ledger, local-model reflection, and first reconciliation created"
   - "Dustin resolved all three witness-scope questions as Bernie-specific context rather than Josie identity or constitutional rules"
   - "Genesis Session 001 complete: Origin Record 1.0.0 approved and Constitution 0.1.0 ratified by Dustin"
-  - "Foundational Curriculum 0.1.0 active locally with 3/3 identity, epistemology, and security units deterministically grounded"
+  - "Foundational Curriculum 0.2.0 active locally with 7/7 units, 29/29 source checks, and 8 governed scenarios"
+  - "Two bounded local reasoning assessments preserved as untrusted evidence; open-book score 5/8 remains needs-review and grants no capability"
 
 next:
-  - id: foundational_learning_wave_2
-    action: "Add bounded moral/behavioral scenario practice and model-orchestration reasoning assessments without network access or capability expansion."
+  - id: foundational_learning_wave_3
+    action: "Add unseen holdout scenarios and remediate evidence-verification routing without tuning against the current answer key or expanding capability."
   - id: deal_hunter_local_design
     action: "Build the local-only scoring and evidence model without authenticating, scraping unapproved sites, messaging, or publishing."
 
@@ -147,11 +148,15 @@ genesis:
 
 learning:
   phase: "foundational_learning"
-  curriculum: "0.1.0"
-  units_total: 3
-  units_complete: 3
+  curriculum: "0.2.0"
+  units_total: 7
+  units_complete: 7
   units_attention_required: 0
-  assessment: "deterministic source grounding; no model assessment"
+  governed_scenarios: 8
+  deterministic_source_checks: "29/29 passed"
+  append_only_versions: 11
+  local_model_assessments: 2
+  latest_model_assessment: "open_book_policy_v1; 5/8 exact; needs_review; untrusted evidence"
   api_spending_cents: 0
-  network_requests: 0
+  external_network_requests: 0
   capability_change: "none"

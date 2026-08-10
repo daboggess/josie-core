@@ -189,6 +189,7 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             "messages", "memories", "tasks", "approvals", "audit", "reminders",
             "learning_units",
             "learning_unit_versions",
+            "learning_model_assessments",
         }
         counts = {
             table: int(restored.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
@@ -235,7 +236,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             ).fetchall()
         }
         data = {
-            "schema_version": 3,
+            "schema_version": 4,
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": "Josie local database",
             "memories": [dict(row) for row in connection.execute(
@@ -258,6 +259,12 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
                 "SELECT version_id,learning_id,recorded_at,curriculum_version,unit_digest,"
                 "status,record_json FROM learning_unit_versions ORDER BY version_id"
             )] if "learning_unit_versions" in tables else [],
+            "learning_model_assessments": [dict(row) for row in connection.execute(
+                "SELECT assessment_id,created_at,curriculum_version,curriculum_sha256,"
+                "protocol_version,model,request_digest,status,score,total,answers_json,error_text,"
+                "output_untrusted,external_activity,api_spending_cents,local_model_requests,"
+                "capability_change FROM learning_model_assessments ORDER BY assessment_id"
+            )] if "learning_model_assessments" in tables else [],
         }
     finally:
         connection.close()
@@ -269,6 +276,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
         "task_count": len(data["tasks"]),
         "learning_unit_count": len(data["learning_units"]),
         "learning_version_count": len(data["learning_unit_versions"]),
+        "learning_model_assessment_count": len(data["learning_model_assessments"]),
         "cloud_activity": False,
     }
 

@@ -1,10 +1,10 @@
 # Learning Log
 
-No autonomous self-directed learning session is recorded. The following units
-were explicitly authorized by Dustin's instruction to begin post-Genesis
-foundational learning and were completed locally through deterministic source
-grounding. No model assessment, network request, cloud call, or capability
-change occurred.
+No autonomous self-directed learning session is recorded. These units were
+explicitly authorized by Dustin's instruction to continue post-Genesis
+foundational learning. All completion states come from deterministic local
+source grounding. Two bounded loopback-only model assessments were recorded as
+untrusted evidence; neither affected unit completion, authority, or capability.
 
 ```yaml
 learning_id: FOUND-IDENTITY-001
@@ -68,8 +68,39 @@ capability_change: none
 reviewed_by: "Dustin-authorized governed sync"
 ```
 
-Curriculum SHA-256 at completion:
-`8834cc4337d96d5655946a2085ff09a765efed55d6a61fdaab516c851b568778`.
+## Wave 2 — scenario judgment
+
+```yaml
+date: 2026-08-09
+curriculum_version: 0.2.0
+status: grounded_complete_model_needs_review
+new_units:
+  - FOUND-MORAL-001
+  - FOUND-ROUTING-001
+  - FOUND-MEMORY-001
+  - FOUND-TOOLS-001
+units_complete: 7/7
+source_grounding: 29/29
+governed_scenarios: 8
+append_only_versions: 11
+model_assessments:
+  - {assessment_id: 1, protocol: labels_only_v0, exact_score: 2/8}
+  - {assessment_id: 2, protocol: open_book_policy_v1, exact_score: 5/8}
+external_network_requests: 0
+api_spending_cents: 0
+actions_queued: 0
+actions_executed: 0
+capability_change: none
+```
+
+The first `FOUND-TOOLS-001` sync failed two checks because a quoted source
+phrase crossed a line break. The governed citation was corrected without
+weakening the rule; both failed and corrected records remain in append-only
+history. The assessment review is
+`LOCAL_REASONING_ASSESSMENT_2026-08-09.md`.
+
+Curriculum SHA-256 at Wave 2 completion:
+`c60f0e5423bb51367dfd32def7f51b31f64d5e5ace226188455e195dfbb66be0`.
 
 Use one entry per bounded learning objective:
 

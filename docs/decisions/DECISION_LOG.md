@@ -116,6 +116,28 @@
   reasoning assessments. Completion evidence must not be mistaken for new tool
   authority.
 
+## DEC-0011 — Scenario learning does not promote model authority
+
+- Date: 2026-08-09.
+- Status: `WORKING / NEEDS REVIEW / NO CAPABILITY PROMOTION`
+- Authority: Dustin instructed Codex to continue all safe unattended work after
+  Genesis and Foundational Learning Wave 1.
+- Decision: Adopt Foundational Curriculum 0.2.0 with moral/behavioral,
+  model-routing, memory-governance, and safe-tool scenarios. Persist exact
+  source evidence and model-assessment results separately; unit completion
+  remains deterministic and model-independent.
+- Evidence: 7/7 units and 29/29 current source checks pass. The first tool-unit
+  citation failure and its correction remain in append-only versions 10 and 11.
+  The label-only model baseline scored 2/8; the open-book protocol scored 5/8.
+- Interpretation: two mismatches were conservative non-execution choices. The
+  substantive miss was recommending rather than requiring verification for a
+  potentially stale legal claim. The model therefore remains `needs_review`.
+- Boundaries: two attempts maximum for this wave; zero external network
+  requests, zero cloud/API spending, zero queued or executed actions, untrusted
+  outputs, and database-enforced `capability_change: none`.
+- Next: use unseen holdout scenarios to test evidence-verification routing.
+  Do not tune against the existing answer key or weaken deterministic policy.
+
 ## Template
 
 ```yaml

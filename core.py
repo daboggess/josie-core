@@ -33,6 +33,7 @@ from josie.learning import (
     foundational_learning_unit,
     sync_foundational_curriculum,
 )
+from josie.learning_assessment import assess_local_foundational_judgment
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -142,7 +143,7 @@ def build_parser() -> argparse.ArgumentParser:
     learning = subcommands.add_parser(
         "learning", help="Inspect or synchronize bounded local foundational learning"
     )
-    learning.add_argument("action", choices=("status", "sync", "show"))
+    learning.add_argument("action", choices=("status", "sync", "show", "assess-local"))
     learning.add_argument("learning_id", nargs="?")
     return parser
 
@@ -408,6 +409,12 @@ def main() -> int:
             if args.learning_id is not None:
                 raise ValueError("Learning sync does not accept a learning ID")
             result = sync_foundational_curriculum(project_root=project_root, store=store)
+        elif args.action == "assess-local":
+            if args.learning_id is not None:
+                raise ValueError("Local learning assessment does not accept a learning ID")
+            result = assess_local_foundational_judgment(
+                config=config, project_root=project_root, store=store
+            )
         elif args.action == "show":
             if args.learning_id is None:
                 raise ValueError("Learning show requires a learning ID")

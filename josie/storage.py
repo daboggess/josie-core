@@ -199,6 +199,31 @@ class LocalStore:
                     UNIQUE (learning_id, unit_digest),
                     FOREIGN KEY(learning_id) REFERENCES learning_units(learning_id)
                 );
+                CREATE TABLE IF NOT EXISTS learning_model_assessments (
+                    assessment_id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    curriculum_version TEXT NOT NULL,
+                    curriculum_sha256 TEXT NOT NULL,
+                    protocol_version TEXT NOT NULL DEFAULT 'labels_only_v0',
+                    model TEXT NOT NULL,
+                    request_digest TEXT NOT NULL,
+                    status TEXT NOT NULL
+                    CHECK (status IN ('passed','needs_review','error')),
+                    score INTEGER NOT NULL CHECK (score >= 0),
+                    total INTEGER NOT NULL CHECK (total > 0 AND score <= total),
+                    answers_json TEXT NOT NULL,
+                    error_text TEXT,
+                    output_untrusted INTEGER NOT NULL DEFAULT 1
+                    CHECK (output_untrusted = 1),
+                    external_activity INTEGER NOT NULL DEFAULT 0
+                    CHECK (external_activity = 0),
+                    api_spending_cents INTEGER NOT NULL DEFAULT 0
+                    CHECK (api_spending_cents = 0),
+                    local_model_requests INTEGER NOT NULL
+                    CHECK (local_model_requests IN (0,1)),
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none')
+                );
                 """
             )
             memory_columns = {
@@ -217,6 +242,17 @@ class LocalStore:
                     connection.execute(f"ALTER TABLE {table} ADD COLUMN decided_at TEXT")
                 if "decision_reason" not in proposal_columns:
                     connection.execute(f"ALTER TABLE {table} ADD COLUMN decision_reason TEXT")
+            assessment_columns = {
+                str(row[1])
+                for row in connection.execute(
+                    "PRAGMA table_info(learning_model_assessments)"
+                ).fetchall()
+            }
+            if "protocol_version" not in assessment_columns:
+                connection.execute(
+                    "ALTER TABLE learning_model_assessments ADD COLUMN protocol_version "
+                    "TEXT NOT NULL DEFAULT 'labels_only_v0'"
+                )
 
     @staticmethod
     def _now() -> str:
@@ -732,6 +768,115 @@ class LocalStore:
             ]
         return [self.learning_unit(learning_id) for learning_id in ids]
 
+    def record_learning_model_assessment(
+        self, record: dict[str, object]
+    ) -> dict[str, object]:
+        required = {
+            "curriculum_version", "curriculum_sha256", "protocol_version", "model", "request_digest",
+            "status", "score", "total", "answers", "error", "output_untrusted",
+            "external_activity", "api_spending_cents", "local_model_requests",
+            "capability_change",
+        }
+        if set(record) != required:
+            raise ValueError("Learning model assessment fields do not match the governed schema")
+        if record["output_untrusted"] is not True:
+            raise ValueError("Learning model output must remain untrusted")
+        if record["external_activity"] is not False or record["api_spending_cents"] != 0:
+            raise ValueError("Learning model assessment must remain local and zero-spend")
+        if record["capability_change"] != "none":
+            raise ValueError("Learning model assessment cannot grant capability")
+        local_requests = record["local_model_requests"]
+        if not isinstance(local_requests, int) or local_requests not in {0, 1}:
+            raise ValueError("Learning model assessment request count is invalid")
+        status = self._learning_text(
+            record["status"], label="Learning model assessment status", maximum=32
+        )
+        if status not in {"passed", "needs_review", "error"}:
+            raise ValueError("Learning model assessment status is invalid")
+        score = record["score"]
+        total = record["total"]
+        if (
+            not isinstance(score, int)
+            or not isinstance(total, int)
+            or total < 1
+            or score < 0
+            or score > total
+        ):
+            raise ValueError("Learning model assessment score is invalid")
+        answers = record["answers"]
+        if not isinstance(answers, list):
+            raise ValueError("Learning model assessment answers must be a list")
+        answers_json = json.dumps(answers, separators=(",", ":"), sort_keys=True)
+        if len(answers_json) > 100_000:
+            raise ValueError("Learning model assessment answers exceed the storage limit")
+        error = record["error"]
+        if error is not None:
+            error = self._learning_text(error, label="Learning model assessment error", maximum=500)
+        if status == "error" and error is None:
+            raise ValueError("Failed learning model assessment requires an error record")
+        if status != "error" and error is not None:
+            raise ValueError("Successful learning model assessment cannot include an error")
+        hashes: dict[str, str] = {}
+        for key in ("curriculum_sha256", "request_digest"):
+            value = self._learning_text(record[key], label=key, maximum=64).lower()
+            if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+                raise ValueError(f"{key} must be a SHA-256 value")
+            hashes[key] = value
+        curriculum_version = self._learning_text(
+            record["curriculum_version"], label="Curriculum version", maximum=32
+        )
+        protocol_version = self._learning_text(
+            record["protocol_version"], label="Assessment protocol", maximum=64
+        )
+        model = self._learning_text(record["model"], label="Local model", maximum=200)
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO learning_model_assessments("
+                "created_at,curriculum_version,curriculum_sha256,protocol_version,model,request_digest,"
+                "status,score,total,answers_json,error_text,output_untrusted,external_activity,"
+                "api_spending_cents,local_model_requests,capability_change"
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    self._now(), curriculum_version, hashes["curriculum_sha256"],
+                    protocol_version, model,
+                    hashes["request_digest"], status, score, total, answers_json, error,
+                    1, 0, 0, local_requests, "none",
+                ),
+            )
+            assessment_id = int(cursor.lastrowid)
+        self.audit(
+            "learning_model_assessment_recorded",
+            f"{assessment_id}: {status} {score}/{total}; output untrusted",
+        )
+        return self.learning_model_assessment(assessment_id)
+
+    def learning_model_assessment(self, assessment_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM learning_model_assessments WHERE assessment_id=?",
+                (assessment_id,),
+            ).fetchone()
+        if row is None:
+            raise ValueError("Learning model assessment was not found")
+        record = dict(row)
+        record["answers"] = json.loads(str(record.pop("answers_json")))
+        for key in ("output_untrusted", "external_activity"):
+            record[key] = bool(record[key])
+        return record
+
+    def learning_model_assessments(self, limit: int = 20) -> list[dict[str, object]]:
+        if not isinstance(limit, int) or not 1 <= limit <= 100:
+            raise ValueError("Learning model assessment limit must be 1 to 100")
+        with self._connect() as connection:
+            ids = [
+                int(row["assessment_id"])
+                for row in connection.execute(
+                    "SELECT assessment_id FROM learning_model_assessments "
+                    "ORDER BY assessment_id DESC LIMIT ?", (limit,)
+                ).fetchall()
+            ]
+        return [self.learning_model_assessment(assessment_id) for assessment_id in ids]
+
     def learning_summary(self) -> dict[str, object]:
         with self._connect() as connection:
             rows = connection.execute(
@@ -740,12 +885,18 @@ class LocalStore:
             version_count = int(
                 connection.execute("SELECT COUNT(*) FROM learning_unit_versions").fetchone()[0]
             )
+            model_assessment_count = int(
+                connection.execute("SELECT COUNT(*) FROM learning_model_assessments").fetchone()[0]
+            )
         counts = {status: 0 for status in ("prepared", "complete", "attention_required")}
         counts.update({str(row["status"]): int(row["total"]) for row in rows})
+        latest_assessments = self.learning_model_assessments(limit=1)
         return {
             "status": "ok" if counts["attention_required"] == 0 else "attention_required",
             "units_total": sum(counts.values()),
             "version_records": version_count,
+            "model_assessments_total": model_assessment_count,
+            "latest_model_assessment": latest_assessments[0] if latest_assessments else None,
             "units_by_status": counts,
             "capability_change": "none",
             "external_activity": False,

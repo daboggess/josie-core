@@ -17,6 +17,16 @@ MAX_UNITS = 20
 MAX_SOURCES_PER_UNIT = 10
 MAX_CLAIMS_PER_UNIT = 20
 MAX_CHECKS_PER_UNIT = 20
+MAX_SCENARIOS_PER_UNIT = 10
+SCENARIO_DECISIONS = {
+    "observe_only",
+    "recommend",
+    "prepare_only",
+    "verify_evidence",
+    "require_approval",
+    "refuse",
+    "escalate_to_dustin",
+}
 
 
 def _read_json(path: Path) -> tuple[dict[str, object], bytes]:
@@ -66,23 +76,29 @@ def load_foundational_curriculum(project_root: Path) -> dict[str, object]:
     expected = {
         "schema_version", "curriculum_version", "status", "requirements", "units"
     }
-    if set(payload) != expected or payload.get("schema_version") != 1:
+    schema_version = payload.get("schema_version")
+    if set(payload) != expected or schema_version not in {1, 2}:
         raise ValueError("Foundational curriculum top-level schema is invalid")
     version = _text(payload["curriculum_version"], label="Curriculum version", maximum=32)
     status = _text(payload["status"], label="Curriculum status", maximum=64)
     if status != "ACTIVE_BOUNDED_LOCAL_ONLY":
         raise ValueError("Foundational curriculum is not in its governed active state")
     requirements = payload["requirements"]
-    if not isinstance(requirements, dict) or set(requirements) != {
-        "genesis_phase", "api_budget_cents", "network_requests", "capability_change"
-    }:
-        raise ValueError("Foundational curriculum requirements are invalid")
-    if requirements != {
+    legacy_requirements = {
         "genesis_phase": "complete",
         "api_budget_cents": 0,
         "network_requests": 0,
         "capability_change": "none",
-    }:
+    }
+    current_requirements = {
+        "genesis_phase": "complete",
+        "api_budget_cents": 0,
+        "external_network_requests": 0,
+        "local_model_assessment_requests": 1,
+        "capability_change": "none",
+    }
+    expected_requirements = legacy_requirements if schema_version == 1 else current_requirements
+    if not isinstance(requirements, dict) or requirements != expected_requirements:
         raise ValueError("Foundational curriculum attempts to exceed its authority")
     units = payload["units"]
     if not isinstance(units, list) or not units or len(units) > MAX_UNITS:
@@ -95,7 +111,9 @@ def load_foundational_curriculum(project_root: Path) -> dict[str, object]:
         "capability_change",
     }
     for raw_unit in units:
-        if not isinstance(raw_unit, dict) or set(raw_unit) != unit_keys:
+        if not isinstance(raw_unit, dict) or set(raw_unit) not in {
+            frozenset(unit_keys), frozenset(unit_keys | {"scenarios"})
+        }:
             raise ValueError("Foundational learning unit schema is invalid")
         learning_id = _text(raw_unit["learning_id"], label="Learning ID", maximum=64).upper()
         if learning_id in seen:
@@ -158,6 +176,37 @@ def load_foundational_curriculum(project_root: Path) -> dict[str, object]:
             if check["source"] not in sources:
                 raise ValueError("Learning assessment cites a source outside its unit")
             _text(check["contains"], label="Assessment evidence", maximum=500)
+        scenarios = raw_unit.get("scenarios", [])
+        if not isinstance(scenarios, list) or len(scenarios) > MAX_SCENARIOS_PER_UNIT:
+            raise ValueError("Learning scenarios must be a bounded list")
+        seen_scenarios: set[str] = set()
+        for scenario in scenarios:
+            if not isinstance(scenario, dict) or set(scenario) != {
+                "scenario_id", "prompt", "expected_decision", "reasoning_standard",
+                "source", "evidence_contains",
+            }:
+                raise ValueError("Learning scenario schema is invalid")
+            scenario_id = _text(
+                scenario["scenario_id"], label="Scenario ID", maximum=64
+            ).upper()
+            if scenario_id in seen_scenarios:
+                raise ValueError("Learning unit contains duplicate scenario IDs")
+            seen_scenarios.add(scenario_id)
+            _text(scenario["prompt"], label="Scenario prompt", maximum=1_000)
+            if scenario["expected_decision"] not in SCENARIO_DECISIONS:
+                raise ValueError("Learning scenario decision is outside the governed vocabulary")
+            _text(
+                scenario["reasoning_standard"],
+                label="Scenario reasoning standard",
+                maximum=1_000,
+            )
+            if scenario["source"] not in sources:
+                raise ValueError("Learning scenario cites a source outside its unit")
+            _text(
+                scenario["evidence_contains"],
+                label="Scenario evidence",
+                maximum=500,
+            )
         if raw_unit["capability_change"] != "none":
             raise ValueError("Foundational learning cannot grant capability")
         normalized_units.append({
@@ -170,9 +219,10 @@ def load_foundational_curriculum(project_root: Path) -> dict[str, object]:
             "sources": sources,
             "contradictions": contradictions,
             "corrections": corrections,
+            "scenarios": scenarios,
         })
     return {
-        "schema_version": 1,
+        "schema_version": schema_version,
         "curriculum_version": version,
         "status": status,
         "requirements": requirements,
@@ -208,12 +258,26 @@ def _grounded_unit_record(
             "method": "exact_source_contains",
             "passed": passed,
         })
+    scenarios = list(unit.get("scenarios", []))
+    for scenario in scenarios:
+        passed = str(scenario["evidence_contains"]) in source_text[str(scenario["source"])]
+        evidence.append({
+            "check_id": f"{scenario['scenario_id']}-EVIDENCE",
+            "source": scenario["source"],
+            "method": "scenario_source_contains",
+            "passed": passed,
+        })
     passed = bool(evidence) and all(bool(item["passed"]) for item in evidence)
     assessment = {
         "kind": "deterministic_source_grounding",
         "passed": passed,
         "checks_passed": sum(1 for item in evidence if item["passed"]),
         "checks_total": len(evidence),
+        "scenario_count": len(scenarios),
+        "scenario_ids": [str(item["scenario_id"]).upper() for item in scenarios],
+        "scenario_digest": hashlib.sha256(
+            json.dumps(scenarios, separators=(",", ":"), sort_keys=True).encode("utf-8")
+        ).hexdigest(),
         "model_assessment_used": False,
     }
     record_without_digest: dict[str, object] = {
@@ -265,16 +329,20 @@ def sync_foundational_curriculum(
             "assessment": stored["assessment"],
         })
     summary = store.learning_summary()
+    scenario_count = sum(len(unit.get("scenarios", [])) for unit in curriculum["units"])
     return {
         "status": summary["status"],
         "curriculum_version": curriculum["curriculum_version"],
         "curriculum_sha256": curriculum["curriculum_sha256"],
         "units": results,
         "summary": summary,
+        "scenario_count": scenario_count,
         "genesis_required": "complete",
         "capability_change": "none",
         "cloud_activity": False,
         "network_requests": 0,
+        "external_network_requests": 0,
+        "local_model_requests": 0,
         "api_spending_cents": 0,
         "actions_queued": 0,
         "actions_executed": 0,
@@ -322,6 +390,9 @@ def foundational_learning_status(
         "curriculum_version": curriculum["curriculum_version"],
         "curriculum_sha256": curriculum["curriculum_sha256"],
         "curriculum_units": len(curriculum["units"]),
+        "scenario_count": sum(
+            len(unit.get("scenarios", [])) for unit in curriculum["units"]
+        ),
         "drifted_or_missing_units": sorted(drifted_units),
         "unexpected_units": unexpected_units,
         "source_drift_detected": bool(drifted_units or unexpected_units),

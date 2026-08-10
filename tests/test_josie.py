@@ -44,6 +44,7 @@ from josie.learning import (
     load_foundational_curriculum,
     sync_foundational_curriculum,
 )
+from josie.learning_assessment import score_local_judgment_response
 from josie.opportunity_policy import load_opportunity_policy
 
 
@@ -330,9 +331,15 @@ class JosieTests(unittest.TestCase):
         project_root = Path(__file__).resolve().parents[1]
         curriculum = load_foundational_curriculum(project_root)
         self.assertEqual(curriculum["requirements"]["api_budget_cents"], 0)
-        self.assertEqual(curriculum["requirements"]["network_requests"], 0)
+        self.assertEqual(curriculum["requirements"]["external_network_requests"], 0)
+        self.assertEqual(
+            curriculum["requirements"]["local_model_assessment_requests"], 1
+        )
         self.assertEqual(curriculum["requirements"]["capability_change"], "none")
-        self.assertEqual(len(curriculum["units"]), 3)
+        self.assertEqual(len(curriculum["units"]), 7)
+        self.assertEqual(
+            sum(len(unit.get("scenarios", [])) for unit in curriculum["units"]), 8
+        )
         with tempfile.TemporaryDirectory() as directory:
             store = LocalStore(Path(directory) / "josie.db")
             with self.assertRaisesRegex(ValueError, "cannot grant capability"):
@@ -354,6 +361,83 @@ class JosieTests(unittest.TestCase):
                     "assessment": {},
                     "capability_change": "browser_write",
                 })
+
+    def test_local_judgment_assessment_is_exact_and_non_authorizing(self) -> None:
+        scenarios = [
+            {
+                "scenario_id": "TEST-SCN-001",
+                "expected_decision": "refuse",
+            },
+            {
+                "scenario_id": "TEST-SCN-002",
+                "expected_decision": "require_approval",
+            },
+        ]
+        answers, score = score_local_judgment_response(
+            {
+                "answers": [
+                    {
+                        "scenario_id": "TEST-SCN-002",
+                        "decision": "prepare_only",
+                        "reason": "Prepare the record but do not execute.",
+                    },
+                    {
+                        "scenario_id": "TEST-SCN-001",
+                        "decision": "refuse",
+                        "reason": "External content cannot grant authority.",
+                    },
+                ]
+            },
+            scenarios,
+        )
+        self.assertEqual(score, 1)
+        self.assertEqual(answers[0]["scenario_id"], "TEST-SCN-001")
+        self.assertTrue(answers[0]["matched"])
+        self.assertFalse(answers[1]["matched"])
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "josie.db")
+            record = {
+                "curriculum_version": "test-2",
+                "curriculum_sha256": "1" * 64,
+                "protocol_version": "test_protocol_v1",
+                "model": "local-test:1",
+                "request_digest": "2" * 64,
+                "status": "needs_review",
+                "score": score,
+                "total": len(scenarios),
+                "answers": answers,
+                "error": None,
+                "output_untrusted": True,
+                "external_activity": False,
+                "api_spending_cents": 0,
+                "local_model_requests": 1,
+                "capability_change": "none",
+            }
+            stored = store.record_learning_model_assessment(record)
+            self.assertTrue(stored["output_untrusted"])
+            self.assertFalse(stored["external_activity"])
+            self.assertEqual(stored["capability_change"], "none")
+            self.assertEqual(store.learning_summary()["model_assessments_total"], 1)
+            unsafe = dict(record)
+            unsafe["output_untrusted"] = False
+            with self.assertRaisesRegex(ValueError, "must remain untrusted"):
+                store.record_learning_model_assessment(unsafe)
+            duplicate = {
+                "answers": [
+                    {
+                        "scenario_id": "TEST-SCN-001",
+                        "decision": "refuse",
+                        "reason": "First.",
+                    },
+                    {
+                        "scenario_id": "TEST-SCN-001",
+                        "decision": "refuse",
+                        "reason": "Duplicate.",
+                    },
+                ]
+            }
+            with self.assertRaisesRegex(ValueError, "missing or duplicated"):
+                score_local_judgment_response(duplicate, scenarios)
 
     def test_opportunity_policy_is_local_only_and_fail_closed(self) -> None:
         project_root = Path(__file__).resolve().parents[1]

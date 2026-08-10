@@ -85,6 +85,7 @@ cd C:\Josie
 .\.venv\Scripts\python.exe .\core.py learning status
 .\.venv\Scripts\python.exe .\core.py learning show FOUND-IDENTITY-001
 .\.venv\Scripts\python.exe .\core.py learning sync
+.\.venv\Scripts\python.exe .\core.py learning assess-local
 .\.venv\Scripts\python.exe .\core.py economics status
 .\.venv\Scripts\python.exe .\core.py status-snapshot show
 .\.venv\Scripts\python.exe .\core.py deploy status
@@ -97,8 +98,10 @@ cd C:\Josie
 `learning sync` is a bounded local database update. It accepts only the
 versioned `docs/learning/FOUNDATIONAL_CURRICULUM.json`, requires completed
 Genesis, reads sources only from `docs/`, performs no network requests, spends
-zero API cents, and cannot grant capability. `learning status` and `learning
-show` are read-only.
+zero API cents, and cannot grant capability. `learning assess-local` permits
+exactly one loopback Ollama request per run and records the answer as untrusted,
+non-authorizing evidence. It makes no cloud call, queues no action, and cannot
+change capability. `learning status` and `learning show` are read-only.
 
 The approved Advantech pilot is a local-only, authenticated, read-only research
 connector. It has no login, forms, JavaScript, cookies, saved downloads,

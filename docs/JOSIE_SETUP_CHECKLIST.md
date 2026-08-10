@@ -141,7 +141,9 @@ confirmed on Josie or by the repository test suite.
 - [x] Complete the first identity/authority, epistemology/provenance, and security/trust units with 9/9 deterministic source-grounding checks.
 - [x] Enforce zero API spend, zero network requests, and `capability_change: none` in both curriculum validation and database constraints.
 - [x] Add read-only CLI and local-GUI learning status/unit views plus backup/export coverage.
-- [ ] Add bounded moral/behavioral scenario practice and model-orchestration reasoning assessments.
+- [x] Add bounded moral/behavioral, model-routing, memory-governance, and safe-tool scenario practice: 7/7 units and 29/29 canonical source checks pass.
+- [x] Run two bounded loopback-only local-model assessments and preserve their outputs as untrusted evidence; the open-book result is 5/8 exact and remains `needs_review` with no capability promotion.
+- [x] Stop the remediation loop after two attempts; keep deterministic policy and allowlisted handlers as the enforcement boundary.
 
 ## Safety and permissions
 
@@ -195,6 +197,7 @@ confirmed on Josie or by the repository test suite.
 5. [x] Establish the canonical Foundation documents and correct the readiness/Genesis distinction.
 6. [x] Complete Genesis through independent witness interviews, Dustin reconciliation, Origin Record approval, and Constitution ratification.
 7. [x] Establish the bounded foundational-learning kernel and complete its first three grounded units.
+8. [x] Complete Foundational Learning Wave 2 with eight governed scenarios and an auditable non-authorizing local reasoning assessment.
 
 ## Change-control rule
 

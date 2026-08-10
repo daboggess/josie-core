@@ -98,10 +98,18 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             return "The local learning record is unavailable."
         report = foundational_learning_status(project_root=project_root, store=store)
         complete = report["units_by_status"]["complete"]
+        latest = report.get("latest_model_assessment")
+        assessment = (
+            f" Latest local reasoning check: {latest['status']} "
+            f"({latest['score']}/{latest['total']}); its output remains untrusted."
+            if latest else " No local reasoning check has been recorded yet."
+        )
         return (
             f"Foundational learning: {complete}/{report['curriculum_units']} grounded units "
-            f"complete; {report['attention_count']} need attention. "
+            f"complete with {report['scenario_count']} governed scenarios; "
+            f"{report['attention_count']} need attention. "
             "The curriculum is local-only, zero-spend, and grants no new capability."
+            + assessment
         )
     if text.startswith("learning unit "):
         if store is None:
