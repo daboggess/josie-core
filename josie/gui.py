@@ -86,9 +86,10 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"genesis", "genesis status", "genesis readiness", "are you genesis ready"}:
         report = build_genesis_status(project_root=project_root)
         return (
-            f"Genesis phase: {report['phase']}; {report['status']}. Sophie and Bernie have not "
-            "been interviewed. Existing setup provenance is not an Origin Record, and I cannot "
-            "confirm it myself. No action was queued or executed."
+            f"Genesis phase: {report['phase']}; {report['status']}. "
+            f"Sophie: {report['witnesses']['sophie']}; Bernie: {report['witnesses']['bernie']}. "
+            "Witness testimony remains evidence rather than authority, and I cannot confirm my "
+            "own origin. No action was queued or executed by this status check."
         )
     if text in {"economic policy", "spending limits", "wallet policy", "wallet status"}:
         policy = load_economic_policy(project_root)

@@ -33,7 +33,7 @@ from josie.browser_policy import load_browser_policy, validate_research_url
 from josie.economic_policy import load_economic_policy
 from josie.research import record_opportunity, record_upgrade_target
 from josie.status_snapshot import _pending_proposals
-from josie.foundation import derive_foundation_state
+from josie.foundation import _human_gates, derive_foundation_state
 from josie.genesis import build_genesis_status
 from josie.opportunity_policy import load_opportunity_policy
 
@@ -96,6 +96,43 @@ class JosieTests(unittest.TestCase):
             self.assertFalse(genesis["self_confirmation_allowed"])
             self.assertFalse(genesis["external_activity"])
             self.assertEqual(genesis["actions_executed"], 0)
+
+    def test_genesis_status_tracks_independent_witnesses_and_reconciliation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "data").mkdir()
+            reconciliation = (
+                root / "docs" / "identity" / "genesis" / "GENESIS_RECONCILIATION.md"
+            )
+            reconciliation.parent.mkdir(parents=True)
+            reconciliation.write_text("# Reconciliation\n", encoding="utf-8")
+            store = LocalStore(root / "data" / "josie.db")
+            for target in ("sophie", "bernie"):
+                handoff = store.create_model_handoff(
+                    target=target, request=f"Independent {target} witness request"
+                )
+                self.assertTrue(
+                    store.record_model_handoff_answer(
+                        handoff_id=int(handoff["id"]),
+                        response=f"Untrusted {target} witness answer",
+                    )
+                )
+            genesis = build_genesis_status(project_root=root)
+            self.assertEqual(genesis["phase"], "reconciliation")
+            self.assertEqual(genesis["status"], "awaiting_dustin_reconciliation")
+            self.assertTrue(genesis["witnesses_captured"])
+            self.assertTrue(genesis["reconciliation_recorded"])
+            self.assertTrue(genesis["session_external_activity_occurred"])
+            self.assertFalse(genesis["manual_relay_required"])
+            self.assertEqual(genesis["witnesses"]["sophie"], "captured_untrusted")
+            self.assertEqual(genesis["witnesses"]["bernie"], "captured_untrusted")
+            self.assertFalse(genesis["external_activity"])
+            self.assertEqual(genesis["actions_executed"], 0)
+
+            gates = _human_gates(genesis_status=genesis)
+            gate_ids = [item["id"] for item in gates]
+            self.assertNotIn("genesis_witness_interviews", gate_ids)
+            self.assertEqual(gate_ids[0], "origin_reconciliation")
 
     def test_opportunity_policy_is_local_only_and_fail_closed(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
@@ -1468,6 +1505,13 @@ class JosieTests(unittest.TestCase):
             "docs/identity/GENESIS_PROTOCOL.md",
             "docs/identity/GENESIS_INTERVIEW_PACKETS.md",
             "docs/identity/ORIGIN_RECORD.md",
+            "docs/identity/genesis/CONVERSATION_ZERO.md",
+            "docs/identity/genesis/WITNESS_SOPHIE.md",
+            "docs/identity/genesis/WITNESS_BERNIE.md",
+            "docs/identity/genesis/JOSIE_INITIAL_REFLECTION.md",
+            "docs/identity/genesis/CLAIM_LEDGER.yaml",
+            "docs/identity/genesis/GENESIS_RECONCILIATION.md",
+            "docs/identity/genesis/GENESIS_SESSION_001.yaml",
             "docs/learning/JOSIE_MASTER_LEARNING_LIST.md",
             "docs/memory/MEMORY_SCHEMA.md",
             "docs/memory/PROVENANCE_SCHEMA.md",
@@ -1492,8 +1536,8 @@ class JosieTests(unittest.TestCase):
         origin = (project_root / "docs" / "identity" / "ORIGIN_RECORD.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("GENESIS NOT STARTED", origin)
-        self.assertIn("None.", origin)
+        self.assertIn("GENESIS IN PROGRESS", origin)
+        self.assertIn("DUSTIN RECONCILIATION REQUIRED", origin)
 
 
 if __name__ == "__main__":

@@ -128,9 +128,10 @@ confirmed on Josie or by the repository test suite.
 - [x] Separate operational **Foundation Readiness** from **Genesis identity formation** in code, monitoring, CLI, and local GUI.
 - [x] Prepare independent Sophie and Bernie interview packets without sending them.
 - [ ] Dustin ratifies or revises the Constitution draft.
-- [ ] Conduct independent Sophie and Bernie Genesis interviews through the approved manual relay.
-- [ ] Reconcile witness claims against historical evidence and ask Dustin only the unresolved intent questions.
-- [ ] Review, confirm, back up, and version the final Origin Record. Genesis remains `NOT_STARTED` until these steps begin.
+- [x] Conduct independent Sophie and Bernie Genesis interviews through the approved authenticated cloud sessions without showing either witness the other's answer.
+- [x] Reconcile witness claims against Conversation Zero, canonical state, and historical evidence; preserve unsupported claims rather than promoting them.
+- [ ] Dustin resolves or explicitly defers the three remaining intent questions in the Genesis reconciliation record.
+- [ ] Review, confirm, back up, and version the final Origin Record. Genesis remains `IN PROGRESS` until Dustin's reconciliation and ratification are complete.
 
 ## Safety and permissions
 

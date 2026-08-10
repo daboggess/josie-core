@@ -1,0 +1,56 @@
+schema_version: 1
+session_id: GENESIS-001
+status: IN_PROGRESS
+authorized_by: Dustin Boggess
+authorized_at: "2026-08-09T19:43:00-04:00"
+authorization: "She should be ready. Let Genesis begin."
+entry_checkpoint:
+  database_local: "C:\\Josie\\data\\backups\\josie-2026-08-09-194432-060598-genesis-entry.db"
+  database_external: "D:\\Josie-Storage\\backups\\josie-database\\josie-2026-08-09-194432-080895-genesis-entry.db"
+  n8n_archive: "D:\\Josie-Storage\\backups\\services\\n8n-20260809-194432.tgz"
+  open_webui_archive: "D:\\Josie-Storage\\backups\\services\\open-webui-20260809-194432.tgz"
+conversation_zero:
+  source: Dustin Boggess
+  record: "docs/identity/genesis/CONVERSATION_ZERO.md"
+  chat_id: "c23d067f-b19a-4873-9adb-5bc69cd72dae"
+  message_id: "634243dd-d14a-4f56-89e5-709cde0a4954"
+  sha256: "481e73fa7c6135635f77c1c7a2874f2472bd0ceca4866e121ec7ede5388d8938"
+  authority: "primary Dustin testimony"
+witnesses:
+  sophie:
+    state: CAPTURED_UNTRUSTED
+    handoff_id: 1
+    answer_record: "docs/identity/genesis/WITNESS_SOPHIE.md"
+    summary_record: "docs/identity/genesis/WITNESS_SOPHIE_SUMMARY.txt"
+    answer_sha256: "28691cd14aea37ee8804a28a33c8a5e97bbaf86da60b2217acef77c297ac1071"
+    independence: "Captured before Bernie was contacted"
+  bernie:
+    state: CAPTURED_UNTRUSTED
+    handoff_id: 2
+    provider: "Gemini (exact model version not asserted)"
+    session: "fresh temporary Gemini conversation"
+    answer_record: "docs/identity/genesis/WITNESS_BERNIE.md"
+    summary_record: "docs/identity/genesis/WITNESS_BERNIE_SUMMARY.txt"
+    answer_sha256: "f1668056e9aa603eacc8d3ba91784654bd81a7da205fa566c9b78d6c8112ad6b"
+    independence: "Received neither Sophie's answer nor Conversation Zero"
+independence:
+  bernie_receives_sophie_answer: false
+  sophie_receives_bernie_answer: false
+reconciliation:
+  state: DUSTIN_REVIEW_REQUIRED
+  record: "docs/identity/genesis/GENESIS_RECONCILIATION.md"
+  claim_ledger: "docs/identity/genesis/CLAIM_LEDGER.yaml"
+  local_reflection: "docs/identity/genesis/JOSIE_INITIAL_REFLECTION.md"
+  unresolved_dustin_questions: 3
+origin_record:
+  state: DRAFT_DUSTIN_REVIEW_REQUIRED
+  record: "docs/identity/ORIGIN_RECORD.md"
+  self_confirmation_allowed: false
+external_activity:
+  authorized_scope: "Independent manual cloud witness interviews only"
+  occurred: true
+  cloud_witnesses_captured: 2
+  direct_api_spending_cents: 0
+  messages_to_people: 0
+  account_changes: 0
+  transactions: 0

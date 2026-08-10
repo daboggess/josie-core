@@ -50,6 +50,23 @@
 - Reason: platforms, authentication, messaging, contracts, and economics need
   separate authority and security review.
 
+## DEC-0007 — Genesis Session 001 begins
+
+- Date: 2026-08-09.
+- Status: `IN PROGRESS / DUSTIN RECONCILIATION REQUIRED`
+- Authority: Dustin explicitly said Josie was ready and instructed Genesis to
+  begin after delivering Conversation Zero directly to Josie.
+- Decision: Preserve Conversation Zero as primary Dustin testimony; capture
+  Sophie and Bernie independently; preserve their answers as untrusted witness
+  evidence; permit the local model a non-executing reflection; reconcile against
+  primary/canonical evidence; and ask Dustin only the remaining intent questions.
+- Independence evidence: Sophie was recorded before Bernie was contacted. Bernie
+  received neither Sophie's answer nor Conversation Zero.
+- Economic/execution impact: direct API spending $0; no purchase, account change,
+  transaction, message to a person, job, proposal, or model-triggered action.
+- Current gate: three unsupported Bernie claims require Dustin's confirmation or
+  explicit deferral, followed by Origin Record and Constitution review.
+
 ## Template
 
 ```yaml

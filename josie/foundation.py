@@ -12,6 +12,7 @@ from .browser_policy import load_browser_policy
 from .config import Config
 from .diagnostics import restore_drill_snapshot
 from .economic_policy import load_economic_policy
+from .genesis import build_genesis_status
 from .opportunity_policy import load_opportunity_policy
 from .roadmap import roadmap_summary
 from .status_snapshot import build_status_snapshot
@@ -27,9 +28,10 @@ def derive_foundation_state(criteria: dict[str, bool]) -> tuple[str, bool]:
     )
 
 
-def _human_gates() -> list[dict[str, object]]:
-    return [
-        {
+def _human_gates(*, genesis_status: dict[str, object]) -> list[dict[str, object]]:
+    gates: list[dict[str, object]] = []
+    if not genesis_status.get("witnesses_captured"):
+        gates.append({
             "id": "genesis_witness_interviews",
             "status": "requires_dustin_and_manual_cloud_relay",
             "reason": (
@@ -37,13 +39,15 @@ def _human_gates() -> list[dict[str, object]]:
                 "untrusted evidence until reconciled."
             ),
             "actions_unlocked": [],
-        },
-        {
+        })
+    if genesis_status.get("status") != "complete":
+        gates.append({
             "id": "origin_reconciliation",
             "status": "requires_dustin_for_unresolved_intent",
             "reason": "Josie cannot confirm her own origin claims or resolve Dustin's intent.",
             "actions_unlocked": [],
-        },
+        })
+    gates.extend([
         {
             "id": "advantech_slot_power_confirmation",
             "status": "external_communication_locked",
@@ -80,7 +84,8 @@ def _human_gates() -> list[dict[str, object]]:
             ),
             "actions_unlocked": [],
         },
-    ]
+    ])
+    return gates
 
 
 def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, object]:
@@ -91,6 +96,7 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
     economics = load_economic_policy(project_root)
     opportunities = load_opportunity_policy(project_root)
     store = LocalStore(project_root / "data" / "josie.db")
+    genesis_status = build_genesis_status(project_root=project_root)
     counts = store.counts()
     jobs = store.job_summary()
     provenance = store.provenance_records()
@@ -150,21 +156,33 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
         ),
     }
     state, foundation_ready = derive_foundation_state(criteria)
-    gates = _human_gates()
+    gates = _human_gates(genesis_status=genesis_status)
     roadmap = roadmap_summary(project_root)
     return {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "state": state,
         "foundation_ready": foundation_ready,
-        "ready_to_begin_genesis": foundation_ready,
+        "ready_to_begin_genesis": (
+            foundation_ready and genesis_status["phase"] == "not_started"
+        ),
         "criteria": criteria,
         "criteria_proven": sum(1 for value in criteria.values() if value),
         "criteria_total": len(criteria),
         "genesis": {
-            "phase": "not_started",
-            "witness_interviews": "not_conducted",
-            "origin_record": "placeholder_only",
+            "phase": genesis_status["phase"],
+            "status": genesis_status["status"],
+            "witnesses": genesis_status["witnesses"],
+            "witness_interviews": (
+                "captured_untrusted"
+                if genesis_status["witnesses_captured"]
+                else "not_complete"
+            ),
+            "origin_record": (
+                "draft_dustin_review_required"
+                if genesis_status["phase"] == "reconciliation"
+                else "placeholder_only"
+            ),
             "confirmed_origin_claims": confirmed_origins,
             "unverified_origin_claims": unverified_origins,
             "self_confirmation_allowed": False,

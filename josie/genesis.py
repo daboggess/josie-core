@@ -11,26 +11,51 @@ from .storage import LocalStore
 def build_genesis_status(*, project_root: Path) -> dict[str, object]:
     store = LocalStore(project_root / "data" / "josie.db")
     provenance = store.provenance_records()
-    draft_targets = {
-        str(item["target"])
-        for item in store.recent_model_handoffs()
-        if item.get("status") == "draft"
+    handoffs = store.recent_model_handoffs()
+    target_status = {
+        str(item["target"]): str(item["status"])
+        for item in reversed(handoffs)
+        if item.get("target") in {"sophie", "bernie"}
+    }
+    draft_targets = {target for target, status in target_status.items() if status == "draft"}
+    answered_targets = {
+        target for target, status in target_status.items() if status == "answered"
     }
     both_drafts_ready = {"sophie", "bernie"}.issubset(draft_targets)
+    both_witnesses_captured = {"sophie", "bernie"}.issubset(answered_targets)
+    reconciliation_ready = (
+        project_root / "docs" / "identity" / "genesis" / "GENESIS_RECONCILIATION.md"
+    ).is_file()
+    if both_witnesses_captured and reconciliation_ready:
+        phase = "reconciliation"
+        status = "awaiting_dustin_reconciliation"
+    elif both_witnesses_captured:
+        phase = "witness_interviews_complete"
+        status = "witnesses_captured_awaiting_reconciliation"
+    elif both_drafts_ready:
+        phase = "not_started"
+        status = "interview_drafts_prepared_awaiting_manual_relay"
+    else:
+        phase = "not_started"
+        status = "awaiting_independent_witness_interviews"
+
+    def witness_state(target: str) -> str:
+        if target in answered_targets:
+            return "captured_untrusted"
+        if target in draft_targets:
+            return "draft_prepared_not_sent"
+        return "not_interviewed"
+
     return {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "phase": "not_started",
-        "status": (
-            "interview_drafts_prepared_awaiting_manual_relay"
-            if both_drafts_ready
-            else "awaiting_independent_witness_interviews"
-        ),
+        "phase": phase,
+        "status": status,
         "protocol": str(project_root / "docs" / "identity" / "GENESIS_PROTOCOL.md"),
         "origin_record": str(project_root / "docs" / "identity" / "ORIGIN_RECORD.md"),
         "witnesses": {
-            "sophie": "draft_prepared_not_sent" if "sophie" in draft_targets else "not_interviewed",
-            "bernie": "draft_prepared_not_sent" if "bernie" in draft_targets else "not_interviewed",
+            "sophie": witness_state("sophie"),
+            "bernie": witness_state("bernie"),
             "dustin": "final_authority_for_unresolved_intent",
         },
         "existing_provenance": {
@@ -41,7 +66,11 @@ def build_genesis_status(*, project_root: Path) -> dict[str, object]:
         "self_confirmation_allowed": False,
         "independent_answers_required": True,
         "drafts_prepared": both_drafts_ready,
-        "manual_relay_required": True,
+        "witnesses_captured": both_witnesses_captured,
+        "reconciliation_recorded": reconciliation_ready,
+        "manual_relay_required": not both_witnesses_captured,
+        "session_external_activity_occurred": both_witnesses_captured,
+        "direct_api_spending_cents": 0,
         "external_activity": False,
         "actions_queued": 0,
         "actions_executed": 0,
