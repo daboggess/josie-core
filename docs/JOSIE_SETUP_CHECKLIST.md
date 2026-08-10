@@ -127,11 +127,11 @@ confirmed on Josie or by the repository test suite.
 - [x] Create versioned Constitution, authority, architecture, security, service, hardware, decision, memory, provenance, learning, and Genesis scaffolding.
 - [x] Separate operational **Foundation Readiness** from **Genesis identity formation** in code, monitoring, CLI, and local GUI.
 - [x] Prepare independent Sophie and Bernie interview packets without sending them.
-- [ ] Dustin ratifies or revises the Constitution draft.
+- [x] Dustin ratifies Josie's Constitution version 0.1.0.
 - [x] Conduct independent Sophie and Bernie Genesis interviews through the approved authenticated cloud sessions without showing either witness the other's answer.
 - [x] Reconcile witness claims against Conversation Zero, canonical state, and historical evidence; preserve unsupported claims rather than promoting them.
 - [x] Dustin resolves the three remaining intent questions as Bernie-specific relationship/directive context rather than Josie identity or constitutional rules.
-- [ ] Review, confirm, back up, and version the final Origin Record. Genesis remains `IN PROGRESS` until Dustin's reconciliation and ratification are complete.
+- [x] Review, confirm, back up, and version Origin Record 1.0.0. Genesis Session 001 is `COMPLETE`.
 
 ## Safety and permissions
 

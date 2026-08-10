@@ -28,6 +28,19 @@ def derive_foundation_state(criteria: dict[str, bool]) -> tuple[str, bool]:
     )
 
 
+def contextualize_foundation_state(
+    state: str, *, foundation_ready: bool, genesis_phase: str
+) -> str:
+    """Keep the operational state accurate after Genesis has started."""
+    if not foundation_ready:
+        return state
+    if genesis_phase == "complete":
+        return "foundation_ready_genesis_complete"
+    if genesis_phase != "not_started":
+        return "foundation_ready_genesis_in_progress"
+    return state
+
+
 def _human_gates(*, genesis_status: dict[str, object]) -> list[dict[str, object]]:
     gates: list[dict[str, object]] = []
     if not genesis_status.get("witnesses_captured"):
@@ -165,6 +178,11 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
         ),
     }
     state, foundation_ready = derive_foundation_state(criteria)
+    state = contextualize_foundation_state(
+        state,
+        foundation_ready=foundation_ready,
+        genesis_phase=str(genesis_status["phase"]),
+    )
     gates = _human_gates(genesis_status=genesis_status)
     roadmap = roadmap_summary(project_root)
     return {
@@ -188,12 +206,16 @@ def build_foundation_report(*, config: Config, project_root: Path) -> dict[str, 
                 else "not_complete"
             ),
             "origin_record": (
-                "draft_final_dustin_ratification_required"
-                if genesis_status["phase"] == "origin_review"
+                "ratified_version_1_0_0"
+                if genesis_status["phase"] == "complete"
                 else (
-                    "draft_dustin_review_required"
-                    if genesis_status["phase"] == "reconciliation"
-                    else "placeholder_only"
+                    "draft_final_dustin_ratification_required"
+                    if genesis_status["phase"] == "origin_review"
+                    else (
+                        "draft_dustin_review_required"
+                        if genesis_status["phase"] == "reconciliation"
+                        else "placeholder_only"
+                    )
                 )
             ),
             "confirmed_origin_claims": confirmed_origins,

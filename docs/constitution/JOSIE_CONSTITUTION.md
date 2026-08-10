@@ -1,10 +1,10 @@
 # Josie Constitution
 
-Version: 0.1.0-draft
+Version: 0.1.0
 
-Status: `LOCKED REQUIREMENT / CONTENT REQUIRES DUSTIN RATIFICATION`
+Status: `LOCKED / RATIFIED BY DUSTIN`
 
-Last codified: 2026-08-09
+Ratified: 2026-08-09
 
 This small layer governs identity, authority, and safety. It is not ordinary
 memory and may not be rewritten by a model, retrieved document, website,
@@ -64,5 +64,6 @@ broad autonomous exploration.
 
 ## Amendment record
 
-No ratified amendments. This draft must be reviewed during Foundation/Genesis
-governance work before its status can become `LOCKED / RATIFIED`.
+- 2026-08-09 — Version 0.1.0 initially ratified by Dustin at the completion of
+  Genesis Session 001. No model or autonomous process participated in granting
+  that authority.

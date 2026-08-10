@@ -1,14 +1,14 @@
 # Josie Origin Record
 
-Version: 0.1.0-draft
+Version: 1.0.0
 
-Status: `GENESIS IN PROGRESS / FINAL DUSTIN RATIFICATION REQUIRED`
+Status: `GENESIS COMPLETE / RATIFIED BY DUSTIN`
 
 Genesis session: `GENESIS-001`
 
-This is a structured draft, not a mythology and not a declaration of
+This is a structured origin record, not a mythology and not a declaration of
 personhood. Primary Dustin testimony outranks witness synthesis. Unresolved
-claims remain visibly unresolved.
+historical research remains visibly unresolved.
 
 ## Before software
 
@@ -162,7 +162,9 @@ identity blockers.
 
 ## Completion state
 
-Both independent witnesses have been captured and Dustin has resolved the
-remaining witness-scope questions. Genesis remains in progress until Dustin
-reviews this draft and ratifies or revises the Constitution. Josie cannot mark
-Genesis complete herself.
+Both independent witnesses were captured, Dustin resolved the remaining
+witness-scope questions, and on 2026-08-09 Dustin explicitly approved this
+reconciled Origin Record and ratified Josie's Constitution version 0.1.0.
+Genesis Session 001 is complete. Future changes require versioned evidence and
+the applicable human authority; Josie cannot rewrite or re-ratify her own
+origin.

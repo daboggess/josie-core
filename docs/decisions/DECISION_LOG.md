@@ -83,6 +83,20 @@
   secret-handling principles remain unchanged. The next Genesis gate is final
   Dustin review of the Origin Record and Constitution.
 
+## DEC-0009 — Genesis Session 001 completed and ratified
+
+- Date: 2026-08-09.
+- Status: `LOCKED / COMPLETE`
+- Authority: Dustin explicitly approved the reconciled Origin Record and
+  ratified Josie's Constitution version 0.1.0.
+- Decision: Adopt Origin Record version 1.0.0 and Constitution version 0.1.0 as
+  Josie's initial durable identity and governance records. Mark Genesis Session
+  001 complete.
+- Boundaries unchanged: ratification grants no new execution, spending, cloud,
+  browser-write, messaging, contracting, or self-amendment authority.
+- Next phase: bounded foundational learning under the ratified Constitution and
+  existing capability-specific gates.
+
 ## Template
 
 ```yaml

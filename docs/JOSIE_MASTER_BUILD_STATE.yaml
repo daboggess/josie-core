@@ -80,15 +80,16 @@ working:
   - "Read-only official-source browser research pilot with exact URL allowlist"
   - "Cloud, spending, wallet, browser-write, and arbitrary-shell locks"
   - "Canonical Master Context, Master Build State, Foundation/Genesis distinction, and versioned governance scaffolding"
-  - "Foundation Readiness: 11 of 11 operational criteria remain proven while Genesis proceeds"
+  - "Foundation Readiness: 11 of 11 operational criteria remain proven after Genesis completion"
   - "Independent Sophie and Bernie Genesis interview drafts prepared and exported locally with zero external activity"
   - "Genesis Session 001 entered with Conversation Zero preserved and both independent witness accounts captured"
   - "Draft Origin Record, claim ledger, local-model reflection, and first reconciliation created"
   - "Dustin resolved all three witness-scope questions as Bernie-specific context rather than Josie identity or constitutional rules"
+  - "Genesis Session 001 complete: Origin Record 1.0.0 approved and Constitution 0.1.0 ratified by Dustin"
 
 next:
-  - id: genesis_human_gate
-    action: "Dustin reviews the reconciled draft Origin Record and ratifies or revises the Constitution."
+  - id: foundational_learning
+    action: "Begin the first bounded post-Genesis track from the Master Learning List without expanding execution authority."
   - id: deal_hunter_local_design
     action: "Build the local-only scoring and evidence model without authenticating, scraping unapproved sites, messaging, or publishing."
 
@@ -135,11 +136,12 @@ blocked:
     dependency: "Legal/ethical/accounting review, non-self-modifiable limits, exact human approval policy, and Dustin authorization"
 
 genesis:
-  phase: "origin_review"
-  foundation_status: "foundation_ready_for_genesis"
+  phase: "complete"
+  foundation_status: "foundation_ready_genesis_complete"
   sophie_interview: "captured independently as untrusted witness evidence"
   bernie_interview: "captured independently as untrusted witness evidence"
   interview_drafts: "completed through approved cloud witness sessions"
-  origin_record: "reconciled draft awaiting final Dustin ratification"
+  origin_record: "version 1.0.0 ratified by Dustin"
+  constitution: "version 0.1.0 ratified by Dustin"
   existing_setup_provenance: "unverified evidence; not the Origin Record"
   self_confirmation_allowed: false

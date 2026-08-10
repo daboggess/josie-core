@@ -33,7 +33,11 @@ from josie.browser_policy import load_browser_policy, validate_research_url
 from josie.economic_policy import load_economic_policy
 from josie.research import record_opportunity, record_upgrade_target
 from josie.status_snapshot import _pending_proposals
-from josie.foundation import _human_gates, derive_foundation_state
+from josie.foundation import (
+    _human_gates,
+    contextualize_foundation_state,
+    derive_foundation_state,
+)
 from josie.genesis import build_genesis_status
 from josie.opportunity_policy import load_opportunity_policy
 
@@ -84,6 +88,22 @@ class JosieTests(unittest.TestCase):
         state, ready = derive_foundation_state({"services": True, "backups": False})
         self.assertEqual(state, "foundation_attention_required")
         self.assertFalse(ready)
+        self.assertEqual(
+            contextualize_foundation_state(
+                "foundation_ready_for_genesis",
+                foundation_ready=True,
+                genesis_phase="complete",
+            ),
+            "foundation_ready_genesis_complete",
+        )
+        self.assertEqual(
+            contextualize_foundation_state(
+                "foundation_attention_required",
+                foundation_ready=False,
+                genesis_phase="complete",
+            ),
+            "foundation_attention_required",
+        )
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -147,6 +167,25 @@ class JosieTests(unittest.TestCase):
             self.assertTrue(genesis["dustin_questions_resolved"])
             gates = _human_gates(genesis_status=genesis)
             self.assertEqual(gates[0]["id"], "origin_and_constitution_ratification")
+
+            origin = root / "docs" / "identity" / "ORIGIN_RECORD.md"
+            origin.write_text(
+                "# Origin\n\nStatus: `GENESIS COMPLETE / RATIFIED BY DUSTIN`\n",
+                encoding="utf-8",
+            )
+            constitution = root / "docs" / "constitution" / "JOSIE_CONSTITUTION.md"
+            constitution.parent.mkdir(parents=True)
+            constitution.write_text(
+                "# Constitution\n\nStatus: `LOCKED / RATIFIED BY DUSTIN`\n",
+                encoding="utf-8",
+            )
+            genesis = build_genesis_status(project_root=root)
+            self.assertEqual(genesis["phase"], "complete")
+            self.assertEqual(genesis["status"], "complete")
+            self.assertTrue(genesis["ratification_complete"])
+            gate_ids = [item["id"] for item in _human_gates(genesis_status=genesis)]
+            self.assertNotIn("origin_reconciliation", gate_ids)
+            self.assertNotIn("origin_and_constitution_ratification", gate_ids)
 
     def test_opportunity_policy_is_local_only_and_fail_closed(self) -> None:
         project_root = Path(__file__).resolve().parents[1]
@@ -1550,8 +1589,13 @@ class JosieTests(unittest.TestCase):
         origin = (project_root / "docs" / "identity" / "ORIGIN_RECORD.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("GENESIS IN PROGRESS", origin)
-        self.assertIn("FINAL DUSTIN RATIFICATION REQUIRED", origin)
+        self.assertIn("GENESIS COMPLETE", origin)
+        self.assertIn("RATIFIED BY DUSTIN", origin)
+        constitution = (
+            project_root / "docs" / "constitution" / "JOSIE_CONSTITUTION.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Version: 0.1.0", constitution)
+        self.assertIn("LOCKED / RATIFIED BY DUSTIN", constitution)
 
 
 if __name__ == "__main__":

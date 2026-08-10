@@ -32,7 +32,22 @@ def build_genesis_status(*, project_root: Path) -> dict[str, object]:
         and "DUSTIN QUESTIONS RESOLVED"
         in reconciliation_path.read_text(encoding="utf-8")
     )
-    if both_witnesses_captured and dustin_questions_resolved:
+    origin_path = project_root / "docs" / "identity" / "ORIGIN_RECORD.md"
+    constitution_path = (
+        project_root / "docs" / "constitution" / "JOSIE_CONSTITUTION.md"
+    )
+    ratification_complete = (
+        origin_path.is_file()
+        and "GENESIS COMPLETE / RATIFIED BY DUSTIN"
+        in origin_path.read_text(encoding="utf-8")
+        and constitution_path.is_file()
+        and "LOCKED / RATIFIED BY DUSTIN"
+        in constitution_path.read_text(encoding="utf-8")
+    )
+    if both_witnesses_captured and dustin_questions_resolved and ratification_complete:
+        phase = "complete"
+        status = "complete"
+    elif both_witnesses_captured and dustin_questions_resolved:
         phase = "origin_review"
         status = "awaiting_dustin_origin_and_constitution_ratification"
     elif both_witnesses_captured and reconciliation_ready:
@@ -78,6 +93,7 @@ def build_genesis_status(*, project_root: Path) -> dict[str, object]:
         "witnesses_captured": both_witnesses_captured,
         "reconciliation_recorded": reconciliation_ready,
         "dustin_questions_resolved": dustin_questions_resolved,
+        "ratification_complete": ratification_complete,
         "manual_relay_required": not both_witnesses_captured,
         "session_external_activity_occurred": both_witnesses_captured,
         "direct_api_spending_cents": 0,
