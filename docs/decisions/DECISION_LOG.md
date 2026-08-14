@@ -249,6 +249,29 @@
   seller message, cart, offer, bid, order, checkout, purchase, payment, model
   direct access, or spending authority.
 
+## DEC-0017 â€” Discovery remains separate from scoring and authority
+
+- Date: 2026-08-14.
+- Status: `WORKING / OFFLINE ONLY / UNRESOLVED`.
+- Authority: safe pre-credential implementation under Dustin's instruction to
+  continue all non-sensitive work while eBay account and license gates remain
+  human-controlled.
+- Decision: persist normalized eBay fixture items in a discovery inbox keyed by
+  source and stable `itemId`. Preserve first/last seen timestamps, count repeat
+  observations, and refresh newer price/shipping evidence without creating a
+  second record.
+- Separation: discovery records cannot claim tax-complete acquisition cost,
+  resolved hardware profile, score readiness, recommendation, action, or
+  purchase authority. Database constraints independently enforce these limits.
+- Input boundary: only relative `.json` files inside
+  `C:\Josie\data\staging\ebay`, at most one megabyte. Raw responses and listing
+  descriptions are not persisted; no network client is involved.
+- Acceptance: 78/78 tests pass, including cross-run deduplication, refresh,
+  unsafe-authority rejection, path confinement, and size limits.
+- Next gate: deterministic hardware-profile matching and cost completion can be
+  designed locally. Any live API call still requires the existing eBay human
+  account/license/key gates and a separate activation approval.
+
 ## Template
 
 ```yaml

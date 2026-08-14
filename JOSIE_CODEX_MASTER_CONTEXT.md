@@ -295,6 +295,12 @@ Craigslist automation is `REJECTED` by Dustin unless a future explicit decision
 with new permission evidence supersedes it. Messaging, bidding, purchasing, and
 spending remain forbidden. Josie helping build Josie is intentional.
 
+The pre-activation discovery path is also versioned. An API-shaped JSON fixture
+may be placed in the local eBay staging inbox and imported without network
+access. Normalized listings are persisted by eBay `itemId`, refreshed across
+runs, and remain explicitly unresolved and unscored. Discovery is evidence for
+later analysis; it is not a recommendation, purchase proposal, or authority.
+
 ## 22. Price-per-performance philosophy
 
 Dustin emphasizes PPP: “Is the juice worth the squeeze?” Evaluate purchase

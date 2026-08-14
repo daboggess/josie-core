@@ -180,13 +180,14 @@ confirmed on Josie or by the repository test suite.
 - [x] Add a local research-only opportunity ledger that calculates estimated profit and hourly return while authorizing no bid, contract, transaction, or external activity.
 - [x] Add a local hardware-target tracker with compatibility state and zero purchase authority.
 - [x] Evaluate wallet capability for Josie 1.0 and deliberately keep it disabled behind strict non-self-modifiable zero-dollar limits.
-- [x] Build a default-deny local opportunity-research framework with an empty approved-source allowlist; live discovery remains disabled.
+- [x] Build a default-deny local opportunity-research framework; eBay is the only selected source and remains staged with live discovery disabled.
 - [x] Build a transparent offline hardware-deal scorer for manually supplied listings; unverified current listings are forced to `verify_before_review`.
 - [x] Persist deal candidates locally with evidence status, uncertainty, score breakdown, and database-enforced zero action/purchase authority.
 - [x] Add a local Deal Hunter entry screen that forces `user_supplied` evidence, stores URLs without opening them, and exposes no model, browser, seller-contact, or purchase path.
 - [x] Select eBay Browse API as live source number one and verify its official search, application-token, default-quota, developer-account, and additional-license requirements.
 - [x] Defer Facebook Marketplace pending a permitted access path and reject Craigslist automation unless a future explicit decision supersedes it.
 - [x] Stage a dormant eBay source policy and offline adapter that normalizes allowlisted item fields, removes duplicate item IDs, ignores descriptions, and has no network client.
+- [x] Add a persistent unresolved discovery inbox with cross-run eBay item-ID deduplication, safe refreshes, an offline-only fixture importer, and database-enforced zero scoring/action/purchase authority.
 - [ ] Dustin completes the human-controlled eBay developer account, API License Agreement, additional Buy API license/access verification, and application-key creation steps.
 - [ ] Store the eBay client ID/secret in the ignored local environment and activate the reviewed read-only connector only after a separate explicit approval.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.

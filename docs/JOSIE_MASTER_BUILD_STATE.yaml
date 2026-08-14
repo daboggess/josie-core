@@ -96,6 +96,7 @@ working:
   - "Offline hardware deal scorer works for manually supplied candidates with transparent weights, forced evidence review, and zero purchase authority"
   - "Local Deal Hunter form records manually entered candidates as user-supplied evidence; links are never opened and no action or purchase path exists"
   - "eBay Browse API selected as Deal Hunter live source number one; dormant adapter validates policy and normalizes/deduplicates supplied fixtures without network access"
+  - "Persistent eBay discovery inbox imports only bounded local JSON fixtures, deduplicates across runs, preserves first/last seen state, and cannot score or authorize unresolved listings"
 
 next:
   - id: ebay_developer_access_human_gate
@@ -183,7 +184,7 @@ evidence_verification:
   external_action_authorized: false
 
 deal_hunter:
-  status: "working_local_scorer_manual_ui_and_staged_ebay_adapter"
+  status: "working_local_scorer_manual_ui_staged_ebay_adapter_and_offline_discovery_inbox"
   live_discovery: false
   approved_sources: 1
   approved_source_ids: ["ebay_browse_api"]
@@ -192,6 +193,9 @@ deal_hunter:
   ebay_adapter_network_capability: false
   ebay_fixture_normalization: true
   ebay_batch_deduplication_key: "itemId"
+  ebay_cross_run_deduplication: true
+  ebay_fixture_import: "local-only from data/staging/ebay; one-megabyte maximum; raw response not persisted"
+  unresolved_discoveries_scored: false
   ebay_default_official_quota_verified: "5000 calls/day on 2026-08-14; Josie local ceiling staged at 100/day"
   ebay_buy_api_additional_license_verified: false
   ebay_credentials_present: false

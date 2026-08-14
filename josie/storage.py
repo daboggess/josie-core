@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 class LocalStore:
@@ -160,6 +161,42 @@ class LocalStore:
                     CHECK (purchase_authorized = 0),
                     capability_change TEXT NOT NULL DEFAULT 'none'
                     CHECK (capability_change = 'none')
+                );
+                CREATE TABLE IF NOT EXISTS deal_discoveries (
+                    discovery_id INTEGER PRIMARY KEY,
+                    source_id TEXT NOT NULL CHECK (source_id = 'ebay_browse_api'),
+                    external_item_id TEXT NOT NULL,
+                    deduplication_key TEXT NOT NULL UNIQUE,
+                    first_seen_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    observation_count INTEGER NOT NULL DEFAULT 1
+                    CHECK (observation_count >= 1),
+                    title TEXT NOT NULL,
+                    item_url TEXT NOT NULL,
+                    ask_price_cents INTEGER NOT NULL CHECK (ask_price_cents > 0),
+                    shipping_cents INTEGER CHECK (shipping_cents >= 0),
+                    shipping_known INTEGER NOT NULL CHECK (shipping_known IN (0,1)),
+                    tax_known INTEGER NOT NULL DEFAULT 0 CHECK (tax_known = 0),
+                    total_acquisition_cents INTEGER CHECK (total_acquisition_cents IS NULL),
+                    condition TEXT NOT NULL
+                    CHECK (condition IN ('new','used_good','used_unknown','parts_only')),
+                    seller_risk TEXT NOT NULL CHECK (seller_risk IN ('low','medium','high')),
+                    evidence_status TEXT NOT NULL
+                    CHECK (evidence_status = 'unverified_adapter_input'),
+                    normalized_json TEXT NOT NULL,
+                    scoring_ready INTEGER NOT NULL DEFAULT 0 CHECK (scoring_ready = 0),
+                    external_activity INTEGER NOT NULL DEFAULT 0 CHECK (external_activity = 0),
+                    action_authorized INTEGER NOT NULL DEFAULT 0 CHECK (action_authorized = 0),
+                    purchase_authorized INTEGER NOT NULL DEFAULT 0 CHECK (purchase_authorized = 0),
+                    actions_queued INTEGER NOT NULL DEFAULT 0 CHECK (actions_queued = 0),
+                    actions_executed INTEGER NOT NULL DEFAULT 0 CHECK (actions_executed = 0),
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none'),
+                    UNIQUE (source_id, external_item_id),
+                    CHECK (
+                        (shipping_known = 0 AND shipping_cents IS NULL)
+                        OR (shipping_known = 1 AND shipping_cents IS NOT NULL)
+                    )
                 );
                 CREATE TABLE IF NOT EXISTS hardware_targets (
                     id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
@@ -1269,6 +1306,172 @@ class LocalStore:
             ]
         return [self.deal_candidate(candidate_id) for candidate_id in ids]
 
+    def record_deal_discovery(self, item: dict[str, object]) -> dict[str, object]:
+        expected_keys = {
+            "source_id", "external_item_id", "deduplication_key", "title", "item_url",
+            "observed_at", "ask_price_cents", "shipping_cents", "shipping_known",
+            "price_plus_shipping_cents", "tax_cents", "tax_known",
+            "total_acquisition_cents", "condition", "condition_mapping_heuristic",
+            "seller_risk", "seller_risk_heuristic", "seller_evidence", "buying_options",
+            "hardware_profile_status", "scoring_ready", "evidence_status",
+            "listing_text_untrusted", "external_activity", "network_requests",
+            "action_authorized", "purchase_authorized", "actions_queued",
+            "actions_executed", "capability_change",
+        }
+        if not isinstance(item, dict) or set(item) != expected_keys:
+            raise ValueError("Deal discovery schema is invalid")
+        if (
+            item.get("source_id") != "ebay_browse_api"
+            or item.get("hardware_profile_status") != "unresolved"
+            or item.get("scoring_ready") is not False
+            or item.get("evidence_status") != "unverified_adapter_input"
+            or item.get("listing_text_untrusted") is not True
+            or item.get("tax_known") is not False
+            or item.get("tax_cents") is not None
+            or item.get("total_acquisition_cents") is not None
+            or item.get("external_activity") is not False
+            or item.get("network_requests") != 0
+            or item.get("action_authorized") is not False
+            or item.get("purchase_authorized") is not False
+            or item.get("actions_queued") != 0
+            or item.get("actions_executed") != 0
+            or item.get("capability_change") != "none"
+        ):
+            raise ValueError("Deal discovery attempts to bypass unresolved research limits")
+        external_item_id = self._research_text(
+            str(item["external_item_id"]), label="Discovery item ID", maximum=200
+        )
+        if item["deduplication_key"] != f"ebay:{external_item_id}":
+            raise ValueError("Deal discovery deduplication key is invalid")
+        title = self._research_text(str(item["title"]), label="Discovery title", maximum=200)
+        item_url = self._research_text(
+            str(item["item_url"]), label="Discovery item URL", maximum=1_000
+        )
+        parsed_url = urlparse(item_url)
+        if (
+            parsed_url.scheme != "https"
+            or parsed_url.hostname not in {"www.ebay.com", "ebay.com"}
+            or not parsed_url.path.startswith("/itm/")
+            or parsed_url.username is not None
+            or parsed_url.password is not None
+        ):
+            raise ValueError("Deal discovery item URL is invalid")
+        observed_at = self._research_text(
+            str(item["observed_at"]), label="Discovery observation time", maximum=64
+        )
+        try:
+            observed = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("Deal discovery observation time must be ISO 8601") from exc
+        if observed.tzinfo is None:
+            raise ValueError("Deal discovery observation time must include a timezone")
+        ask_price_cents = item["ask_price_cents"]
+        shipping_cents = item["shipping_cents"]
+        shipping_known = item["shipping_known"]
+        if type(ask_price_cents) is not int or ask_price_cents <= 0:
+            raise ValueError("Deal discovery ask price is invalid")
+        if type(shipping_known) is not bool or (
+            shipping_known and (type(shipping_cents) is not int or shipping_cents < 0)
+        ) or (not shipping_known and shipping_cents is not None):
+            raise ValueError("Deal discovery shipping state is invalid")
+        expected_price_plus_shipping = (
+            ask_price_cents + shipping_cents if shipping_known else None
+        )
+        if item["price_plus_shipping_cents"] != expected_price_plus_shipping:
+            raise ValueError("Deal discovery partial cost is inconsistent")
+        if item["condition"] not in {"new", "used_good", "used_unknown", "parts_only"}:
+            raise ValueError("Deal discovery condition is invalid")
+        if item["seller_risk"] not in {"low", "medium", "high"}:
+            raise ValueError("Deal discovery seller risk is invalid")
+        if item["condition_mapping_heuristic"] is not True or item["seller_risk_heuristic"] is not True:
+            raise ValueError("Deal discovery heuristics must remain explicitly labeled")
+        if not isinstance(item["seller_evidence"], dict) or not isinstance(item["buying_options"], list):
+            raise ValueError("Deal discovery evidence fields are invalid")
+        if not all(isinstance(option, str) and len(option) <= 100 for option in item["buying_options"]):
+            raise ValueError("Deal discovery buying options are invalid")
+        encoded = json.dumps(item, separators=(",", ":"), sort_keys=True)
+        if len(encoded) > 20_000:
+            raise ValueError("Deal discovery record exceeds the storage limit")
+
+        with self._connect() as connection:
+            existing = connection.execute(
+                "SELECT discovery_id,last_seen_at FROM deal_discoveries "
+                "WHERE source_id=? AND external_item_id=?",
+                ("ebay_browse_api", external_item_id),
+            ).fetchone()
+            if existing is None:
+                cursor = connection.execute(
+                    "INSERT INTO deal_discoveries(source_id,external_item_id,"
+                    "deduplication_key,first_seen_at,last_seen_at,title,item_url,"
+                    "ask_price_cents,shipping_cents,shipping_known,condition,seller_risk,"
+                    "evidence_status,normalized_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        "ebay_browse_api", external_item_id, item["deduplication_key"],
+                        observed_at, observed_at, title, item_url, ask_price_cents,
+                        shipping_cents, int(shipping_known), item["condition"],
+                        item["seller_risk"], item["evidence_status"], encoded,
+                    ),
+                )
+                discovery_id = int(cursor.lastrowid)
+                was_new = True
+            else:
+                discovery_id = int(existing["discovery_id"])
+                existing_seen = datetime.fromisoformat(
+                    str(existing["last_seen_at"]).replace("Z", "+00:00")
+                )
+                if observed >= existing_seen:
+                    connection.execute(
+                        "UPDATE deal_discoveries SET last_seen_at=?,observation_count="
+                        "observation_count+1,title=?,item_url=?,ask_price_cents=?,"
+                        "shipping_cents=?,shipping_known=?,condition=?,seller_risk=?,"
+                        "normalized_json=? WHERE discovery_id=?",
+                        (
+                            observed_at, title, item_url, ask_price_cents, shipping_cents,
+                            int(shipping_known), item["condition"], item["seller_risk"],
+                            encoded, discovery_id,
+                        ),
+                    )
+                else:
+                    connection.execute(
+                        "UPDATE deal_discoveries SET observation_count=observation_count+1 "
+                        "WHERE discovery_id=?", (discovery_id,)
+                    )
+                was_new = False
+        self.audit(
+            "deal_discovery_recorded" if was_new else "deal_discovery_refreshed",
+            f"{discovery_id}: unresolved; no scoring or action",
+        )
+        return {**self.deal_discovery(discovery_id), "was_new": was_new}
+
+    def deal_discovery(self, discovery_id: int) -> dict[str, object]:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM deal_discoveries WHERE discovery_id=?", (discovery_id,)
+            ).fetchone()
+        if row is None:
+            raise ValueError("Deal discovery was not found")
+        record = dict(row)
+        record["normalized"] = json.loads(str(record.pop("normalized_json")))
+        for key in (
+            "shipping_known", "tax_known", "scoring_ready", "external_activity",
+            "action_authorized", "purchase_authorized",
+        ):
+            record[key] = bool(record[key])
+        return record
+
+    def recent_deal_discoveries(self, limit: int = 20) -> list[dict[str, object]]:
+        if not isinstance(limit, int) or not 1 <= limit <= 100:
+            raise ValueError("Deal discovery limit must be 1 to 100")
+        with self._connect() as connection:
+            ids = [
+                int(row["discovery_id"])
+                for row in connection.execute(
+                    "SELECT discovery_id FROM deal_discoveries "
+                    "ORDER BY last_seen_at DESC,discovery_id DESC LIMIT ?", (limit,)
+                ).fetchall()
+            ]
+        return [self.deal_discovery(discovery_id) for discovery_id in ids]
+
     def record_hardware_target(
         self,
         *,
@@ -1338,13 +1541,18 @@ class LocalStore:
             deal_candidate_count = int(
                 connection.execute("SELECT COUNT(*) FROM deal_candidates").fetchone()[0]
             )
+            deal_discovery_count = int(
+                connection.execute("SELECT COUNT(*) FROM deal_discoveries").fetchone()[0]
+            )
         return {
             "opportunity_count": opportunity_count,
             "hardware_target_count": hardware_count,
             "deal_candidate_count": deal_candidate_count,
+            "deal_discovery_count": deal_discovery_count,
             "opportunities": self.recent_economic_opportunities(),
             "hardware_targets": self.recent_hardware_targets(),
             "deal_candidates": self.recent_deal_candidates(),
+            "deal_discoveries": self.recent_deal_discoveries(),
             "external_activity": False,
             "transactions_executed": 0,
             "purchases_executed": 0,

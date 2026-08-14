@@ -38,6 +38,8 @@ The repository currently contains only:
 - offline normalization of a supplied Browse-shaped response;
 - exact `www.ebay.com`/`ebay.com` item-link validation;
 - within-batch deduplication by `itemId`;
+- a bounded local fixture inbox with cross-run `itemId` deduplication;
+- first-seen, last-seen, and observation-count persistence for normalized items;
 - seller/condition/shipping normalization;
 - untrusted-listing labeling and description exclusion.
 

@@ -1,6 +1,6 @@
 # Deal Hunter — Local Design Boundary
 
-Status: `WORKING LOCAL SCORER + MANUAL UI + STAGED EBAY ADAPTER / LIVE DISCOVERY DISABLED`
+Status: `WORKING LOCAL SCORER + MANUAL UI + OFFLINE DISCOVERY INBOX + STAGED EBAY ADAPTER / LIVE DISCOVERY DISABLED`
 
 The first useful Josie 0.99 workflow will evaluate hardware opportunities by
 price per performance. Current approved work is local schema, scoring, test
@@ -40,6 +40,29 @@ Locally**. Every entry from this screen is forcibly recorded as
 `user_supplied`, even when its reference is a URL. The URL is stored as text and
 is never opened. The screen cannot select a more authoritative source type and
 does not expose the scorer to the local model.
+
+The dormant eBay path also has a local discovery inbox. A supplied
+Browse-shaped JSON fixture can be placed in `C:\Josie\data\staging\ebay` and
+imported with:
+
+```powershell
+.\.venv\Scripts\python.exe .\core.py research import-ebay-fixture `
+  --file "sample.json" --observed-at "2026-08-14T10:00:00-04:00"
+```
+
+The filename must remain inside that directory, end in `.json`, and be no more
+than one megabyte. The importer has no network client, does not persist the raw
+response, and deduplicates repeated `itemId` values both inside a fixture and
+across imports. Repeated observations update the listing and preserve its first
+seen time. View the unresolved inbox with:
+
+```powershell
+.\.venv\Scripts\python.exe .\core.py research ebay-discoveries
+```
+
+Inbox records deliberately have no tax-complete acquisition cost, hardware
+profile, score, recommendation, or action authority. Those are separate later
+gates.
 
 Not authorized: account creation, login, scraping or navigation of unapproved
 sources, CAPTCHA/anti-bot bypass, saved downloads, uploads, seller contact,

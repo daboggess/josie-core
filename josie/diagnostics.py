@@ -191,6 +191,7 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             "learning_unit_versions",
             "learning_model_assessments",
             "deal_candidates",
+            "deal_discoveries",
         }
         counts = {
             table: int(restored.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
@@ -237,7 +238,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             ).fetchall()
         }
         data = {
-            "schema_version": 5,
+            "schema_version": 6,
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": "Josie local database",
             "memories": [dict(row) for row in connection.execute(
@@ -273,6 +274,15 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
                 "purchase_authorized,capability_change FROM deal_candidates "
                 "ORDER BY candidate_id"
             )] if "deal_candidates" in tables else [],
+            "deal_discoveries": [dict(row) for row in connection.execute(
+                "SELECT discovery_id,source_id,external_item_id,deduplication_key,"
+                "first_seen_at,last_seen_at,observation_count,title,item_url,"
+                "ask_price_cents,shipping_cents,shipping_known,tax_known,"
+                "total_acquisition_cents,condition,seller_risk,evidence_status,"
+                "normalized_json,scoring_ready,external_activity,action_authorized,"
+                "purchase_authorized,actions_queued,actions_executed,capability_change "
+                "FROM deal_discoveries ORDER BY discovery_id"
+            )] if "deal_discoveries" in tables else [],
         }
     finally:
         connection.close()
@@ -286,6 +296,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
         "learning_version_count": len(data["learning_unit_versions"]),
         "learning_model_assessment_count": len(data["learning_model_assessments"]),
         "deal_candidate_count": len(data["deal_candidates"]),
+        "deal_discovery_count": len(data["deal_discoveries"]),
         "cloud_activity": False,
     }
 

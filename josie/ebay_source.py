@@ -9,6 +9,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .research import money_to_cents
+from .storage import LocalStore
+
+
+MAXIMUM_FIXTURE_BYTES = 1_000_000
 
 
 def load_ebay_source_policy(project_root: Path) -> dict[str, object]:
@@ -248,6 +252,53 @@ def normalize_ebay_search_response(
         "unique_items": len(normalized),
         "duplicates_removed": duplicates,
         "raw_response_persisted": False,
+        "external_activity": False,
+        "network_requests": 0,
+        "actions_queued": 0,
+        "actions_executed": 0,
+        "purchase_authorized": False,
+        "capability_change": "none",
+    }
+
+
+def import_ebay_fixture(
+    *, store: LocalStore, project_root: Path, filename: str, observed_at: str
+) -> dict[str, object]:
+    """Import one local API-shaped fixture; this function has no network path."""
+    staging_root = (project_root / "data" / "staging" / "ebay").resolve()
+    supplied = Path(filename)
+    if supplied.is_absolute():
+        raise ValueError("eBay fixture must be named relative to the staging directory")
+    fixture_path = (staging_root / supplied).resolve()
+    if fixture_path != staging_root and staging_root not in fixture_path.parents:
+        raise ValueError("eBay fixture path leaves the staging directory")
+    if fixture_path.suffix.lower() != ".json":
+        raise ValueError("eBay fixture must be a JSON file")
+    if not fixture_path.is_file():
+        raise ValueError("eBay fixture was not found in the staging directory")
+    if fixture_path.stat().st_size > MAXIMUM_FIXTURE_BYTES:
+        raise ValueError("eBay fixture exceeds the one-megabyte limit")
+    try:
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError("eBay fixture is not valid UTF-8 JSON") from exc
+    normalized = normalize_ebay_search_response(
+        project_root=project_root, payload=payload, observed_at=observed_at
+    )
+    records = [store.record_deal_discovery(item) for item in normalized["items"]]
+    new_count = sum(1 for record in records if record["was_new"])
+    return {
+        "status": "imported_offline_not_live",
+        "fixture": str(fixture_path.relative_to(staging_root)),
+        "observed_at": normalized["observed_at"],
+        "normalized_items": normalized["unique_items"],
+        "duplicates_removed_within_fixture": normalized["duplicates_removed"],
+        "new_discoveries": new_count,
+        "refreshed_discoveries": len(records) - new_count,
+        "discovery_ids": [record["discovery_id"] for record in records],
+        "raw_response_persisted": False,
+        "hardware_profiles_resolved": 0,
+        "candidates_scored": 0,
         "external_activity": False,
         "network_requests": 0,
         "actions_queued": 0,

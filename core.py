@@ -26,7 +26,7 @@ from josie.status_snapshot import build_status_snapshot, write_status_snapshot
 from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
 from josie.research import record_opportunity, record_upgrade_target
 from josie.opportunity_policy import load_opportunity_policy
-from josie.ebay_source import load_ebay_source_policy
+from josie.ebay_source import import_ebay_fixture, load_ebay_source_policy
 from josie.evidence_policy import evaluate_claim_evidence, load_evidence_policy
 from josie.deal_hunter import score_and_record_deal
 from josie.foundation import build_foundation_report, write_foundation_report
@@ -115,6 +115,14 @@ def build_parser() -> argparse.ArgumentParser:
     research_commands.add_parser(
         "ebay-source", help="Inspect the staged, network-disabled eBay source policy"
     )
+    research_commands.add_parser(
+        "ebay-discoveries", help="List the local unresolved eBay discovery inbox"
+    )
+    ebay_fixture = research_commands.add_parser(
+        "import-ebay-fixture", help="Import one offline fixture from the local staging inbox"
+    )
+    ebay_fixture.add_argument("--file", required=True)
+    ebay_fixture.add_argument("--observed-at", required=True)
     opportunity = research_commands.add_parser(
         "add-opportunity", help="Record an opportunity estimate without accepting work"
     )
@@ -415,6 +423,20 @@ def main() -> int:
             result = load_opportunity_policy(project_root)
         elif args.research_command == "ebay-source":
             result = load_ebay_source_policy(project_root)
+        elif args.research_command == "ebay-discoveries":
+            result = {
+                "status": "unresolved_research_only",
+                "discoveries": store.recent_deal_discoveries(),
+                "external_activity": False,
+                "actions_queued": 0,
+                "actions_executed": 0,
+                "purchase_authorized": False,
+            }
+        elif args.research_command == "import-ebay-fixture":
+            result = import_ebay_fixture(
+                store=store, project_root=project_root,
+                filename=args.file, observed_at=args.observed_at,
+            )
         elif args.research_command == "add-opportunity":
             result = record_opportunity(
                 store=store,
