@@ -291,7 +291,8 @@ hardware. On 2026-08-14 Dustin selected the official eBay Browse API as live
 source number one. The source is staged but not activated: no developer account,
 keyset, credential, token, or live call is yet canonical. Facebook Marketplace
 remains a possible later source only if permitted access can be established;
-Craigslist automation is not selected. Messaging, bidding, purchasing, and
+Craigslist automation is `REJECTED` by Dustin unless a future explicit decision
+with new permission evidence supersedes it. Messaging, bidding, purchasing, and
 spending remain forbidden. Josie helping build Josie is intentional.
 
 ## 22. Price-per-performance philosophy

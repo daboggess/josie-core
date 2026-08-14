@@ -126,6 +126,8 @@ later:
   - "Physical GPU/chassis/PSU upgrade after compatibility and budget approval"
 
 rejected:
+  - item: "Automated Craigslist searching or collection"
+    reason: "Dustin explicitly chose not to automate Craigslist; any reconsideration requires a new decision and current permission evidence"
   - item: "Hydra as project identity"
     reason: "Intentionally retired in favor of Josie/Joseph stewardship metaphor"
   - item: "Local model weights as Josie's identity"

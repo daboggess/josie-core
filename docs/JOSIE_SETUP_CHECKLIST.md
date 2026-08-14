@@ -185,6 +185,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Persist deal candidates locally with evidence status, uncertainty, score breakdown, and database-enforced zero action/purchase authority.
 - [x] Add a local Deal Hunter entry screen that forces `user_supplied` evidence, stores URLs without opening them, and exposes no model, browser, seller-contact, or purchase path.
 - [x] Select eBay Browse API as live source number one and verify its official search, application-token, default-quota, developer-account, and additional-license requirements.
+- [x] Defer Facebook Marketplace pending a permitted access path and reject Craigslist automation unless a future explicit decision supersedes it.
 - [x] Stage a dormant eBay source policy and offline adapter that normalizes allowlisted item fields, removes duplicate item IDs, ignores descriptions, and has no network client.
 - [ ] Dustin completes the human-controlled eBay developer account, API License Agreement, additional Buy API license/access verification, and application-key creation steps.
 - [ ] Store the eBay client ID/secret in the ignored local environment and activate the reviewed read-only connector only after a separate explicit approval.
