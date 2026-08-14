@@ -34,6 +34,13 @@ Example local-only input:
 This records a local research candidate. It performs no browsing, messaging,
 login, bid, purchase, payment, or external activity.
 
+The Josie desktop window also has a **Deals** tab. Select **New candidate** to
+open the manual entry screen, paste or type a listing, and choose **Score & Save
+Locally**. Every entry from this screen is forcibly recorded as
+`user_supplied`, even when its reference is a URL. The URL is stored as text and
+is never opened. The screen cannot select a more authoritative source type and
+does not expose the scorer to the local model.
+
 Not authorized: account creation, login, scraping or navigation of unapproved
 sources, CAPTCHA/anti-bot bypass, saved downloads, uploads, seller contact,
 bids, purchases, Discord posting, contracts, wallet activity, or payments.

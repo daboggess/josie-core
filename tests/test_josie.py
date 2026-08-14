@@ -52,7 +52,11 @@ from josie.learning_assessment import (
 )
 from josie.opportunity_policy import load_opportunity_policy
 from josie.evidence_policy import evaluate_claim_evidence, load_evidence_policy
-from josie.deal_hunter import evaluate_deal_candidate, score_and_record_deal
+from josie.deal_hunter import (
+    evaluate_deal_candidate,
+    score_and_record_deal,
+    score_manual_deal_form,
+)
 
 
 class JosieTests(unittest.TestCase):
@@ -556,6 +560,51 @@ class JosieTests(unittest.TestCase):
             )
             self.assertEqual(incompatible["recommendation"], "reject_incompatible")
             self.assertFalse(incompatible["purchase_authorized"])
+
+    def test_manual_deal_form_is_exact_and_always_user_supplied(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        fields = {
+            "title": "Phone-entered accelerator candidate",
+            "source_reference": "https://example.com/listing/phone-1",
+            "observed_at": "2026-08-13T20:00:00-04:00",
+            "ask_price": "175",
+            "shipping": "25",
+            "tax": "0",
+            "required_platform_cost": "150",
+            "benchmark_index": "120",
+            "vram_gb": "16",
+            "power_watts": "225",
+            "compatibility": "needs_review",
+            "condition": "used_unknown",
+            "seller_risk": "medium",
+            "notes": "Manual research record; no purchase authority.",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "josie.db")
+            result = score_manual_deal_form(
+                store=store,
+                project_root=project_root,
+                fields=fields,
+                as_of=datetime.fromisoformat("2026-08-14T00:30:00+00:00"),
+            )
+            self.assertEqual(result["source_kind"], "user_supplied")
+            self.assertEqual(result["recommendation"], "verify_before_review")
+            self.assertFalse(result["external_activity"])
+            self.assertFalse(result["action_authorized"])
+            self.assertFalse(result["purchase_authorized"])
+            self.assertEqual(store.research_summary()["deal_candidate_count"], 1)
+
+            expanded = dict(fields)
+            expanded["source_kind"] = "direct_system_observation"
+            with self.assertRaisesRegex(ValueError, "governed schema"):
+                score_manual_deal_form(
+                    store=store, project_root=project_root, fields=expanded
+                )
+            invalid_power = {**fields, "power_watts": "225.5"}
+            with self.assertRaisesRegex(ValueError, "whole number"):
+                score_manual_deal_form(
+                    store=store, project_root=project_root, fields=invalid_power
+                )
 
     def test_holdout_pack_is_grounded_and_one_use(self) -> None:
         project_root = Path(__file__).resolve().parents[1]

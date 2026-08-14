@@ -28,6 +28,7 @@ from .economic_policy import load_economic_policy
 from .foundation import build_foundation_report
 from .genesis import build_genesis_status
 from .learning import foundational_learning_status, foundational_learning_unit
+from .deal_hunter import score_manual_deal_form
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -508,12 +509,187 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     )
 
 
+class DealHunterWindow:
+    """Local manual-entry screen with no browser, account, or purchase path."""
+
+    def __init__(
+        self,
+        parent: tk.Tk,
+        *,
+        store: LocalStore,
+        project_root: Path,
+        on_saved,
+        on_closed,
+    ) -> None:
+        self.store = store
+        self.project_root = project_root
+        self.on_saved = on_saved
+        self.on_closed = on_closed
+        self.window = tk.Toplevel(parent)
+        self.window.title("Josie Deal Hunter — Manual Research")
+        self.window.geometry("760x850")
+        self.window.minsize(660, 760)
+        self.window.configure(bg="#10151c")
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+
+        body = ttk.Frame(self.window, style="Panel.TFrame", padding=16)
+        body.pack(fill="both", expand=True, padx=14, pady=14)
+        ttk.Label(body, text="DEAL HUNTER", style="Title.TLabel").grid(
+            row=0, column=0, columnspan=4, sticky="w"
+        )
+        boundary = tk.Label(
+            body,
+            text=(
+                "LOCAL RESEARCH ONLY — This records and scores what you type. "
+                "It cannot open links, contact sellers, bid, buy, or spend."
+            ),
+            bg="#18212b", fg="#8ef0b5", justify="left", wraplength=690,
+            font=("Segoe UI", 10, "bold"),
+        )
+        boundary.grid(row=1, column=0, columnspan=4, sticky="ew", pady=(4, 14))
+
+        self.values: dict[str, tk.StringVar] = {}
+        row = 2
+        row = self._wide_entry(body, row, "title", "Listing title")
+        row = self._wide_entry(
+            body, row, "source_reference", "Listing reference or URL (stored, never opened)"
+        )
+        row = self._wide_entry(
+            body, row, "observed_at", "Observed at",
+            datetime.now().astimezone().isoformat(timespec="seconds"),
+        )
+
+        row = self._paired_entries(
+            body, row,
+            ("ask_price", "Ask price ($)", "0"),
+            ("shipping", "Shipping ($)", "0"),
+        )
+        row = self._paired_entries(
+            body, row,
+            ("tax", "Tax ($)", "0"),
+            ("required_platform_cost", "Required upgrades ($)", "0"),
+        )
+        row = self._paired_entries(
+            body, row,
+            ("benchmark_index", "Performance index", "100"),
+            ("vram_gb", "VRAM (GB)", "0"),
+        )
+        row = self._paired_entries(
+            body, row,
+            ("power_watts", "Power (watts)", "0"),
+            None,
+        )
+        row = self._choices(body, row)
+
+        ttk.Label(body, text="Notes", style="Status.TLabel").grid(
+            row=row, column=0, columnspan=4, sticky="w", pady=(7, 2)
+        )
+        self.notes = tk.Text(
+            body, height=4, bg="#0b0f14", fg="#d8e6ef", insertbackground="white",
+            relief="flat", wrap="word", font=("Segoe UI", 10), padx=8, pady=6,
+        )
+        self.notes.grid(row=row + 1, column=0, columnspan=4, sticky="nsew")
+        self.notes.insert(
+            "1.0", "Manually entered listing; requires independent verification."
+        )
+
+        self.status = tk.Label(
+            body, text="Nothing has been saved yet.", bg="#18212b", fg="#d8e6ef",
+            justify="left", anchor="w", wraplength=690, font=("Segoe UI", 10),
+        )
+        self.status.grid(row=row + 2, column=0, columnspan=4, sticky="ew", pady=(12, 8))
+        buttons = ttk.Frame(body, style="Panel.TFrame")
+        buttons.grid(row=row + 3, column=0, columnspan=4, sticky="ew")
+        ttk.Button(
+            buttons, text="Score & Save Locally", style="Accent.TButton", command=self.save
+        ).pack(side="left")
+        ttk.Button(buttons, text="Close", command=self.close).pack(side="right")
+
+        for column in range(4):
+            body.columnconfigure(column, weight=1)
+        body.rowconfigure(row + 1, weight=1)
+
+    def _label(self, parent: ttk.Frame, text: str, row: int, column: int) -> None:
+        ttk.Label(parent, text=text, style="Status.TLabel").grid(
+            row=row, column=column, sticky="w", padx=(0, 8), pady=(5, 2)
+        )
+
+    def _wide_entry(
+        self, parent: ttk.Frame, row: int, key: str, label: str, default: str = ""
+    ) -> int:
+        self._label(parent, label, row, 0)
+        value = tk.StringVar(value=default)
+        self.values[key] = value
+        tk.Entry(
+            parent, textvariable=value, bg="#0b0f14", fg="white",
+            insertbackground="white", relief="flat", font=("Segoe UI", 10),
+        ).grid(row=row + 1, column=0, columnspan=4, sticky="ew", ipady=5)
+        return row + 2
+
+    def _paired_entries(self, parent: ttk.Frame, row: int, left, right) -> int:
+        for item, column in ((left, 0), (right, 2)):
+            if item is None:
+                continue
+            key, label, default = item
+            self._label(parent, label, row, column)
+            value = tk.StringVar(value=default)
+            self.values[key] = value
+            tk.Entry(
+                parent, textvariable=value, bg="#0b0f14", fg="white",
+                insertbackground="white", relief="flat", font=("Segoe UI", 10),
+            ).grid(row=row + 1, column=column, columnspan=2, sticky="ew", padx=(0, 8), ipady=5)
+        return row + 2
+
+    def _choices(self, parent: ttk.Frame, row: int) -> int:
+        choices = (
+            ("compatibility", "Compatibility", "unknown", ("unknown", "needs_review", "compatible", "incompatible")),
+            ("condition", "Condition", "used_unknown", ("used_unknown", "used_good", "new", "parts_only")),
+            ("seller_risk", "Seller risk", "medium", ("medium", "low", "high")),
+        )
+        for index, (key, label, default, allowed) in enumerate(choices):
+            column = index
+            self._label(parent, label, row, column)
+            value = tk.StringVar(value=default)
+            self.values[key] = value
+            ttk.Combobox(
+                parent, textvariable=value, values=allowed, state="readonly", width=18
+            ).grid(row=row + 1, column=column, sticky="ew", padx=(0, 8))
+        return row + 2
+
+    def save(self) -> None:
+        fields = {key: value.get() for key, value in self.values.items()}
+        fields["notes"] = self.notes.get("1.0", "end").strip()
+        try:
+            result = score_manual_deal_form(
+                store=self.store, project_root=self.project_root, fields=fields
+            )
+        except ValueError as exc:
+            self.status.configure(text=f"Not saved: {exc}", fg="#ff9b9b")
+            return
+        total = result["costs"]["total_acquisition_cents"] / 100
+        recommendation = str(result["recommendation"]).replace("_", " ")
+        self.status.configure(
+            text=(
+                f"Saved candidate #{result['candidate_id']} — score "
+                f"{result['research_score']:.1f}/100, {recommendation}, total ${total:.2f}. "
+                "Independent verification is still required. No action or purchase was authorized."
+            ),
+            fg="#8ef0b5",
+        )
+        self.on_saved(result)
+
+    def close(self) -> None:
+        self.on_closed()
+        self.window.destroy()
+
+
 class JosieApp:
     def __init__(self, root: tk.Tk, *, config: Config, project_root: Path) -> None:
         self.root = root
         self.config = config
         self.project_root = project_root
         self.store = LocalStore(project_root / "data" / "josie.db")
+        self.deal_window: DealHunterWindow | None = None
         self.store.create_daily_backup(project_root / "data" / "backups")
         if config.external_storage and config.external_storage.is_dir():
             self.store.create_daily_backup(config.external_storage / "backups" / "josie-database")
@@ -565,8 +741,10 @@ class JosieApp:
         side_panel.pack(side="right", fill="y", padx=(0, 14), pady=8)
         approvals_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
         activity_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
+        deals_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
         side_panel.add(approvals_tab, text="Approvals")
         side_panel.add(activity_tab, text="Activity")
+        side_panel.add(deals_tab, text="Deals")
         self.approval_list = tk.Listbox(approvals_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat")
         self.approval_list.pack(fill="both", expand=True)
         approval_buttons = ttk.Frame(approvals_tab, style="Panel.TFrame")
@@ -575,6 +753,18 @@ class JosieApp:
         ttk.Button(approval_buttons, text="Deny", command=lambda: self._decide_selected("denied")).pack(side="right")
         self.activity_list = tk.Listbox(activity_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat")
         self.activity_list.pack(fill="both", expand=True)
+        tk.Label(
+            deals_tab, text="Local research only\nNo buying or seller contact",
+            bg="#18212b", fg="#8ef0b5", justify="left", font=("Segoe UI", 9, "bold"),
+        ).pack(fill="x", pady=(0, 6))
+        self.deal_list = tk.Listbox(
+            deals_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat"
+        )
+        self.deal_list.pack(fill="both", expand=True)
+        ttk.Button(
+            deals_tab, text="New candidate", style="Accent.TButton",
+            command=self._open_deal_hunter,
+        ).pack(fill="x", pady=(8, 0))
 
         entry_bar = ttk.Frame(root, style="Panel.TFrame", padding=10)
         entry_bar.pack(side="bottom", fill="x", padx=14, pady=(8, 14))
@@ -613,6 +803,44 @@ class JosieApp:
         self.activity_list.delete(0, "end")
         for when, event, detail in self.store.recent_activity(20):
             self.activity_list.insert("end", f"{event}: {detail}")
+        self.deal_list.delete(0, "end")
+        for candidate in self.store.recent_deal_candidates(20):
+            recommendation = str(candidate["recommendation"]).replace("_", " ")
+            title = str(candidate["title"])
+            if len(title) > 32:
+                title = title[:29] + "..."
+            self.deal_list.insert(
+                "end",
+                f"#{candidate['candidate_id']} | {candidate['research_score']:.1f} | "
+                f"{recommendation} | {title}",
+            )
+
+    def _open_deal_hunter(self) -> None:
+        if self.deal_window is not None and self.deal_window.window.winfo_exists():
+            self.deal_window.window.lift()
+            self.deal_window.window.focus_force()
+            return
+        self.deal_window = DealHunterWindow(
+            self.root,
+            store=self.store,
+            project_root=self.project_root,
+            on_saved=self._deal_saved,
+            on_closed=self._deal_closed,
+        )
+
+    def _deal_saved(self, result: dict[str, object]) -> None:
+        recommendation = str(result["recommendation"]).replace("_", " ")
+        self._append(
+            "Josie",
+            f"Deal candidate #{result['candidate_id']} saved locally with score "
+            f"{result['research_score']:.1f}/100 ({recommendation}). "
+            "It requires independent verification. No action or purchase was authorized.",
+            "josie",
+        )
+        self.refresh_status()
+
+    def _deal_closed(self) -> None:
+        self.deal_window = None
 
     def _append(self, speaker: str, message: str, tag: str, *, persist: bool = True) -> None:
         self.transcript.configure(state="normal")

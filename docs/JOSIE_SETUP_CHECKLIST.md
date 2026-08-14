@@ -183,6 +183,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Build a default-deny local opportunity-research framework with an empty approved-source allowlist; live discovery remains disabled.
 - [x] Build a transparent offline hardware-deal scorer for manually supplied listings; unverified current listings are forced to `verify_before_review`.
 - [x] Persist deal candidates locally with evidence status, uncertainty, score breakdown, and database-enforced zero action/purchase authority.
+- [x] Add a local Deal Hunter entry screen that forces `user_supplied` evidence, stores URLs without opening them, and exposes no model, browser, seller-contact, or purchase path.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.
 - [x] Calculate estimated profit, hourly return, and risk locally before any future human review; the calculator cannot accept work.
 - [ ] Track actual profitability and ROI by job type.
@@ -215,6 +216,7 @@ confirmed on Josie or by the repository test suite.
 7. [x] Establish the bounded foundational-learning kernel and complete its first three grounded units.
 8. [x] Complete Foundational Learning Wave 2 with eight governed scenarios and an auditable non-authorizing local reasoning assessment.
 9. [x] Complete Wave 3 with a deterministic evidence gate, one-use holdout, and offline deal scorer while keeping live discovery and model authority blocked.
+10. [x] Add and test the research-only manual Deal Hunter screen; keep every live marketplace and outward action behind a separate human gate.
 
 ## Change-control rule
 

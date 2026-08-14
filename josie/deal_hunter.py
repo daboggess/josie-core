@@ -16,6 +16,22 @@ from .storage import LocalStore
 COMPATIBILITY = {"compatible", "needs_review", "unknown", "incompatible"}
 CONDITIONS = {"new", "used_good", "used_unknown", "parts_only"}
 SELLER_RISKS = {"low", "medium", "high"}
+MANUAL_DEAL_FORM_FIELDS = frozenset({
+    "title",
+    "source_reference",
+    "observed_at",
+    "ask_price",
+    "shipping",
+    "tax",
+    "required_platform_cost",
+    "benchmark_index",
+    "vram_gb",
+    "power_watts",
+    "compatibility",
+    "condition",
+    "seller_risk",
+    "notes",
+})
 
 
 def load_deal_scoring_policy(project_root: Path) -> dict[str, object]:
@@ -249,3 +265,40 @@ def score_and_record_deal(*, store: LocalStore, **kwargs) -> dict[str, object]:
     result = evaluate_deal_candidate(**kwargs)
     stored = store.record_deal_candidate(result)
     return {**result, "candidate_id": stored["candidate_id"], "created_at": stored["created_at"]}
+
+
+def score_manual_deal_form(
+    *,
+    store: LocalStore,
+    project_root: Path,
+    fields: dict[str, str],
+    as_of: datetime | None = None,
+) -> dict[str, object]:
+    """Score an exact local-form payload as unverified user-supplied evidence."""
+    if not isinstance(fields, dict) or set(fields) != MANUAL_DEAL_FORM_FIELDS:
+        raise ValueError("Manual deal form fields do not match the governed schema")
+    if not all(isinstance(value, str) for value in fields.values()):
+        raise ValueError("Manual deal form values must be text")
+    power_text = fields["power_watts"].strip()
+    if not power_text.isdecimal():
+        raise ValueError("Deal power must be a whole number of watts")
+    return score_and_record_deal(
+        store=store,
+        project_root=project_root,
+        title=fields["title"],
+        source_reference=fields["source_reference"],
+        source_kind="user_supplied",
+        observed_at=fields["observed_at"],
+        ask_price=fields["ask_price"],
+        shipping=fields["shipping"],
+        tax=fields["tax"],
+        required_platform_cost=fields["required_platform_cost"],
+        benchmark_index=fields["benchmark_index"],
+        vram_gb=fields["vram_gb"],
+        power_watts=int(power_text),
+        compatibility=fields["compatibility"],
+        condition=fields["condition"],
+        seller_risk=fields["seller_risk"],
+        notes=fields["notes"],
+        as_of=as_of,
+    )

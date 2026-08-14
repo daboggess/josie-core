@@ -94,10 +94,9 @@ working:
   - "Fail-closed evidence gate enforces source sufficiency and freshness for stable and unstable claims; model consensus and memory are never sufficient"
   - "One-use Wave 3 holdout preserved with 6/6 source grounding and 0/6 exact model routing; local model authority remains absent"
   - "Offline hardware deal scorer works for manually supplied candidates with transparent weights, forced evidence review, and zero purchase authority"
+  - "Local Deal Hunter form records manually entered candidates as user-supplied evidence; links are never opened and no action or purchase path exists"
 
 next:
-  - id: deal_hunter_manual_input_ui
-    action: "Prepare a simple local form for manually entered listings; do not expose it as a model-executable or external browser capability."
   - id: local_reasoning_engine_upgrade_research
     action: "Evaluate CPU-safe model alternatives against the preserved holdout design; any model download or runtime change requires explicit approval."
 
@@ -179,9 +178,13 @@ evidence_verification:
   external_action_authorized: false
 
 deal_hunter:
-  status: "working_local_scorer"
+  status: "working_local_scorer_and_manual_ui"
   live_discovery: false
   approved_sources: 0
   manual_candidates_supported: true
+  manual_ui: true
+  manual_ui_source_kind: "user_supplied"
+  model_executable: false
+  browser_actions: false
   unverified_result: "verify_before_review"
   purchase_authorized: false

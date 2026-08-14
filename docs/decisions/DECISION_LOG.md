@@ -201,6 +201,27 @@
 - Boundaries unchanged: no hardware purchase, installation, firmware change,
   spending, external message, or new software/model authority is granted.
 
+## DEC-0015 — Manual Deal Hunter input remains untrusted local research
+
+- Date: 2026-08-13.
+- Status: `WORKING / LOCAL RESEARCH ONLY`
+- Authority: the canonical next action approved by Dustin after the local
+  scorer and evidence gate were completed.
+- Decision: add a simple desktop form for manually supplied hardware listings.
+  The screen uses an exact governed field schema and forcibly assigns
+  `source_kind: user_supplied`; the operator cannot select a more authoritative
+  evidence type.
+- Behavior: typed or pasted references are stored as text and never opened.
+  Results are scored and saved to the local database with transparent costs,
+  uncertainty, and recommendation.
+- Acceptance: the complete 74-test suite passes, including rejection of extra
+  form fields and non-integer power values. Database constraints independently
+  require zero external activity, zero queued/executed action, and zero
+  purchase authority.
+- Boundaries unchanged: no live discovery, model-executable scorer, browsing,
+  login, seller contact, message, bid, purchase, payment, or spending path.
+  Any live marketplace integration remains a separate human gate.
+
 ## Template
 
 ```yaml
