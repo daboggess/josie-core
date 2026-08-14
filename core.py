@@ -27,6 +27,7 @@ from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
 from josie.research import record_opportunity, record_upgrade_target
 from josie.opportunity_policy import load_opportunity_policy
 from josie.ebay_source import import_ebay_fixture, load_ebay_source_policy
+from josie.hardware_titles import classify_hardware_title, load_hardware_title_rules
 from josie.evidence_policy import evaluate_claim_evidence, load_evidence_policy
 from josie.deal_hunter import score_and_record_deal
 from josie.foundation import build_foundation_report, write_foundation_report
@@ -123,6 +124,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ebay_fixture.add_argument("--file", required=True)
     ebay_fixture.add_argument("--observed-at", required=True)
+    research_commands.add_parser(
+        "hardware-title-rules", help="Inspect deterministic research-only title rules"
+    )
+    classify_title = research_commands.add_parser(
+        "classify-title", help="Classify one untrusted listing title without resolving specs"
+    )
+    classify_title.add_argument("--title", required=True)
+    research_commands.add_parser(
+        "classify-discoveries", help="Classify unresolved titles without changing records"
+    )
     opportunity = research_commands.add_parser(
         "add-opportunity", help="Record an opportunity estimate without accepting work"
     )
@@ -437,6 +448,33 @@ def main() -> int:
                 store=store, project_root=project_root,
                 filename=args.file, observed_at=args.observed_at,
             )
+        elif args.research_command == "hardware-title-rules":
+            result = load_hardware_title_rules(project_root)
+        elif args.research_command == "classify-title":
+            result = classify_hardware_title(project_root=project_root, title=args.title)
+        elif args.research_command == "classify-discoveries":
+            discoveries = store.recent_deal_discoveries(limit=100)
+            result = {
+                "status": "read_only_title_candidates",
+                "results": [
+                    {
+                        "discovery_id": item["discovery_id"],
+                        "external_item_id": item["external_item_id"],
+                        "title": item["title"],
+                        "classification": classify_hardware_title(
+                            project_root=project_root, title=str(item["title"])
+                        ),
+                    }
+                    for item in discoveries
+                ],
+                "records_changed": 0,
+                "external_activity": False,
+                "network_requests": 0,
+                "actions_queued": 0,
+                "actions_executed": 0,
+                "purchase_authorized": False,
+                "capability_change": "none",
+            }
         elif args.research_command == "add-opportunity":
             result = record_opportunity(
                 store=store,

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "research_only_title_candidates",
+  "input_trust": "untrusted_listing_title",
+  "profiles": [
+    {
+      "profile_id": "nvidia_rtx_3060_12gb",
+      "canonical_name": "NVIDIA GeForce RTX 3060 12 GB",
+      "required_term_groups": [["rtx 3060"], ["12gb", "12 gb"]],
+      "forbidden_terms": ["3060 ti", "laptop", "mobile", "empty box", "box only", "cooler only", "heatsink only", "waterblock only", "backplate only", "fan only", "shroud only"]
+    },
+    {
+      "profile_id": "intel_arc_a770_16gb",
+      "canonical_name": "Intel Arc A770 16 GB",
+      "required_term_groups": [["arc a770", "intel a770"], ["16gb", "16 gb"]],
+      "forbidden_terms": ["a750", "laptop", "mobile", "empty box", "box only", "cooler only", "heatsink only", "waterblock only", "backplate only", "fan only", "shroud only"]
+    },
+    {
+      "profile_id": "amd_instinct_mi25_16gb",
+      "canonical_name": "AMD Instinct MI25 16 GB",
+      "required_term_groups": [["instinct mi25", "amd mi25", "radeon mi25"], ["16gb", "16 gb"]],
+      "forbidden_terms": ["heatsink only", "cooler only", "empty box", "box only", "waterblock only", "backplate only", "fan only", "shroud only"]
+    }
+  ],
+  "controls": {
+    "unique_match_required": true,
+    "profile_resolved": false,
+    "infer_specs_from_title": false,
+    "scoring_ready": false,
+    "model_direct_access": false,
+    "external_activity": false,
+    "action_authorized": false,
+    "purchase_authorized": false,
+    "capability_change": "none"
+  }
+}

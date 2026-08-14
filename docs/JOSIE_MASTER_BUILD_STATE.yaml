@@ -97,6 +97,7 @@ working:
   - "Local Deal Hunter form records manually entered candidates as user-supplied evidence; links are never opened and no action or purchase path exists"
   - "eBay Browse API selected as Deal Hunter live source number one; dormant adapter validates policy and normalizes/deduplicates supplied fixtures without network access"
   - "Persistent eBay discovery inbox imports only bounded local JSON fixtures, deduplicates across runs, preserves first/last seen state, and cannot score or authorize unresolved listings"
+  - "Deterministic title-only classifier can flag possible RTX 3060 12 GB, Arc A770 16 GB, and Instinct MI25 16 GB identities while refusing specification inference, scoring readiness, or record mutation"
 
 next:
   - id: ebay_developer_access_human_gate
@@ -196,6 +197,8 @@ deal_hunter:
   ebay_cross_run_deduplication: true
   ebay_fixture_import: "local-only from data/staging/ebay; one-megabyte maximum; raw response not persisted"
   unresolved_discoveries_scored: false
+  deterministic_title_rules: 3
+  title_match_is_identity_proof: false
   ebay_default_official_quota_verified: "5000 calls/day on 2026-08-14; Josie local ceiling staged at 100/day"
   ebay_buy_api_additional_license_verified: false
   ebay_credentials_present: false

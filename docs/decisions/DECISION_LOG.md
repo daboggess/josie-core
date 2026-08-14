@@ -272,6 +272,23 @@
   designed locally. Any live API call still requires the existing eBay human
   account/license/key gates and a separate activation approval.
 
+## DEC-0018 â€” Seller titles may suggest identity but never establish it
+
+- Date: 2026-08-14.
+- Status: `WORKING / RESEARCH-ONLY SUGGESTION`.
+- Decision: use exact deterministic term groups to flag possible matches for
+  the three GPU families already under consideration: RTX 3060 12 GB, Arc A770
+  16 GB, and Instinct MI25 16 GB.
+- Fail-closed behavior: near-model, mobile, empty-box, and common accessory-only
+  titles are rejected. Multiple matches are ambiguous. A unique match remains
+  untrusted title evidence, resolves no profile, infers no specifications,
+  changes no database record, and cannot become score-ready.
+- Boundaries: no model call, network request, live marketplace activity,
+  benchmark inference, recommendation, action, purchase, or capability change.
+- Next: verified versioned hardware profiles require grounded specifications,
+  comparable performance evidence, compatibility rules, and explicit cost
+  completion. Title matching alone will never satisfy that gate.
+
 ## Template
 
 ```yaml

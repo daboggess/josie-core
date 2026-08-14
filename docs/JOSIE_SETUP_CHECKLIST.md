@@ -188,6 +188,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Defer Facebook Marketplace pending a permitted access path and reject Craigslist automation unless a future explicit decision supersedes it.
 - [x] Stage a dormant eBay source policy and offline adapter that normalizes allowlisted item fields, removes duplicate item IDs, ignores descriptions, and has no network client.
 - [x] Add a persistent unresolved discovery inbox with cross-run eBay item-ID deduplication, safe refreshes, an offline-only fixture importer, and database-enforced zero scoring/action/purchase authority.
+- [x] Add deterministic research-only title rules for the three already-considered GPU families; possible matches remain unverified, infer no specifications, change no records, and cannot become score-ready.
 - [ ] Dustin completes the human-controlled eBay developer account, API License Agreement, additional Buy API license/access verification, and application-key creation steps.
 - [ ] Store the eBay client ID/secret in the ignored local environment and activate the reviewed read-only connector only after a separate explicit approval.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.

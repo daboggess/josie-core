@@ -64,6 +64,20 @@ Inbox records deliberately have no tax-complete acquisition cost, hardware
 profile, score, recommendation, or action authority. Those are separate later
 gates.
 
+Josie can perform a deterministic read-only title pass over the unresolved
+inbox:
+
+```powershell
+.\.venv\Scripts\python.exe .\core.py research classify-discoveries
+```
+
+The rules cover only the three already-considered GPU families: RTX 3060 12 GB,
+Arc A770 16 GB, and Instinct MI25 16 GB. They require explicit model and memory
+terms and reject common accessory-only, box-only, mobile, or near-model titles.
+A unique result is still only `possible_unique_title_match`; it changes no
+database record, infers no specification, and never makes a discovery ready for
+scoring.
+
 Not authorized: account creation, login, scraping or navigation of unapproved
 sources, CAPTCHA/anti-bot bypass, saved downloads, uploads, seller contact,
 bids, purchases, Discord posting, contracts, wallet activity, or payments.
