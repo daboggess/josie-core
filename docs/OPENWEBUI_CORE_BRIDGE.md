@@ -59,6 +59,14 @@ current-status question, the same filter can read the private status endpoint as
 a fallback. It has no shell, cloud, browser, spending, or action interface and is
 not applied to other models or ordinary Josie conversation.
 
+The outlet filter also revalidates the current user's intent independently of
+the model router. A status result can replace an answer only for an explicit
+status, health, storage, service, backup, proposal-count, or safety-lock query.
+A proposal result can replace an answer only for an explicit allowlisted
+proposal-recording command. Valid but unrelated tool results are ignored, so a
+small-model routing error cannot turn a greeting into a status report or create
+the appearance that an unrequested proposal was recorded.
+
 Open WebUI's global servers are otherwise hidden per chat. Josie's activation
 script therefore applies a supported model-level binding to
 `josie-local:1.0`: `server:josie-core-review` is the only default attached

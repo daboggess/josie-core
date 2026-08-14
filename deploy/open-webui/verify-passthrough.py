@@ -244,7 +244,49 @@ def main() -> int:
     }
     ordinary_unchanged = response_filter.outlet(ordinary, {"id": MODEL_ID}) == ordinary
 
-    if not status_exact or not status_fallback_exact or not proposal_exact or not ordinary_unchanged:
+    # A small model may select a bounded tool for an unrelated greeting. The
+    # authenticated result is valid data, but it is not relevant to the user's
+    # request and must not replace the conversational response.
+    accidental_status = {
+        "model": MODEL_ID,
+        "messages": [
+            {"role": "user", "content": "Hello"},
+            {
+                "role": "assistant",
+                "content": "Hello, Dustin.",
+                "sources": [status_source],
+            },
+        ],
+    }
+    accidental_status_unchanged = (
+        response_filter.outlet(accidental_status, {"id": MODEL_ID})
+        == accidental_status
+    )
+
+    accidental_proposal = {
+        "model": MODEL_ID,
+        "messages": [
+            {"role": "user", "content": "Hello"},
+            {
+                "role": "assistant",
+                "content": "Hello, Dustin.",
+                "sources": [proposal_source],
+            },
+        ],
+    }
+    accidental_proposal_unchanged = (
+        response_filter.outlet(accidental_proposal, {"id": MODEL_ID})
+        == accidental_proposal
+    )
+
+    if (
+        not status_exact
+        or not status_fallback_exact
+        or not proposal_exact
+        or not ordinary_unchanged
+        or not accidental_status_unchanged
+        or not accidental_proposal_unchanged
+    ):
         print(
             json.dumps(
                 {
@@ -254,6 +296,8 @@ def main() -> int:
                     "proposal_message_exact": proposal_exact,
                     "proposal_pre_gate_exact": proposal_pre_gate_exact,
                     "ordinary_response_unchanged": ordinary_unchanged,
+                    "accidental_status_unchanged": accidental_status_unchanged,
+                    "accidental_proposal_unchanged": accidental_proposal_unchanged,
                     "status_expected": expected_status,
                     "status_received": status_reply,
                     "proposal_expected": expected_proposal,
@@ -276,6 +320,8 @@ def main() -> int:
                 "proposal_message_exact": True,
                 "proposal_pre_gate_exact": proposal_pre_gate_exact,
                 "ordinary_response_unchanged": True,
+                "accidental_status_unchanged": True,
+                "accidental_proposal_unchanged": True,
                 "response_filter": FILTER_ID,
                 "response_filter_active": True,
                 "response_filter_global": False,

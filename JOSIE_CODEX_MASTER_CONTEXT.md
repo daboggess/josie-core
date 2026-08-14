@@ -309,6 +309,14 @@ $1,000 is an attraction under evaluation, not an ownership claim.
 Intel Arc makes ReBAR important. Dual-GPU plans must evaluate real electrical
 lane configuration, not physical slot shape alone.
 
+Current Advantech platform evidence was updated by Dustin's attended BIOS
+verification on 2026-08-13: BIOS administrator access is recovered; Windows
+boots UEFI; Secure Boot is off; Above 4GB MMIO is enabled; IGFX is primary with
+Internal Graphics enabled; PEG is enabled at Gen3; and the firmware reports a
+`75 W / 1.0x` PCIe slot-power limit. CSM remains enabled and intentionally
+unchanged while UEFI boot is stable. ReBAR is still unverified. AMD Instinct
+MI25 is a candidate only; no GPU, case, or replacement PSU purchase is implied.
+
 ## 24. Hardware inventory rule
 
 Never reconstruct ownership from old chats. Use the newest Master Build State.

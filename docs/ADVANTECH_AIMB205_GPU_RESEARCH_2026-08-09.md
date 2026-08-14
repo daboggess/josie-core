@@ -1,9 +1,25 @@
 # AIMB-205 GPU compatibility research — 2026-08-09
 
-## Decision result
+## Superseding attended BIOS evidence — 2026-08-13
 
-**PCIe slot-power compatibility remains unresolved. Do not purchase or install
-an RTX 3060 on the strength of the current documentation.**
+Dustin recovered BIOS administrator access and directly verified the active
+`AIMB-205G2` configuration. The firmware reports Above 4GB MMIO enabled, IGFX
+as primary with Internal Graphics enabled, the PEG root port enabled at Gen3,
+and the PCIe slot-power limit as `75 W / 1.0x`. Windows continues to boot UEFI
+through Windows Boot Manager. Secure Boot is off; CSM remains enabled and is
+intentionally unchanged while the stable UEFI boot path is working.
+
+This supersedes the earlier operational uncertainty about a possible 60 W slot
+limit and missing Above-4G support. It does not prove compatibility with every
+accelerator, authorize a purchase, or establish that a GPU has been installed.
+Resizable BAR remains unverified, so Intel Arc remains less attractive on this
+board. AMD Instinct MI25 is only a candidate; the case, PSU, GPU, cooling,
+power, driver/runtime path, and total-platform PPP remain unresolved.
+
+## Original decision result preserved from 2026-08-09
+
+**At that time, PCIe slot-power compatibility remained unresolved. The official
+documentation alone was not sufficient to support a purchase or installation.**
 
 ## Proven by official Advantech sources
 

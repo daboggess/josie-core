@@ -64,6 +64,7 @@
     "cold_start_warmup_before_verification": true,
     "current_status_requires_tool": true,
     "generic_status_guess_allowed": false,
+    "current_intent_revalidated": true,
     "idempotency_verified": true,
     "cloud_activity": false,
     "actions_executed": 0
@@ -133,6 +134,8 @@
     "post_model_status_fallback_exact": true,
     "post_model_proposal_source_exact": true,
     "post_model_ordinary_response_unchanged": true,
+    "post_model_accidental_status_unchanged": true,
+    "post_model_accidental_proposal_unchanged": true,
     "response_filter_active": true,
     "response_filter_global": false,
     "model_default_tool_bound": true,
@@ -146,8 +149,8 @@
     "status_snapshot_module": "8f4619ea4ebc12a721a40276179630ee9c3f6e529d9ca95a7eaeb46e879aa8f4",
     "storage_monitor": "743d1b1fd5fe6d87e9e2656e89404de812931bfa9fcd870788179899e019e5eb",
     "model_binding": "45c045ae6bcc8abcaef064a62bbb3e3b26718e3dd9e1f4f5bc35a50e8c2c8352",
-    "passthrough_verifier": "7024ea54548870ad9bbf68d11ce19ebceb91bfde5f3cd864655720ca0e2c9d7e",
-    "response_filter": "14659692f40e0b9a806a64e635a581cfa4cfff86c43e632c4f80a881c4d4c9d0"
+    "passthrough_verifier": "a131c6361880abd48ded78f1a552dc81ca86b75b5e4f247111a5771036ea5519",
+    "response_filter": "d8b149e68401c188256f2d1332a62cb3dc1b54671e00e6f903426ccf1b99f6e4"
   },
   "recovery": {
     "open_webui_backup": "D:\\Josie-Storage\\backups\\services\\open-webui-20260809-142852.tgz",

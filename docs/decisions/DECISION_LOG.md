@@ -162,6 +162,45 @@
   replacement model, or exposing a model-callable scoring tool requires the
   applicable explicit approval.
 
+## DEC-0013 — Tool results must match the current user intent
+
+- Date: 2026-08-09.
+- Status: `WORKING / DETERMINISTIC POST-MODEL GATE`
+- Trigger: the 1.5B router selected the read-only status tool for the ordinary
+  greeting `Hello`, causing Open WebUI to replace Josie's conversational draft
+  with an authenticated but irrelevant status report.
+- Decision: authenticated tool data remains necessary but is no longer
+  sufficient for response replacement. The deterministic outlet filter must
+  independently match the latest user request to the exact status or proposal
+  operation before accepting that tool result.
+- Boundaries: unrelated valid tool results are ignored; status remains
+  read-only; proposals remain record-only; no new tool, capability, network,
+  cloud, spending, browser-write, shell, or execution authority is granted.
+- Acceptance: a real status request and explicit allowlisted proposal command
+  still receive exact authenticated wording, while `Hello` remains unchanged
+  even if either trusted tool result is attached.
+
+## DEC-0014 — Attended BIOS evidence reopens the Advantech accelerator path
+
+- Date: 2026-08-13.
+- Status: `WORKING PLATFORM EVIDENCE / NO PURCHASE AUTHORITY`
+- Authority: Dustin's direct attended BIOS verification on the active
+  AIMB-205G2 system.
+- Evidence: BIOS administrator access recovered; BIOS `A205000HF60E114`;
+  Windows UEFI boot; Secure Boot off; Above 4GB MMIO enabled; IGFX primary;
+  Internal Graphics enabled; PEG root port enabled at Gen3; PCIe slot-power
+  limit `75 W / 1.0x`; CSM enabled and intentionally unchanged.
+- Decision: retire the earlier possible-60-W and missing-Above-4G uncertainty.
+  The Advantech platform may be evaluated for a headless accelerator without
+  treating those two items as blockers.
+- Unresolved: ReBAR, exact accelerator power/cooling/software compatibility,
+  chassis, PSU, and total-platform PPP. Arc remains less attractive until
+  ReBAR is verified.
+- Candidate state: AMD Instinct MI25 is `CONSIDERING`, not owned, purchased,
+  installed, or working.
+- Boundaries unchanged: no hardware purchase, installation, firmware change,
+  spending, external message, or new software/model authority is granted.
+
 ## Template
 
 ```yaml

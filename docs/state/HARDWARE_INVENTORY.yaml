@@ -1,10 +1,23 @@
 schema_version: 1
-updated_at: "2026-08-09"
+updated_at: "2026-08-13"
 rule: "Only verified current ownership belongs under owned. Historical references require reverification."
 owned:
   - item: "Advantech AIMB-205G2 motherboard"
     installed: true
     working: true
+    firmware:
+      bios_version: "A205000HF60E114"
+      bios_admin_access: "recovered"
+      boot_mode: "UEFI via Windows Boot Manager"
+      secure_boot: false
+      csm: "enabled; intentionally unchanged while UEFI boot remains stable"
+      above_4gb_mmio: true
+      primary_graphics: "IGFX"
+      internal_graphics: true
+      peg_root_port: "enabled; Gen3"
+      pcie_slot_power_limit: "75 W / 1.0x"
+      resizable_bar: "unverified"
+    evidence: "Dustin's attended BIOS verification on 2026-08-13"
   - item: "Intel Core i7-7700"
     installed: true
     working: true
@@ -33,6 +46,11 @@ owned:
     role: "reserved for later storage build"
 not_installed:
   - "Discrete GPU"
+candidates_not_owned:
+  - item: "AMD Instinct MI25"
+    status: "considering"
+    note: "Headless accelerator candidate only; case, PSU, and GPU have not been purchased."
+    unresolved: "Exact card compatibility, cooling, power, software stack, and installation plan"
 research_requires_reverification:
   - "Beelink S12 / N100"
   - "Intel NUC units"

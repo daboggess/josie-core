@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: "2026-08-09"
+updated_at: "2026-08-13"
 canonical_name: "JOSIE — MASTER BUILD STATE"
 change_rule: "Update only after an actual verified change or Dustin's explicit current instruction."
 authority_order:
@@ -47,8 +47,8 @@ locked:
 
 owned:
   - item: "Josie 1.0 current system"
-    details: "Advantech AIMB-205G2, Intel i7-7700, 32 GB DDR4-2400, 128 GB SQF SATA SSD, Intel HD 630, 200 W PSU, no discrete GPU"
-    evidence: "Dustin's explicit current hardware statement and verified setup checklist"
+    details: "Advantech AIMB-205G2, Intel i7-7700, 32 GB DDR4-2400, 128 GB SQF SATA SSD, Intel HD 630, 200 W PSU, no discrete GPU. BIOS A205000HF60E114; UEFI boot; Above 4GB MMIO enabled; IGFX primary/internal graphics enabled; PEG enabled at Gen3; PCIe slot-power limit 75 W / 1.0x; ReBAR unverified."
+    evidence: "Dustin's explicit current hardware statement, verified setup checklist, and attended BIOS verification on 2026-08-13"
   - item: "10 TB external USB HDD"
     details: "UnionSine USB 3.2, GPT/NTFS, D:, approximately 9.1 TiB usable"
     evidence: "Locally verified on Josie"
@@ -71,10 +71,13 @@ installed:
 
 working:
   - "Windows boot and BIOS path"
+  - "BIOS administrator access recovered; Windows remains on UEFI boot with Secure Boot off and CSM intentionally unchanged"
+  - "Above 4GB MMIO enabled; IGFX remains primary; internal graphics enabled; PEG root port enabled at Gen3; PCIe slot-power limit reports 75 W / 1.0x"
   - "Local josie-local:1.0 Qwen 2.5 1.5B reasoning engine"
   - "Open WebUI phone interface over private Tailscale HTTPS"
   - "n8n storage-headroom workflow"
   - "Authenticated read-only status and record-only proposal bridge"
+  - "Post-model intent gate rejects unrelated status/proposal results before they can replace ordinary conversation"
   - "Local SQLite persistence, backups, integrity checks, and non-overwriting restore drill"
   - "Five-minute storage/status monitor with daily bounded database backup"
   - "Read-only official-source browser research pilot with exact URL allowlist"
@@ -102,10 +105,12 @@ considering:
   - "RTX 3060 12 GB as a possible first discrete GPU"
   - "Intel Arc A770 16 GB and dual-A770 designs, subject to ReBAR, lanes, PSU, chassis, thermals, and total PPP"
   - "RTX 3090 24 GB and lane-capable workstation/server platforms"
+  - "AMD Instinct MI25 as a headless accelerator candidate for the current Advantech platform; not owned or purchased"
   - "Claude or another provider-neutral optional editor/checker role"
 
 research:
-  - "AIMB-205G2 PCIe slot power limit; official manual confirms x16 but does not state a wattage"
+  - "AIMB-205G2 Resizable BAR support remains unverified; Arc stays less attractive on this board until verified"
+  - "Exact MI25 card, case, PSU, cooling, power connectors, driver/runtime compatibility, and total-platform PPP"
   - "X99 ReBAR feasibility and trustworthy boards"
   - "Dual-Xeon and used-workstation PPP after power and complexity"
   - "Exact inventory/current state of broader historical hardware references before any plan depends on them"
@@ -132,7 +137,7 @@ rejected:
 
 blocked:
   - item: "Discrete GPU purchase/install on current board"
-    dependency: "Verified slot power, exact card draw, PSU, chassis, thermals, compatibility, budget, and Dustin approval"
+    dependency: "Exact card draw, PSU, chassis, thermals, software compatibility, total PPP, budget, and Dustin approval; slot limit and Above-4G are no longer unknown"
   - item: "Live opportunity discovery"
     dependency: "Exact approved sources, platform-rule review, security controls, and Dustin authorization"
   - item: "Outward economic or messaging actions"

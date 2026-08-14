@@ -286,6 +286,7 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_model_binding.get("cold_start_warmup_before_verification") is True
         and bridge_model_binding.get("current_status_requires_tool") is True
         and bridge_model_binding.get("generic_status_guess_allowed") is False
+        and bridge_model_binding.get("current_intent_revalidated") is True
         and bridge_model_binding.get("idempotency_verified") is True
         and bridge_model_binding.get("cloud_activity") is False
         and bridge_model_binding.get("actions_executed") == 0
@@ -346,6 +347,8 @@ def acceptance_audit(*, config: Config, project_root: Path) -> dict[str, object]
         and bridge_test.get("post_model_status_fallback_exact") is True
         and bridge_test.get("post_model_proposal_source_exact") is True
         and bridge_test.get("post_model_ordinary_response_unchanged") is True
+        and bridge_test.get("post_model_accidental_status_unchanged") is True
+        and bridge_test.get("post_model_accidental_proposal_unchanged") is True
         and bridge_test.get("response_filter_active") is True
         and bridge_test.get("response_filter_global") is False
         and bridge_test.get("model_default_tool_bound") is True

@@ -1,6 +1,6 @@
 # JOSIE 0.99 / 1.0 — Running Setup State
 
-Last reconciled: 2026-08-09
+Last reconciled: 2026-08-13
 
 This is the canonical project roadmap. Update it when work is completed,
 rejected, deferred, or materially changed. Claims marked **verified** have been
@@ -14,6 +14,14 @@ confirmed on Josie or by the repository test suite.
 - [x] 128 GB Advantech SQF SATA SSD as the Windows boot drive.
 - [x] Windows 11 Pro boots through Windows Boot Manager.
 - [x] BIOS and boot issue resolved.
+- [x] BIOS administrator access recovered; BIOS version `A205000HF60E114` confirmed.
+- [x] Windows remains on UEFI boot through Windows Boot Manager; Secure Boot is off.
+- [x] Above 4GB MMIO is enabled.
+- [x] IGFX is primary and Internal Graphics is explicitly enabled.
+- [x] PEG root port is enabled and locked to Gen3.
+- [x] BIOS reports the PCIe slot-power limit as `75 W / 1.0x`.
+- [x] CSM remains enabled; intentionally leave it unchanged while UEFI boot is stable.
+- [ ] Resizable BAR remains unverified; do not assume Intel Arc is a good fit for this board.
 - [x] Intel HD 630 available until a discrete GPU is installed.
 - [x] Current PSU is 200 W; no discrete GPU is installed.
 - [x] Two 4 TB NVMe drives are reserved for a future system, not this board.
@@ -79,6 +87,7 @@ confirmed on Josie or by the repository test suite.
 - [x] Stage a one-confirmation service gate requiring immutable image digests and local-only preflight.
 - [x] Add a governed local-model proposal boundary: deterministic intent mapping, durable review records, and zero model-triggered execution.
 - [x] Activate and isolate the authenticated Open WebUI-to-Core status and record-only proposal bridge; exact authenticated wording is enforced after the local model responds.
+- [x] Revalidate user intent after model routing so accidental status/proposal tool selections cannot replace an unrelated greeting or ordinary response.
 - [x] Add explicit proposal accept/reject review records that never queue or execute actions.
 - [x] Add a persistent local orchestration queue with an explicit handler registry.
 - [x] Add narrowly allowlisted Python job handlers; unrestricted Python/JavaScript text execution remains forbidden.
@@ -184,13 +193,15 @@ confirmed on Josie or by the repository test suite.
 - [x] Track research-only upgrade components, target prices, expected capability, and compatibility state with zero purchase authority.
 - [x] Record expected capability improvement and known cost inputs; total platform cost still requires complete parts and compatibility evidence.
 - [ ] Potential first major GPU target: RTX 3060 12 GB, subject to chassis, PSU, slot-power, thermals, and compatibility review.
+- [ ] AMD Instinct MI25 remains a headless-accelerator candidate only; no case, PSU, or GPU has been purchased, and exact power/cooling/software compatibility still requires review.
 
 ## GPU and chassis path — not required for Josie 1.0
 
 - [ ] Evaluate moving the AIMB-205G2/i7/32 GB platform into a standard case.
 - [ ] Inspect the potential Dell shop chassis before assuming compatibility.
 - [ ] Replace the 200/300 W-class PSU with a quality 550–650 W ATX PSU before a discrete GPU.
-- [ ] Select a GPU with appropriate external power and measured slot draw compatible with the board.
+- [x] Verify the firmware-reported PCIe slot-power limit: `75 W / 1.0x` on 2026-08-13.
+- [ ] Select a GPU with appropriate external power and measured slot draw compatible with the verified 75 W slot limit.
 - [ ] Treat the hardware/GPU phase as Josie 1.5 if Josie 1.0 means the functioning orchestration system.
 
 ## Critical path

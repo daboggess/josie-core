@@ -1816,6 +1816,8 @@ class JosieTests(unittest.TestCase):
         self.assertIn("status_fallback_exact", passthrough)
         self.assertIn("status_pre_gate_exact", passthrough)
         self.assertIn("ordinary_response_unchanged", passthrough)
+        self.assertIn("accidental_status_unchanged", passthrough)
+        self.assertIn("accidental_proposal_unchanged", passthrough)
         self.assertIn("proposal_message_exact", passthrough)
         self.assertIn("indent=2", passthrough)
         self.assertIn("Warm that generation privately", passthrough)
@@ -1824,6 +1826,9 @@ class JosieTests(unittest.TestCase):
         self.assertIn("http://proposal-server:3030/v1/status", response_filter)
         self.assertIn("STATUS_KEYS", response_filter)
         self.assertIn("PROPOSAL_KEYS", response_filter)
+        self.assertIn("PROPOSAL_REQUEST", response_filter)
+        self.assertIn("_proposal_requested", response_filter)
+        self.assertIn("source_name == STATUS_SOURCE and not STATUS_QUERY", response_filter)
         self.assertIn("tool_result", response_filter)
         self.assertNotIn("subprocess", response_filter)
         self.assertNotIn("os.system", response_filter)
@@ -1932,6 +1937,12 @@ class JosieTests(unittest.TestCase):
         self.assertTrue(lock["acceptance_test"]["post_model_status_fallback_exact"])
         self.assertTrue(lock["acceptance_test"]["post_model_proposal_source_exact"])
         self.assertTrue(lock["acceptance_test"]["post_model_ordinary_response_unchanged"])
+        self.assertTrue(
+            lock["acceptance_test"]["post_model_accidental_status_unchanged"]
+        )
+        self.assertTrue(
+            lock["acceptance_test"]["post_model_accidental_proposal_unchanged"]
+        )
         self.assertTrue(lock["acceptance_test"]["response_filter_active"])
         self.assertFalse(lock["acceptance_test"]["response_filter_global"])
 

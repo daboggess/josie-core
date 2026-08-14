@@ -38,7 +38,24 @@ ALLOWED_KINDS = {"health_check", "memory_export", "restore_drill"}
 STATUS_QUERY = re.compile(
     r"\b(current system status|your current status|your system status|"
     r"josie status|system health|current health|health check|"
-    r"how much (?:disk |storage )?space|space (?:is )?left on [cd](?: drive)?)\b",
+    r"how much (?:disk |storage )?space|space (?:is )?left on [cd](?: drive)?|"
+    r"are (?:the )?(?:local )?services (?:ok|healthy|running|available)|"
+    r"are (?:the )?backups (?:ok|healthy|current|recent)|"
+    r"how many proposals (?:are )?(?:pending|awaiting review)|"
+    r"what (?:safety |security )?locks are (?:active|enabled|on))\b",
+    re.IGNORECASE,
+)
+PROPOSAL_REQUEST = re.compile(
+    r"^\s*(?:(?:please|josie)[\s,]+|(?:can|could|would)\s+you\s+)*"
+    r"(?:record|create|save|add|submit)\b",
+    re.IGNORECASE,
+)
+PROPOSAL_KIND = re.compile(
+    r"\b(?:health[_ -]?check|memory[_ -]?export|restore[_ -]?drill)\b",
+    re.IGNORECASE,
+)
+PROPOSAL_NEGATION = re.compile(
+    r"\b(?:do\s+not|don't|never)\s+(?:record|create|save|add|submit)\b",
     re.IGNORECASE,
 )
 
@@ -87,7 +104,16 @@ def _proposal_message(payload: object) -> str:
     return message
 
 
-def _trusted_source_message(body: dict) -> str | None:
+def _proposal_requested(user_text: str) -> bool:
+    return bool(
+        PROPOSAL_REQUEST.search(user_text)
+        and re.search(r"\bproposal\b", user_text, re.IGNORECASE)
+        and PROPOSAL_KIND.search(user_text)
+        and not PROPOSAL_NEGATION.search(user_text)
+    )
+
+
+def _trusted_source_message(body: dict, user_text: str) -> str | None:
     candidates = []
     candidates.extend(body.get("sources") or [])
     candidates.extend((body.get("metadata") or {}).get("sources") or [])
@@ -100,6 +126,10 @@ def _trusted_source_message(body: dict) -> str | None:
             continue
         source_name = (source.get("source") or {}).get("name")
         if source_name not in {STATUS_SOURCE, PROPOSAL_SOURCE}:
+            continue
+        if source_name == STATUS_SOURCE and not STATUS_QUERY.search(user_text):
+            continue
+        if source_name == PROPOSAL_SOURCE and not _proposal_requested(user_text):
             continue
         documents = source.get("document") or []
         if not isinstance(documents, list):
@@ -178,7 +208,8 @@ class Filter:
         if model_id != MODEL_ID:
             return body
 
-        trusted = _trusted_source_message(body)
-        if trusted is None and STATUS_QUERY.search(_last_user_text(body)):
+        user_text = _last_user_text(body)
+        trusted = _trusted_source_message(body, user_text)
+        if trusted is None and STATUS_QUERY.search(user_text):
             trusted = _fresh_status_message()
         return _replace_last_assistant(body, trusted) if trusted is not None else body
