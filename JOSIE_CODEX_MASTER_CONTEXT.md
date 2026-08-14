@@ -287,10 +287,12 @@ works. Never create unlimited self-repair loops.
 ## 21. Josie 0.99 — first practical job
 
 The initial concept is a headless deal-hunting engine for used AI/computer
-hardware, especially eBay and Facebook Marketplace where practical and
-permitted, with worthwhile opportunities proposed for a Discord channel such as
-`#josie-deals`. This is a target, not proof that accounts, sources, messaging,
-or automation are approved. Josie helping build Josie is intentional.
+hardware. On 2026-08-14 Dustin selected the official eBay Browse API as live
+source number one. The source is staged but not activated: no developer account,
+keyset, credential, token, or live call is yet canonical. Facebook Marketplace
+remains a possible later source only if permitted access can be established;
+Craigslist automation is not selected. Messaging, bidding, purchasing, and
+spending remain forbidden. Josie helping build Josie is intentional.
 
 ## 22. Price-per-performance philosophy
 

@@ -58,3 +58,10 @@ services:
     recurring_cost: "$0 API budget in Josie; account tier must be verified"
     credential_location: "authenticated browser environment"
     dependency_level: optional witness/provider
+  - service: "eBay Browse API"
+    purpose: "First selected read-only Deal Hunter listing source"
+    status: SELECTED_NOT_CONNECTED
+    exposure: "none; adapter is offline and network-disabled"
+    recurring_cost: "$0 expected at staged/default use; verify license and account terms before activation"
+    credential_location: "future ignored .env only; no credential currently canonical"
+    dependency_level: optional replaceable source

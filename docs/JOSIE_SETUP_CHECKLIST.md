@@ -184,6 +184,10 @@ confirmed on Josie or by the repository test suite.
 - [x] Build a transparent offline hardware-deal scorer for manually supplied listings; unverified current listings are forced to `verify_before_review`.
 - [x] Persist deal candidates locally with evidence status, uncertainty, score breakdown, and database-enforced zero action/purchase authority.
 - [x] Add a local Deal Hunter entry screen that forces `user_supplied` evidence, stores URLs without opening them, and exposes no model, browser, seller-contact, or purchase path.
+- [x] Select eBay Browse API as live source number one and verify its official search, application-token, default-quota, developer-account, and additional-license requirements.
+- [x] Stage a dormant eBay source policy and offline adapter that normalizes allowlisted item fields, removes duplicate item IDs, ignores descriptions, and has no network client.
+- [ ] Dustin completes the human-controlled eBay developer account, API License Agreement, additional Buy API license/access verification, and application-key creation steps.
+- [ ] Store the eBay client ID/secret in the ignored local environment and activate the reviewed read-only connector only after a separate explicit approval.
 - [ ] Evaluate approved marketplaces, bounties, document processing, and machine-native services.
 - [x] Calculate estimated profit, hourly return, and risk locally before any future human review; the calculator cannot accept work.
 - [ ] Track actual profitability and ROI by job type.
@@ -217,6 +221,7 @@ confirmed on Josie or by the repository test suite.
 8. [x] Complete Foundational Learning Wave 2 with eight governed scenarios and an auditable non-authorizing local reasoning assessment.
 9. [x] Complete Wave 3 with a deterministic evidence gate, one-use holdout, and offline deal scorer while keeping live discovery and model authority blocked.
 10. [x] Add and test the research-only manual Deal Hunter screen; keep every live marketplace and outward action behind a separate human gate.
+11. [x] Select and safely stage eBay as the first source without creating credentials or enabling live network access.
 
 ## Change-control rule
 

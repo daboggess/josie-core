@@ -222,6 +222,33 @@
   login, seller contact, message, bid, purchase, payment, or spending path.
   Any live marketplace integration remains a separate human gate.
 
+## DEC-0016 — eBay Browse API is Deal Hunter live source number one
+
+- Date: 2026-08-14.
+- Status: `SELECTED / STAGED / NOT ACTIVE`
+- Authority: Dustin explicitly selected eBay first at approximately 95%
+  confidence, with Facebook Marketplace deferred and Craigslist automation not
+  selected.
+- Verified evidence: eBay's official Browse API supports keyword/category item
+  search and item retrieval; Browse calls require a client-credentials
+  Application access token; the official default limit table listed 5,000
+  Browse calls/day on this date. eBay also marks Buy APIs as requiring an
+  additional license, so source selection is not production-access proof.
+- Decision: stage only the official Browse API. Use no buyer login or user
+  token. Cap the future connector at 100 calls/day, two/minute, one at a time.
+  Allow search/item GET operations only.
+- Implementation: policy and credential names are present; credentials are
+  blank; network and live authorization remain false. The offline adapter
+  normalizes supplied fixtures, validates exact item-link hosts, removes
+  duplicate `itemId` values, excludes description content, and cannot score an
+  unresolved hardware profile.
+- Human gate: developer-account creation/sign-in, CAPTCHA, license acceptance,
+  additional Buy API access verification, and key creation remain Dustin's
+  steps. A separate explicit approval is required before live calls.
+- Boundaries: no Facebook or Craigslist automation, authentication-code flow,
+  seller message, cart, offer, bid, order, checkout, purchase, payment, model
+  direct access, or spending authority.
+
 ## Template
 
 ```yaml

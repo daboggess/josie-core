@@ -26,6 +26,7 @@ from josie.status_snapshot import build_status_snapshot, write_status_snapshot
 from josie.diagnostics import recovery_snapshot, restore_drill_snapshot
 from josie.research import record_opportunity, record_upgrade_target
 from josie.opportunity_policy import load_opportunity_policy
+from josie.ebay_source import load_ebay_source_policy
 from josie.evidence_policy import evaluate_claim_evidence, load_evidence_policy
 from josie.deal_hunter import score_and_record_deal
 from josie.foundation import build_foundation_report, write_foundation_report
@@ -111,6 +112,9 @@ def build_parser() -> argparse.ArgumentParser:
     research_commands = research.add_subparsers(dest="research_command", required=True)
     research_commands.add_parser("status", help="List local research records")
     research_commands.add_parser("sources", help="Inspect the locked opportunity-source policy")
+    research_commands.add_parser(
+        "ebay-source", help="Inspect the staged, network-disabled eBay source policy"
+    )
     opportunity = research_commands.add_parser(
         "add-opportunity", help="Record an opportunity estimate without accepting work"
     )
@@ -409,6 +413,8 @@ def main() -> int:
         store = LocalStore(project_root / "data" / "josie.db")
         if args.research_command == "sources":
             result = load_opportunity_policy(project_root)
+        elif args.research_command == "ebay-source":
+            result = load_ebay_source_policy(project_root)
         elif args.research_command == "add-opportunity":
             result = record_opportunity(
                 store=store,

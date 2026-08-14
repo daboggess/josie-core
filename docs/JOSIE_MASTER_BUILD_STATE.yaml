@@ -95,8 +95,11 @@ working:
   - "One-use Wave 3 holdout preserved with 6/6 source grounding and 0/6 exact model routing; local model authority remains absent"
   - "Offline hardware deal scorer works for manually supplied candidates with transparent weights, forced evidence review, and zero purchase authority"
   - "Local Deal Hunter form records manually entered candidates as user-supplied evidence; links are never opened and no action or purchase path exists"
+  - "eBay Browse API selected as Deal Hunter live source number one; dormant adapter validates policy and normalizes/deduplicates supplied fixtures without network access"
 
 next:
+  - id: ebay_developer_access_human_gate
+    action: "Dustin may join or sign into the eBay Developers Program, accept the API License Agreement, verify the additional Buy API license/access requirement, and create an application keyset. Account, CAPTCHA, agreement, and key creation steps remain human-controlled."
   - id: local_reasoning_engine_upgrade_research
     action: "Evaluate CPU-safe model alternatives against the preserved holdout design; any model download or runtime change requires explicit approval."
 
@@ -113,7 +116,7 @@ research:
   - "X99 ReBAR feasibility and trustworthy boards"
   - "Dual-Xeon and used-workstation PPP after power and complexity"
   - "Exact inventory/current state of broader historical hardware references before any plan depends on them"
-  - "Platform rules and APIs for any future deal-hunting sources"
+  - "Permitted access path for any later Facebook Marketplace source; it is not approved or automated"
 
 later:
   - "Broad autonomous web exploration"
@@ -138,7 +141,7 @@ blocked:
   - item: "Discrete GPU purchase/install on current board"
     dependency: "Exact card draw, PSU, chassis, thermals, software compatibility, total PPP, budget, and Dustin approval; slot limit and Above-4G are no longer unknown"
   - item: "Live opportunity discovery"
-    dependency: "Exact approved sources, platform-rule review, security controls, and Dustin authorization"
+    dependency: "eBay is the exact selected source, but live use remains blocked on an eBay developer account, API License Agreement acceptance, additional Buy API license/access verification, application keyset, ignored local credentials, connector review, and Dustin's explicit activation approval"
   - item: "Outward economic or messaging actions"
     dependency: "Legal/ethical/accounting review, non-self-modifiable limits, exact human approval policy, and Dustin authorization"
 
@@ -178,9 +181,18 @@ evidence_verification:
   external_action_authorized: false
 
 deal_hunter:
-  status: "working_local_scorer_and_manual_ui"
+  status: "working_local_scorer_manual_ui_and_staged_ebay_adapter"
   live_discovery: false
-  approved_sources: 0
+  approved_sources: 1
+  approved_source_ids: ["ebay_browse_api"]
+  first_live_source: "eBay Browse API"
+  ebay_source_status: "staged_not_active"
+  ebay_adapter_network_capability: false
+  ebay_fixture_normalization: true
+  ebay_batch_deduplication_key: "itemId"
+  ebay_default_official_quota_verified: "5000 calls/day on 2026-08-14; Josie local ceiling staged at 100/day"
+  ebay_buy_api_additional_license_verified: false
+  ebay_credentials_present: false
   manual_candidates_supported: true
   manual_ui: true
   manual_ui_source_kind: "user_supplied"

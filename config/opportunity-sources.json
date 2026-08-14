@@ -1,15 +1,33 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "enabled": false,
   "default": "deny",
   "live_discovery": false,
-  "approved_sources": [],
+  "approved_sources": [
+    {
+      "source_id": "ebay_browse_api",
+      "name": "eBay Browse API",
+      "decision": "approved_first_source",
+      "status": "staged_not_active",
+      "approved_by": "Dustin Boggess",
+      "approved_on": "2026-08-14",
+      "purpose": "Read-only discovery of active hardware listings for local normalization, deduplication, scoring, and human review.",
+      "network_enabled": false,
+      "account_connected": false,
+      "credentials_present": false,
+      "live_calls_authorized": false,
+      "user_authentication_allowed": false,
+      "purchase_or_bidding_allowed": false,
+      "policy_record": "config/ebay-source.json"
+    }
+  ],
   "research_categories": [
     "coding_bounties",
     "document_processing",
     "data_quality",
     "machine_native_services",
-    "local_batch_processing"
+    "local_batch_processing",
+    "hardware_deals"
   ],
   "allowed_output": [
     "local_research_note",
@@ -31,6 +49,7 @@
     "wallet_activity"
   ],
   "human_approval_required_to_add_source": true,
+  "human_approval_required_to_activate_source": true,
   "model_may_modify_policy": false,
   "external_activity": false,
   "transactions_executed": 0,

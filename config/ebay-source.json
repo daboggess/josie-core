@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "source_id": "ebay_browse_api",
+  "status": "staged_not_active",
+  "selected_by": "Dustin Boggess",
+  "selected_on": "2026-08-14",
+  "official_api": "eBay Browse API",
+  "environment": "production",
+  "network_enabled": false,
+  "live_calls_authorized": false,
+  "marketplace_id": "EBAY_US",
+  "currency": "USD",
+  "hosts": {
+    "oauth": "api.ebay.com",
+    "browse": "api.ebay.com",
+    "item_links": [
+      "www.ebay.com",
+      "ebay.com"
+    ]
+  },
+  "oauth": {
+    "grant_type": "client_credentials",
+    "token_type": "application_access_token",
+    "scope": "https://api.ebay.com/oauth/api_scope",
+    "user_token_allowed": false,
+    "client_id_environment_name": "EBAY_CLIENT_ID",
+    "client_secret_environment_name": "EBAY_CLIENT_SECRET",
+    "persist_access_token": false
+  },
+  "allowed_operations": [
+    "GET /buy/browse/v1/item_summary/search",
+    "GET /buy/browse/v1/item/{item_id}"
+  ],
+  "prohibited_operations": [
+    "account_creation",
+    "authorization_code_grant",
+    "cart_change",
+    "checkout",
+    "message_seller",
+    "offer",
+    "order",
+    "place_bid",
+    "purchase"
+  ],
+  "request_budget": {
+    "requests_per_day": 100,
+    "requests_per_minute": 2,
+    "parallel_requests": 1,
+    "maximum_results_per_search": 50,
+    "official_default_calls_per_day_observed": 5000,
+    "official_limit_verified_on": "2026-08-14"
+  },
+  "data_controls": {
+    "deduplicate_by": "itemId",
+    "persist_raw_response": false,
+    "persist_normalized_fields_only": true,
+    "treat_listing_text_as_untrusted": true,
+    "model_direct_access": false,
+    "description_ingestion": false
+  },
+  "activation_gates": {
+    "developer_account_exists": false,
+    "api_license_accepted": false,
+    "buy_api_additional_license_verified": false,
+    "application_keyset_created": false,
+    "credentials_stored_in_ignored_environment": false,
+    "explicit_live_activation_approval": false
+  },
+  "external_activity": false,
+  "actions_queued": 0,
+  "actions_executed": 0,
+  "purchase_authorized": false,
+  "capability_change": "none"
+}

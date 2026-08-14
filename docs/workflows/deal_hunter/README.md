@@ -1,6 +1,6 @@
 # Deal Hunter — Local Design Boundary
 
-Status: `WORKING LOCAL SCORER / LIVE DISCOVERY DISABLED`
+Status: `WORKING LOCAL SCORER + MANUAL UI + STAGED EBAY ADAPTER / LIVE DISCOVERY DISABLED`
 
 The first useful Josie 0.99 workflow will evaluate hardware opportunities by
 price per performance. Current approved work is local schema, scoring, test
@@ -44,4 +44,9 @@ does not expose the scorer to the local model.
 Not authorized: account creation, login, scraping or navigation of unapproved
 sources, CAPTCHA/anti-bot bypass, saved downloads, uploads, seller contact,
 bids, purchases, Discord posting, contracts, wallet activity, or payments.
-`config/opportunity-sources.json` remains default-deny with no approved sources.
+`config/opportunity-sources.json` remains default-deny. eBay Browse API is the
+one selected source, but it is `staged_not_active`: no account is connected, no
+credential is present, and no live call is authorized. The offline adapter can
+normalize a supplied API-shaped fixture and remove duplicate `itemId` values;
+it contains no network client. See `EBAY_SOURCE_REVIEW.md` for the activation
+gates and verified official documentation.
