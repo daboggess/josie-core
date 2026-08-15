@@ -192,6 +192,9 @@ def restore_drill_snapshot(*, config: Config, project_root: Path) -> dict[str, o
             "learning_model_assessments",
             "deal_candidates",
             "deal_discoveries",
+            "prayer_requests",
+            "prayer_request_changes",
+            "prayer_request_links",
         }
         counts = {
             table: int(restored.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
@@ -297,6 +300,7 @@ def memory_export_snapshot(*, config: Config, project_root: Path) -> dict[str, o
         "learning_model_assessment_count": len(data["learning_model_assessments"]),
         "deal_candidate_count": len(data["deal_candidates"]),
         "deal_discovery_count": len(data["deal_discoveries"]),
+        "sensitive_prayer_data_excluded": True,
         "cloud_activity": False,
     }
 

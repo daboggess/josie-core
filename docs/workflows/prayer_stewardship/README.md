@@ -1,6 +1,24 @@
 # Prayer Stewardship Workflow
 
-Status: `PLANNED / LOCAL REGISTRY FIRST / NO SOURCES CONNECTED`
+Status: `WORKING LOCAL MANUAL REGISTRY / NO SOURCES CONNECTED`
+
+Implemented on 2026-08-15:
+
+- a dedicated SQLite registry separate from ordinary Josie memory;
+- a local desktop Prayer tab for manual entry, review, correction, lifecycle
+  changes, and confirmed live-record redaction;
+- source context, minimized identity handling, sharing scope, consent notes,
+  sensitivity, provenance, confidence, and private follow-up fields;
+- deterministic exact/near duplicate suggestions that never auto-merge;
+- confirmed related/duplicate/supersession links;
+- append-only change metadata containing hashes rather than old prayer text;
+- database constraints fixing cloud processing, cross-posting, messages,
+  external activity, and action authority at zero;
+- backup/restore coverage while excluding prayer records from the ordinary
+  memory JSON export.
+
+All three external sources remain disconnected. The registry starts empty; no
+prayer request was inferred or imported during setup.
 
 ## Purpose
 
@@ -52,10 +70,19 @@ account is connected. Each request should support:
 
 ## Phased plan
 
-### Phase 0 — local foundation
+### Phase 0 — local foundation (`WORKING`)
 
-Build and test the local prayer registry, manual entry/review screen, duplicate
-suggestions, status changes, export, correction/deletion, audit, and backups.
+The local prayer registry, entry/review screen, duplicate suggestions, status
+changes, correction, live-record redaction, privacy-safe audit metadata, and
+backup/restore coverage are implemented and tested. A full plaintext JSON
+export is intentionally not available: it would create another unencrypted
+copy of sensitive data. The general memory export explicitly omits all prayer
+tables.
+
+The SQLite database and its backups are not application-level encrypted. They
+inherit Windows, drive, account, and filesystem protections. Before real
+requests are entered, Dustin should decide whether those protections are
+sufficient and set retention rules for both the live record and older backups.
 
 ### Phase 1 — Slack pilot
 
@@ -86,11 +113,29 @@ Dustin. Any outward sharing remains a separate, exact human approval.
 
 - Which Slack workspace/channel is in scope?
 - What exactly identifies the Giant Killers and Sunday WhatsApp conversations?
-- Should names be stored, abbreviated, pseudonymized, or omitted by default?
+- Identity defaults to omitted. When Dustin deliberately records an identity,
+  should initials, first names, or full names be the normal exception?
 - What retention period applies to active, answered, and archived requests?
 - What constitutes consent or a reasonable group expectation for local recordkeeping?
 - May a request be shared between groups, and if so, who authorizes it?
 - Should reminders be private reminders to Dustin only?
-- What export/backup encryption and access controls are required?
+- What backup encryption and access controls are required? Full plaintext
+  prayer export remains deliberately unavailable until this is decided.
 
 These questions are requirements, not permission to connect or collect.
+
+## Local use and recovery
+
+- Open the Josie desktop window and select the **Prayer** tab.
+- **New** creates a manual local record; **Review / Correct** edits one while
+  preserving digest-only history.
+- Follow-up, answered, and archived controls change lifecycle state without
+  sending anything.
+- Redaction requires a second confirmation and clears sensitive plaintext from
+  the live database. Older backups may still retain the earlier text until a
+  retention policy is approved and applied.
+- `python core.py prayer status` shows counts and locked connection state.
+- `python core.py prayer list` lists metadata only. It omits prayer text and
+  requester identity.
+- `python core.py prayer show ID` deliberately shows one sensitive local record
+  and its digest-only history.

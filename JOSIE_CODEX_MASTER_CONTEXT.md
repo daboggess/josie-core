@@ -401,7 +401,8 @@ authorized merely because the workflow is discussed here.
 
 Dustin wants a unified, local-first prayer list drawing eventually from three
 distinct communities: his prayer-team Slack, the Giant Killers conversation in
-Google Messages, and a Sunday WhatsApp group. This is `PLANNED`, not connected.
+Google Messages, and a Sunday WhatsApp group. The manual local registry is
+`WORKING`; all three source connections remain `PLANNED / NOT CONNECTED`.
 Each source retains its own audience and sharing context; importing a request
 does not authorize copying it to another group.
 
@@ -412,7 +413,11 @@ answered, and archived requests, support correction/deletion, and default to
 local processing. No reply, cross-post, digest, notification, or cloud-model
 disclosure occurs without an explicit policy and the appropriate human
 approval. Account/browser connection, group selection, retention, and member
-expectations remain unresolved gates.
+expectations remain unresolved gates. The Phase 0 registry is deliberately
+separate from ordinary memory, omits prayer text from ordinary exports and
+audit details, never auto-merges duplicates, and database-enforces zero cloud,
+cross-post, message, external-activity, and action authority. It is not
+application-level encrypted; older backups may retain live-redacted content.
 
 ## 32. Browser automation
 

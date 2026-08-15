@@ -161,8 +161,10 @@ confirmed on Josie or by the repository test suite.
 
 - [x] Record the requested sources without claiming any connection: prayer-team Slack, Giant Killers in Google Messages, and the Sunday WhatsApp group.
 - [x] Define the initial privacy boundary: prayer requests are sensitive personal data; source membership never grants permission to cross-post, expose to cloud models, or send replies.
-- [ ] Build a local-first prayer registry with manual entry, provenance, sharing scope, active/follow-up/answered/archived state, correction, and deletion before connecting an account.
-- [ ] Decide retention, identity minimization, duplicate handling, consent expectations, and who may view each source's requests.
+- [x] Build a dedicated local-first prayer registry with manual entry, provenance, sharing scope, active/follow-up/answered/archived state, correction, confirmed relation links, and live-record redaction before connecting an account.
+- [x] Add a local Prayer tab for manual entry and review, deterministic duplicate suggestions without auto-merge, digest-only change history, database-enforced zero sending/cloud/cross-post authority, and backup/restore coverage.
+- [x] Exclude all sensitive prayer records from Josie's ordinary memory JSON export; no plaintext prayer export exists.
+- [ ] Decide live-record and backup retention, acceptable at-rest protection, identity exceptions, source-specific consent expectations, and who may view each source's requests.
 - [ ] Connect one narrowly scoped source at a time, starting read-only and requiring a separate attended approval for authentication/session access.
 - [ ] Evaluate Slack through a least-privilege selected-channel integration; no Slack workspace is connected yet.
 - [ ] Evaluate Google Messages Web through Dustin's paired browser session; there is no direct connector and no session is connected yet.

@@ -1578,6 +1578,121 @@ class JosieTests(unittest.TestCase):
             self.assertIn("governed memory", exported)
             self.assertNotIn("never-export-this", exported)
 
+    def test_prayer_registry_is_local_manual_and_privacy_bounded(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            first = store.record_prayer_request(
+                source_context="slack_prayer_team",
+                request_text="Please pray for a safe recovery after surgery.",
+                received_at="2026-08-15T09:00:00-04:00",
+                requester_display="D.",
+                identity_handling="initials",
+                sharing_scope="source_group_only",
+                consent_notes="Manually recorded for Dustin's private follow-up.",
+                provenance_status="direct_copy_unverified",
+                confidence="medium",
+            )
+            self.assertEqual(first["prayer_id"], 1)
+            self.assertFalse(first["cloud_processing_authorized"])
+            self.assertFalse(first["cross_post_authorized"])
+            self.assertFalse(first["messages_sent"])
+            self.assertTrue(first["external_content_untrusted"])
+            self.assertEqual(first["duplicate_suggestions"], [])
+
+            duplicate = store.record_prayer_request(
+                source_context="other_private",
+                request_text="Please pray for a safe recovery after surgery!",
+                received_at="2026-08-15T09:30:00-04:00",
+            )
+            self.assertEqual(duplicate["duplicate_suggestions"][0]["prayer_id"], 1)
+            self.assertEqual(duplicate["duplicate_suggestions"][0]["match"], "exact")
+            self.assertFalse(duplicate["duplicate_suggestions"][0]["automatically_merged"])
+
+            corrected = store.correct_prayer_request(
+                1,
+                request_text="Please pray for continued recovery after surgery.",
+                requester_display="D.",
+                identity_handling="initials",
+                source_reference="thread-note-1",
+                sharing_scope="source_group_only",
+                consent_notes="Private tracking only.",
+                follow_up_at="2026-08-20T09:00:00-04:00",
+                private_notes="Ask Dustin whether follow-up is still needed.",
+                sensitivity="highly_sensitive",
+                provenance_status="clarified_by_dustin",
+                confidence="high",
+                reason="Corrected after Dustin's review",
+            )
+            self.assertIn("continued recovery", corrected["request_text"])
+            changed = store.update_prayer_status(
+                1, status="follow_up", reason="Dustin marked for follow-up",
+                follow_up_at="2026-08-20T09:00:00-04:00",
+            )
+            self.assertEqual(changed["status"], "follow_up")
+
+            with self.assertRaisesRegex(ValueError, "CONFIRM PRAYER LINK"):
+                store.link_prayer_requests(
+                    1, 2, relation_type="possible_duplicate", reason="Review",
+                    confirmation="no",
+                )
+            link = store.link_prayer_requests(
+                1, 2, relation_type="possible_duplicate", reason="Dustin confirmed relation",
+                confirmation="CONFIRM PRAYER LINK",
+            )
+            self.assertEqual(link["confirmed_by"], "dustin")
+            self.assertFalse(bool(link["external_activity"]))
+
+            changes = store.prayer_request_changes(1)
+            history = json.dumps(changes)
+            self.assertEqual([item["change_type"] for item in changes], [
+                "created", "corrected", "status_changed",
+            ])
+            self.assertNotIn("safe recovery", history)
+            self.assertNotIn("continued recovery", history)
+            self.assertTrue(all(item["plaintext_history_stored"] == 0 for item in changes))
+
+            with self.assertRaisesRegex(ValueError, "REDACT PRAYER 1"):
+                store.redact_prayer_request(1, confirmation="no", reason="privacy request")
+            redacted = store.redact_prayer_request(
+                1, confirmation="REDACT PRAYER 1", reason="Dustin requested local redaction"
+            )
+            self.assertTrue(redacted["redacted"])
+            self.assertEqual(redacted["request_text"], "[redacted]")
+            self.assertEqual(redacted["requester_display"], "")
+            self.assertEqual(redacted["status"], "archived")
+            summary = store.prayer_summary()
+            self.assertEqual(summary["requests_total"], 2)
+            self.assertEqual(summary["redacted_total"], 1)
+            self.assertEqual(summary["confirmed_links"], 1)
+            self.assertFalse(summary["source_connections"]["slack_prayer_team"])
+            self.assertEqual(summary["messages_sent"], 0)
+
+    def test_prayer_text_is_excluded_from_general_memory_export(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            secret_prayer = "Private prayer wording that must not enter ordinary export"
+            store.record_prayer_request(
+                source_context="direct_to_dustin",
+                request_text=secret_prayer,
+                received_at="2026-08-15T10:00:00-04:00",
+            )
+            result = memory_export_snapshot(
+                config=load_config(root / ".env"), project_root=root
+            )
+            exported = Path(str(result["path"])).read_text(encoding="utf-8")
+            self.assertTrue(result["sensitive_prayer_data_excluded"])
+            self.assertNotIn(secret_prayer, exported)
+            self.assertNotIn("prayer_requests", exported)
+
+            answer = respond(
+                "prayer status", config=load_config(root / ".env"),
+                project_root=root, store=store,
+            )
+            self.assertIn("local manual-only", answer)
+            self.assertIn("Slack, Google Messages, and WhatsApp are not connected", answer)
+
     def test_restore_drill_never_changes_live_database(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1590,6 +1705,9 @@ class JosieTests(unittest.TestCase):
             self.assertFalse(result["live_database_changed"])
             self.assertEqual(result["record_counts"]["memories"], 1)
             self.assertIn("deal_discoveries", result["record_counts"])
+            self.assertIn("prayer_requests", result["record_counts"])
+            self.assertIn("prayer_request_changes", result["record_counts"])
+            self.assertIn("prayer_request_links", result["record_counts"])
             self.assertEqual(len(store.memories()), 2)
 
     def test_uptime_monitor_is_read_only(self) -> None:

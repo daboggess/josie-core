@@ -308,6 +308,36 @@
   audit, backup, and consent/retention fields before proposing the first Slack
   connection.
 
+## DEC-0020 — Prayer Stewardship Phase 0 is a separate sensitive local registry
+
+- Date: 2026-08-15.
+- Status: `WORKING / MANUAL LOCAL ONLY / SOURCES DISCONNECTED`.
+- Authority: Dustin asked Codex to complete everything safe while he was away;
+  this work required no account authentication, external communication, cloud
+  disclosure, or expansion of authority.
+- Decision: prayer requests live in dedicated SQLite tables rather than ordinary
+  Josie memory. The desktop Prayer tab supports manual entry, review,
+  correction, lifecycle changes, duplicate suggestions, human-confirmed links,
+  and confirmed live-record redaction.
+- Privacy: ordinary memory exports exclude every prayer table. Change history
+  stores record hashes, lifecycle state, and reasons rather than prior prayer
+  text. Audit events contain IDs and state only. Duplicate suggestions never
+  merge records automatically.
+- Enforcement: database constraints permanently set cloud processing,
+  cross-posting, messages sent, external activity, and action authority to zero
+  for this Phase 0 schema. No prayer record was imported or inferred during
+  deployment.
+- Acceptance: 82/82 tests pass; the live registry reports zero records; the
+  updated GUI process is responding; service validation is ready; and matching
+  integrity-checked database checkpoints exist on C: and D:.
+- Recovery caveat: the SQLite database and backups are not application-level
+  encrypted. Redaction removes plaintext from the live database, but an older
+  backup may retain it. Retention and at-rest protection remain a human decision
+  before source pilots or broad real-data use.
+- Boundaries unchanged: Slack, Google Messages, and WhatsApp remain disconnected.
+  No reading, ingestion, reply, digest, forwarding, sharing, or cross-posting is
+  authorized.
+
 ## Template
 
 ```yaml

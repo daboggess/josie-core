@@ -251,7 +251,23 @@ The GUI includes quick-action buttons for Status, System, SSD, Tasks, Approvals,
 Backups, and Activity. Each button invokes the same local allowlisted command as
 typing its label; it does not bypass approval or cloud-spending controls.
 
-The right-side dashboard provides visual approval and activity panels. Use
+The right-side dashboard provides visual approval, activity, Deal Hunter, and
+Prayer panels. The Prayer tab is a separate sensitive local manual registry. It
+can record, review, correct, mark follow-up/answered/archived, suggest possible
+duplicates without merging them, and redact a selected live record after a
+second confirmation. It cannot connect Slack, Google Messages, or WhatsApp; use
+a cloud model; share; reply; or send. Prayer text is omitted from the ordinary
+memory JSON export and audit details. Older database backups may retain text
+later redacted from the live database, so backup retention and at-rest
+protection remain a human decision. Read-only inspection commands are:
+
+```powershell
+.\.venv\Scripts\python.exe .\core.py prayer status
+.\.venv\Scripts\python.exe .\core.py prayer list
+.\.venv\Scripts\python.exe .\core.py prayer show 1
+```
+
+The right-side dashboard also provides the existing local controls. Use
 `remind me in 15 minutes to ...`, `reminders`, `warnings`, and `export report`
 for local reminders, threshold checks, and secret-free JSON diagnostics exports.
 While the GUI is open, Josie runs a local health check every five minutes.

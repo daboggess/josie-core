@@ -65,6 +65,13 @@ services:
     recurring_cost: "$0 expected at staged/default use; verify license and account terms before activation"
     credential_location: "future ignored .env only; no credential currently canonical"
     dependency_level: optional replaceable source
+  - service: "Prayer Stewardship local registry"
+    purpose: "Sensitive local manual prayer tracking, review, lifecycle, and provenance"
+    status: WORKING_LOCAL_ONLY
+    exposure: "local SQLite and desktop GUI only; omitted from ordinary memory export"
+    recurring_cost: "$0 incremental"
+    credential_location: "none; external prayer sources are not connected"
+    dependency_level: "optional local workflow; sensitive-data protections are mandatory"
   - service: "Slack prayer-team source"
     purpose: "Planned read-only intake from an explicitly selected prayer-team channel"
     status: PLANNED_NOT_CONNECTED

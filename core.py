@@ -190,6 +190,19 @@ def build_parser() -> argparse.ArgumentParser:
         default="unknown",
     )
     upgrade.add_argument("--notes", required=True)
+    prayer = subcommands.add_parser(
+        "prayer", help="Inspect the sensitive local manual prayer registry"
+    )
+    prayer_commands = prayer.add_subparsers(dest="prayer_command", required=True)
+    prayer_commands.add_parser("status", help="Show counts and locked connection state")
+    prayer_list = prayer_commands.add_parser(
+        "list", help="List metadata only; prayer text is omitted"
+    )
+    prayer_list.add_argument("--limit", type=int, default=50)
+    prayer_show = prayer_commands.add_parser(
+        "show", help="Show one locally stored prayer request explicitly"
+    )
+    prayer_show.add_argument("prayer_id", type=int)
     status_snapshot = subcommands.add_parser(
         "status-snapshot", help="Show or publish the secret-free read-only status snapshot"
     )
@@ -537,6 +550,45 @@ def main() -> int:
                 source_kind=args.source_kind,
                 observed_at=args.observed_at,
             )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "prayer":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.prayer_command == "status":
+            result = store.prayer_summary()
+        elif args.prayer_command == "list":
+            requests = store.recent_prayer_requests(args.limit)
+            result = {
+                **store.prayer_summary(),
+                "requests": [
+                    {
+                        "prayer_id": item["prayer_id"],
+                        "received_at": item["received_at"],
+                        "last_reviewed_at": item["last_reviewed_at"],
+                        "source_context": item["source_context"],
+                        "identity_handling": item["identity_handling"],
+                        "status": item["status"],
+                        "follow_up_at": item["follow_up_at"],
+                        "sensitivity": item["sensitivity"],
+                        "redacted": item["redacted"],
+                    }
+                    for item in requests
+                ],
+                "prayer_text_included": False,
+                "requester_identity_included": False,
+            }
+        else:
+            item = store.prayer_request(args.prayer_id)
+            result = {
+                "status": "local_sensitive_record",
+                "request": item,
+                "change_history": store.prayer_request_changes(args.prayer_id),
+                "external_activity": False,
+                "messages_sent": 0,
+                "cloud_processing_authorized": False,
+                "cross_post_authorized": False,
+            }
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

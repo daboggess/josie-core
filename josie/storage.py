@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import re
 import sqlite3
 from contextlib import closing, contextmanager
 from collections.abc import Iterator
@@ -197,6 +199,99 @@ class LocalStore:
                         (shipping_known = 0 AND shipping_cents IS NULL)
                         OR (shipping_known = 1 AND shipping_cents IS NOT NULL)
                     )
+                );
+                CREATE TABLE IF NOT EXISTS prayer_requests (
+                    prayer_id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    last_reviewed_at TEXT NOT NULL,
+                    entry_method TEXT NOT NULL DEFAULT 'manual'
+                    CHECK (entry_method = 'manual'),
+                    source_context TEXT NOT NULL
+                    CHECK (source_context IN (
+                        'direct_to_dustin','slack_prayer_team',
+                        'google_messages_giant_killers','whatsapp_sunday','other_private'
+                    )),
+                    source_reference TEXT NOT NULL DEFAULT '',
+                    received_at TEXT NOT NULL,
+                    requester_display TEXT NOT NULL DEFAULT '',
+                    identity_handling TEXT NOT NULL
+                    CHECK (identity_handling IN (
+                        'omitted','initials','first_name','full_name_explicit'
+                    )),
+                    request_text TEXT NOT NULL,
+                    fingerprint_sha256 TEXT NOT NULL CHECK (length(fingerprint_sha256) = 64),
+                    sharing_scope TEXT NOT NULL
+                    CHECK (sharing_scope IN (
+                        'private_dustin','source_group_only','explicitly_shareable'
+                    )),
+                    consent_notes TEXT NOT NULL DEFAULT '',
+                    status TEXT NOT NULL DEFAULT 'active'
+                    CHECK (status IN ('active','follow_up','answered','archived')),
+                    follow_up_at TEXT,
+                    private_notes TEXT NOT NULL DEFAULT '',
+                    sensitivity TEXT NOT NULL DEFAULT 'sensitive'
+                    CHECK (sensitivity IN ('standard','sensitive','highly_sensitive')),
+                    provenance_status TEXT NOT NULL DEFAULT 'user_supplied'
+                    CHECK (provenance_status IN (
+                        'user_supplied','direct_copy_unverified','clarified_by_dustin'
+                    )),
+                    confidence TEXT NOT NULL DEFAULT 'high'
+                    CHECK (confidence IN ('low','medium','high')),
+                    redacted INTEGER NOT NULL DEFAULT 0 CHECK (redacted IN (0,1)),
+                    external_content_untrusted INTEGER NOT NULL DEFAULT 1
+                    CHECK (external_content_untrusted = 1),
+                    cloud_processing_authorized INTEGER NOT NULL DEFAULT 0
+                    CHECK (cloud_processing_authorized = 0),
+                    cross_post_authorized INTEGER NOT NULL DEFAULT 0
+                    CHECK (cross_post_authorized = 0),
+                    messages_sent INTEGER NOT NULL DEFAULT 0 CHECK (messages_sent = 0),
+                    action_authorized INTEGER NOT NULL DEFAULT 0 CHECK (action_authorized = 0),
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none'),
+                    CHECK (
+                        redacted = 0 OR (
+                            request_text = '[redacted]' AND requester_display = ''
+                            AND source_reference = '' AND consent_notes = ''
+                            AND private_notes = '' AND status = 'archived'
+                        )
+                    )
+                );
+                CREATE TABLE IF NOT EXISTS prayer_request_changes (
+                    change_id INTEGER PRIMARY KEY,
+                    prayer_id INTEGER NOT NULL,
+                    changed_at TEXT NOT NULL,
+                    change_type TEXT NOT NULL
+                    CHECK (change_type IN ('created','corrected','status_changed','redacted')),
+                    reason TEXT NOT NULL,
+                    previous_digest TEXT,
+                    new_digest TEXT,
+                    status_before TEXT,
+                    status_after TEXT NOT NULL,
+                    plaintext_history_stored INTEGER NOT NULL DEFAULT 0
+                    CHECK (plaintext_history_stored = 0),
+                    external_activity INTEGER NOT NULL DEFAULT 0 CHECK (external_activity = 0),
+                    messages_sent INTEGER NOT NULL DEFAULT 0 CHECK (messages_sent = 0),
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none'),
+                    FOREIGN KEY(prayer_id) REFERENCES prayer_requests(prayer_id)
+                );
+                CREATE TABLE IF NOT EXISTS prayer_request_links (
+                    link_id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    from_prayer_id INTEGER NOT NULL,
+                    to_prayer_id INTEGER NOT NULL,
+                    relation_type TEXT NOT NULL
+                    CHECK (relation_type IN ('possible_duplicate','related','supersedes')),
+                    reason TEXT NOT NULL,
+                    confirmed_by TEXT NOT NULL CHECK (confirmed_by = 'dustin'),
+                    external_activity INTEGER NOT NULL DEFAULT 0 CHECK (external_activity = 0),
+                    capability_change TEXT NOT NULL DEFAULT 'none'
+                    CHECK (capability_change = 'none'),
+                    CHECK (from_prayer_id != to_prayer_id),
+                    UNIQUE (from_prayer_id,to_prayer_id,relation_type),
+                    FOREIGN KEY(from_prayer_id) REFERENCES prayer_requests(prayer_id),
+                    FOREIGN KEY(to_prayer_id) REFERENCES prayer_requests(prayer_id)
                 );
                 CREATE TABLE IF NOT EXISTS hardware_targets (
                     id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
@@ -1471,6 +1566,456 @@ class LocalStore:
                 ).fetchall()
             ]
         return [self.deal_discovery(discovery_id) for discovery_id in ids]
+
+    @staticmethod
+    def _prayer_text(
+        value: object, *, label: str, maximum: int, allow_empty: bool = False
+    ) -> str:
+        if not isinstance(value, str):
+            raise ValueError(f"{label} must be text")
+        clean = value.strip()
+        if not clean and not allow_empty:
+            raise ValueError(f"{label} is required")
+        if len(clean) > maximum:
+            raise ValueError(f"{label} exceeds the {maximum}-character limit")
+        return clean
+
+    @staticmethod
+    def _prayer_timestamp(value: object, *, label: str, allow_empty: bool = False) -> str | None:
+        if value is None or (isinstance(value, str) and not value.strip()):
+            if allow_empty:
+                return None
+            raise ValueError(f"{label} is required")
+        if not isinstance(value, str) or len(value) > 64:
+            raise ValueError(f"{label} must be a bounded ISO 8601 timestamp")
+        clean = value.strip()
+        try:
+            parsed = datetime.fromisoformat(clean.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(f"{label} must be ISO 8601") from exc
+        if parsed.tzinfo is None:
+            raise ValueError(f"{label} must include a timezone")
+        return clean
+
+    @staticmethod
+    def _prayer_fingerprint(text: str) -> str:
+        normalized = " ".join(re.findall(r"[a-z0-9]+", text.casefold()))
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _prayer_record_digest(record: dict[str, object]) -> str:
+        fields = (
+            "source_context", "source_reference", "received_at", "requester_display",
+            "identity_handling", "request_text", "sharing_scope", "consent_notes",
+            "status", "follow_up_at", "private_notes", "sensitivity",
+            "provenance_status", "confidence", "redacted",
+        )
+        encoded = json.dumps(
+            {field: record.get(field) for field in fields},
+            separators=(",", ":"), sort_keys=True,
+        )
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+    def prayer_duplicate_suggestions(
+        self, request_text: str, *, exclude_prayer_id: int | None = None, limit: int = 5
+    ) -> list[dict[str, object]]:
+        clean_text = self._prayer_text(
+            request_text, label="Prayer request", maximum=4_000
+        )
+        if type(limit) is not int or not 1 <= limit <= 20:
+            raise ValueError("Prayer duplicate limit must be 1 to 20")
+        fingerprint = self._prayer_fingerprint(clean_text)
+        tokens = set(re.findall(r"[a-z0-9]+", clean_text.casefold()))
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT prayer_id,request_text,fingerprint_sha256,status,requester_display "
+                "FROM prayer_requests WHERE redacted=0 AND status!='archived' "
+                "ORDER BY prayer_id DESC LIMIT 200"
+            ).fetchall()
+        suggestions: list[dict[str, object]] = []
+        for row in rows:
+            prayer_id = int(row["prayer_id"])
+            if exclude_prayer_id is not None and prayer_id == exclude_prayer_id:
+                continue
+            candidate_tokens = set(
+                re.findall(r"[a-z0-9]+", str(row["request_text"]).casefold())
+            )
+            exact = str(row["fingerprint_sha256"]) == fingerprint
+            union = tokens | candidate_tokens
+            similarity = len(tokens & candidate_tokens) / len(union) if union else 0.0
+            if exact or (min(len(tokens), len(candidate_tokens)) >= 4 and similarity >= 0.72):
+                suggestions.append({
+                    "prayer_id": prayer_id,
+                    "match": "exact" if exact else "possible",
+                    "similarity": round(1.0 if exact else similarity, 3),
+                    "status": str(row["status"]),
+                    "requester_display": str(row["requester_display"]),
+                    "human_review_required": True,
+                    "automatically_merged": False,
+                })
+        suggestions.sort(key=lambda item: (-float(item["similarity"]), -int(item["prayer_id"])))
+        return suggestions[:limit]
+
+    def record_prayer_request(
+        self,
+        *,
+        source_context: str,
+        request_text: str,
+        received_at: str | None = None,
+        requester_display: str = "",
+        identity_handling: str = "omitted",
+        source_reference: str = "",
+        sharing_scope: str = "private_dustin",
+        consent_notes: str = "",
+        status: str = "active",
+        follow_up_at: str | None = None,
+        private_notes: str = "",
+        sensitivity: str = "sensitive",
+        provenance_status: str = "user_supplied",
+        confidence: str = "high",
+    ) -> dict[str, object]:
+        allowed_sources = {
+            "direct_to_dustin", "slack_prayer_team", "google_messages_giant_killers",
+            "whatsapp_sunday", "other_private",
+        }
+        if source_context not in allowed_sources:
+            raise ValueError("Prayer source context is invalid")
+        if identity_handling not in {"omitted", "initials", "first_name", "full_name_explicit"}:
+            raise ValueError("Prayer identity handling is invalid")
+        if sharing_scope not in {"private_dustin", "source_group_only", "explicitly_shareable"}:
+            raise ValueError("Prayer sharing scope is invalid")
+        if status not in {"active", "follow_up", "answered", "archived"}:
+            raise ValueError("Prayer status is invalid")
+        if sensitivity not in {"standard", "sensitive", "highly_sensitive"}:
+            raise ValueError("Prayer sensitivity is invalid")
+        if provenance_status not in {
+            "user_supplied", "direct_copy_unverified", "clarified_by_dustin"
+        }:
+            raise ValueError("Prayer provenance status is invalid")
+        if confidence not in {"low", "medium", "high"}:
+            raise ValueError("Prayer confidence is invalid")
+        clean_request = self._prayer_text(
+            request_text, label="Prayer request", maximum=4_000
+        )
+        clean_requester = self._prayer_text(
+            requester_display, label="Requester display", maximum=200, allow_empty=True
+        )
+        if identity_handling == "omitted" and clean_requester:
+            raise ValueError("Requester display must be empty when identity handling is omitted")
+        clean_reference = self._prayer_text(
+            source_reference, label="Source reference", maximum=500, allow_empty=True
+        )
+        clean_consent = self._prayer_text(
+            consent_notes, label="Consent notes", maximum=1_000, allow_empty=True
+        )
+        clean_notes = self._prayer_text(
+            private_notes, label="Private notes", maximum=2_000, allow_empty=True
+        )
+        clean_received = self._prayer_timestamp(
+            received_at or self._now(), label="Received at"
+        )
+        clean_follow_up = self._prayer_timestamp(
+            follow_up_at, label="Follow-up at", allow_empty=True
+        )
+        now = self._now()
+        fingerprint = self._prayer_fingerprint(clean_request)
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO prayer_requests(created_at,updated_at,last_reviewed_at,"
+                "source_context,source_reference,received_at,requester_display,"
+                "identity_handling,request_text,fingerprint_sha256,sharing_scope,"
+                "consent_notes,status,follow_up_at,private_notes,sensitivity,"
+                "provenance_status,confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    now, now, now, source_context, clean_reference, clean_received,
+                    clean_requester, identity_handling, clean_request, fingerprint,
+                    sharing_scope, clean_consent, status, clean_follow_up, clean_notes,
+                    sensitivity, provenance_status, confidence,
+                ),
+            )
+            prayer_id = int(cursor.lastrowid)
+            new_record = dict(connection.execute(
+                "SELECT * FROM prayer_requests WHERE prayer_id=?", (prayer_id,)
+            ).fetchone())
+            connection.execute(
+                "INSERT INTO prayer_request_changes(prayer_id,changed_at,change_type,"
+                "reason,previous_digest,new_digest,status_before,status_after) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    prayer_id, now, "created", "Manual local entry", None,
+                    self._prayer_record_digest(new_record), None, status,
+                ),
+            )
+        self.audit("prayer_request_recorded", f"{prayer_id}: {status}; local only")
+        result = self.prayer_request(prayer_id)
+        result["duplicate_suggestions"] = self.prayer_duplicate_suggestions(
+            clean_request, exclude_prayer_id=prayer_id
+        )
+        return result
+
+    def prayer_request(self, prayer_id: int) -> dict[str, object]:
+        if type(prayer_id) is not int or prayer_id < 1:
+            raise ValueError("Prayer request ID is invalid")
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM prayer_requests WHERE prayer_id=?", (prayer_id,)
+            ).fetchone()
+        if row is None:
+            raise ValueError("Prayer request was not found")
+        record = dict(row)
+        for field in (
+            "redacted", "external_content_untrusted", "cloud_processing_authorized",
+            "cross_post_authorized", "messages_sent", "action_authorized",
+        ):
+            record[field] = bool(record[field])
+        record["external_activity"] = False
+        return record
+
+    def recent_prayer_requests(
+        self, limit: int = 50, *, include_archived: bool = True
+    ) -> list[dict[str, object]]:
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("Prayer request limit must be 1 to 200")
+        where = "" if include_archived else "WHERE status!='archived'"
+        with self._connect() as connection:
+            ids = [
+                int(row["prayer_id"])
+                for row in connection.execute(
+                    f"SELECT prayer_id FROM prayer_requests {where} "
+                    "ORDER BY prayer_id DESC LIMIT ?", (limit,)
+                ).fetchall()
+            ]
+        return [self.prayer_request(prayer_id) for prayer_id in ids]
+
+    def update_prayer_status(
+        self, prayer_id: int, *, status: str, reason: str, follow_up_at: str | None = None
+    ) -> dict[str, object]:
+        if status not in {"active", "follow_up", "answered", "archived"}:
+            raise ValueError("Prayer status is invalid")
+        clean_reason = self._prayer_text(reason, label="Status reason", maximum=500)
+        clean_follow_up = self._prayer_timestamp(
+            follow_up_at, label="Follow-up at", allow_empty=True
+        )
+        before = self.prayer_request(prayer_id)
+        if before["redacted"]:
+            raise ValueError("A redacted prayer request cannot change status")
+        now = self._now()
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE prayer_requests SET status=?,follow_up_at=?,updated_at=?,"
+                "last_reviewed_at=? WHERE prayer_id=?",
+                (status, clean_follow_up, now, now, prayer_id),
+            )
+        after = self.prayer_request(prayer_id)
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO prayer_request_changes(prayer_id,changed_at,change_type,"
+                "reason,previous_digest,new_digest,status_before,status_after) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    prayer_id, now, "status_changed", clean_reason,
+                    self._prayer_record_digest(before), self._prayer_record_digest(after),
+                    str(before["status"]), status,
+                ),
+            )
+        self.audit("prayer_status_changed", f"{prayer_id}: {before['status']} -> {status}")
+        return after
+
+    def correct_prayer_request(
+        self,
+        prayer_id: int,
+        *,
+        request_text: str,
+        requester_display: str,
+        identity_handling: str,
+        source_reference: str,
+        sharing_scope: str,
+        consent_notes: str,
+        follow_up_at: str | None,
+        private_notes: str,
+        sensitivity: str,
+        provenance_status: str,
+        confidence: str,
+        reason: str,
+    ) -> dict[str, object]:
+        before = self.prayer_request(prayer_id)
+        if before["redacted"]:
+            raise ValueError("A redacted prayer request cannot be corrected")
+        clean_reason = self._prayer_text(reason, label="Correction reason", maximum=500)
+        clean_request = self._prayer_text(request_text, label="Prayer request", maximum=4_000)
+        clean_requester = self._prayer_text(
+            requester_display, label="Requester display", maximum=200, allow_empty=True
+        )
+        if identity_handling not in {"omitted", "initials", "first_name", "full_name_explicit"}:
+            raise ValueError("Prayer identity handling is invalid")
+        if identity_handling == "omitted" and clean_requester:
+            raise ValueError("Requester display must be empty when identity handling is omitted")
+        if sharing_scope not in {"private_dustin", "source_group_only", "explicitly_shareable"}:
+            raise ValueError("Prayer sharing scope is invalid")
+        if sensitivity not in {"standard", "sensitive", "highly_sensitive"}:
+            raise ValueError("Prayer sensitivity is invalid")
+        if provenance_status not in {
+            "user_supplied", "direct_copy_unverified", "clarified_by_dustin"
+        }:
+            raise ValueError("Prayer provenance status is invalid")
+        if confidence not in {"low", "medium", "high"}:
+            raise ValueError("Prayer confidence is invalid")
+        clean_reference = self._prayer_text(
+            source_reference, label="Source reference", maximum=500, allow_empty=True
+        )
+        clean_consent = self._prayer_text(
+            consent_notes, label="Consent notes", maximum=1_000, allow_empty=True
+        )
+        clean_notes = self._prayer_text(
+            private_notes, label="Private notes", maximum=2_000, allow_empty=True
+        )
+        clean_follow_up = self._prayer_timestamp(
+            follow_up_at, label="Follow-up at", allow_empty=True
+        )
+        now = self._now()
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE prayer_requests SET request_text=?,requester_display=?,"
+                "identity_handling=?,source_reference=?,sharing_scope=?,consent_notes=?,"
+                "follow_up_at=?,private_notes=?,sensitivity=?,provenance_status=?,"
+                "confidence=?,fingerprint_sha256=?,updated_at=?,last_reviewed_at=? "
+                "WHERE prayer_id=?",
+                (
+                    clean_request, clean_requester, identity_handling, clean_reference,
+                    sharing_scope, clean_consent, clean_follow_up, clean_notes,
+                    sensitivity, provenance_status, confidence,
+                    self._prayer_fingerprint(clean_request), now, now, prayer_id,
+                ),
+            )
+        after = self.prayer_request(prayer_id)
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO prayer_request_changes(prayer_id,changed_at,change_type,"
+                "reason,previous_digest,new_digest,status_before,status_after) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    prayer_id, now, "corrected", clean_reason,
+                    self._prayer_record_digest(before), self._prayer_record_digest(after),
+                    str(before["status"]), str(after["status"]),
+                ),
+            )
+        self.audit("prayer_request_corrected", f"{prayer_id}: sensitive text omitted")
+        result = after
+        result["duplicate_suggestions"] = self.prayer_duplicate_suggestions(
+            clean_request, exclude_prayer_id=prayer_id
+        )
+        return result
+
+    def redact_prayer_request(
+        self, prayer_id: int, *, confirmation: str, reason: str
+    ) -> dict[str, object]:
+        if confirmation != f"REDACT PRAYER {prayer_id}":
+            raise ValueError(f"Confirmation must be exactly: REDACT PRAYER {prayer_id}")
+        clean_reason = self._prayer_text(reason, label="Redaction reason", maximum=500)
+        before = self.prayer_request(prayer_id)
+        if before["redacted"]:
+            return before
+        now = self._now()
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE prayer_requests SET updated_at=?,last_reviewed_at=?,"
+                "source_reference='',requester_display='',identity_handling='omitted',"
+                "request_text='[redacted]',fingerprint_sha256=?,"
+                "sharing_scope='private_dustin',consent_notes='',status='archived',"
+                "follow_up_at=NULL,private_notes='',redacted=1 WHERE prayer_id=?",
+                (now, now, self._prayer_fingerprint("[redacted]"), prayer_id),
+            )
+        after = self.prayer_request(prayer_id)
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO prayer_request_changes(prayer_id,changed_at,change_type,"
+                "reason,previous_digest,new_digest,status_before,status_after) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    prayer_id, now, "redacted", clean_reason,
+                    self._prayer_record_digest(before), self._prayer_record_digest(after),
+                    str(before["status"]), "archived",
+                ),
+            )
+        self.audit("prayer_request_redacted", f"{prayer_id}: plaintext removed from live database")
+        return after
+
+    def prayer_request_changes(self, prayer_id: int) -> list[dict[str, object]]:
+        self.prayer_request(prayer_id)
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM prayer_request_changes WHERE prayer_id=? "
+                "ORDER BY change_id", (prayer_id,)
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def link_prayer_requests(
+        self,
+        from_prayer_id: int,
+        to_prayer_id: int,
+        *,
+        relation_type: str,
+        reason: str,
+        confirmation: str,
+    ) -> dict[str, object]:
+        if confirmation != "CONFIRM PRAYER LINK":
+            raise ValueError("Confirmation must be exactly: CONFIRM PRAYER LINK")
+        if from_prayer_id == to_prayer_id:
+            raise ValueError("A prayer request cannot link to itself")
+        if relation_type not in {"possible_duplicate", "related", "supersedes"}:
+            raise ValueError("Prayer relation type is invalid")
+        self.prayer_request(from_prayer_id)
+        self.prayer_request(to_prayer_id)
+        clean_reason = self._prayer_text(reason, label="Link reason", maximum=500)
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO prayer_request_links(created_at,from_prayer_id,to_prayer_id,"
+                "relation_type,reason,confirmed_by) VALUES (?,?,?,?,?,?)",
+                (
+                    self._now(), from_prayer_id, to_prayer_id, relation_type,
+                    clean_reason, "dustin",
+                ),
+            )
+            link_id = int(cursor.lastrowid)
+            row = connection.execute(
+                "SELECT * FROM prayer_request_links WHERE link_id=?", (link_id,)
+            ).fetchone()
+        self.audit("prayer_requests_linked", f"{from_prayer_id} -> {to_prayer_id}: {relation_type}")
+        return dict(row)
+
+    def prayer_summary(self) -> dict[str, object]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT status,COUNT(*) total FROM prayer_requests GROUP BY status"
+            ).fetchall()
+            redacted = int(connection.execute(
+                "SELECT COUNT(*) FROM prayer_requests WHERE redacted=1"
+            ).fetchone()[0])
+            links = int(connection.execute(
+                "SELECT COUNT(*) FROM prayer_request_links"
+            ).fetchone()[0])
+        counts = {status: 0 for status in ("active", "follow_up", "answered", "archived")}
+        counts.update({str(row["status"]): int(row["total"]) for row in rows})
+        return {
+            "status": "working_local_only",
+            "requests_total": sum(counts.values()),
+            "requests_by_status": counts,
+            "redacted_total": redacted,
+            "confirmed_links": links,
+            "entry_method": "manual_only",
+            "source_connections": {
+                "slack_prayer_team": False,
+                "google_messages_giant_killers": False,
+                "whatsapp_sunday": False,
+            },
+            "cloud_processing_authorized": False,
+            "cross_post_authorized": False,
+            "messages_sent": 0,
+            "external_activity": False,
+            "actions_queued": 0,
+            "actions_executed": 0,
+            "capability_change": "none",
+        }
 
     def record_hardware_target(
         self,

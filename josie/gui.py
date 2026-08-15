@@ -7,7 +7,7 @@ import tkinter as tk
 import re
 from datetime import datetime
 from pathlib import Path
-from tkinter import ttk
+from tkinter import messagebox, ttk
 
 from .config import Config
 from .diagnostics import (
@@ -43,7 +43,8 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
             "Try: 'ask Josie ...', 'ask Sophie ...', 'ask Bernie ...', 'remember ...', "
             "'memories', 'add task ...', 'tasks', or 'complete task 1'. Model proposals are review-only; "
             "cloud calls are locked off. Type 'foundation' for readiness, 'genesis' for origin status, "
-            "or 'learning' for grounded curriculum progress."
+            "'prayer status' for the private local prayer registry, or 'learning' for grounded "
+            "curriculum progress. Use the Prayer tab for manual entry and review."
         )
     if text in {"status", "dashboard", "summary", "josie status"}:
         health = health_check(config=config, project_root=project_root)
@@ -71,6 +72,18 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"jobs", "job status", "orchestration jobs"}:
         summary = store.job_summary() if store else {}
         return "Jobs: " + ", ".join(f"{key} {value}" for key, value in summary.items()) + "."
+    if text in {"prayer", "prayer status", "prayer list status"}:
+        if store is None:
+            return "The local prayer registry is unavailable."
+        summary = store.prayer_summary()
+        counts = summary["requests_by_status"]
+        return (
+            f"Prayer registry: local manual-only; {summary['requests_total']} requests. "
+            f"Active {counts['active']}, follow-up {counts['follow_up']}, answered "
+            f"{counts['answered']}, archived {counts['archived']}. Slack, Google Messages, "
+            "and WhatsApp are not connected. Cloud processing, cross-posting, and sending "
+            "remain locked. Use the Prayer tab to enter or review sensitive requests."
+        )
     if text in {"browser", "browser policy", "browser status", "web automation"}:
         policy = load_browser_policy(project_root)
         return (
@@ -683,6 +696,216 @@ class DealHunterWindow:
         self.window.destroy()
 
 
+class PrayerRequestWindow:
+    """Manual-only editor for the sensitive local prayer registry."""
+
+    def __init__(self, parent, *, store: LocalStore, record, on_saved, on_closed) -> None:
+        self.store = store
+        self.record = record
+        self.on_saved = on_saved
+        self.on_closed = on_closed
+        self.window = tk.Toplevel(parent)
+        self.window.title("Josie Prayer Stewardship - Local Only")
+        self.window.geometry("780x860")
+        self.window.minsize(680, 760)
+        self.window.configure(bg="#10151c")
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+
+        body = ttk.Frame(self.window, style="Panel.TFrame", padding=16)
+        body.pack(fill="both", expand=True, padx=14, pady=14)
+        ttk.Label(body, text="PRAYER STEWARDSHIP", style="Title.TLabel").grid(
+            row=0, column=0, columnspan=4, sticky="w"
+        )
+        tk.Label(
+            body,
+            text=(
+                "LOCAL AND MANUAL ONLY - Sensitive prayer text stays out of ordinary memory "
+                "exports and audit logs. This screen cannot connect accounts, reply, share, "
+                "cross-post, or use a cloud model."
+            ),
+            bg="#18212b", fg="#8ef0b5", justify="left", wraplength=710,
+            font=("Segoe UI", 10, "bold"),
+        ).grid(row=1, column=0, columnspan=4, sticky="ew", pady=(4, 12))
+
+        self.values: dict[str, tk.StringVar] = {}
+        row = 2
+        row = self._choice_row(
+            body, row, "source_context", "Source context",
+            ("direct_to_dustin", "slack_prayer_team", "google_messages_giant_killers",
+             "whatsapp_sunday", "other_private"),
+            str(record["source_context"]) if record else "direct_to_dustin",
+            locked=record is not None,
+        )
+        row = self._paired_entries(
+            body, row,
+            ("requester_display", "Requester display (minimize identity)",
+             str(record["requester_display"]) if record else ""),
+            ("source_reference", "Opaque source reference (optional)",
+             str(record["source_reference"]) if record else ""),
+        )
+        row = self._choice_pair(
+            body, row,
+            ("identity_handling", "Identity handling",
+             ("omitted", "initials", "first_name", "full_name_explicit"),
+             str(record["identity_handling"]) if record else "omitted"),
+            ("sharing_scope", "Recorded sharing scope",
+             ("private_dustin", "source_group_only", "explicitly_shareable"),
+             str(record["sharing_scope"]) if record else "private_dustin"),
+        )
+        row = self._paired_entries(
+            body, row,
+            ("received_at", "Received at (timezone required)",
+             str(record["received_at"]) if record else datetime.now().astimezone().isoformat(timespec="seconds")),
+            ("follow_up_at", "Private follow-up time (optional)",
+             str(record["follow_up_at"] or "") if record else ""),
+            lock_left=record is not None,
+        )
+        row = self._choice_pair(
+            body, row,
+            ("sensitivity", "Sensitivity", ("standard", "sensitive", "highly_sensitive"),
+             str(record["sensitivity"]) if record else "sensitive"),
+            ("provenance_status", "Provenance",
+             ("user_supplied", "direct_copy_unverified", "clarified_by_dustin"),
+             str(record["provenance_status"]) if record else "user_supplied"),
+        )
+        row = self._choice_row(
+            body, row, "confidence", "Confidence", ("low", "medium", "high"),
+            str(record["confidence"]) if record else "high",
+        )
+
+        row = self._text_box(
+            body, row, "request_text", "Prayer request (minimum identity needed)", 6,
+            str(record["request_text"]) if record else "",
+        )
+        row = self._text_box(
+            body, row, "consent_notes", "Consent / sharing notes", 3,
+            str(record["consent_notes"]) if record else "",
+        )
+        row = self._text_box(
+            body, row, "private_notes", "Private notes for Dustin", 3,
+            str(record["private_notes"]) if record else "",
+        )
+        self.reason = tk.StringVar(value="Manual review correction" if record else "")
+        if record:
+            ttk.Label(body, text="Correction reason", style="Status.TLabel").grid(
+                row=row, column=0, columnspan=4, sticky="w", pady=(5, 2)
+            )
+            tk.Entry(
+                body, textvariable=self.reason, bg="#0b0f14", fg="white",
+                insertbackground="white", relief="flat", font=("Segoe UI", 10),
+            ).grid(row=row + 1, column=0, columnspan=4, sticky="ew", ipady=5)
+            row += 2
+
+        self.status = tk.Label(
+            body, text="No change has been saved.", bg="#18212b", fg="#d8e6ef",
+            justify="left", anchor="w", wraplength=710, font=("Segoe UI", 10),
+        )
+        self.status.grid(row=row, column=0, columnspan=4, sticky="ew", pady=(10, 8))
+        buttons = ttk.Frame(body, style="Panel.TFrame")
+        buttons.grid(row=row + 1, column=0, columnspan=4, sticky="ew")
+        ttk.Button(
+            buttons,
+            text="Save New Locally" if record is None else "Save Correction Locally",
+            style="Accent.TButton", command=self.save,
+        ).pack(side="left")
+        ttk.Button(buttons, text="Close", command=self.close).pack(side="right")
+        for column in range(4):
+            body.columnconfigure(column, weight=1)
+
+    def _label(self, parent, text: str, row: int, column: int) -> None:
+        ttk.Label(parent, text=text, style="Status.TLabel").grid(
+            row=row, column=column, sticky="w", padx=(0, 8), pady=(5, 2)
+        )
+
+    def _paired_entries(self, parent, row: int, left, right, *, lock_left: bool = False) -> int:
+        for item, column, locked in ((left, 0, lock_left), (right, 2, False)):
+            key, label, default = item
+            self._label(parent, label, row, column)
+            value = tk.StringVar(value=default)
+            self.values[key] = value
+            widget = tk.Entry(
+                parent, textvariable=value, bg="#0b0f14", fg="white",
+                insertbackground="white", relief="flat", font=("Segoe UI", 10),
+            )
+            widget.grid(row=row + 1, column=column, columnspan=2, sticky="ew", padx=(0, 8), ipady=5)
+            if locked:
+                widget.configure(state="disabled")
+        return row + 2
+
+    def _choice_row(self, parent, row, key, label, choices, default, *, locked=False) -> int:
+        self._label(parent, label, row, 0)
+        value = tk.StringVar(value=default)
+        self.values[key] = value
+        ttk.Combobox(
+            parent, textvariable=value, values=choices,
+            state="disabled" if locked else "readonly",
+        ).grid(row=row + 1, column=0, columnspan=4, sticky="ew")
+        return row + 2
+
+    def _choice_pair(self, parent, row, left, right) -> int:
+        for item, column in ((left, 0), (right, 2)):
+            key, label, choices, default = item
+            self._label(parent, label, row, column)
+            value = tk.StringVar(value=default)
+            self.values[key] = value
+            ttk.Combobox(
+                parent, textvariable=value, values=choices, state="readonly", width=24,
+            ).grid(row=row + 1, column=column, columnspan=2, sticky="ew", padx=(0, 8))
+        return row + 2
+
+    def _text_box(self, parent, row, key, label, height, default) -> int:
+        self._label(parent, label, row, 0)
+        widget = tk.Text(
+            parent, height=height, bg="#0b0f14", fg="#d8e6ef", insertbackground="white",
+            relief="flat", wrap="word", font=("Segoe UI", 10), padx=8, pady=6,
+        )
+        widget.grid(row=row + 1, column=0, columnspan=4, sticky="ew")
+        widget.insert("1.0", default)
+        setattr(self, key, widget)
+        return row + 2
+
+    def save(self) -> None:
+        fields = {key: value.get() for key, value in self.values.items()}
+        fields.update({
+            "request_text": self.request_text.get("1.0", "end").strip(),
+            "consent_notes": self.consent_notes.get("1.0", "end").strip(),
+            "private_notes": self.private_notes.get("1.0", "end").strip(),
+        })
+        try:
+            if self.record is None:
+                result = self.store.record_prayer_request(**fields)
+                action = "created"
+            else:
+                fields.pop("source_context")
+                fields.pop("received_at")
+                result = self.store.correct_prayer_request(
+                    int(self.record["prayer_id"]), reason=self.reason.get(), **fields
+                )
+                action = "corrected"
+                self.record = result
+        except ValueError as exc:
+            self.status.configure(text=f"Not saved: {exc}", fg="#ff9b9b")
+            return
+        duplicates = result.get("duplicate_suggestions", [])
+        duplicate_text = (
+            " Review possible duplicate IDs: "
+            + ", ".join(str(item["prayer_id"]) for item in duplicates)
+            if duplicates else " No duplicates were suggested."
+        )
+        self.status.configure(
+            text=(
+                f"Prayer request #{result['prayer_id']} {action} locally."
+                f"{duplicate_text} Nothing was shared or sent."
+            ),
+            fg="#8ef0b5",
+        )
+        self.on_saved(result)
+
+    def close(self) -> None:
+        self.on_closed()
+        self.window.destroy()
+
+
 class JosieApp:
     def __init__(self, root: tk.Tk, *, config: Config, project_root: Path) -> None:
         self.root = root
@@ -690,6 +913,7 @@ class JosieApp:
         self.project_root = project_root
         self.store = LocalStore(project_root / "data" / "josie.db")
         self.deal_window: DealHunterWindow | None = None
+        self.prayer_window: PrayerRequestWindow | None = None
         self.store.create_daily_backup(project_root / "data" / "backups")
         if config.external_storage and config.external_storage.is_dir():
             self.store.create_daily_backup(config.external_storage / "backups" / "josie-database")
@@ -742,9 +966,11 @@ class JosieApp:
         approvals_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
         activity_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
         deals_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
+        prayer_tab = ttk.Frame(side_panel, style="Panel.TFrame", padding=8)
         side_panel.add(approvals_tab, text="Approvals")
         side_panel.add(activity_tab, text="Activity")
         side_panel.add(deals_tab, text="Deals")
+        side_panel.add(prayer_tab, text="Prayer")
         self.approval_list = tk.Listbox(approvals_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat")
         self.approval_list.pack(fill="both", expand=True)
         approval_buttons = ttk.Frame(approvals_tab, style="Panel.TFrame")
@@ -765,6 +991,36 @@ class JosieApp:
             deals_tab, text="New candidate", style="Accent.TButton",
             command=self._open_deal_hunter,
         ).pack(fill="x", pady=(8, 0))
+        tk.Label(
+            prayer_tab,
+            text="Sensitive - local manual registry\nNo account access, cloud, sharing, or sending",
+            bg="#18212b", fg="#8ef0b5", justify="left", font=("Segoe UI", 9, "bold"),
+        ).pack(fill="x", pady=(0, 6))
+        self.prayer_list = tk.Listbox(
+            prayer_tab, width=34, bg="#0b0f14", fg="#d8e6ef", relief="flat"
+        )
+        self.prayer_list.pack(fill="both", expand=True)
+        prayer_buttons = ttk.Frame(prayer_tab, style="Panel.TFrame")
+        prayer_buttons.pack(fill="x", pady=(8, 0))
+        ttk.Button(
+            prayer_buttons, text="New", style="Accent.TButton",
+            command=lambda: self._open_prayer_request(False),
+        ).pack(side="left")
+        ttk.Button(
+            prayer_buttons, text="Review / Correct",
+            command=lambda: self._open_prayer_request(True),
+        ).pack(side="right")
+        prayer_status_buttons = ttk.Frame(prayer_tab, style="Panel.TFrame")
+        prayer_status_buttons.pack(fill="x", pady=(6, 0))
+        for label, status in (("Follow up", "follow_up"), ("Answered", "answered"), ("Archive", "archived")):
+            ttk.Button(
+                prayer_status_buttons, text=label,
+                command=lambda value=status: self._set_selected_prayer_status(value),
+            ).pack(side="left", padx=(0, 3))
+        ttk.Button(
+            prayer_tab, text="Redact selected from live database",
+            command=self._redact_selected_prayer,
+        ).pack(fill="x", pady=(6, 0))
 
         entry_bar = ttk.Frame(root, style="Panel.TFrame", padding=10)
         entry_bar.pack(side="bottom", fill="x", padx=14, pady=(8, 14))
@@ -814,6 +1070,16 @@ class JosieApp:
                 f"#{candidate['candidate_id']} | {candidate['research_score']:.1f} | "
                 f"{recommendation} | {title}",
             )
+        self.prayer_ids: list[int] = []
+        self.prayer_list.delete(0, "end")
+        for request in self.store.recent_prayer_requests(50):
+            prayer_id = int(request["prayer_id"])
+            self.prayer_ids.append(prayer_id)
+            requester = str(request["requester_display"] or "identity omitted")
+            if len(requester) > 18:
+                requester = requester[:15] + "..."
+            marker = "redacted" if request["redacted"] else str(request["status"]).replace("_", " ")
+            self.prayer_list.insert("end", f"#{prayer_id} | {marker} | {requester}")
 
     def _open_deal_hunter(self) -> None:
         if self.deal_window is not None and self.deal_window.window.winfo_exists():
@@ -841,6 +1107,93 @@ class JosieApp:
 
     def _deal_closed(self) -> None:
         self.deal_window = None
+
+    def _selected_prayer_id(self) -> int | None:
+        selected = self.prayer_list.curselection()
+        if not selected:
+            messagebox.showinfo("Prayer Stewardship", "Select a prayer request first.")
+            return None
+        index = int(selected[0])
+        return self.prayer_ids[index] if index < len(self.prayer_ids) else None
+
+    def _open_prayer_request(self, edit_existing: bool) -> None:
+        if self.prayer_window is not None and self.prayer_window.window.winfo_exists():
+            self.prayer_window.window.lift()
+            self.prayer_window.window.focus_force()
+            return
+        record = None
+        if edit_existing:
+            prayer_id = self._selected_prayer_id()
+            if prayer_id is None:
+                return
+            record = self.store.prayer_request(prayer_id)
+            if record["redacted"]:
+                messagebox.showinfo(
+                    "Prayer Stewardship", "This request has been redacted and cannot be edited."
+                )
+                return
+        self.prayer_window = PrayerRequestWindow(
+            self.root, store=self.store, record=record,
+            on_saved=self._prayer_saved, on_closed=self._prayer_closed,
+        )
+
+    def _prayer_saved(self, result: dict[str, object]) -> None:
+        self._append(
+            "Josie",
+            f"Prayer request #{result['prayer_id']} was saved in the local sensitive registry. "
+            "Its text was not added to ordinary memory or audit logs, and nothing was shared or sent.",
+            "josie",
+        )
+        self.refresh_status()
+
+    def _prayer_closed(self) -> None:
+        self.prayer_window = None
+
+    def _set_selected_prayer_status(self, status: str) -> None:
+        prayer_id = self._selected_prayer_id()
+        if prayer_id is None:
+            return
+        try:
+            result = self.store.update_prayer_status(
+                prayer_id, status=status, reason="Manual status review in local GUI"
+            )
+        except ValueError as exc:
+            messagebox.showerror("Prayer Stewardship", str(exc))
+            return
+        self._append(
+            "Josie",
+            f"Prayer request #{prayer_id} is now {str(result['status']).replace('_', ' ')}. "
+            "No message was sent.",
+            "josie",
+        )
+        self.refresh_status()
+
+    def _redact_selected_prayer(self) -> None:
+        prayer_id = self._selected_prayer_id()
+        if prayer_id is None:
+            return
+        if not messagebox.askyesno(
+            "Confirm local redaction",
+            "Remove the request text, identity, source reference, consent notes, and private "
+            "notes from the live database? Older backups may still contain the earlier record.",
+        ):
+            return
+        try:
+            self.store.redact_prayer_request(
+                prayer_id,
+                confirmation=f"REDACT PRAYER {prayer_id}",
+                reason="Dustin confirmed redaction in local GUI",
+            )
+        except ValueError as exc:
+            messagebox.showerror("Prayer Stewardship", str(exc))
+            return
+        self._append(
+            "Josie",
+            f"Prayer request #{prayer_id} was redacted from the live database. "
+            "No external action occurred; older backups may still retain the previous content.",
+            "josie",
+        )
+        self.refresh_status()
 
     def _append(self, speaker: str, message: str, tag: str, *, persist: bool = True) -> None:
         self.transcript.configure(state="normal")

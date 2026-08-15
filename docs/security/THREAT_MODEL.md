@@ -27,7 +27,17 @@ revalidation, no model shell authority, zero-spend locks, non-executing proposal
 records, bounded retries, status/headroom monitoring, integrity-checked backups,
 soft deletion, provenance status, and hash-pinned acceptance evidence.
 
+Prayer Stewardship adds a separate sensitive-data boundary: prayer text is
+excluded from ordinary memory exports and audit details; old correction text is
+represented only by hashes; duplicate matches cannot auto-merge; and database
+constraints set cloud processing, cross-posting, messages, external activity,
+and action authority to zero. Confirmed redaction clears sensitive plaintext
+from the live database.
+
 Residual risks and next controls include formal Constitution ratification,
 completed Genesis, richer source/content sanitization before broader browsing,
 tested credential-isolated authenticated browser profiles, restore drills for
-all service volumes, and explicit capability-promotion evidence.
+all service volumes, and explicit capability-promotion evidence. Prayer data is
+not application-level encrypted, and older backups can retain content removed
+from the live database; retention, drive protection, viewer access, and source
+consent must be decided before any prayer-source connection.

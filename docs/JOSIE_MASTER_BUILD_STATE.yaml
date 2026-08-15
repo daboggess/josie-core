@@ -98,6 +98,7 @@ working:
   - "eBay Browse API selected as Deal Hunter live source number one; dormant adapter validates policy and normalizes/deduplicates supplied fixtures without network access"
   - "Persistent eBay discovery inbox imports only bounded local JSON fixtures, deduplicates across runs, preserves first/last seen state, and cannot score or authorize unresolved listings"
   - "Deterministic title-only classifier can flag possible RTX 3060 12 GB, Arc A770 16 GB, and Instinct MI25 16 GB identities while refusing specification inference, scoring readiness, or record mutation"
+  - "Prayer Stewardship local manual registry with a dedicated GUI, identity minimization, provenance, sharing scope, lifecycle review, duplicate suggestions, confirmed links, digest-only change history, live-record redaction, and zero cloud/cross-post/message authority"
 
 next:
   - id: ebay_developer_access_human_gate
@@ -121,7 +122,7 @@ research:
   - "Permitted access path for any later Facebook Marketplace source; it is not approved or automated"
 
 later:
-  - "Prayer Stewardship workflow: local-first prayer list with eventual narrowly scoped intake from prayer-team Slack, Giant Killers in Google Messages, and the Sunday WhatsApp group; no account is connected and no cross-posting is authorized"
+  - "Prayer Stewardship source pilots: eventual narrowly scoped read-only intake from prayer-team Slack, Giant Killers in Google Messages, and the Sunday WhatsApp group; no account is connected and no cross-posting is authorized"
   - "Broad autonomous web exploration"
   - "External AI communities such as Maltbook"
   - "Economic activity, wallets, bids, contracts, or autonomous spending"
@@ -144,7 +145,7 @@ rejected:
 
 blocked:
   - item: "Prayer-source connections"
-    dependency: "Build the local registry first, then define source-by-source authentication, selected channel/group scope, member privacy expectations, retention, consent, identity minimization, cloud-use prohibition/redaction, and explicit approval for any reply, digest, or cross-post"
+    dependency: "The local registry is working. Before any source connection, define source-by-source authentication, selected channel/group scope, member privacy expectations, live/backup retention, consent, identity exceptions, at-rest protection, cloud-use prohibition/redaction, and explicit approval for any reply, digest, or cross-post"
   - item: "Discrete GPU purchase/install on current board"
     dependency: "Exact card draw, PSU, chassis, thermals, software compatibility, total PPP, budget, and Dustin approval; slot limit and Above-4G are no longer unknown"
   - item: "Live opportunity discovery"
@@ -212,3 +213,26 @@ deal_hunter:
   browser_actions: false
   unverified_result: "verify_before_review"
   purchase_authorized: false
+
+prayer_stewardship:
+  status: "working_local_manual_registry"
+  records_at_deployment: 0
+  entry_method: "manual_only"
+  local_gui: true
+  source_connections:
+    slack_prayer_team: false
+    google_messages_giant_killers: false
+    whatsapp_sunday: false
+  ordinary_memory_export_includes_prayer_data: false
+  plaintext_prayer_export_available: false
+  change_history_plaintext_stored: false
+  duplicate_suggestions_auto_merge: false
+  live_redaction_available: true
+  older_backups_may_retain_redacted_content: true
+  application_level_encryption: false
+  retention_policy: "open_human_decision"
+  cloud_processing_authorized: false
+  cross_post_authorized: false
+  messages_sent: 0
+  actions_executed: 0
+  capability_change: "none"
