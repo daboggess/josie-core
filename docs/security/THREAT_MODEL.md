@@ -16,6 +16,8 @@ Primary threats:
 - silent public exposure or weak authentication;
 - malicious or accidental outward messages, purchases, contracts, uploads, or
   file destruction;
+- disclosure, cross-group propagation, or excessive retention of sensitive
+  prayer requests containing religious, health, family, or relationship data;
 - backup corruption or identity/history loss;
 - governance drift through autonomous edits.
 

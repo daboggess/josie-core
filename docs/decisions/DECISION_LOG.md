@@ -289,6 +289,25 @@
   comparable performance evidence, compatibility rules, and explicit cost
   completion. Title matching alone will never satisfy that gate.
 
+## DEC-0019 — Prayer Stewardship is planned as a local-first, source-separated workflow
+
+- Date: 2026-08-15.
+- Status: `PLANNED / NOT CONNECTED`.
+- Authority: Dustin explicitly asked to add a unified prayer list to the work
+  list, naming the prayer-team Slack, Giant Killers in Google Messages, and the
+  Sunday WhatsApp group.
+- Decision: build the governed local prayer registry before authenticating any
+  source. Connect sources one at a time, narrowly scoped and read-only first.
+- Privacy: religious, health, family, relationship, and identity information is
+  sensitive. Source access is not cross-posting consent; minimize identity,
+  preserve provenance and sharing scope, and keep processing local by default.
+- Boundaries: no account, workspace, channel, browser session, chat, or group is
+  connected by this decision. No ingestion, cloud disclosure, reply, reaction,
+  reminder to another person, digest, forward, or cross-post is authorized.
+- Next: design and test manual local entry, lifecycle state, correction/deletion,
+  audit, backup, and consent/retention fields before proposing the first Slack
+  connection.
+
 ## Template
 
 ```yaml

@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: "2026-08-09"
+updated_at: "2026-08-15"
 secrets_documented_here: false
 services:
   - service: "Josie Core"
@@ -65,3 +65,24 @@ services:
     recurring_cost: "$0 expected at staged/default use; verify license and account terms before activation"
     credential_location: "future ignored .env only; no credential currently canonical"
     dependency_level: optional replaceable source
+  - service: "Slack prayer-team source"
+    purpose: "Planned read-only intake from an explicitly selected prayer-team channel"
+    status: PLANNED_NOT_CONNECTED
+    exposure: "none; no Slack workspace or channel is connected"
+    recurring_cost: "Existing account tier; app/API terms and permissions require review"
+    credential_location: "future authenticated connector/session; never Git or ordinary memory"
+    dependency_level: optional replaceable prayer source
+  - service: "Google Messages Giant Killers source"
+    purpose: "Planned read-only prayer-request intake from Dustin's paired Messages Web session"
+    status: PLANNED_NOT_CONNECTED
+    exposure: "none; no direct connector or paired browser session is connected"
+    recurring_cost: "$0 expected; browser/session requirements require review"
+    credential_location: "future paired authenticated browser environment; never source or prompts"
+    dependency_level: optional replaceable prayer source
+  - service: "WhatsApp Sunday prayer source"
+    purpose: "Planned prayer-request intake if a permitted, consent-aware access path is established"
+    status: PLANNED_NOT_CONNECTED
+    exposure: "none; no WhatsApp account, browser session, or group is connected"
+    recurring_cost: "Existing account tier; platform terms and any API costs require review"
+    credential_location: "future authenticated environment; never Git, prompts, or ordinary memory"
+    dependency_level: optional replaceable prayer source

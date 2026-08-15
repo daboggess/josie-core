@@ -121,6 +121,7 @@ research:
   - "Permitted access path for any later Facebook Marketplace source; it is not approved or automated"
 
 later:
+  - "Prayer Stewardship workflow: local-first prayer list with eventual narrowly scoped intake from prayer-team Slack, Giant Killers in Google Messages, and the Sunday WhatsApp group; no account is connected and no cross-posting is authorized"
   - "Broad autonomous web exploration"
   - "External AI communities such as Maltbook"
   - "Economic activity, wallets, bids, contracts, or autonomous spending"
@@ -142,6 +143,8 @@ rejected:
     reason: "Bounded retries and explicit allowlists are required"
 
 blocked:
+  - item: "Prayer-source connections"
+    dependency: "Build the local registry first, then define source-by-source authentication, selected channel/group scope, member privacy expectations, retention, consent, identity minimization, cloud-use prohibition/redaction, and explicit approval for any reply, digest, or cross-post"
   - item: "Discrete GPU purchase/install on current board"
     dependency: "Exact card draw, PSU, chassis, thermals, software compatibility, total PPP, budget, and Dustin approval; slot limit and Above-4G are no longer unknown"
   - item: "Live opportunity discovery"

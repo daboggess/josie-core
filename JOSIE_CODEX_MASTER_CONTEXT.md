@@ -397,6 +397,23 @@ compliance, and operational intelligence. A prior reorder concept was:
 This domain is useful because Dustin can validate the outputs. Access is not
 authorized merely because the workflow is discussed here.
 
+## 31A. Prayer stewardship workflow
+
+Dustin wants a unified, local-first prayer list drawing eventually from three
+distinct communities: his prayer-team Slack, the Giant Killers conversation in
+Google Messages, and a Sunday WhatsApp group. This is `PLANNED`, not connected.
+Each source retains its own audience and sharing context; importing a request
+does not authorize copying it to another group.
+
+Prayer requests can reveal religious belief, health, family, relationship, and
+other highly sensitive personal information. The workflow must minimize stored
+identity, preserve source and consent/provenance, distinguish active, follow-up,
+answered, and archived requests, support correction/deletion, and default to
+local processing. No reply, cross-post, digest, notification, or cloud-model
+disclosure occurs without an explicit policy and the appropriate human
+approval. Account/browser connection, group selection, retention, and member
+expectations remain unresolved gates.
+
 ## 32. Browser automation
 
 Potential tools include Playwright, Puppeteer, and controlled Chrome profiles.

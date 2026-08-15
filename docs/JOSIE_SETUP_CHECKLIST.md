@@ -157,6 +157,18 @@ confirmed on Josie or by the repository test suite.
 - [x] Enforce evidence source-kind and freshness checks in deterministic code; model agreement and retrieved memory cannot verify current claims.
 - [x] Preserve the holdout result without retrying or tuning against its answer key; local-model policy authority remains absent.
 
+## Prayer stewardship workflow
+
+- [x] Record the requested sources without claiming any connection: prayer-team Slack, Giant Killers in Google Messages, and the Sunday WhatsApp group.
+- [x] Define the initial privacy boundary: prayer requests are sensitive personal data; source membership never grants permission to cross-post, expose to cloud models, or send replies.
+- [ ] Build a local-first prayer registry with manual entry, provenance, sharing scope, active/follow-up/answered/archived state, correction, and deletion before connecting an account.
+- [ ] Decide retention, identity minimization, duplicate handling, consent expectations, and who may view each source's requests.
+- [ ] Connect one narrowly scoped source at a time, starting read-only and requiring a separate attended approval for authentication/session access.
+- [ ] Evaluate Slack through a least-privilege selected-channel integration; no Slack workspace is connected yet.
+- [ ] Evaluate Google Messages Web through Dustin's paired browser session; there is no direct connector and no session is connected yet.
+- [ ] Evaluate a permitted WhatsApp access path for the Sunday group; do not assume browser automation or group-member consent.
+- [ ] Add a human-reviewed prayer digest only after the local registry and source boundaries are proven; sending or cross-posting remains separately approval-gated.
+
 ## Safety and permissions
 
 - [x] Explicit tool allowlist.
