@@ -1983,7 +1983,9 @@ class LocalStore:
         self.audit("prayer_requests_linked", f"{from_prayer_id} -> {to_prayer_id}: {relation_type}")
         return dict(row)
 
-    def prayer_summary(self) -> dict[str, object]:
+    def prayer_summary(
+        self, *, source_connections: dict[str, bool] | None = None
+    ) -> dict[str, object]:
         with self._connect() as connection:
             rows = connection.execute(
                 "SELECT status,COUNT(*) total FROM prayer_requests GROUP BY status"
@@ -1996,18 +1998,26 @@ class LocalStore:
             ).fetchone()[0])
         counts = {status: 0 for status in ("active", "follow_up", "answered", "archived")}
         counts.update({str(row["status"]): int(row["total"]) for row in rows})
+        connections = {
+            "slack_prayer_team": False,
+            "google_messages_giant_killers": False,
+            "whatsapp_sunday": False,
+        }
+        if source_connections is not None:
+            if set(source_connections) != set(connections) or any(
+                type(value) is not bool for value in source_connections.values()
+            ):
+                raise ValueError("Prayer source connection status is invalid")
+            connections.update(source_connections)
+        connected = all(connections.values())
         return {
-            "status": "working_local_only",
+            "status": "working_local_selected_capture" if connected else "working_local_only",
             "requests_total": sum(counts.values()),
             "requests_by_status": counts,
             "redacted_total": redacted,
             "confirmed_links": links,
-            "entry_method": "manual_only",
-            "source_connections": {
-                "slack_prayer_team": False,
-                "google_messages_giant_killers": False,
-                "whatsapp_sunday": False,
-            },
+            "entry_method": "manual_or_user_selected_capture" if connected else "manual_only",
+            "source_connections": connections,
             "cloud_processing_authorized": False,
             "cross_post_authorized": False,
             "messages_sent": 0,

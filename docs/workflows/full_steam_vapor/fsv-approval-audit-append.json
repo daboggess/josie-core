@@ -1,0 +1,278 @@
+[
+  {
+    "updatedAt": "2026-08-19T18:44:29.000Z",
+    "createdAt": "2026-08-19T16:28:31.349Z",
+    "id": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+    "name": "FSV - Approval Audit Append",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "schema_version",
+                "type": "number"
+              },
+              {
+                "name": "event_at"
+              },
+              {
+                "name": "review_id"
+              },
+              {
+                "name": "event_category"
+              },
+              {
+                "name": "event_type"
+              },
+              {
+                "name": "action"
+              },
+              {
+                "name": "approver"
+              },
+              {
+                "name": "actor_basis"
+              },
+              {
+                "name": "status_before"
+              },
+              {
+                "name": "status_after"
+              },
+              {
+                "name": "token_state"
+              },
+              {
+                "name": "result"
+              },
+              {
+                "name": "publish_result"
+              },
+              {
+                "name": "http_method"
+              },
+              {
+                "name": "http_status",
+                "type": "number"
+              },
+              {
+                "name": "service"
+              },
+              {
+                "name": "service_operation"
+              },
+              {
+                "name": "service_status"
+              },
+              {
+                "name": "service_result_code"
+              },
+              {
+                "name": "external_reference"
+              },
+              {
+                "name": "detail_code"
+              },
+              {
+                "name": "source_workflow_id"
+              },
+              {
+                "name": "source_execution_id"
+              },
+              {
+                "name": "source_node"
+              }
+            ]
+          }
+        },
+        "id": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af511",
+        "name": "When Called",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -624,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const allowedKeys = [\n    'schema_version', 'event_at', 'review_id', 'event_category', 'event_type', 'action',\n    'approver', 'actor_basis', 'status_before', 'status_after', 'token_state', 'result',\n    'publish_result', 'http_method', 'http_status', 'service', 'service_operation',\n    'service_status', 'service_result_code', 'external_reference', 'detail_code',\n    'source_workflow_id', 'source_execution_id', 'source_node',\n  ];\n  const eventTypes = new Set([\n    'AUDIT_TABLE_INITIALIZED', 'DRAFT_CREATED', 'TOKEN_REISSUED', 'INTAKE_DUPLICATE_REJECTED',\n    'EMAIL_SEND_ATTEMPTED', 'EMAIL_SEND_SUCCEEDED', 'EMAIL_SEND_FAILED',\n    'LINK_OPENED', 'LINK_INVALID', 'LINK_EXPIRED', 'LINK_REUSE_REJECTED',\n    'DECISION_SUBMITTED', 'DECISION_INVALID', 'DECISION_INVALID_TOKEN',\n    'DECISION_EXPIRED', 'TOKEN_REUSE_REJECTED', 'DECISION_RECORDED',\n    'DUPLICATE_DECISION_REJECTED', 'HTTP_RESPONSE_SENT', 'HTTP_RESPONSE_FAILED',\n  ]);\n  const categories = new Set(['SYSTEM', 'INTAKE', 'EMAIL', 'REVIEW_LINK', 'DECISION', 'HTTP']);\n  const actions = new Set(['', 'APPROVE', 'EDIT', 'SKIP']);\n  const tokenStates = new Set(['', 'not_issued', 'issued', 'valid', 'invalid', 'expired', 'consumed', 'reused']);\n  const results = new Set(['SUCCESS', 'REJECTED', 'FAILED', 'ATTEMPTED', 'PENDING', 'NOT_PUBLISHED']);\n  const incoming = $json ?? {};\n  const unknownKeys = Object.keys(incoming).filter((key) => !allowedKeys.includes(key));\n  if (unknownKeys.length) throw new Error('Audit event contains unapproved fields.');\n  const dangerousKey = Object.keys(incoming).find((key) =>\n    !['token_state'].includes(key) && /(token|secret|password|cookie|authori[sz]ation|html|link|url|query|body|header)/i.test(key),\n  );\n  if (dangerousKey) throw new Error('Audit event contains a prohibited field name.');\n  const clean = (name, max = 500) => {\n    const value = String(incoming[name] ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\n    if (/(?:token=|access[_-]?token|refresh[_-]?token|bearer\\s+[A-Za-z0-9._~+\\/-]+=*|https?:\\/\\/\\S+\\?)/i.test(value)) {\n      throw new Error('Audit event contains prohibited credential-like data.');\n    }\n    return value;\n  };\n  const reviewId = clean('review_id', 200);\n  const eventType = clean('event_type', 80).toUpperCase();\n  const category = clean('event_category', 40).toUpperCase();\n  const action = clean('action', 20).toUpperCase();\n  const tokenState = clean('token_state', 30).toLowerCase();\n  const result = clean('result', 40).toUpperCase();\n  const eventAt = clean('event_at', 64);\n  const httpStatus = Number(incoming.http_status ?? 0);\n  if (Number(incoming.schema_version) !== 1) throw new Error('Unsupported audit schema version.');\n  if (!reviewId) throw new Error('Audit review_id is required.');\n  if (!eventTypes.has(eventType)) throw new Error('Unsupported audit event type.');\n  if (!categories.has(category)) throw new Error('Unsupported audit event category.');\n  if (!actions.has(action)) throw new Error('Unsupported audit action.');\n  if (!tokenStates.has(tokenState)) throw new Error('Unsupported audit token state.');\n  if (!results.has(result)) throw new Error('Unsupported audit result.');\n  if (!Number.isFinite(Date.parse(eventAt))) throw new Error('Invalid audit event timestamp.');\n  if (!Number.isInteger(httpStatus) || (httpStatus !== 0 && (httpStatus < 100 || httpStatus > 599))) {\n    throw new Error('Invalid audit HTTP status.');\n  }\n  const executionId = String($execution.id);\n  return [{ json: {\n    event_id: `FSV-AUDIT-${executionId}-${$itemIndex}`,\n    schema_version: 1,\n    event_at: eventAt,\n    recorded_at: new Date().toISOString(),\n    review_id: reviewId,\n    event_category: category,\n    event_type: eventType,\n    action,\n    approver: clean('approver', 254).toLowerCase(),\n    actor_basis: clean('actor_basis', 80).toUpperCase(),\n    status_before: clean('status_before', 80).toLowerCase(),\n    status_after: clean('status_after', 80).toLowerCase(),\n    token_state: tokenState,\n    result,\n    publish_result: clean('publish_result', 80).toLowerCase(),\n    http_method: clean('http_method', 12).toUpperCase(),\n    http_status: httpStatus,\n    service: clean('service', 80).toUpperCase(),\n    service_operation: clean('service_operation', 80).toUpperCase(),\n    service_status: clean('service_status', 80).toUpperCase(),\n    service_result_code: clean('service_result_code', 120).toUpperCase(),\n    external_reference: clean('external_reference', 300),\n    detail_code: clean('detail_code', 120).toUpperCase(),\n    source_workflow_id: clean('source_workflow_id', 200),\n    source_execution_id: clean('source_execution_id', 200),\n    source_node: clean('source_node', 160),\n    audit_execution_id: executionId,\n  } }];"
+        },
+        "id": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af512",
+        "name": "Validate and Canonicalize Audit Event",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -368,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "dataTableId": {
+            "__rl": true,
+            "value": "FSV Approval Audit Events",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "event_id": "={{ $json.event_id }}",
+              "schema_version": "={{ $json.schema_version }}",
+              "event_at": "={{ $json.event_at }}",
+              "recorded_at": "={{ $json.recorded_at }}",
+              "review_id": "={{ $json.review_id }}",
+              "event_category": "={{ $json.event_category }}",
+              "event_type": "={{ $json.event_type }}",
+              "action": "={{ $json.action }}",
+              "approver": "={{ $json.approver }}",
+              "actor_basis": "={{ $json.actor_basis }}",
+              "status_before": "={{ $json.status_before }}",
+              "status_after": "={{ $json.status_after }}",
+              "token_state": "={{ $json.token_state }}",
+              "result": "={{ $json.result }}",
+              "publish_result": "={{ $json.publish_result }}",
+              "http_method": "={{ $json.http_method }}",
+              "http_status": "={{ $json.http_status }}",
+              "service": "={{ $json.service }}",
+              "service_operation": "={{ $json.service_operation }}",
+              "service_status": "={{ $json.service_status }}",
+              "service_result_code": "={{ $json.service_result_code }}",
+              "external_reference": "={{ $json.external_reference }}",
+              "detail_code": "={{ $json.detail_code }}",
+              "source_workflow_id": "={{ $json.source_workflow_id }}",
+              "source_execution_id": "={{ $json.source_execution_id }}",
+              "source_node": "={{ $json.source_node }}",
+              "audit_execution_id": "={{ $json.audit_execution_id }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af513",
+        "name": "Append Audit Event",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          -80,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const event = $('Validate and Canonicalize Audit Event').item.json;\n  return [{ json: {\n    event_id: String(event.event_id),\n    review_id: String(event.review_id),\n    audit_write_status: 'APPENDED',\n    audit_execution_id: String(event.audit_execution_id),\n  } }];"
+        },
+        "id": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af514",
+        "name": "Return Audit Receipt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          208,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## Token-safe append-only audit\n\n- The trigger accepts an explicit allowlist only.\n- Validation rejects unknown or credential-like fields.\n- Runtime writes use Data Table **insert** only.\n- No request headers, bodies, HTML, links, source copy, draft copy, notes, raw token, or token digest is accepted.\n- This workflow retains sanitized executions as n8n evidence.",
+          "height": 80,
+          "width": 660
+        },
+        "id": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af515",
+        "name": "Audit Safety Notes",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -640,
+          -304
+        ]
+      }
+    ],
+    "connections": {
+      "When Called": {
+        "main": [
+          [
+            {
+              "node": "Validate and Canonicalize Audit Event",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate and Canonicalize Audit Event": {
+        "main": [
+          [
+            {
+              "node": "Append Audit Event",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Append Audit Event": {
+        "main": [
+          [
+            {
+              "node": "Return Audit Receipt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "timezone": "America/New_York",
+      "callerPolicy": "workflowsFromAList",
+      "callerIds": "bc26900f-a652-4581-a9a6-350b6ebcd202,de619731-b931-4c7e-9296-3cc51e1702de,a4c78e6d-8c18-4b93-8e3e-2ae60e5af502,a4c78e6d-8c18-4b93-8e3e-2ae60e5af503",
+      "saveExecutionProgress": false,
+      "saveManualExecutions": true,
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": null,
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "0d640f92-31e1-432b-8cdf-b0c567f979de",
+    "activeVersionId": "0d640f92-31e1-432b-8cdf-b0c567f979de",
+    "versionCounter": 3,
+    "triggerCount": 0,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-08-19T16:28:31.353Z",
+        "createdAt": "2026-08-19T16:28:31.353Z",
+        "role": "workflow:owner",
+        "workflowId": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+        "projectId": "qJSF4KKZoSH4DntI",
+        "project": {
+          "updatedAt": "2026-08-19T14:47:33.432Z",
+          "createdAt": "2026-08-08T18:29:55.086Z",
+          "id": "qJSF4KKZoSH4DntI",
+          "name": "Dustin Boggess <dustin.boggess@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "fe92b833-7f00-4560-a3de-e85fdd2b0247"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

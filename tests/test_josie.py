@@ -5,8 +5,12 @@ import unittest
 import sqlite3
 import json
 import hashlib
+import threading
+import urllib.error
+import urllib.request
 from datetime import datetime
 from contextlib import closing
+from http.server import ThreadingHTTPServer
 from unittest.mock import patch
 from pathlib import Path
 from uuid import uuid4
@@ -63,9 +67,57 @@ from josie.deal_hunter import (
     score_and_record_deal,
     score_manual_deal_form,
 )
+from josie.prayer_bridge import (
+    ingest_prayer_capture,
+    make_prayer_bridge_handler,
+    prayer_source_status,
+)
 
 
 class JosieTests(unittest.TestCase):
+    @staticmethod
+    def _write_prayer_source_config(root: Path) -> dict[str, str]:
+        locators = {
+            "slack_prayer_team": "https://app.slack.com/client/WORKSPACE/CHANNEL",
+            "google_messages_giant_killers": (
+                "https://messages.google.com/web/u/0/conversations/CONVERSATION"
+            ),
+            "whatsapp_sunday": "https://web.whatsapp.com/|Sunday Test Group",
+        }
+        private = root / "data" / "private"
+        private.mkdir(parents=True, exist_ok=True)
+        config = {
+            "schema_version": 1,
+            "sources": [
+                {
+                    "source_context": source_context,
+                    "hostname": {
+                        "slack_prayer_team": "app.slack.com",
+                        "google_messages_giant_killers": "messages.google.com",
+                        "whatsapp_sunday": "web.whatsapp.com",
+                    }[source_context],
+                    "locator_sha256": hashlib.sha256(locator.encode()).hexdigest(),
+                    "verified_at": "2026-08-19T12:00:00+00:00",
+                    "enabled": True,
+                }
+                for source_context, locator in locators.items()
+            ],
+            "controls": {
+                "active_selection_only": True,
+                "read_only": True,
+                "cloud_processing": False,
+                "sending": False,
+                "cross_posting": False,
+            },
+        }
+        (private / "prayer-sources.json").write_text(
+            json.dumps(config), encoding="utf-8"
+        )
+        (private / "prayer-extension-installed.json").write_text(
+            json.dumps({"installed": True}), encoding="utf-8"
+        )
+        return locators
+
     @staticmethod
     def _write_policy(root: Path) -> None:
         config = root / "config"
@@ -1692,6 +1744,111 @@ class JosieTests(unittest.TestCase):
             )
             self.assertIn("local manual-only", answer)
             self.assertIn("Slack, Google Messages, and WhatsApp are not connected", answer)
+
+    def test_prayer_selected_capture_is_local_minimized_and_allowlisted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_prayer_source_config(root)
+            store = LocalStore(root / "data" / "josie.db")
+            payload = {
+                "url": "https://app.slack.com/client/WORKSPACE/CHANNEL/thread-extra",
+                "title": "Synthetic prayer channel",
+                "header": "ignored",
+                "selected_text": "Please pray for a synthetic local test.",
+                "received_at": "2026-08-19T12:30:00+00:00",
+            }
+            result = ingest_prayer_capture(
+                project_root=root, store=store, payload=payload
+            )
+            self.assertEqual(result["status"], "recorded_local_only")
+            self.assertFalse(result["requester_identity_stored"])
+            self.assertFalse(result["cloud_processing_authorized"])
+            self.assertEqual(result["messages_sent"], 0)
+            record = store.prayer_request(int(result["prayer_id"]))
+            self.assertEqual(record["identity_handling"], "omitted")
+            self.assertEqual(record["requester_display"], "")
+            self.assertEqual(record["provenance_status"], "direct_copy_unverified")
+            self.assertNotIn("slack.com", record["source_reference"])
+            self.assertNotIn("WORKSPACE", record["source_reference"])
+            self.assertTrue(all(prayer_source_status(root).values()))
+            summary = store.prayer_summary(source_connections=prayer_source_status(root))
+            self.assertEqual(summary["status"], "working_local_selected_capture")
+
+            rejected = dict(payload)
+            rejected["url"] = "https://app.slack.com/client/OTHER/CHANNEL"
+            with self.assertRaisesRegex(ValueError, "not the locally approved"):
+                ingest_prayer_capture(project_root=root, store=store, payload=rejected)
+            with self.assertRaisesRegex(ValueError, "unexpected fields"):
+                ingest_prayer_capture(
+                    project_root=root, store=store, payload={**payload, "action": "send"}
+                )
+            self.assertEqual(store.prayer_summary()["requests_total"], 1)
+
+    def test_prayer_bridge_requires_extension_origin_and_token(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_prayer_source_config(root)
+            store = LocalStore(root / "data" / "josie.db")
+            handler = make_prayer_bridge_handler(
+                project_root=root, store=store, token="test-token-long-enough-for-auth"
+            )
+            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            endpoint = f"http://127.0.0.1:{server.server_port}/intake"
+            payload = json.dumps({
+                "url": "https://web.whatsapp.com/",
+                "title": "Synthetic WhatsApp",
+                "header": "Sunday Test Group",
+                "selected_text": "Synthetic bridge prayer request.",
+                "received_at": "2026-08-19T12:30:00+00:00",
+            }).encode()
+            try:
+                unauthorized = urllib.request.Request(
+                    endpoint, data=payload, method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with self.assertRaises(urllib.error.HTTPError) as denied:
+                    urllib.request.urlopen(unauthorized, timeout=3)
+                self.assertEqual(denied.exception.code, 403)
+
+                authorized = urllib.request.Request(
+                    endpoint, data=payload, method="POST",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Origin": "chrome-extension://synthetic-extension-id",
+                        "X-Josie-Prayer-Token": "test-token-long-enough-for-auth",
+                    },
+                )
+                with urllib.request.urlopen(authorized, timeout=3) as response:
+                    result = json.loads(response.read())
+                self.assertEqual(result["status"], "recorded_local_only")
+                self.assertEqual(store.prayer_summary()["requests_total"], 1)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=3)
+
+    def test_prayer_extension_has_no_chat_host_or_background_access(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        extension = root / "browser-extension" / "prayer-capture"
+        manifest = json.loads((extension / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["permissions"], ["activeTab", "scripting"])
+        self.assertEqual(manifest["host_permissions"], ["http://127.0.0.1:8788/*"])
+        self.assertNotIn("content_scripts", manifest)
+        self.assertNotIn("background", manifest)
+        tracked_text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in extension.glob("*")
+            if path.name != "config.js" and path.is_file()
+        )
+        self.assertNotIn("workspace", tracked_text.lower())
+        self.assertNotIn("giant killers", tracked_text.lower())
+        self.assertNotIn("ridgemen", tracked_text.lower())
+        self.assertIn(
+            "browser-extension/prayer-capture/config.js",
+            (root / ".gitignore").read_text(encoding="utf-8"),
+        )
 
     def test_restore_drill_never_changes_live_database(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

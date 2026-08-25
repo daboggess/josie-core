@@ -41,6 +41,7 @@ from josie.learning_assessment import (
     assess_local_foundational_judgment,
     assess_local_holdout_judgment,
 )
+from josie.prayer_bridge import prayer_bridge_status, prayer_source_status, run_prayer_bridge
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -203,6 +204,9 @@ def build_parser() -> argparse.ArgumentParser:
         "show", help="Show one locally stored prayer request explicitly"
     )
     prayer_show.add_argument("prayer_id", type=int)
+    prayer_commands.add_parser(
+        "bridge", help="Run the loopback-only user-selected prayer intake bridge"
+    )
     status_snapshot = subcommands.add_parser(
         "status-snapshot", help="Show or publish the secret-free read-only status snapshot"
     )
@@ -555,12 +559,18 @@ def main() -> int:
 
     if args.command == "prayer":
         store = LocalStore(project_root / "data" / "josie.db")
+        if args.prayer_command == "bridge":
+            logger.info("Starting loopback-only prayer intake bridge")
+            run_prayer_bridge(project_root=project_root)
+            return 0
+        source_connections = prayer_source_status(project_root)
         if args.prayer_command == "status":
-            result = store.prayer_summary()
+            result = store.prayer_summary(source_connections=source_connections)
+            result["capture_bridge"] = prayer_bridge_status(project_root)
         elif args.prayer_command == "list":
             requests = store.recent_prayer_requests(args.limit)
             result = {
-                **store.prayer_summary(),
+                **store.prayer_summary(source_connections=source_connections),
                 "requests": [
                     {
                         "prayer_id": item["prayer_id"],

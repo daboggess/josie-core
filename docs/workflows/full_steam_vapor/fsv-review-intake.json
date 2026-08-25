@@ -1,0 +1,2077 @@
+{
+  "id": "bc26900f-a652-4581-a9a6-350b6ebcd202",
+  "name": "FSV - Google Post Review Intake",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "4147a4d8-9817-47de-90c4-44f85877a001",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"review_id\": \"FSV-LOCAL-TEST-001\",\n  \"status\": \"review_pending\",\n  \"source_type\": \"approved_business_facts_test\",\n  \"source_reference\": \"Phase 0 signed-link approval validation\",\n  \"source_text\": \"Approved Full Steam Vapor business facts; secure review workflow validation only, not a live Facebook post.\",\n  \"proposed_text\": \"Full Steam Vapor has served Hurricane, Teays Valley, and surrounding West Virginia communities since 2014. Our knowledgeable team provides friendly, one-on-one assistance and dependable service for adult customers. Visit our Teays Valley/Hurricane location Monday through Friday from 8:00 AM to 8:00 PM or Saturday from 11:00 AM to 8:00 PM. We are closed Sunday.\",\n  \"image_url\": \"\",\n  \"google_warning\": \"Avoids regulated-product promotion, pricing, discounts, and purchase calls to action. Final content remains subject to Google review.\",\n  \"reviewer_email\": \"dustin.boggess@gmail.com\"\n}",
+        "options": {}
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a002",
+      "name": "Draft Input Template",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1040,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $json;\n  for (const key of ['review_id', 'source_type', 'source_reference', 'source_text', 'proposed_text', 'google_warning', 'reviewer_email']) {\n    if (!String(d[key] ?? '').trim()) throw new Error(`Missing required review field: ${key}`);\n  }\n  const reviewer = String(d.reviewer_email).trim().toLowerCase();\n  if (reviewer !== 'dustin.boggess@gmail.com') throw new Error('Unexpected review recipient.');\n  const expires = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();\n  return [{ json: {\n    review_id: String(d.review_id).trim(),\n    status: 'review_pending',\n    source_type: String(d.source_type).trim(),\n    source_reference: String(d.source_reference).trim(),\n    source_text: String(d.source_text),\n    proposed_text: String(d.proposed_text),\n    image_url: String(d.image_url ?? '').trim(),\n    google_warning: String(d.google_warning),\n    reviewer_email: reviewer,\n    expires_at: expires,\n    decision: '',\n    decision_notes: '',\n    decided_at: '',\n    approver: '',\n    google_post_id: '',\n    publish_result: 'not_published',\n    reminder_at: '',\n  } }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a003",
+      "name": "Validate and Set Expiry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -820,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "7is92GD4xCYEKid9",
+          "mode": "list",
+          "cachedResultName": "FSV Google Post Reviews"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "review_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.review_id }}"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a010",
+      "name": "Find Existing Review ID",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -600,
+        40
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const candidate = $('Validate and Set Expiry').item.json;\n  const existing = $json && $json.review_id ? $json : null;\n  return [{ json: {\n    ...candidate,\n    is_duplicate: Boolean(existing),\n    existing_status: String(existing?.status ?? ''),\n  } }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a011",
+      "name": "Classify Intake",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter((item) => item.json.is_duplicate !== true);"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a012",
+      "name": "Only New Review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter((item) => item.json.is_duplicate === true);"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a013",
+      "name": "Only Duplicate Review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($json.review_id, 200),\n    event_category: 'INTAKE',\n    event_type: 'INTAKE_DUPLICATE_REJECTED',\n    action: '',\n    approver: '',\n    actor_basis: '',\n    status_before: clean($json.existing_status, 80),\n    status_after: clean($json.existing_status, 80),\n    token_state: 'not_issued',\n    result: 'REJECTED',\n    publish_result: 'not_published',\n    http_method: '',\n    http_status: 0,\n    service: '',\n    service_operation: '',\n    service_status: '',\n    service_result_code: '',\n    external_reference: '',\n    detail_code: 'REVIEW_ID_ALREADY_EXISTS',\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Find Existing Review ID',\n} }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a014",
+      "name": "Build Duplicate Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a015",
+      "name": "Append Duplicate Audit Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "action": "generate",
+        "dataPropertyName": "approval_token",
+        "encodingType": "hex",
+        "stringLength": 64
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a004",
+      "name": "Generate Approval Token",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        60,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.approval_token }}",
+        "dataPropertyName": "token_hash",
+        "encoding": "hex"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a005",
+      "name": "Hash Stored Token",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        280,
+        -80
+      ],
+      "credentials": {
+        "crypto": {
+          "id": "Cy9bMK0zYfJG427e",
+          "name": "Crypto account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "7is92GD4xCYEKid9",
+          "mode": "list",
+          "cachedResultName": "FSV Google Post Reviews"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "review_id": "={{ $json.review_id }}",
+            "status": "={{ $json.status }}",
+            "source_type": "={{ $json.source_type }}",
+            "source_reference": "={{ $json.source_reference }}",
+            "source_text": "={{ $json.source_text }}",
+            "proposed_text": "={{ $json.proposed_text }}",
+            "image_url": "={{ $json.image_url }}",
+            "google_warning": "={{ $json.google_warning }}",
+            "reviewer_email": "={{ $json.reviewer_email }}",
+            "token_hash": "={{ $json.token_hash }}",
+            "expires_at": "={{ $json.expires_at }}",
+            "decision": "",
+            "decision_notes": "",
+            "decided_at": "",
+            "approver": "",
+            "google_post_id": "",
+            "publish_result": "not_published",
+            "reminder_at": "",
+            "token_used_at": ""
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a006",
+      "name": "Store Review Record",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($json.review_id, 200),\n    event_category: 'INTAKE',\n    event_type: 'DRAFT_CREATED',\n    action: '',\n    approver: '',\n    actor_basis: '',\n    status_before: '',\n    status_after: 'review_pending',\n    token_state: 'issued',\n    result: 'SUCCESS',\n    publish_result: 'not_published',\n    http_method: '',\n    http_status: 0,\n    service: '',\n    service_operation: '',\n    service_status: '',\n    service_result_code: '',\n    external_reference: '',\n    detail_code: 'REVIEW_ROW_INSERTED',\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Store Review Record',\n} }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a016",
+      "name": "Build Draft Created Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a017",
+      "name": "Append Draft Created Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        940,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Hash Stored Token').item.json;\n  const base = 'https://refurb.tail0ab4d2.ts.net:5678/webhook/fsv-google-review';\n  const reviewLink = (action) => `${base}?review_id=${encodeURIComponent(source.review_id)}&action=${encodeURIComponent(action)}&token=${encodeURIComponent(source.approval_token)}`;\n  const escapeHtml = (value) => String(value ?? '').replace(/[&<>\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[char]));\n  const lines = (value) => escapeHtml(value).replace(/\\r?\\n/g, '<br>');\n  const imageUrl = String(source.image_url ?? '').trim();\n  const safeImageUrl = /^https?:\\/\\//i.test(imageUrl) ? imageUrl : '';\n  const imageSection = safeImageUrl\n    ? `<p style=\"margin:20px 0 8px;font-weight:700\">Image</p><p style=\"margin:0 0 20px\"><a href=\"${escapeHtml(safeImageUrl)}\" rel=\"noopener noreferrer\"><img src=\"${escapeHtml(safeImageUrl)}\" alt=\"Proposed post image\" style=\"display:block;max-width:100%;height:auto;border:1px solid #d8dee8;border-radius:8px\"></a></p>`\n    : '<p style=\"margin:20px 0;color:#667085\"><strong>Image:</strong> No image supplied.</p>';\n  const approveLink = reviewLink('APPROVE');\n  const editLink = reviewLink('EDIT');\n  const skipLink = reviewLink('SKIP');\n  const subject = `[${source.review_id}] Google Business draft ready for review`;\n  const emailHtml = `<!doctype html><html><body style=\"margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#182230\"><div style=\"max-width:680px;margin:0 auto;padding:24px\"><div style=\"background:#ffffff;border:1px solid #d8dee8;border-radius:12px;padding:28px\"><h1 style=\"margin:0 0 8px;font-size:24px\">Full Steam Vapor post review</h1><p style=\"margin:0 0 24px;color:#667085\">Review ID: <strong>${escapeHtml(source.review_id)}</strong></p><p style=\"margin:0 0 8px;font-weight:700\">Source</p><p style=\"margin:0 0 8px\"><strong>${escapeHtml(source.source_type)}</strong> — ${escapeHtml(source.source_reference)}</p><div style=\"padding:14px;background:#f8fafc;border-radius:8px;line-height:1.5\">${lines(source.source_text)}</div><p style=\"margin:20px 0 8px;font-weight:700\">Proposed Google Business wording</p><div style=\"padding:14px;background:#eef7ff;border:1px solid #c7e0f4;border-radius:8px;line-height:1.5\">${lines(source.proposed_text)}</div>${imageSection}<p style=\"margin:20px 0 8px;font-weight:700\">Google compatibility note</p><div style=\"padding:14px;background:#fff8e7;border:1px solid #f3d28a;border-radius:8px;line-height:1.5\">${lines(source.google_warning)}</div><p style=\"margin:24px 0 12px\">Choose an option below. Each link opens a separate confirmation page; the first click never changes status.</p><p style=\"margin:0 0 20px\"><a href=\"${approveLink}\" style=\"display:inline-block;margin:0 8px 8px 0;padding:12px 18px;background:#18794e;color:#ffffff;text-decoration:none;border-radius:7px;font-weight:700\">Approve</a><a href=\"${editLink}\" style=\"display:inline-block;margin:0 8px 8px 0;padding:12px 18px;background:#b54708;color:#ffffff;text-decoration:none;border-radius:7px;font-weight:700\">Edit</a><a href=\"${skipLink}\" style=\"display:inline-block;margin:0 8px 8px 0;padding:12px 18px;background:#475467;color:#ffffff;text-decoration:none;border-radius:7px;font-weight:700\">Skip</a></p><p style=\"margin:0;color:#667085;font-size:13px\">This signed, single-use review link expires ${escapeHtml(source.expires_at)}. Publishing is not connected.</p></div></div></body></html>`;\n  return [{ json: {\n    review_id: source.review_id,\n    reviewer_email: source.reviewer_email,\n    subject,\n    email_html: emailHtml,\n    delivery_state: 'READY_TO_SEND',\n    publishing_state: 'NOT_CONNECTED',\n  } }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a007",
+      "name": "Build Review Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($json.review_id, 200),\n    event_category: 'EMAIL',\n    event_type: 'EMAIL_SEND_ATTEMPTED',\n    action: '',\n    approver: clean($json.reviewer_email, 254).toLowerCase(),\n    actor_basis: 'CONFIGURED_REVIEWER',\n    status_before: 'review_pending',\n    status_after: 'review_pending',\n    token_state: 'issued',\n    result: 'ATTEMPTED',\n    publish_result: 'not_published',\n    http_method: '',\n    http_status: 0,\n    service: 'GMAIL',\n    service_operation: 'SEND',\n    service_status: 'ATTEMPTED',\n    service_result_code: '',\n    external_reference: '',\n    detail_code: 'REVIEW_EMAIL_READY',\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Build Review Email',\n} }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a018",
+      "name": "Build Email Attempt Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a019",
+      "name": "Append Email Attempt Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1600,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Build Review Email').item.json.reviewer_email }}",
+        "subject": "={{ $('Build Review Email').item.json.subject }}",
+        "emailType": "html",
+        "message": "={{ $('Build Review Email').item.json.email_html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Full Steam Vapor Review"
+        }
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a009",
+      "name": "Send Review Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        -80
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Rq1pTSJFdC6MDPXm",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($('Build Review Email').item.json.review_id, 200),\n    event_category: 'EMAIL',\n    event_type: 'EMAIL_SEND_SUCCEEDED',\n    action: '',\n    approver: clean($('Build Review Email').item.json.reviewer_email, 254).toLowerCase(),\n    actor_basis: 'CONFIGURED_REVIEWER',\n    status_before: 'review_pending',\n    status_after: 'review_pending',\n    token_state: 'issued',\n    result: 'SUCCESS',\n    publish_result: 'not_published',\n    http_method: '',\n    http_status: 0,\n    service: 'GMAIL',\n    service_operation: 'SEND',\n    service_status: 'SUCCEEDED',\n    service_result_code: 'MESSAGE_ACCEPTED',\n    external_reference: clean($json.id ?? $json.messageId ?? $json.threadId ?? '', 300),\n    detail_code: 'REVIEW_EMAIL_SENT',\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Send Review Email',\n} }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a020",
+      "name": "Build Email Success Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2040,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a021",
+      "name": "Append Email Success Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2260,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($('Build Review Email').item.json.review_id, 200),\n    event_category: 'EMAIL',\n    event_type: 'EMAIL_SEND_FAILED',\n    action: '',\n    approver: clean($('Build Review Email').item.json.reviewer_email, 254).toLowerCase(),\n    actor_basis: 'CONFIGURED_REVIEWER',\n    status_before: 'review_pending',\n    status_after: 'review_pending',\n    token_state: 'issued',\n    result: 'FAILED',\n    publish_result: 'not_published',\n    http_method: '',\n    http_status: Number($json.httpCode ?? $json.statusCode ?? 0) || 0,\n    service: 'GMAIL',\n    service_operation: 'SEND',\n    service_status: 'FAILED',\n    service_result_code: clean($json.code ?? $json.name ?? 'GMAIL_SEND_FAILED', 120).replace(/[^A-Za-z0-9_.-]/g, '_'),\n    external_reference: '',\n    detail_code: 'REVIEW_EMAIL_NOT_SENT',\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Send Review Email',\n} }];"
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a022",
+      "name": "Build Email Failure Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2040,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a023",
+      "name": "Append Email Failure Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2260,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "The review email was not sent. See the sanitized audit event for the result code."
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a024",
+      "name": "Stop After Email Failure",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 0 safety controls\n\n- Static mock Full Steam Vapor facts only.\n- Duplicate review IDs stop before token generation.\n- Sensitive parent executions are not retained.\n- Raw tokens appear only in the email and transient workflow memory; only the HMAC digest is stored with the review.\n- Every durable event is allowlisted through the sanitized audit workflow.\n- Gmail is send-only.\n- No Google Business, Facebook, Gemini, OpenAI, or publishing node exists.",
+        "height": 300,
+        "width": 760
+      },
+      "id": "4147a4d8-9817-47de-90c4-44f85877a008",
+      "name": "Safety Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        -380
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Draft Input Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Input Template": {
+      "main": [
+        [
+          {
+            "node": "Validate and Set Expiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and Set Expiry": {
+      "main": [
+        [
+          {
+            "node": "Find Existing Review ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Existing Review ID": {
+      "main": [
+        [
+          {
+            "node": "Classify Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Intake": {
+      "main": [
+        [
+          {
+            "node": "Only New Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Only Duplicate Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Duplicate Review": {
+      "main": [
+        [
+          {
+            "node": "Build Duplicate Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Duplicate Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Duplicate Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only New Review": {
+      "main": [
+        [
+          {
+            "node": "Generate Approval Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Approval Token": {
+      "main": [
+        [
+          {
+            "node": "Hash Stored Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Stored Token": {
+      "main": [
+        [
+          {
+            "node": "Store Review Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Review Record": {
+      "main": [
+        [
+          {
+            "node": "Build Draft Created Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Draft Created Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Draft Created Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Draft Created Event": {
+      "main": [
+        [
+          {
+            "node": "Build Review Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Review Email": {
+      "main": [
+        [
+          {
+            "node": "Build Email Attempt Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email Attempt Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Email Attempt Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Email Attempt Event": {
+      "main": [
+        [
+          {
+            "node": "Send Review Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Review Email": {
+      "main": [
+        [
+          {
+            "node": "Build Email Success Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Email Failure Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email Success Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Email Success Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email Failure Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Email Failure Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Email Failure Event": {
+      "main": [
+        [
+          {
+            "node": "Stop After Email Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none"
+  },
+  "pinData": {},
+  "versionId": "4147a4d8-9817-47de-90c4-44f85877a099"
+}

@@ -7,3 +7,4 @@ data/
 .pytest_cache/
 .vscode/
 deploy/.env.services
+browser-extension/prayer-capture/config.js

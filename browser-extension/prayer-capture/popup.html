@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Josie Prayer Capture</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="mark" aria-hidden="true">J</span>
+        <div>
+          <h1>Prayer Capture</h1>
+          <p>Local · selected text only</p>
+        </div>
+      </header>
+      <section class="boundary" aria-label="Privacy boundary">
+        Highlight one prayer request in the approved conversation, then capture it.
+        Josie will not scan the chat, save a name, send a reply, or use a cloud model.
+      </section>
+      <button id="capture" type="button">Capture selected prayer</button>
+      <div id="status" role="status" aria-live="polite">Nothing captured yet.</div>
+      <footer>Unselected messages stay untouched.</footer>
+    </main>
+    <script src="config.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -29,6 +29,7 @@ from .foundation import build_foundation_report
 from .genesis import build_genesis_status
 from .learning import foundational_learning_status, foundational_learning_unit
 from .deal_hunter import score_manual_deal_form
+from .prayer_bridge import prayer_source_status
 
 
 def respond(message: str, *, config: Config, project_root: Path, store: LocalStore | None = None) -> str:
@@ -75,13 +76,24 @@ def respond(message: str, *, config: Config, project_root: Path, store: LocalSto
     if text in {"prayer", "prayer status", "prayer list status"}:
         if store is None:
             return "The local prayer registry is unavailable."
-        summary = store.prayer_summary()
+        connections = prayer_source_status(project_root)
+        summary = store.prayer_summary(source_connections=connections)
         counts = summary["requests_by_status"]
+        connection_text = (
+            "The three approved browser conversations support user-selected local capture."
+            if all(connections.values())
+            else "Slack, Google Messages, and WhatsApp are not connected."
+        )
+        entry_text = (
+            "local manual or user-selected capture"
+            if all(connections.values()) else "local manual-only"
+        )
         return (
-            f"Prayer registry: local manual-only; {summary['requests_total']} requests. "
+            f"Prayer registry: {entry_text}; "
+            f"{summary['requests_total']} requests. "
             f"Active {counts['active']}, follow-up {counts['follow_up']}, answered "
-            f"{counts['answered']}, archived {counts['archived']}. Slack, Google Messages, "
-            "and WhatsApp are not connected. Cloud processing, cross-posting, and sending "
+            f"{counts['answered']}, archived {counts['archived']}. {connection_text} "
+            "Cloud processing, cross-posting, and sending "
             "remain locked. Use the Prayer tab to enter or review sensitive requests."
         )
     if text in {"browser", "browser policy", "browser status", "web automation"}:

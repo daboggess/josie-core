@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Josie Prayer Capture",
+  "version": "1.0.0",
+  "description": "Records only prayer text Dustin deliberately selects in an approved conversation.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["http://127.0.0.1:8788/*"],
+  "action": {
+    "default_title": "Capture selected prayer for Josie",
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  }
+}

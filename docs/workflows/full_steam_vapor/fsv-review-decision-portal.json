@@ -1,0 +1,1649 @@
+{
+  "id": "de619731-b931-4c7e-9296-3cc51e1702de",
+  "name": "FSV - Review Decision Portal",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "fsv-google-review",
+        "authentication": "none",
+        "responseMode": "responseNode",
+        "options": {
+          "ignoreBots": false
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170201",
+      "name": "Open Review Link",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1260,
+        -340
+      ],
+      "webhookId": "4ebf88d5-3d2e-4f92-b35e-c25f2f0ef1d1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = $json.query ?? {};\n  const headers = $json.headers ?? {};\n  const first = (value) => Array.isArray(value) ? value[0] : value;\n  const review_id = String(first(q.review_id) ?? '').trim();\n  const token = String(first(q.token) ?? '').trim();\n  const action = String(first(q.action) ?? '').trim().toUpperCase();\n  const actor_login = String(headers['tailscale-user-login'] ?? headers['Tailscale-User-Login'] ?? '').trim().toLowerCase();\n  let input_error = '';\n  if (!review_id || !token || !action) input_error = 'INCOMPLETE_LINK';\n  else if (review_id.length > 200 || token.length > 512) input_error = 'LINK_SIZE_INVALID';\n  else if (!['APPROVE', 'EDIT', 'SKIP'].includes(action)) input_error = 'ACTION_INVALID';\n  else if (actor_login !== 'dustin.boggess@gmail.com') input_error = 'TAILSCALE_IDENTITY_MISMATCH';\n  return [{ json: { review_id, token, action, actor_login, input_error } }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170202",
+      "name": "Normalize GET Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.token }}",
+        "dataPropertyName": "computed_token_hash",
+        "encoding": "hex"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170203",
+      "name": "HMAC GET Token",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        -820,
+        -340
+      ],
+      "credentials": {
+        "crypto": {
+          "id": "Cy9bMK0zYfJG427e",
+          "name": "Crypto account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "7is92GD4xCYEKid9",
+          "mode": "list",
+          "cachedResultName": "FSV Google Post Reviews"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "review_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.review_id }}"
+            },
+            {
+              "keyName": "token_hash",
+              "condition": "eq",
+              "keyValue": "={{ $json.computed_token_hash }}"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170204",
+      "name": "Find Review for GET",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -600,
+        -340
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $json ?? {};\n  const request = $('Normalize GET Request').item.json;\n  const esc = (value) => String(value ?? '').replace(/[&<>\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' })[char]);\n  const shell = (title, body) => `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${esc(title)}</title><style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17202a;font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:760px;margin:0 auto;padding:20px}.card{background:#fff;border:1px solid #dfe4ea;border-radius:16px;box-shadow:0 8px 28px #17202a14;padding:24px}h1{font-size:1.55rem;margin:0 0 8px}.muted{color:#5d6d7e}.box{background:#f7f9fa;border:1px solid #e5e9ed;border-radius:10px;padding:14px;margin:14px 0;white-space:pre-wrap}.warning{background:#fff8e6;border-color:#f5d77b}textarea,input{width:100%;font:inherit;border:1px solid #aeb6bf;border-radius:9px;padding:11px}textarea{min-height:210px}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}button{border:0;border-radius:10px;padding:13px 10px;font-weight:700;color:#fff;cursor:pointer}.approve{background:#18794e}.edit{background:#1769aa}.skip{background:#657786}img{display:block;max-width:100%;height:auto;border-radius:10px;margin:12px 0}@media(max-width:620px){.wrap{padding:10px}.card{padding:18px}.buttons{grid-template-columns:1fr}}</style></head><body><main class=\"wrap\"><section class=\"card\">${body}</section></main></body></html>`;\n  let http_status = 200;\n  let response_html = '';\n  let event_type = 'LINK_OPENED';\n  let result = 'SUCCESS';\n  let detail_code = 'CONFIRMATION_PAGE_RENDERED';\n  let token_state = 'valid';\n  const status_before = String(row.status ?? '').toLowerCase();\n  if (request.input_error) {\n    http_status = 403; event_type = 'LINK_INVALID'; result = 'REJECTED'; detail_code = request.input_error; token_state = 'invalid';\n    response_html = shell('Review link unavailable', '<h1>Review link unavailable</h1><p>This link is invalid or no longer available. Please use the latest review email.</p>');\n  } else if (!row.review_id) {\n    http_status = 403; event_type = 'LINK_INVALID'; result = 'REJECTED'; detail_code = 'TOKEN_OR_REVIEW_NOT_FOUND'; token_state = 'invalid';\n    response_html = shell('Review link unavailable', '<h1>Review link unavailable</h1><p>This link is invalid or no longer available. Please use the latest review email.</p>');\n  } else if (String(row.reviewer_email ?? '').trim().toLowerCase() !== request.actor_login) {\n    http_status = 403; event_type = 'LINK_INVALID'; result = 'REJECTED'; detail_code = 'REVIEWER_IDENTITY_MISMATCH'; token_state = 'valid';\n    response_html = shell('Review link unavailable', '<h1>Review link unavailable</h1><p>This link is not assigned to the current Tailscale identity.</p>');\n  } else if (!['pending', 'awaiting_review', 'review_pending'].includes(status_before)) {\n    http_status = 409; event_type = 'LINK_REUSE_REJECTED'; result = 'REJECTED'; detail_code = 'REVIEW_NOT_PENDING'; token_state = 'reused';\n    response_html = shell('Review already handled', `<h1>Review already handled</h1><p>This review is no longer awaiting a decision.</p><p class=\"muted\">Reference: ${esc(row.review_id)}</p>`);\n  } else {\n    const expiry = Date.parse(row.expires_at);\n    if (!Number.isFinite(expiry) || expiry <= Date.now()) {\n      http_status = 410; event_type = 'LINK_EXPIRED'; result = 'REJECTED'; detail_code = 'TOKEN_EXPIRED'; token_state = 'expired';\n      response_html = shell('Review link expired', `<h1>Review link expired</h1><p>This approval link has expired. Request a fresh review email to continue.</p><p class=\"muted\">Reference: ${esc(row.review_id)}</p>`);\n    } else {\n      const source = [row.source_type, row.source_reference].filter(Boolean).map(esc).join(' · ');\n      const image = /^https:\\/\\//i.test(String(row.image_url ?? '')) ? `<img src=\"${esc(row.image_url)}\" alt=\"Proposed post image\">` : '<p class=\"muted\">No image is attached to this draft.</p>';\n      const expires = new Date(expiry).toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' });\n      response_html = shell('Review Google Business draft', `<h1>Confirm ${esc(request.action.toLowerCase())}</h1><p class=\"muted\">Reference: ${esc(row.review_id)} · Link expires ${esc(expires)} ET</p><p>The email click expressed intent only. Use a button below to record the final decision.</p><h2>Source</h2><p class=\"muted\">${source || 'Approved business content'}</p><div class=\"box\">${esc(row.source_text)}</div><h2>Proposed wording</h2><form method=\"post\" action=\"/webhook/fsv-google-review-decision\" enctype=\"application/x-www-form-urlencoded\"><input type=\"hidden\" name=\"review_id\" value=\"${esc(request.review_id)}\"><input type=\"hidden\" name=\"token\" value=\"${esc(request.token)}\"><label for=\"edited_text\">Post text</label><textarea id=\"edited_text\" name=\"edited_text\" maxlength=\"5000\">${esc(row.proposed_text)}</textarea>${image}<h2>Google compatibility note</h2><div class=\"box warning\">${esc(row.google_warning)}</div><label for=\"notes\">Decision note (optional)</label><input id=\"notes\" name=\"notes\" maxlength=\"2000\" placeholder=\"Add context for the audit log\"><p class=\"muted\">Approve records the current draft. Edit &amp; Save records the text in the box. Skip closes this review. Nothing on this page publishes to Google.</p><div class=\"buttons\"><button class=\"approve\" type=\"submit\" name=\"action\" value=\"APPROVE\">Approve</button><button class=\"edit\" type=\"submit\" name=\"action\" value=\"EDIT\">Edit &amp; Save</button><button class=\"skip\" type=\"submit\" name=\"action\" value=\"SKIP\">Skip</button></div></form>`);\n    }\n  }\n  return [{ json: {\n    review_id: String(row.review_id ?? request.review_id), action: request.action,\n    approver: request.actor_login, actor_basis: request.actor_login ? 'TAILSCALE_IDENTITY_HEADER' : '',\n    status_before, status_after: status_before, token_state, http_status,\n    event_type, result, detail_code, response_html,\n  } }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170205",
+      "name": "Build Confirmation Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($json.review_id, 200),\n    event_category: 'REVIEW_LINK',\n    event_type: clean($json.event_type, 80),\n    action: clean($json.action, 20),\n    approver: clean($json.approver, 254).toLowerCase(),\n    actor_basis: clean($json.actor_basis, 80),\n    status_before: clean($json.status_before, 80),\n    status_after: clean($json.status_after, 80),\n    token_state: clean($json.token_state, 30),\n    result: clean($json.result, 40),\n    publish_result: 'not_published',\n    http_method: 'GET',\n    http_status: Number($json.http_status ?? 0),\n    service: 'N8N_WEBHOOK',\n    service_operation: 'RENDER_CONFIRMATION',\n    service_status: Number($json.http_status) === 200 ? 'SUCCEEDED' : 'REJECTED',\n    service_result_code: clean($json.detail_code, 120),\n    external_reference: '',\n    detail_code: clean($json.detail_code, 120),\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Build Confirmation Page',\n} }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170218",
+      "name": "Build Safe GET Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170219",
+      "name": "Append GET Audit Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        60,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Build Confirmation Page').item.json.response_html }}",
+        "options": {
+          "responseCode": "={{ $('Build Confirmation Page').item.json.http_status }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              },
+              {
+                "name": "Content-Security-Policy",
+                "value": "default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+              },
+              {
+                "name": "Referrer-Policy",
+                "value": "no-referrer"
+              },
+              {
+                "name": "X-Content-Type-Options",
+                "value": "nosniff"
+              }
+            ]
+          }
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170206",
+      "name": "Return Confirmation Page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        280,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fsv-google-review-decision",
+        "authentication": "none",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170207",
+      "name": "Submit Review Decision",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1260,
+        260
+      ],
+      "webhookId": "c9b129de-8921-48b6-80ba-f22f538b5408"
+    },
+    {
+      "parameters": {
+        "jsCode": "const requestBody = $json.body ?? {};\n  const headers = $json.headers ?? {};\n  const first = (value) => Array.isArray(value) ? value[0] : value;\n  const review_id = String(first(requestBody.review_id) ?? '').trim();\n  const token = String(first(requestBody.token) ?? '').trim();\n  const action = String(first(requestBody.action) ?? '').trim().toUpperCase();\n  const edited_text = String(first(requestBody.edited_text) ?? '').trim();\n  const notes = String(first(requestBody.notes) ?? '').trim();\n  const actor_login = String(headers['tailscale-user-login'] ?? headers['Tailscale-User-Login'] ?? '').trim().toLowerCase();\n  let input_error = '';\n  if (!review_id || !token || !action) input_error = 'FORM_INCOMPLETE';\n  else if (review_id.length > 200 || token.length > 512 || edited_text.length > 5000 || notes.length > 2000) input_error = 'FORM_SIZE_INVALID';\n  else if (!['APPROVE', 'EDIT', 'SKIP'].includes(action)) input_error = 'ACTION_INVALID';\n  else if (action === 'EDIT' && !edited_text) input_error = 'EDIT_TEXT_EMPTY';\n  else if (actor_login !== 'dustin.boggess@gmail.com') input_error = 'TAILSCALE_IDENTITY_MISMATCH';\n  return [{ json: { review_id, token, action, edited_text, notes, actor_login, input_error } }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170208",
+      "name": "Normalize POST Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.token }}",
+        "dataPropertyName": "computed_token_hash",
+        "encoding": "hex"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170209",
+      "name": "HMAC POST Token",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        -820,
+        260
+      ],
+      "credentials": {
+        "crypto": {
+          "id": "Cy9bMK0zYfJG427e",
+          "name": "Crypto account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "7is92GD4xCYEKid9",
+          "mode": "list",
+          "cachedResultName": "FSV Google Post Reviews"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "review_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.review_id }}"
+            },
+            {
+              "keyName": "token_hash",
+              "condition": "eq",
+              "keyValue": "={{ $json.computed_token_hash }}"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 1
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170210",
+      "name": "Find Review for POST",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -600,
+        260
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $json ?? {};\n  const request = $('Normalize POST Request').item.json;\n  const esc = (value) => String(value ?? '').replace(/[&<>\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' })[char]);\n  const errorPage = (title, message, reference = '') => `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${esc(title)}</title><style>body{margin:0;background:#f4f6f8;color:#17202a;font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}.card{max-width:680px;margin:30px auto;background:#fff;border:1px solid #dfe4ea;border-radius:16px;padding:24px;box-shadow:0 8px 28px #17202a14}.muted{color:#5d6d7e}</style></head><body><main class=\"card\"><h1>${esc(title)}</h1><p>${esc(message)}</p>${reference ? `<p class=\"muted\">Reference: ${esc(reference)}</p>` : ''}<p>No content was published.</p></main></body></html>`;\n  let can_update = true;\n  let http_status = 200;\n  let response_html = '';\n  let event_type = 'DECISION_SUBMITTED';\n  let result = 'ATTEMPTED';\n  let detail_code = 'VALID_DECISION_SUBMISSION';\n  let token_state = 'valid';\n  const original_status = String(row.status ?? '').toLowerCase();\n  if (request.input_error) {\n    can_update = false; http_status = 400; event_type = 'DECISION_INVALID'; result = 'REJECTED'; detail_code = request.input_error; token_state = 'invalid';\n    response_html = errorPage('Decision not recorded', 'The decision request is invalid. Please use the latest review email.');\n  } else if (!row.review_id) {\n    can_update = false; http_status = 403; event_type = 'DECISION_INVALID_TOKEN'; result = 'REJECTED'; detail_code = 'TOKEN_OR_REVIEW_NOT_FOUND'; token_state = 'invalid';\n    response_html = errorPage('Decision link unavailable', 'This link is invalid or no longer available. Please use the latest review email.');\n  } else if (String(row.reviewer_email ?? '').trim().toLowerCase() !== request.actor_login) {\n    can_update = false; http_status = 403; event_type = 'DECISION_INVALID'; result = 'REJECTED'; detail_code = 'REVIEWER_IDENTITY_MISMATCH'; token_state = 'valid';\n    response_html = errorPage('Decision not recorded', 'This review is not assigned to the current Tailscale identity.', row.review_id);\n  } else if (!['pending', 'awaiting_review', 'review_pending'].includes(original_status)) {\n    can_update = false; http_status = 409; event_type = 'TOKEN_REUSE_REJECTED'; result = 'REJECTED'; detail_code = 'REVIEW_NOT_PENDING'; token_state = 'reused';\n    response_html = errorPage('Review already handled', 'This review is no longer awaiting a decision.', row.review_id);\n  } else {\n    const expiry = Date.parse(row.expires_at);\n    if (!Number.isFinite(expiry) || expiry <= Date.now()) {\n      can_update = false; http_status = 410; event_type = 'DECISION_EXPIRED'; result = 'REJECTED'; detail_code = 'TOKEN_EXPIRED'; token_state = 'expired';\n      response_html = errorPage('Decision link expired', 'This approval link has expired. Request a fresh review email to continue.', row.review_id);\n    }\n  }\n  const next_status = request.action === 'APPROVE' ? 'approved_not_published' : request.action === 'EDIT' ? 'edited_not_published' : 'skipped';\n  const new_proposed_text = request.action === 'EDIT' ? request.edited_text : String(row.proposed_text ?? '');\n  return [{ json: {\n    ...row, can_update, http_status, response_html, original_status,\n    decision: request.action, decision_notes: request.notes, next_status, new_proposed_text,\n    decided_at: new Date().toISOString(), approver: request.actor_login,\n    actor_basis: request.actor_login ? 'TAILSCALE_IDENTITY_HEADER' : '',\n    publish_result: 'not_published', event_type, result, detail_code, token_state,\n  } }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170211",
+      "name": "Prepare Decision Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($json.review_id ?? $('Normalize POST Request').item.json.review_id, 200),\n    event_category: 'DECISION',\n    event_type: clean($json.event_type, 80),\n    action: clean($json.decision, 20),\n    approver: clean($json.approver, 254).toLowerCase(),\n    actor_basis: clean($json.actor_basis, 80),\n    status_before: clean($json.original_status, 80),\n    status_after: clean($json.original_status, 80),\n    token_state: clean($json.token_state, 30),\n    result: clean($json.result, 40),\n    publish_result: 'not_published',\n    http_method: 'POST',\n    http_status: Number($json.http_status ?? 0),\n    service: 'N8N_WEBHOOK',\n    service_operation: 'VALIDATE_DECISION',\n    service_status: $json.can_update === true ? 'ACCEPTED' : 'REJECTED',\n    service_result_code: clean($json.detail_code, 120),\n    external_reference: '',\n    detail_code: clean($json.detail_code, 120),\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Prepare Decision Update',\n} }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170220",
+      "name": "Build Safe Predecision Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170221",
+      "name": "Append Predecision Audit Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        60,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $('Prepare Decision Update').item.json }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170222",
+      "name": "Restore Prepared Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter((item) => item.json.can_update === true);"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170212",
+      "name": "Only Valid Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter((item) => item.json.can_update !== true);"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170213",
+      "name": "Only Invalid Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "7is92GD4xCYEKid9",
+          "mode": "list",
+          "cachedResultName": "FSV Google Post Reviews"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "review_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.review_id }}"
+            },
+            {
+              "keyName": "token_hash",
+              "condition": "eq",
+              "keyValue": "={{ $json.token_hash }}"
+            },
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "={{ $json.original_status }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "={{ $json.next_status }}",
+            "proposed_text": "={{ $json.new_proposed_text }}",
+            "decision": "={{ $json.decision }}",
+            "decision_notes": "={{ $json.decision_notes }}",
+            "decided_at": "={{ $json.decided_at }}",
+            "token_used_at": "={{ $json.decided_at }}",
+            "approver": "={{ $json.approver }}",
+            "publish_result": "not_published"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170214",
+      "name": "Record Single-Use Decision",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        140
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const updated = $json ?? {};\n  const prepared = $('Prepare Decision Update').item.json;\n  const esc = (value) => String(value ?? '').replace(/[&<>\"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' })[char]);\n  const success = Boolean(updated.review_id);\n  const http_status = success ? 200 : 409;\n  const title = success ? 'Decision recorded' : 'Review already handled';\n  const message = success ? `${prepared.decision} was recorded for ${prepared.review_id}.` : 'Another submission already handled this review. Your duplicate submission was not applied.';\n  const response_html = `<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${esc(title)}</title><style>body{margin:0;background:#f4f6f8;color:#17202a;font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}.card{max-width:680px;margin:30px auto;background:#fff;border:1px solid #dfe4ea;border-radius:16px;padding:24px;box-shadow:0 8px 28px #17202a14}.ok{color:#18794e}.muted{color:#5d6d7e}.box{background:#f7f9fa;border:1px solid #e5e9ed;border-radius:10px;padding:14px;white-space:pre-wrap}</style></head><body><main class=\"card\"><h1 class=\"${success ? 'ok' : ''}\">${esc(title)}</h1><p>${esc(message)}</p>${success && prepared.decision !== 'SKIP' ? `<div class=\"box\">${esc(prepared.new_proposed_text)}</div>` : ''}<p><strong>Nothing was published to Google.</strong></p><p class=\"muted\">The decision, approver identity, and timestamp are saved in the audit log.</p></main></body></html>`;\n  return [{ json: {\n    review_id: String(prepared.review_id ?? ''), action: String(prepared.decision ?? ''),\n    approver: String(prepared.approver ?? ''), actor_basis: String(prepared.actor_basis ?? ''),\n    status_before: String(prepared.original_status ?? ''),\n    status_after: success ? String(prepared.next_status ?? '') : String(prepared.original_status ?? ''),\n    token_state: success ? 'consumed' : 'reused', result: success ? 'SUCCESS' : 'REJECTED',\n    event_type: success ? 'DECISION_RECORDED' : 'DUPLICATE_DECISION_REJECTED',\n    detail_code: success ? 'CONDITIONAL_UPDATE_APPLIED' : 'CONDITIONAL_UPDATE_ZERO_ROWS',\n    publish_result: 'not_published', http_status, response_html,\n  } }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170215",
+      "name": "Build Decision Result Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (value, max = 500) => String(value ?? '').replace(/[\\r\\n\\t]+/g, ' ').trim().slice(0, max);\nreturn [{ json: {\n    schema_version: 1,\n    event_at: new Date().toISOString(),\n    review_id: clean($json.review_id, 200),\n    event_category: 'DECISION',\n    event_type: clean($json.event_type, 80),\n    action: clean($json.action, 20),\n    approver: clean($json.approver, 254).toLowerCase(),\n    actor_basis: clean($json.actor_basis, 80),\n    status_before: clean($json.status_before, 80),\n    status_after: clean($json.status_after, 80),\n    token_state: clean($json.token_state, 30),\n    result: clean($json.result, 40),\n    publish_result: 'not_published',\n    http_method: 'POST',\n    http_status: Number($json.http_status ?? 0),\n    service: 'N8N_DATA_TABLE',\n    service_operation: 'CONDITIONAL_UPDATE',\n    service_status: $json.result === 'SUCCESS' ? 'SUCCEEDED' : 'REJECTED',\n    service_result_code: clean($json.detail_code, 120),\n    external_reference: '',\n    detail_code: clean($json.detail_code, 120),\n    source_workflow_id: String($workflow.id),\n    source_execution_id: String($execution.id),\n    source_node: 'Record Single-Use Decision',\n} }];"
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170223",
+      "name": "Build Safe Decision Audit Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "call_workflow",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "a4c78e6d-8c18-4b93-8e3e-2ae60e5af501",
+          "mode": "list",
+          "cachedResultName": "FSV - Approval Audit Append"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schema_version": "={{ $json.schema_version }}",
+            "event_at": "={{ $json.event_at }}",
+            "review_id": "={{ $json.review_id }}",
+            "event_category": "={{ $json.event_category }}",
+            "event_type": "={{ $json.event_type }}",
+            "action": "={{ $json.action }}",
+            "approver": "={{ $json.approver }}",
+            "actor_basis": "={{ $json.actor_basis }}",
+            "status_before": "={{ $json.status_before }}",
+            "status_after": "={{ $json.status_after }}",
+            "token_state": "={{ $json.token_state }}",
+            "result": "={{ $json.result }}",
+            "publish_result": "={{ $json.publish_result }}",
+            "http_method": "={{ $json.http_method }}",
+            "http_status": "={{ $json.http_status }}",
+            "service": "={{ $json.service }}",
+            "service_operation": "={{ $json.service_operation }}",
+            "service_status": "={{ $json.service_status }}",
+            "service_result_code": "={{ $json.service_result_code }}",
+            "external_reference": "={{ $json.external_reference }}",
+            "detail_code": "={{ $json.detail_code }}",
+            "source_workflow_id": "={{ $json.source_workflow_id }}",
+            "source_execution_id": "={{ $json.source_execution_id }}",
+            "source_node": "={{ $json.source_node }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "schema_version",
+              "displayName": "schema_version",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "event_at",
+              "displayName": "event_at",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_id",
+              "displayName": "review_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_category",
+              "displayName": "event_category",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approver",
+              "displayName": "approver",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "actor_basis",
+              "displayName": "actor_basis",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_before",
+              "displayName": "status_before",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status_after",
+              "displayName": "status_after",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "token_state",
+              "displayName": "token_state",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "publish_result",
+              "displayName": "publish_result",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_method",
+              "displayName": "http_method",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "http_status",
+              "displayName": "http_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_operation",
+              "displayName": "service_operation",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_status",
+              "displayName": "service_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_result_code",
+              "displayName": "service_result_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "external_reference",
+              "displayName": "external_reference",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "detail_code",
+              "displayName": "detail_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_workflow_id",
+              "displayName": "source_workflow_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_execution_id",
+              "displayName": "source_execution_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "source_node",
+              "displayName": "source_node",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": false,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170224",
+      "name": "Append Decision Audit Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1380,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Build Decision Result Page').item.json.response_html }}",
+        "options": {
+          "responseCode": "={{ $('Build Decision Result Page').item.json.http_status }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              },
+              {
+                "name": "Content-Security-Policy",
+                "value": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"
+              },
+              {
+                "name": "Referrer-Policy",
+                "value": "no-referrer"
+              },
+              {
+                "name": "X-Content-Type-Options",
+                "value": "nosniff"
+              }
+            ]
+          }
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170216",
+      "name": "Return Decision Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1600,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Prepare Decision Update').item.json.response_html }}",
+        "options": {
+          "responseCode": "={{ $('Prepare Decision Update').item.json.http_status }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              },
+              {
+                "name": "Content-Security-Policy",
+                "value": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"
+              },
+              {
+                "name": "Referrer-Policy",
+                "value": "no-referrer"
+              },
+              {
+                "name": "X-Content-Type-Options",
+                "value": "nosniff"
+              }
+            ]
+          }
+        }
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170217",
+      "name": "Return Invalid Decision",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Signed, identity-bound, single-use review portal\n\n- GET only renders a separate confirmation page and appends a sanitized event.\n- POST rechecks the HMAC, expiry, pending status, allowlisted action, and Dustin’s Tailscale identity.\n- The final Data Table update is conditional on review ID, digest, and original pending status.\n- Reuse, expiry, invalid tokens, and duplicate races are logged.\n- Sensitive parent execution payloads are not retained.\n- No Google publishing node exists.",
+        "height": 320,
+        "width": 820
+      },
+      "id": "de619731-b931-4c7e-9296-3cc51e170225",
+      "name": "Portal Safety Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        -700
+      ]
+    }
+  ],
+  "connections": {
+    "Open Review Link": {
+      "main": [
+        [
+          {
+            "node": "Normalize GET Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize GET Request": {
+      "main": [
+        [
+          {
+            "node": "HMAC GET Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC GET Token": {
+      "main": [
+        [
+          {
+            "node": "Find Review for GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Review for GET": {
+      "main": [
+        [
+          {
+            "node": "Build Confirmation Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Confirmation Page": {
+      "main": [
+        [
+          {
+            "node": "Build Safe GET Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Safe GET Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append GET Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append GET Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Return Confirmation Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Review Decision": {
+      "main": [
+        [
+          {
+            "node": "Normalize POST Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize POST Request": {
+      "main": [
+        [
+          {
+            "node": "HMAC POST Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC POST Token": {
+      "main": [
+        [
+          {
+            "node": "Find Review for POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Review for POST": {
+      "main": [
+        [
+          {
+            "node": "Prepare Decision Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Decision Update": {
+      "main": [
+        [
+          {
+            "node": "Build Safe Predecision Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Safe Predecision Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Predecision Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Predecision Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Restore Prepared Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Prepared Decision": {
+      "main": [
+        [
+          {
+            "node": "Only Valid Decision",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Only Invalid Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Valid Decision": {
+      "main": [
+        [
+          {
+            "node": "Record Single-Use Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Single-Use Decision": {
+      "main": [
+        [
+          {
+            "node": "Build Decision Result Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Decision Result Page": {
+      "main": [
+        [
+          {
+            "node": "Build Safe Decision Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Safe Decision Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Append Decision Audit Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Decision Audit Event": {
+      "main": [
+        [
+          {
+            "node": "Return Decision Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Invalid Decision": {
+      "main": [
+        [
+          {
+            "node": "Return Invalid Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none"
+  },
+  "pinData": {},
+  "versionId": "de619731-b931-4c7e-9296-3cc51e170299"
+}
