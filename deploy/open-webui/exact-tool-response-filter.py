@@ -12,10 +12,15 @@ from pydantic import BaseModel, Field
 
 MODEL_ID = "josie-local:1.0"
 CONNECTION_ID = "josie-core-review"
+CONTROL_CONNECTION_ID = "josie-subscription-seats"
 SOURCE_PREFIX = f"server:{CONNECTION_ID}/"
 STATUS_SOURCE = f"{SOURCE_PREFIX}get_josie_status"
 PROPOSAL_SOURCE = f"{SOURCE_PREFIX}record_review_proposal"
 STATUS_URL = "http://proposal-server:3030/v1/status"
+HISTORY_URL = "http://host.docker.internal:8790/v1/history"
+CONTROL_SOURCE_PREFIX = f"server:{CONTROL_CONNECTION_ID}/"
+CODEX_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_codex"
+GEMINI_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_gemini"
 STATUS_KEYS = {
     "status",
     "read_only",
@@ -157,19 +162,31 @@ def _last_user_text(body: dict) -> str:
     return ""
 
 
-def _status_token() -> str:
+def _last_assistant_text(body: dict) -> str:
+    for message in reversed(body.get("messages") or []):
+        if isinstance(message, dict) and message.get("role") == "assistant":
+            content = message.get("content")
+            return content if isinstance(content, str) else ""
+    return ""
+
+
+def _connection_token(connection_id: str) -> str:
     connections = json.loads(os.environ.get("TOOL_SERVER_CONNECTIONS", "[]"))
     connection = next(
         (
             item
             for item in connections
-            if (item.get("info") or {}).get("id") == CONNECTION_ID
+            if (item.get("info") or {}).get("id") == connection_id
         ),
         None,
     )
     if not isinstance(connection, dict) or not isinstance(connection.get("key"), str):
-        raise ValueError("private status credential is unavailable")
+        raise ValueError("private local credential is unavailable")
     return connection["key"]
+
+
+def _status_token() -> str:
+    return _connection_token(CONNECTION_ID)
 
 
 def _fresh_status_message() -> str:
@@ -184,6 +201,65 @@ def _fresh_status_message() -> str:
     if len(raw) > 4_096:
         raise ValueError("status response exceeds size limit")
     return _status_message(json.loads(raw))
+
+
+def _all_sources(body: dict) -> list[dict]:
+    candidates = []
+    candidates.extend(body.get("sources") or [])
+    candidates.extend((body.get("metadata") or {}).get("sources") or [])
+    for message in body.get("messages") or []:
+        if isinstance(message, dict):
+            candidates.extend(message.get("sources") or [])
+    return [item for item in candidates if isinstance(item, dict)]
+
+
+def _conversation_route(body: dict) -> str:
+    source_names = {
+        (source.get("source") or {}).get("name") for source in _all_sources(body)
+    }
+    if CODEX_SOURCE in source_names:
+        return "codex_cli"
+    if GEMINI_SOURCE in source_names:
+        return "gemini_cli"
+    return "local_ollama"
+
+
+def _history_event_id(body: dict, role: str) -> str:
+    metadata = body.get("metadata") or {}
+    values = (
+        body.get("chat_id"),
+        body.get("id"),
+        metadata.get("chat_id"),
+        metadata.get("message_id"),
+        role,
+    )
+    return ":".join(str(value) for value in values if value)
+
+
+def _record_history(body: dict, *, role: str, content: str, route: str) -> None:
+    if not content or len(content) > 16_000:
+        return
+    payload = json.dumps(
+        {
+            "role": role,
+            "content": content,
+            "route": route,
+            "event_id": _history_event_id(body, role),
+        }
+    ).encode("utf-8")
+    request = Request(
+        HISTORY_URL,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {_connection_token(CONTROL_CONNECTION_ID)}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urlopen(request, timeout=1) as response:
+        if response.status != 200:
+            raise ValueError("local conversation history service rejected the request")
+        response.read(1_024)
 
 
 def _replace_last_assistant(body: dict, content: str) -> dict:
@@ -203,6 +279,25 @@ class Filter:
     def __init__(self):
         self.valves = self.Valves()
 
+    def inlet(self, body: dict, __model__: dict | None = None) -> dict:
+        """Enable Open WebUI's existing local memory retrieval for Josie only."""
+        model_id = body.get("model") or ((__model__ or {}).get("id"))
+        if model_id != MODEL_ID:
+            return body
+        features = dict(body.get("features") or {})
+        features["memory"] = True
+        updated = {**body, "features": features}
+        try:
+            _record_history(
+                updated,
+                role="user",
+                content=_last_user_text(updated),
+                route="local_ollama",
+            )
+        except Exception:
+            pass
+        return updated
+
     def outlet(self, body: dict, __model__: dict | None = None) -> dict:
         model_id = body.get("model") or ((__model__ or {}).get("id"))
         if model_id != MODEL_ID:
@@ -212,4 +307,14 @@ class Filter:
         trusted = _trusted_source_message(body, user_text)
         if trusted is None and STATUS_QUERY.search(user_text):
             trusted = _fresh_status_message()
-        return _replace_last_assistant(body, trusted) if trusted is not None else body
+        updated = _replace_last_assistant(body, trusted) if trusted is not None else body
+        try:
+            _record_history(
+                updated,
+                role="assistant",
+                content=_last_assistant_text(updated),
+                route=_conversation_route(updated),
+            )
+        except Exception:
+            pass
+        return updated

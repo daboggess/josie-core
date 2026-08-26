@@ -1,5 +1,5 @@
 schema_version: 1
-updated_at: "2026-08-15"
+updated_at: "2026-08-25"
 secrets_documented_here: false
 services:
   - service: "Josie Core"
@@ -17,12 +17,19 @@ services:
     credential_location: none
     dependency_level: replaceable
   - service: "Open WebUI"
-    purpose: "Authenticated user interface"
+    purpose: "Permanent authenticated Josie conversation front door and native memory owner"
     status: WORKING
     exposure: "localhost plus private Tailscale Serve"
     recurring_cost: "$0 software"
     credential_location: "service database/ignored secret; not Git"
     dependency_level: replaceable interface
+  - service: "Josie Local Conversation Control"
+    purpose: "Loopback-only local history recall and optional official CLI consultation"
+    status: WORKING_LOCAL_ONLY
+    exposure: "127.0.0.1:8790; reachable from the existing Open WebUI container through host.docker.internal"
+    recurring_cost: "$0 incremental; reuses existing subscriptions when explicitly consulted"
+    credential_location: "ignored ACL-restricted bearer token; CLI OAuth/login caches outside Git"
+    dependency_level: "optional bridge; local Ollama conversation remains available when stopped"
   - service: "n8n"
     purpose: "Workflow infrastructure, not identity or brain"
     status: WORKING
@@ -45,19 +52,19 @@ services:
     credential_location: none
     dependency_level: important but replaceable
   - service: "ChatGPT / Sophie / Codex"
-    purpose: "Historical witness, remote engineering, frontier reasoning"
-    status: WORKING_MANUAL_CONTROL_SURFACE
-    exposure: cloud via Dustin-controlled app/session
+    purpose: "Optional frontier advisory seat through the official Codex CLI"
+    status: WORKING_OPTIONAL_CLI_SEAT
+    exposure: "cloud only when Josie selects consult_codex"
     recurring_cost: "Existing subscription; API billing disabled for Josie"
-    credential_location: "authenticated app/browser environment"
-    dependency_level: important witness and engineering tool
+    credential_location: "existing ChatGPT-authenticated Codex CLI cache; API-key variables stripped"
+    dependency_level: "optional; local fallback is mandatory"
   - service: "Gemini / Bernie"
-    purpose: "Independent historical witness and reviewer"
-    status: MANUAL_RELAY_ONLY
-    exposure: cloud via Dustin-controlled session
-    recurring_cost: "$0 API budget in Josie; account tier must be verified"
-    credential_location: "authenticated browser environment"
-    dependency_level: optional witness/provider
+    purpose: "Optional second-opinion advisory seat through the official Gemini CLI"
+    status: WORKING_OPTIONAL_CLI_SEAT_UPSTREAM_503_OBSERVED
+    exposure: "cloud only when Josie selects consult_gemini"
+    recurring_cost: "Existing Google account access; paid API billing is not configured"
+    credential_location: "Google OAuth/cached Gemini CLI login; API/ADC/Vertex variables stripped"
+    dependency_level: "optional; local fallback is mandatory"
   - service: "eBay Browse API"
     purpose: "First selected read-only Deal Hunter listing source"
     status: SELECTED_NOT_CONNECTED

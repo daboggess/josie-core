@@ -141,6 +141,12 @@ host gateway. The model server is not published through Tailscale or the LAN.
 OpenAI API access remains disabled, so this chat path cannot create OpenAI API
 charges.
 
+Open WebUI also has a loopback-only local conversation bridge for persistent
+SQLite recall and optional subscription-authenticated Codex CLI or Gemini CLI
+consultation. Both seats are advisory and time-bounded; local Ollama continues
+when either seat is unavailable. See
+[docs/SUBSCRIPTION_LOCAL_JOSIE.md](docs/SUBSCRIPTION_LOCAL_JOSIE.md).
+
 Open WebUI is the direct conversational surface for `josie-local:1.0`. The
 governed Core proposal boundary is available from the local GUI with
 `ask Josie ...` or from the `core.py propose` command. It accepts only three

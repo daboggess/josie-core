@@ -5,6 +5,8 @@ import unittest
 import sqlite3
 import json
 import hashlib
+import os
+import subprocess
 import threading
 import urllib.error
 import urllib.request
@@ -34,6 +36,17 @@ from josie.jobs import JobRunner, available_job_handlers
 from josie.local_model import propose_local_actions
 from josie.proposal_inbox import ingest_proposal_inbox
 from josie.handoffs import export_model_handoff
+from josie.conversation_control import (
+    CODEX_PROVIDER,
+    GEMINI_PROVIDER,
+    _handler_class,
+    cli_seat_status,
+    consult_codex,
+    consult_gemini,
+    find_codex_cli,
+    find_node_runtime,
+    recall_history,
+)
 from josie.browser_policy import load_browser_policy, validate_research_url
 from josie.economic_policy import load_economic_policy
 from josie.research import record_opportunity, record_upgrade_target
@@ -1119,6 +1132,223 @@ class JosieTests(unittest.TestCase):
             self.assertTrue(result["openai"]["configured"])
             self.assertTrue(result["gemini"]["configured"])
 
+    def test_subscription_cli_status_is_optional_keyless_and_local_first(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            status = cli_seat_status(root)
+            self.assertEqual(status["default_provider"], "local_ollama")
+            self.assertFalse(status["openai"]["api_key_allowed"])
+            self.assertFalse(status["gemini"]["api_key_allowed"])
+            self.assertTrue(status["openai"]["optional"])
+            self.assertTrue(status["gemini"]["optional"])
+            self.assertFalse(status["new_database"])
+            self.assertFalse(status["new_container"])
+
+    def test_codex_cli_adapter_is_read_only_keyless_and_captures_final_text(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = root / "codex.exe"
+            executable.touch()
+
+            def fake_run(args, *, environment, cwd):
+                self.assertNotIn("OPENAI_API_KEY", environment)
+                self.assertIn("--ephemeral", args)
+                self.assertIn("--ignore-user-config", args)
+                self.assertEqual(args[args.index("--sandbox") + 1], "read-only")
+                final_path = Path(args[args.index("--output-last-message") + 1])
+                final_path.write_text("bounded Codex answer", encoding="utf-8")
+                return subprocess.CompletedProcess(args, 0, '{"type":"turn.completed"}\n', "")
+
+            with patch(
+                "josie.conversation_control.find_codex_cli", return_value=executable
+            ), patch(
+                "josie.conversation_control._run_cli", side_effect=fake_run
+            ), patch.dict(os.environ, {"OPENAI_API_KEY": "must-not-be-used"}):
+                result = consult_codex("Help reason about this", context="", project_root=root)
+            self.assertEqual(result.provider, CODEX_PROVIDER)
+            self.assertEqual(result.status, "ok")
+            self.assertEqual(result.response, "bounded Codex answer")
+            self.assertFalse(result.public()["api_key_used"])
+
+    def test_gemini_cli_adapter_uses_google_login_json_and_no_billing_env(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            entry = (
+                root
+                / "data/tools/gemini-cli/node_modules/@google/gemini-cli/bundle/gemini.js"
+            )
+            entry.parent.mkdir(parents=True)
+            entry.touch()
+            node = root / "node.exe"
+            node.touch()
+
+            def fake_run(args, *, environment, cwd):
+                for name in (
+                    "GEMINI_API_KEY",
+                    "GOOGLE_API_KEY",
+                    "GOOGLE_APPLICATION_CREDENTIALS",
+                    "GOOGLE_GENAI_USE_VERTEXAI",
+                    "GEMINI_CLI_USE_COMPUTE_ADC",
+                ):
+                    self.assertNotIn(name, environment)
+                self.assertNotIn("GOOGLE_GENAI_USE_GCA", environment)
+                self.assertEqual(args[args.index("--output-format") + 1], "json")
+                self.assertEqual(args[args.index("--approval-mode") + 1], "plan")
+                return subprocess.CompletedProcess(
+                    args, 0, json.dumps({"response": "bounded Gemini answer"}), ""
+                )
+
+            with patch(
+                "josie.conversation_control.find_node_runtime", return_value=node
+            ), patch(
+                "josie.conversation_control._run_cli", side_effect=fake_run
+            ), patch.dict(
+                os.environ,
+                {
+                    "GEMINI_API_KEY": "must-not-be-used",
+                    "GOOGLE_API_KEY": "must-not-be-used",
+                    "GOOGLE_GENAI_USE_VERTEXAI": "true",
+                },
+            ):
+                result = consult_gemini(
+                    "Give a second opinion", context="", project_root=root
+                )
+            self.assertEqual(result.provider, GEMINI_PROVIDER)
+            self.assertEqual(result.status, "ok")
+            self.assertEqual(result.response, "bounded Gemini answer")
+            self.assertFalse(result.public()["api_key_used"])
+
+    def test_subscription_cli_timeouts_degrade_to_local_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            codex = root / "codex.exe"
+            codex.touch()
+            gemini = (
+                root
+                / "data/tools/gemini-cli/node_modules/@google/gemini-cli/bundle/gemini.js"
+            )
+            gemini.parent.mkdir(parents=True)
+            gemini.touch()
+            node = root / "node.exe"
+            node.touch()
+            timeout = subprocess.TimeoutExpired(cmd=["subscription-cli"], timeout=90)
+
+            with patch(
+                "josie.conversation_control.find_codex_cli", return_value=codex
+            ), patch("josie.conversation_control._run_cli", side_effect=timeout):
+                codex_result = consult_codex("bounded request", context="", project_root=root)
+            with patch(
+                "josie.conversation_control.find_node_runtime", return_value=node
+            ), patch("josie.conversation_control._run_cli", side_effect=timeout):
+                gemini_result = consult_gemini("bounded request", context="", project_root=root)
+
+            for result in (codex_result, gemini_result):
+                self.assertEqual(result.status, "unavailable")
+                self.assertEqual(result.response, "")
+                self.assertTrue(result.public()["local_fallback_available"])
+                self.assertFalse(result.public()["api_key_used"])
+                self.assertIn("timed out", result.error)
+
+    def test_explicit_subscription_cli_paths_are_authoritative(self) -> None:
+        missing_codex = str(Path(tempfile.gettempdir()) / "missing-josie-codex.exe")
+        missing_node = str(Path(tempfile.gettempdir()) / "missing-josie-node.exe")
+        with patch.dict(
+            os.environ,
+            {"JOSIE_CODEX_CLI": missing_codex, "JOSIE_NODE_EXE": missing_node},
+        ):
+            self.assertIsNone(find_codex_cli())
+            self.assertIsNone(find_node_runtime())
+
+    def test_subscription_conversation_lock_preserves_local_first_boundaries(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        lock = json.loads(
+            (project_root / "deploy" / "subscription-conversation.lock.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(lock["front_door"]["service"], "Open WebUI")
+        self.assertEqual(lock["front_door"]["default_inference"], "local_ollama")
+        self.assertEqual(lock["control_service"]["binding"], "127.0.0.1:8790")
+        self.assertFalse(lock["control_service"]["new_container"])
+        self.assertFalse(lock["control_service"]["new_database"])
+        self.assertFalse(lock["providers"]["codex_cli"]["api_key_allowed"])
+        self.assertFalse(lock["providers"]["gemini_cli"]["api_key_allowed"])
+        self.assertFalse(lock["providers"]["gemini_cli"]["adc_or_vertex_allowed"])
+        self.assertFalse(lock["retired"]["summit_function_active"])
+        self.assertFalse(lock["retired"]["groq_route_active"])
+        hidden = (
+            project_root / "scripts" / "Run-JosieConversationControlHidden.vbs"
+        ).read_text(encoding="utf-8").lower()
+        registration = (
+            project_root / "scripts" / "Register-JosieConversationControlTask.ps1"
+        ).read_text(encoding="utf-8").lower()
+        self.assertIn("shell.run(command, 0, true)", hidden)
+        self.assertIn("new-scheduledtasktrigger -atlogon", registration)
+        self.assertIn("-hidden", registration)
+        self.assertIn("wscript.exe", registration)
+        self.assertNotIn("cmd.exe", registration)
+
+    def test_local_history_recall_reuses_existing_sqlite(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = LocalStore(Path(directory) / "data" / "josie.db")
+            store.add_message("openwebui:user", "We decided the RTX 3060 comes later")
+            store.remember("Keep Ollama as the ordinary conversation default")
+            recalled = recall_history(store, "What did we decide about the RTX 3060?")
+            self.assertEqual(recalled["source"], "local_sqlite")
+            self.assertFalse(recalled["cloud_activity"])
+            self.assertIn("RTX 3060", json.dumps(recalled))
+
+    def test_conversation_history_endpoint_requires_token_and_persists_locally(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            config = load_config(root / ".env")
+            token = "local-test-token-that-is-long-enough"
+            handler = _handler_class(
+                project_root=root, config=config, store=store, token=token, port=0
+            )
+            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                base = f"http://127.0.0.1:{server.server_address[1]}"
+                body = json.dumps(
+                    {
+                        "role": "assistant",
+                        "content": "Local final answer",
+                        "route": "local_ollama",
+                        "event_id": "test-event-1",
+                    }
+                ).encode("utf-8")
+                unauthorized = urllib.request.Request(
+                    base + "/v1/history",
+                    data=body,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with self.assertRaises(urllib.error.HTTPError) as rejected:
+                    urllib.request.urlopen(unauthorized, timeout=2)
+                self.assertEqual(rejected.exception.code, 401)
+                authorized = urllib.request.Request(
+                    base + "/v1/history",
+                    data=body,
+                    headers={
+                        "Authorization": f"Bearer {token}",
+                        "Content-Type": "application/json",
+                    },
+                    method="POST",
+                )
+                with urllib.request.urlopen(authorized, timeout=2) as response:
+                    self.assertEqual(response.status, 200)
+                self.assertIn(
+                    ("openwebui:assistant", "Local final answer"),
+                    store.recent_messages(),
+                )
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
+
     def test_cloud_calls_are_spend_locked_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -2150,6 +2380,9 @@ class JosieTests(unittest.TestCase):
         server = (project_root / "scripts" / "Start-JosieOllama.ps1").read_text(
             encoding="utf-8"
         ).lower()
+        background = (
+            project_root / "scripts" / "Run-JosieOllamaBackground.ps1"
+        ).read_text(encoding="utf-8").lower()
         modelfile = (project_root / "deploy" / "Josie.Modelfile").read_text(encoding="utf-8").lower()
         compose = (project_root / "deploy" / "compose.yaml").read_text(encoding="utf-8").lower()
         self.assertIn("7c941ae084569d298062d29f8139163a3187c76dbca0479c70d085e78fd8c7bb", installer)
@@ -2158,6 +2391,10 @@ class JosieTests(unittest.TestCase):
         self.assertIn("d:\\josie-storage\\models\\ollama", server)
         self.assertIn("ollama_max_loaded_models = '1'", server)
         self.assertIn("ollama_num_parallel = '1'", server)
+        self.assertIn("start-process", server)
+        self.assertIn("windowstyle hidden", server)
+        self.assertIn("api/version", server)
+        self.assertNotIn("lastexitcode", background)
         self.assertIn("parameter num_thread 3", modelfile)
         self.assertIn("parameter num_ctx 4096", modelfile)
         self.assertIn("you are josie", modelfile)
@@ -2409,7 +2646,7 @@ class JosieTests(unittest.TestCase):
         self.assertEqual(lock["model_binding"]["model_id"], "josie-local:1.0")
         self.assertEqual(
             lock["model_binding"]["default_tool_ids"],
-            ["server:josie-core-review"],
+            ["server:josie-core-review", "server:josie-subscription-seats"],
         )
         self.assertEqual(
             lock["model_binding"]["response_filter_ids"],

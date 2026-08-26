@@ -11,10 +11,11 @@ $proposalRoot = 'D:\Josie-Storage\proposals'
 $statusRoot = 'D:\Josie-Storage\status'
 $secretRoot = 'D:\Josie-Storage\secrets'
 $tokenPath = Join-Path $secretRoot 'proposal-token.txt'
+$conversationTokenPath = Join-Path $projectRoot 'data\private\conversation-control.token'
 $containerName = 'josie-proposal-server-1'
 $webuiContainerName = 'josie-open-webui-1'
 
-foreach ($required in $dockerPath, $composePath, $environmentPath) {
+foreach ($required in $dockerPath, $composePath, $environmentPath, $conversationTokenPath) {
     if (-not (Test-Path -LiteralPath $required)) { throw "Required deployment file is missing: $required" }
 }
 foreach ($directory in 'inbox', 'processed', 'rejected') {
@@ -32,16 +33,22 @@ if (-not (Test-Path -LiteralPath $tokenPath)) {
 $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 & icacls.exe $tokenPath /inheritance:r /grant:r "${identity}:(F)" 'SYSTEM:(F)' | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'The proposal credential could not be restricted to the current user and SYSTEM.' }
+& icacls.exe $conversationTokenPath /inheritance:r /grant:r "${identity}:(F)" 'SYSTEM:(F)' | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'The conversation credential could not be restricted to the current user and SYSTEM.' }
 
-$token = [System.IO.File]::ReadAllText($tokenPath, [System.Text.Encoding]::UTF8).Trim()
-if ([string]::IsNullOrWhiteSpace($token)) { throw 'The proposal credential is empty.' }
+$proposalToken = [System.IO.File]::ReadAllText($tokenPath, [System.Text.Encoding]::UTF8).Trim()
+if ([string]::IsNullOrWhiteSpace($proposalToken)) { throw 'The proposal credential is empty.' }
+$conversationToken = [System.IO.File]::ReadAllText(
+    $conversationTokenPath, [System.Text.Encoding]::UTF8
+).Trim()
+if ([string]::IsNullOrWhiteSpace($conversationToken)) { throw 'The conversation credential is empty.' }
 $connection = @(
     [ordered]@{
         url = 'http://proposal-server:3030'
         path = '/openapi.json'
         type = 'openapi'
         auth_type = 'bearer'
-        key = $token
+        key = $proposalToken
         spec_type = 'url'
         config = [ordered]@{
             enable = $true
@@ -51,6 +58,23 @@ $connection = @(
             id = 'josie-core-review'
             name = 'Josie Core Review'
             description = 'Reports secret-free read-only status and records bounded local proposals; it never executes actions.'
+        }
+    }
+    [ordered]@{
+        url = 'http://host.docker.internal:8790'
+        path = '/openapi.json'
+        type = 'openapi'
+        auth_type = 'bearer'
+        key = $conversationToken
+        spec_type = 'url'
+        config = [ordered]@{
+            enable = $true
+            access_grants = @()
+        }
+        info = [ordered]@{
+            id = 'josie-subscription-seats'
+            name = 'Josie Local Conversation Control'
+            description = 'Recalls local history and optionally consults official ChatGPT- and Google-authenticated CLIs; local Ollama remains the default.'
         }
     }
 )
@@ -69,7 +93,8 @@ $environmentLines.Add("JOSIE_TOOL_SERVER_CONNECTIONS=$connectionJson")
 )
 & icacls.exe $environmentPath /inheritance:r /grant:r "${identity}:(F)" 'SYSTEM:(F)' | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'The local service configuration could not be restricted.' }
-$token = $null
+$proposalToken = $null
+$conversationToken = $null
 $connectionJson = $null
 
 & $dockerPath compose --profile proposal-interface --env-file $environmentPath `
@@ -90,6 +115,9 @@ if (-not $ready) { throw 'The internal proposal interface did not become healthy
 $backendProbe = & $dockerPath exec josie-open-webui-1 python -c `
     "import json,urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://proposal-server:3030/health',timeout=5))))"
 if ($LASTEXITCODE -ne 0) { throw 'Open WebUI cannot reach the internal proposal interface.' }
+$conversationProbe = & $dockerPath exec josie-open-webui-1 python -c `
+    "import json,urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://host.docker.internal:8790/health',timeout=5))))"
+if ($LASTEXITCODE -ne 0) { throw 'Open WebUI cannot reach the local conversation control.' }
 
 $modelBinding = & $dockerPath exec $webuiContainerName python /opt/josie/configure-model.py
 if ($LASTEXITCODE -ne 0) { throw 'The default Josie model/tool binding could not be configured.' }
@@ -112,12 +140,15 @@ if ($LASTEXITCODE -ne 0) { throw 'Authenticated tool responses are not grounded 
     specification = 'http://proposal-server:3030/openapi.json'
     authentication = 'bearer_token_required'
     connection_id = 'josie-core-review'
+    conversation_connection_id = 'josie-subscription-seats'
     global_tool_enabled = $true
     credential_file = $tokenPath
+    conversation_credential_file = $conversationTokenPath
     published_host_port = $false
     docker_network = 'internal'
     actions_executable = $false
     default_model_binding = ($modelBinding | ConvertFrom-Json)
     authenticated_message_passthrough = ($passthroughVerification | ConvertFrom-Json)
     backend_probe = ($backendProbe | ConvertFrom-Json)
+    conversation_backend_probe = ($conversationProbe | ConvertFrom-Json)
 } | ConvertTo-Json -Depth 5

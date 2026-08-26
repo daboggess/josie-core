@@ -46,7 +46,8 @@
     "status": "active",
     "model_id": "josie-local:1.0",
     "default_tool_ids": [
-      "server:josie-core-review"
+      "server:josie-core-review",
+      "server:josie-subscription-seats"
     ],
     "response_filter_ids": [
       "josie_exact_tool_response"

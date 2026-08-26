@@ -42,6 +42,13 @@ from josie.learning_assessment import (
     assess_local_holdout_judgment,
 )
 from josie.prayer_bridge import prayer_bridge_status, prayer_source_status, run_prayer_bridge
+from josie.conversation_control import (
+    cli_seat_status,
+    consult_codex,
+    consult_gemini,
+    recall_history,
+    run_conversation_control,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,6 +70,28 @@ def build_parser() -> argparse.ArgumentParser:
     provider_subcommands.add_parser("status", help="Show configuration without revealing keys")
     check = provider_subcommands.add_parser("check", help="Send one minimal live request")
     check.add_argument("provider", choices=("openai", "gemini"))
+
+    conversation = subcommands.add_parser(
+        "conversation", help="Run or inspect the local Open WebUI conversation bridge"
+    )
+    conversation_commands = conversation.add_subparsers(
+        dest="conversation_command", required=True
+    )
+    conversation_commands.add_parser(
+        "status", help="Show optional subscription CLI seat availability"
+    )
+    conversation_commands.add_parser(
+        "serve", help="Run the loopback-only conversation control service"
+    )
+    conversation_check = conversation_commands.add_parser(
+        "check", help="Run one bounded, read-only CLI seat request"
+    )
+    conversation_check.add_argument("provider", choices=("codex", "gemini"))
+    conversation_check.add_argument("request", nargs="+")
+    conversation_recall = conversation_commands.add_parser(
+        "recall", help="Search Josie's existing local messages and memories"
+    )
+    conversation_recall.add_argument("query", nargs="+")
 
     subcommands.add_parser("gui", help="Open Josie's local graphical interface")
     deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
@@ -260,6 +289,34 @@ def main() -> int:
         probe = probe_openai if args.provider == "openai" else probe_gemini
         logger.info("Running minimal provider check: %s", args.provider)
         print(json.dumps(probe(config), indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "conversation":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.conversation_command == "status":
+            result = cli_seat_status(project_root)
+        elif args.conversation_command == "serve":
+            logger.info("Starting loopback-only conversation control")
+            run_conversation_control(project_root=project_root, config=config)
+            return 0
+        elif args.conversation_command == "recall":
+            result = recall_history(store, " ".join(args.query))
+        else:
+            request_text = " ".join(args.request).strip()
+            context = "\n".join(
+                f"{speaker}: {content}"
+                for speaker, content in store.recent_messages(limit=12)
+            )
+            result = (
+                consult_codex(
+                    request_text, context=context, project_root=project_root
+                )
+                if args.provider == "codex"
+                else consult_gemini(
+                    request_text, context=context, project_root=project_root
+                )
+            ).public()
+        print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 
     if args.command == "gui":

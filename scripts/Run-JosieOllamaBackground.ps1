@@ -18,9 +18,6 @@ catch {
 
 try {
     & $startScript *>> $logPath
-    if ($LASTEXITCODE -ne 0) {
-        throw "Ollama exited with code $LASTEXITCODE."
-    }
 }
 catch {
     $timestamp = [DateTimeOffset]::Now.ToString('o')

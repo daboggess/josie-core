@@ -17,5 +17,28 @@ $env:OLLAMA_CONTEXT_LENGTH = '4096'
 $env:OLLAMA_KEEP_ALIVE = '5m'
 $env:OLLAMA_MAX_QUEUE = '8'
 
-& $ollamaPath serve
-if ($LASTEXITCODE -ne 0) { throw "Ollama exited with code $LASTEXITCODE." }
+$process = Start-Process -FilePath $ollamaPath -ArgumentList @('serve') `
+    -WindowStyle Hidden -PassThru
+$ready = $false
+for ($attempt = 0; $attempt -lt 40; $attempt++) {
+    Start-Sleep -Milliseconds 250
+    if ($process.HasExited) { break }
+    try {
+        $health = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/version' -TimeoutSec 1
+        if ($health.version) { $ready = $true; break }
+    }
+    catch {
+        # The local listener may still be starting.
+    }
+}
+if (-not $ready) {
+    if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+    throw 'Ollama did not become healthy after its hidden startup.'
+}
+
+[ordered]@{
+    status = 'running'
+    binding = '0.0.0.0:11434'
+    pid = $process.Id
+    model_root = $modelRoot
+} | ConvertTo-Json

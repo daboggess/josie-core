@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "status": "active_local_first",
+  "validated_at": "2026-08-25T21:12:00-04:00",
+  "front_door": {
+    "service": "Open WebUI",
+    "model_id": "josie-local:1.0",
+    "default_inference": "local_ollama",
+    "native_memory_enabled": true,
+    "chat_history_preserved": true
+  },
+  "control_service": {
+    "binding": "127.0.0.1:8790",
+    "container_path": "http://host.docker.internal:8790",
+    "authentication": "bearer",
+    "secret_in_git": false,
+    "new_container": false,
+    "new_database": false,
+    "operation_ids": [
+      "recall_josie_history",
+      "consult_codex",
+      "consult_gemini"
+    ]
+  },
+  "providers": {
+    "codex_cli": {
+      "optional": true,
+      "authentication": "existing ChatGPT login",
+      "api_key_allowed": false,
+      "read_only": true,
+      "bounded": true
+    },
+    "gemini_cli": {
+      "optional": true,
+      "authentication": "Google OAuth cached login",
+      "api_key_allowed": false,
+      "adc_or_vertex_allowed": false,
+      "read_only": true,
+      "bounded": true
+    }
+  },
+  "persistence": {
+    "open_webui_history": "existing Open WebUI webui.db volume",
+    "josie_history": "existing C:\\Josie\\data\\josie.db",
+    "successful_consultant_results_saved": true,
+    "consultation_decisions_saved": true,
+    "failures_audited": true
+  },
+  "acceptance": {
+    "tests_before_live_changes": 90,
+    "tests_after_live_changes": 93,
+    "full_suite_status": "passed",
+    "open_webui_local_only": "passed: LOCAL_ONLY_OK",
+    "open_webui_codex_consult": "passed: CODEX_TOOL_E2E_20260825",
+    "codex_result_persisted_in_sqlite": true,
+    "open_webui_codex_unavailable_fallback": "passed: CODEX_FALLBACK_LOCAL_OK",
+    "gemini_cli_adapter_independent": "passed before live wiring: ADAPTER_GEMINI_OK",
+    "open_webui_gemini_tool_selected": true,
+    "open_webui_gemini_current_result": "upstream unavailable; local fallback passed",
+    "gemini_upstream_evidence": "HTTP 503 high demand and fetch failure observed",
+    "open_webui_local_history_recall": "passed via recall_josie_history",
+    "existing_status_tool": "passed via get_josie_status",
+    "host_connectivity": true,
+    "open_webui_container_connectivity": true,
+    "restart_pid_changed": true,
+    "restart_history_preserved": true
+  },
+  "startup": {
+    "ollama_task": "Josie Local Model",
+    "ollama_task_last_result": 0,
+    "control_task": "Josie Conversation Control",
+    "control_task_hidden": true,
+    "control_task_last_result": 0
+  },
+  "retired": {
+    "summit_function_active": false,
+    "groq_route_active": false,
+    "fsv_n8n_workflows_active": false,
+    "legacy_gui_startup_active": false
+  },
+  "deferred": [
+    "RTX 3060 local-model optimization",
+    "desktop control",
+    "broader history import",
+    "additional providers or orchestration frameworks"
+  ]
+}
