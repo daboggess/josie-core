@@ -99,6 +99,7 @@ services:
       - ./open-webui/configure-model.py:/opt/josie/configure-model.py:ro
       - ./open-webui/exact-tool-response-filter.py:/opt/josie/exact-tool-response-filter.py:ro
       - ./open-webui/verify-passthrough.py:/opt/josie/verify-passthrough.py:ro
+      - ./open-webui/verify-maintainer-acceptance.py:/opt/josie/verify-maintainer-acceptance.py:ro
     networks:
       - default
       - josie_tools

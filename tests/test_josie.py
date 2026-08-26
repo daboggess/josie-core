@@ -3115,6 +3115,10 @@ class JosieTests(unittest.TestCase):
             compose,
         )
         self.assertIn("verify-passthrough.py:/opt/josie/verify-passthrough.py:ro", compose)
+        self.assertIn(
+            "verify-maintainer-acceptance.py:/opt/josie/verify-maintainer-acceptance.py:ro",
+            compose,
+        )
         self.assertIn("get_josie_status", server)
         self.assertIn("/v1/status", server)
         self.assertIn("accepts no parameters", server)
