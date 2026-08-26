@@ -49,7 +49,13 @@ from josie.conversation_control import (
     recall_history,
     run_conversation_control,
 )
-from josie.history_inheritance import dry_run_gemini_html
+from josie.history_inheritance import (
+    PHASE2_RUN_ID,
+    PHASE2_SOURCE_SET_SHA256,
+    dry_run_gemini_html,
+    inspect_gemini_attachment_metadata,
+    validate_gemini_phase2_plan,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -271,13 +277,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evidence.add_argument("--observed-at")
     history = subcommands.add_parser(
-        "history", help="Inspect staged historical evidence without production import"
+        "history", help="Inspect or explicitly import verified historical evidence"
     )
-    history.add_argument("action", choices=("gemini-dry-run",))
+    history.add_argument("action", choices=("gemini-dry-run", "gemini-import"))
     history.add_argument("--html", required=True)
     history.add_argument("--source-archive", required=True)
     history.add_argument("--archive-sha256", required=True)
     history.add_argument("--member-sha256")
+    history.add_argument("--archive-file")
+    history.add_argument("--source-set-sha256")
+    history.add_argument("--run-id")
+    history.add_argument("--confirm-production", action="store_true")
     return parser
 
 
@@ -329,12 +339,54 @@ def main() -> int:
         return 0
 
     if args.command == "history":
-        result = dry_run_gemini_html(
+        dry_run = dry_run_gemini_html(
             Path(args.html),
             source_archive=args.source_archive,
             source_archive_sha256=args.archive_sha256,
             expected_member_sha256=args.member_sha256,
-        ).public()
+        )
+        if args.action == "gemini-dry-run":
+            print(json.dumps(dry_run.public(), indent=2, sort_keys=True))
+            return 0
+        if (
+            not args.confirm_production
+            or args.run_id != PHASE2_RUN_ID
+            or args.source_set_sha256 != PHASE2_SOURCE_SET_SHA256
+            or not args.archive_file
+        ):
+            raise ValueError(
+                "Gemini Phase 2 import requires the exact run ID, source-set hash, "
+                "archive file, and --confirm-production"
+            )
+        attachments = inspect_gemini_attachment_metadata(
+            Path(args.archive_file),
+            source_archive_sha256=args.archive_sha256,
+            messages=dry_run.messages,
+        )
+        expected = validate_gemini_phase2_plan(dry_run, attachments)
+        store = LocalStore(project_root / "data" / "josie.db")
+        imported = store.import_history_production(
+            run_id=args.run_id,
+            source_set_id="google-takeout-20260825",
+            source_manifest_sha256=args.source_set_sha256,
+            source_format="google_my_activity_html_cards",
+            source_bytes=dry_run.source_bytes,
+            messages=dry_run.messages,
+            attachments=attachments,
+            confirmation="IMPORT_VERIFIED_GEMINI_PHASE2",
+            expected=expected,
+        )
+        result = {
+            "status": "production_import_complete",
+            "run_id": args.run_id,
+            "import": imported,
+            "idempotency_preflight": store.history_replay_preflight(
+                messages=dry_run.messages, attachments=attachments
+            ),
+            "attachment_summary": store.history_attachment_summary(),
+            "historical_evidence_only": True,
+            "canonical_state_changed": False,
+        }
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

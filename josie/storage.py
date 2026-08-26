@@ -529,11 +529,40 @@ class LocalStore:
                     FOREIGN KEY(run_id) REFERENCES history_import_runs(run_id),
                     FOREIGN KEY(message_id) REFERENCES history_messages(message_id)
                 );
+                CREATE TABLE IF NOT EXISTS history_attachments (
+                    attachment_id INTEGER PRIMARY KEY,
+                    stable_id TEXT NOT NULL UNIQUE,
+                    source_archive TEXT NOT NULL,
+                    source_archive_sha256 TEXT NOT NULL
+                    CHECK (length(source_archive_sha256) = 64),
+                    source_path TEXT NOT NULL,
+                    filename TEXT NOT NULL,
+                    file_extension TEXT NOT NULL,
+                    mime_type TEXT NOT NULL,
+                    byte_size INTEGER NOT NULL CHECK (byte_size >= 0),
+                    compressed_bytes INTEGER NOT NULL CHECK (compressed_bytes >= 0),
+                    checksum_algorithm TEXT NOT NULL CHECK (checksum_algorithm='zip_crc32'),
+                    checksum_value TEXT NOT NULL CHECK (length(checksum_value) = 8),
+                    directly_referenced INTEGER NOT NULL CHECK (directly_referenced IN (0,1)),
+                    payload_inspected INTEGER NOT NULL DEFAULT 0 CHECK (payload_inspected = 0),
+                    payload_extracted INTEGER NOT NULL DEFAULT 0 CHECK (payload_extracted = 0),
+                    nested_archive_inspected INTEGER NOT NULL DEFAULT 0
+                    CHECK (nested_archive_inspected = 0),
+                    created_import_run TEXT NOT NULL,
+                    historical_only INTEGER NOT NULL DEFAULT 1 CHECK (historical_only = 1),
+                    canonical_effect INTEGER NOT NULL DEFAULT 0 CHECK (canonical_effect = 0),
+                    UNIQUE (source_archive,source_path),
+                    FOREIGN KEY(created_import_run) REFERENCES history_import_runs(run_id)
+                );
                 CREATE TABLE IF NOT EXISTS history_message_attachments (
                     message_id INTEGER NOT NULL,
                     source_reference TEXT NOT NULL,
+                    attachment_id INTEGER,
+                    relationship TEXT NOT NULL DEFAULT 'activity_card_reference'
+                    CHECK (relationship='activity_card_reference'),
                     PRIMARY KEY (message_id,source_reference),
-                    FOREIGN KEY(message_id) REFERENCES history_messages(message_id)
+                    FOREIGN KEY(message_id) REFERENCES history_messages(message_id),
+                    FOREIGN KEY(attachment_id) REFERENCES history_attachments(attachment_id)
                 );
                 CREATE VIRTUAL TABLE IF NOT EXISTS history_messages_fts USING fts5(
                     raw_text,
@@ -608,6 +637,22 @@ class LocalStore:
                     "ALTER TABLE learning_model_assessments ADD COLUMN protocol_version "
                     "TEXT NOT NULL DEFAULT 'labels_only_v0'"
                 )
+            attachment_link_columns = {
+                str(row[1])
+                for row in connection.execute(
+                    "PRAGMA table_info(history_message_attachments)"
+                ).fetchall()
+            }
+            if "attachment_id" not in attachment_link_columns:
+                connection.execute(
+                    "ALTER TABLE history_message_attachments "
+                    "ADD COLUMN attachment_id INTEGER"
+                )
+            if "relationship" not in attachment_link_columns:
+                connection.execute(
+                    "ALTER TABLE history_message_attachments ADD COLUMN relationship "
+                    "TEXT NOT NULL DEFAULT 'activity_card_reference'"
+                )
 
     @staticmethod
     def _now() -> str:
@@ -659,9 +704,98 @@ class LocalStore:
                     "history_conversations",
                     "history_messages",
                     "history_message_imports",
+                    "history_attachments",
                     "history_message_attachments",
                 )
             }
+
+    def history_replay_preflight(
+        self,
+        *,
+        messages: Iterator[object] | tuple[object, ...] | list[object],
+        attachments: Iterator[object] | tuple[object, ...] | list[object],
+    ) -> dict[str, object]:
+        """Compare a replay to stored dedupe identities without writing."""
+
+        materialized_messages = tuple(messages)
+        materialized_attachments = tuple(attachments)
+        message_existing = 0
+        message_conflicts = 0
+        attachment_existing = 0
+        attachment_conflicts = 0
+        with self._connect() as connection:
+            for message in materialized_messages:
+                row = connection.execute(
+                    "SELECT raw_checksum FROM history_messages "
+                    "WHERE stable_id=? OR dedupe_key=?",
+                    (
+                        str(self._history_field(message, "stable_id")),
+                        str(self._history_field(message, "dedupe_key")),
+                    ),
+                ).fetchone()
+                if row is not None:
+                    message_existing += 1
+                    if row["raw_checksum"] != str(
+                        self._history_field(message, "raw_checksum")
+                    ).lower():
+                        message_conflicts += 1
+            for attachment in materialized_attachments:
+                row = connection.execute(
+                    "SELECT byte_size,checksum_value FROM history_attachments "
+                    "WHERE stable_id=? OR (source_archive=? AND source_path=?)",
+                    (
+                        str(self._history_field(attachment, "stable_id")),
+                        str(self._history_field(attachment, "source_archive")),
+                        str(self._history_field(attachment, "source_path")),
+                    ),
+                ).fetchone()
+                if row is not None:
+                    attachment_existing += 1
+                    if (
+                        int(row["byte_size"])
+                        != int(self._history_field(attachment, "byte_size"))
+                        or row["checksum_value"]
+                        != str(
+                            self._history_field(attachment, "checksum_value")
+                        ).lower()
+                    ):
+                        attachment_conflicts += 1
+        return {
+            "messages_requested": len(materialized_messages),
+            "messages_existing": message_existing,
+            "messages_would_insert": len(materialized_messages) - message_existing,
+            "message_conflicts": message_conflicts,
+            "attachments_requested": len(materialized_attachments),
+            "attachments_existing": attachment_existing,
+            "attachments_would_insert": len(materialized_attachments)
+            - attachment_existing,
+            "attachment_conflicts": attachment_conflicts,
+            "writes_performed": 0,
+            "canonical_changes": 0,
+        }
+
+    def history_attachment_summary(self) -> dict[str, object]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT file_extension,directly_referenced,COUNT(*) record_count,"
+                "SUM(byte_size) total_bytes FROM history_attachments "
+                "GROUP BY file_extension,directly_referenced "
+                "ORDER BY file_extension,directly_referenced"
+            ).fetchall()
+            linked = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM history_message_attachments "
+                    "WHERE attachment_id IS NOT NULL"
+                ).fetchone()[0]
+            )
+        return {
+            "by_type_and_reference": [dict(row) for row in rows],
+            "message_relationships": linked,
+            "payloads_inspected": 0,
+            "payloads_extracted": 0,
+            "historical_only": True,
+            "canonical_effect": False,
+        }
 
     def import_history_test_fixture(
         self,
@@ -675,19 +809,102 @@ class LocalStore:
         isolated_test_fixture: bool = False,
         simulate_failure_after: int | None = None,
     ) -> dict[str, object]:
-        """Exercise the normalized importer without enabling production import.
-
-        Phase 1 deliberately exposes no production import method or CLI action.
-        This gate exists only so deterministic, temporary-database fixtures can
-        prove idempotency, provenance, constraints, and transaction rollback.
-        """
+        """Exercise the normalized importer only on explicit test fixtures."""
 
         if not isolated_test_fixture:
             raise PermissionError(
-                "Production history import is locked during Phase 1 reconnaissance"
+                "Production history import is locked outside the Phase 2 path"
             )
-        if not re.fullmatch(r"test[-_][A-Za-z0-9._-]{1,120}", run_id):
-            raise ValueError("Isolated history run ID must begin with test- or test_")
+        return self._import_history_records(
+            run_id=run_id,
+            source_set_id=source_set_id,
+            source_manifest_sha256=source_manifest_sha256,
+            source_format=source_format,
+            source_bytes=source_bytes,
+            messages=messages,
+            attachments=(),
+            mode="isolated_test_fixture",
+            authorized=isolated_test_fixture,
+            simulate_failure_after=simulate_failure_after,
+        )
+
+    def import_history_production(
+        self,
+        *,
+        run_id: str,
+        source_set_id: str,
+        source_manifest_sha256: str,
+        source_format: str,
+        source_bytes: int,
+        messages: Iterator[object] | tuple[object, ...] | list[object],
+        attachments: Iterator[object] | tuple[object, ...] | list[object],
+        confirmation: str,
+        expected: dict[str, object],
+    ) -> dict[str, object]:
+        """Perform the one approved Gemini Phase 2 transaction or fail closed."""
+
+        if confirmation != "IMPORT_VERIFIED_GEMINI_PHASE2":
+            raise PermissionError("Gemini production import requires Phase 2 confirmation")
+        prior = self.history_import_run(run_id)
+        if prior is None:
+            counts = self.history_counts()
+            occupied = {
+                key: value
+                for key, value in counts.items()
+                if key != "history_import_runs" and value != 0
+            }
+            if occupied:
+                raise ValueError(
+                    f"Production history tables are not empty: {sorted(occupied)}"
+                )
+            with self._connect() as connection:
+                unsafe_prior_runs = int(
+                    connection.execute(
+                        "SELECT COUNT(*) FROM history_import_runs WHERE "
+                        "status!='rolled_back' OR canonical_records_changed!=0"
+                    ).fetchone()[0]
+                )
+            if unsafe_prior_runs:
+                raise ValueError(
+                    "Production history has a prior non-rollback import run"
+                )
+        return self._import_history_records(
+            run_id=run_id,
+            source_set_id=source_set_id,
+            source_manifest_sha256=source_manifest_sha256,
+            source_format=source_format,
+            source_bytes=source_bytes,
+            messages=messages,
+            attachments=attachments,
+            mode="production",
+            authorized=True,
+            expected=expected,
+        )
+
+    def _import_history_records(
+        self,
+        *,
+        run_id: str,
+        source_set_id: str,
+        source_manifest_sha256: str,
+        source_format: str,
+        source_bytes: int,
+        messages: Iterator[object] | tuple[object, ...] | list[object],
+        attachments: Iterator[object] | tuple[object, ...] | list[object],
+        mode: str,
+        authorized: bool,
+        expected: dict[str, object] | None = None,
+        simulate_failure_after: int | None = None,
+    ) -> dict[str, object]:
+        if mode not in {"isolated_test_fixture", "production"} or not authorized:
+            raise PermissionError("History import authorization is invalid")
+        run_pattern = (
+            r"test[-_][A-Za-z0-9._-]{1,120}"
+            if mode == "isolated_test_fixture"
+            else r"gemini-phase2-[A-Za-z0-9._-]{1,120}"
+        )
+        if not re.fullmatch(run_pattern, run_id):
+            raise ValueError("History import run ID is invalid for its mode")
         if not source_set_id.strip() or len(source_set_id) > 200:
             raise ValueError("History source set ID is invalid")
         manifest_sha256 = source_manifest_sha256.strip().lower()
@@ -700,6 +917,11 @@ class LocalStore:
         materialized = tuple(messages)
         if not materialized:
             raise ValueError("History fixture must include at least one record")
+        attachment_materialized = tuple(attachments)
+        if mode == "production" and not attachment_materialized:
+            raise ValueError("Production history import requires attachment metadata")
+        if mode == "production" and expected is None:
+            raise ValueError("Production history import requires exact expected counts")
 
         prior = self.history_import_run(run_id)
         if prior is not None and prior["status"] == "completed":
@@ -715,6 +937,8 @@ class LocalStore:
         now = self._now()
         inserted = 0
         deduplicated = 0
+        attachments_inserted = 0
+        attachments_deduplicated = 0
         conversation_keys: set[tuple[str, str]] = set()
         try:
             with self._connect() as connection:
@@ -724,7 +948,7 @@ class LocalStore:
                     "INSERT INTO history_import_runs("
                     "run_id,created_at,source_platform,source_set_id,"
                     "source_manifest_sha256,mode,status,production_import) "
-                    "VALUES (?,?,?,?,?,'isolated_test_fixture','running',0) "
+                    "VALUES (?,?,?,?,?,?,'running',?) "
                     "ON CONFLICT(run_id) DO UPDATE SET "
                     "created_at=excluded.created_at,completed_at=NULL,"
                     "source_platform=excluded.source_platform,"
@@ -738,6 +962,8 @@ class LocalStore:
                         str(self._history_field(materialized[0], "source_platform")),
                         source_set_id,
                         manifest_sha256,
+                        mode,
+                        int(mode == "production"),
                     ),
                 )
 
@@ -774,6 +1000,101 @@ class LocalStore:
                         ),
                     )
 
+                reference_to_attachment: dict[str, int] = {}
+                for attachment in attachment_materialized:
+                    inspected = bool(
+                        self._history_field(attachment, "payload_inspected")
+                    )
+                    extracted = bool(
+                        self._history_field(attachment, "payload_extracted")
+                    )
+                    nested_inspected = bool(
+                        self._history_field(attachment, "nested_archive_inspected")
+                    )
+                    if inspected or extracted or nested_inspected:
+                        raise ValueError("Attachment payload policy was violated")
+                    attachment_values = (
+                        str(self._history_field(attachment, "stable_id")),
+                        str(self._history_field(attachment, "source_archive")),
+                        str(
+                            self._history_field(
+                                attachment, "source_archive_sha256"
+                            )
+                        ).lower(),
+                        str(self._history_field(attachment, "source_path")),
+                        str(self._history_field(attachment, "filename")),
+                        str(self._history_field(attachment, "file_extension")),
+                        str(self._history_field(attachment, "mime_type")),
+                        int(self._history_field(attachment, "byte_size")),
+                        int(self._history_field(attachment, "compressed_bytes")),
+                        str(self._history_field(attachment, "checksum_algorithm")),
+                        str(self._history_field(attachment, "checksum_value")).lower(),
+                        int(
+                            bool(
+                                self._history_field(
+                                    attachment, "directly_referenced"
+                                )
+                            )
+                        ),
+                        0,
+                        0,
+                        0,
+                        run_id,
+                        1,
+                        0,
+                    )
+                    cursor = connection.execute(
+                        "INSERT OR IGNORE INTO history_attachments("
+                        "stable_id,source_archive,source_archive_sha256,source_path,"
+                        "filename,file_extension,mime_type,byte_size,compressed_bytes,"
+                        "checksum_algorithm,checksum_value,directly_referenced,"
+                        "payload_inspected,payload_extracted,nested_archive_inspected,"
+                        "created_import_run,historical_only,canonical_effect) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        attachment_values,
+                    )
+                    if cursor.rowcount == 1:
+                        attachments_inserted += 1
+                    else:
+                        attachments_deduplicated += 1
+                    attachment_row = connection.execute(
+                        "SELECT attachment_id,byte_size,checksum_value FROM "
+                        "history_attachments WHERE stable_id=? OR "
+                        "(source_archive=? AND source_path=?)",
+                        (
+                            attachment_values[0],
+                            attachment_values[1],
+                            attachment_values[3],
+                        ),
+                    ).fetchone()
+                    if (
+                        attachment_row is None
+                        or int(attachment_row["byte_size"]) != attachment_values[7]
+                        or attachment_row["checksum_value"] != attachment_values[10]
+                    ):
+                        raise ValueError(
+                            "Historical attachment identity conflicts with metadata"
+                        )
+                    attachment_row_id = int(attachment_row["attachment_id"])
+                    source_references = tuple(
+                        str(value)
+                        for value in self._history_field(
+                            attachment, "source_references"
+                        )
+                    )
+                    if bool(attachment_values[11]) != bool(source_references):
+                        raise ValueError(
+                            "Attachment reference flag conflicts with source evidence"
+                        )
+                    for reference in source_references:
+                        existing_attachment = reference_to_attachment.setdefault(
+                            reference, attachment_row_id
+                        )
+                        if existing_attachment != attachment_row_id:
+                            raise ValueError(
+                                "Attachment source reference resolves ambiguously"
+                            )
+
                 for index, message in enumerate(materialized):
                     platform = str(self._history_field(message, "source_platform"))
                     source_conversation_id_value = self._history_field(
@@ -787,8 +1108,9 @@ class LocalStore:
                     title_value = self._history_field(message, "conversation_title")
                     title = None if title_value is None else str(title_value)
                     timestamp = str(self._history_field(message, "timestamp"))
+                    role = str(self._history_field(message, "role"))
                     conversation_row_id: int | None = None
-                    if source_conversation_id:
+                    if source_conversation_id and role in {"user", "assistant"}:
                         conversation_keys.add((platform, source_conversation_id))
                         stable_material = f"{platform}\0{source_conversation_id}"
                         conversation_stable_id = "histconv_" + hashlib.sha256(
@@ -836,7 +1158,7 @@ class LocalStore:
                         timestamp,
                         str(self._history_field(message, "source_timestamp")),
                         str(self._history_field(message, "speaker")),
-                        str(self._history_field(message, "role")),
+                        role,
                         str(self._history_field(message, "raw_text")),
                         str(self._history_field(message, "raw_checksum")).lower(),
                         str(
@@ -888,10 +1210,16 @@ class LocalStore:
                         message, "attachment_references"
                     )
                     for reference in sorted({str(item) for item in references}):
+                        attachment_id = reference_to_attachment.get(reference)
+                        if mode == "production" and attachment_id is None:
+                            raise ValueError(
+                                "Message attachment reference lacks metadata"
+                            )
                         connection.execute(
                             "INSERT OR IGNORE INTO history_message_attachments("
-                            "message_id,source_reference) VALUES (?,?)",
-                            (message_row_id, reference),
+                            "message_id,source_reference,attachment_id,relationship) "
+                            "VALUES (?,?,?,'activity_card_reference')",
+                            (message_row_id, reference, attachment_id),
                         )
                     if (
                         simulate_failure_after is not None
@@ -899,20 +1227,126 @@ class LocalStore:
                     ):
                         raise RuntimeError("Simulated isolated history import failure")
 
+                role_counts = {
+                    str(row["role"]): int(row["record_count"])
+                    for row in connection.execute(
+                        "SELECT role,COUNT(*) record_count FROM history_messages "
+                        "GROUP BY role"
+                    ).fetchall()
+                }
+                date_row = connection.execute(
+                    "SELECT MIN(timestamp) first_timestamp,MAX(timestamp) last_timestamp "
+                    "FROM history_messages"
+                ).fetchone()
+                unreferenced_types = {
+                    str(row["file_extension"]): int(row["record_count"])
+                    for row in connection.execute(
+                        "SELECT file_extension,COUNT(*) record_count "
+                        "FROM history_attachments WHERE directly_referenced=0 "
+                        "GROUP BY file_extension"
+                    ).fetchall()
+                }
+                actual: dict[str, object] = {
+                    "messages": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_messages"
+                        ).fetchone()[0]
+                    ),
+                    "conversations": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_conversations"
+                        ).fetchone()[0]
+                    ),
+                    "user_messages": role_counts.get("user", 0),
+                    "assistant_messages": role_counts.get("assistant", 0),
+                    "activity_messages": role_counts.get("activity", 0),
+                    "attachments": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_attachments"
+                        ).fetchone()[0]
+                    ),
+                    "direct_attachments": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_attachments "
+                            "WHERE directly_referenced=1"
+                        ).fetchone()[0]
+                    ),
+                    "unreferenced_attachments": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_attachments "
+                            "WHERE directly_referenced=0"
+                        ).fetchone()[0]
+                    ),
+                    "attachment_links": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_message_attachments"
+                        ).fetchone()[0]
+                    ),
+                    "fts_messages": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_messages_fts"
+                        ).fetchone()[0]
+                    ),
+                    "first_timestamp": date_row["first_timestamp"],
+                    "last_timestamp": date_row["last_timestamp"],
+                    "unreferenced_types": unreferenced_types,
+                    "payloads_inspected": int(
+                        connection.execute(
+                            "SELECT COUNT(*) FROM history_attachments "
+                            "WHERE payload_inspected!=0 OR payload_extracted!=0 "
+                            "OR nested_archive_inspected!=0"
+                        ).fetchone()[0]
+                    ),
+                    "canonical_effect_rows": int(
+                        connection.execute(
+                            "SELECT (SELECT COUNT(*) FROM history_messages "
+                            "WHERE canonical_effect!=0)+(SELECT COUNT(*) "
+                            "FROM history_conversations WHERE canonical_effect!=0)+"
+                            "(SELECT COUNT(*) FROM history_attachments "
+                            "WHERE canonical_effect!=0)"
+                        ).fetchone()[0]
+                    ),
+                }
+                if expected is not None:
+                    unknown = set(expected) - set(actual)
+                    if unknown:
+                        raise ValueError(
+                            f"Unknown production history expectations: {sorted(unknown)}"
+                        )
+                    mismatches = {
+                        key: {"expected": value, "actual": actual[key]}
+                        for key, value in expected.items()
+                        if actual[key] != value
+                    }
+                    if mismatches:
+                        raise ValueError(
+                            "Production history verification failed: "
+                            + json.dumps(mismatches, sort_keys=True)
+                        )
+
                 stats: dict[str, object] = {
                     "requested_messages": len(materialized),
                     "inserted_messages": inserted,
                     "deduplicated_messages": deduplicated,
                     "conversations_seen": len(conversation_keys),
+                    "requested_attachments": len(attachment_materialized),
+                    "inserted_attachments": attachments_inserted,
+                    "deduplicated_attachments": attachments_deduplicated,
                     "canonical_records_changed": 0,
-                    "production_import": False,
+                    "production_import": mode == "production",
                     "idempotent_replay": False,
+                    "verified": actual,
                 }
                 connection.execute(
                     "UPDATE history_import_runs SET completed_at=?,status='completed',"
-                    "stats_json=?,canonical_records_changed=0,production_import=0 "
+                    "stats_json=?,canonical_records_changed=0,production_import=? "
                     "WHERE run_id=?",
-                    (self._now(), json.dumps(stats, sort_keys=True), run_id),
+                    (
+                        self._now(),
+                        json.dumps(stats, sort_keys=True),
+                        int(mode == "production"),
+                        run_id,
+                    ),
                 )
             return stats
         except Exception as exc:
@@ -925,10 +1359,11 @@ class LocalStore:
                     "run_id,created_at,completed_at,source_platform,source_set_id,"
                     "source_manifest_sha256,mode,status,stats_json,"
                     "canonical_records_changed,production_import,error) "
-                    "VALUES (?,?,?,?,? ,?,'isolated_test_fixture','rolled_back','{}',0,0,?) "
+                    "VALUES (?,?,?,?,?,?,?,'rolled_back','{}',0,?,?) "
                     "ON CONFLICT(run_id) DO UPDATE SET completed_at=excluded.completed_at,"
-                    "status='rolled_back',stats_json='{}',"
-                    "canonical_records_changed=0,production_import=0,error=excluded.error",
+                    "mode=excluded.mode,status='rolled_back',stats_json='{}',"
+                    "canonical_records_changed=0,"
+                    "production_import=excluded.production_import,error=excluded.error",
                     (
                         run_id,
                         now,
@@ -936,6 +1371,8 @@ class LocalStore:
                         str(self._history_field(materialized[0], "source_platform")),
                         source_set_id,
                         manifest_sha256,
+                        mode,
+                        int(mode == "production"),
                         str(exc)[:500],
                     ),
                 )
@@ -986,7 +1423,41 @@ class LocalStore:
                 "ORDER BY h.timestamp DESC,h.message_order DESC LIMIT ?",
                 values,
             ).fetchall()
-        return [dict(row) for row in rows]
+        return [
+            {
+                **dict(row),
+                "evidence_label": "imported_historical_evidence_not_canonical",
+            }
+            for row in rows
+        ]
+
+    def conversation_history(
+        self,
+        *,
+        source_platform: str,
+        source_conversation_id: str,
+        limit: int = 1000,
+    ) -> list[dict[str, object]]:
+        if not source_platform.strip() or not source_conversation_id.strip():
+            raise ValueError("Historical conversation source and ID are required")
+        if limit < 1 or limit > 5000:
+            raise ValueError("Historical conversation limit must be between 1 and 5000")
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT stable_id,source_platform,source_conversation_id,"
+                "conversation_title,source_message_id,timestamp,speaker,role,raw_text,"
+                "message_order,source_pointer,historical_only,canonical_effect "
+                "FROM history_messages WHERE source_platform=? "
+                "AND source_conversation_id=? ORDER BY message_order,timestamp LIMIT ?",
+                (source_platform, source_conversation_id, limit),
+            ).fetchall()
+        return [
+            {
+                **dict(row),
+                "evidence_label": "imported_historical_evidence_not_canonical",
+            }
+            for row in rows
+        ]
 
     def record_subscription_consultation(
         self,

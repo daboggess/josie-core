@@ -13,6 +13,7 @@ import types
 import threading
 import urllib.error
 import urllib.request
+import zipfile
 from datetime import datetime
 from contextlib import closing
 from http.server import ThreadingHTTPServer
@@ -27,8 +28,13 @@ from josie.gui import respond
 from josie.storage import LocalStore
 from josie.history_inheritance import (
     GeminiHistoryError,
+    PHASE2_EXPECTED_SOURCE_COUNTS,
+    PHASE2_RUN_ID,
+    PHASE2_SOURCE_SET_SHA256,
     classify_takeout_member,
     dry_run_gemini_html,
+    inspect_gemini_attachment_metadata,
+    validate_gemini_phase2_plan,
 )
 from josie.diagnostics import (
     memory_export_snapshot, recovery_snapshot, restore_drill_snapshot, system_snapshot, uptime_snapshot,
@@ -117,6 +123,49 @@ def _write_gemini_fixture(path: Path, cards: list[str]) -> str:
     content = '<html><body><title>My Activity History</title>' + "".join(cards) + "</body></html>"
     path.write_text(content, encoding="utf-8")
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
+def _phase2_history_fixture(root: Path):
+    source = root / "MyActivity.html"
+    member_sha = _write_gemini_fixture(
+        source,
+        [
+            _gemini_activity_card(
+                prompt="historical launch question",
+                timestamp="Feb 3, 2026, 10:11:12 AM EST",
+                response="historical launch answer",
+                conversation_id="thread42",
+                attachment="thread42/evidence.jpeg",
+            )
+        ],
+    )
+    archive_path = root / "takeout-test.zip"
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            "Takeout/My Activity/Gemini Apps/MyActivity.html",
+            source.read_bytes(),
+        )
+        archive.writestr(
+            "Takeout/My Activity/Gemini Apps/thread42/evidence.jpg",
+            b"attachment payload is deliberately not parsed",
+        )
+        archive.writestr(
+            "Takeout/My Activity/Gemini Apps/unreferenced.zip",
+            b"nested payload remains uninspected",
+        )
+    archive_sha = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+    parsed = dry_run_gemini_html(
+        source,
+        source_archive=archive_path.name,
+        source_archive_sha256=archive_sha,
+        expected_member_sha256=member_sha,
+    )
+    attachments = inspect_gemini_attachment_metadata(
+        archive_path,
+        source_archive_sha256=archive_sha,
+        messages=parsed.messages,
+    )
+    return source, archive_path, parsed, attachments
 from josie.opportunity_policy import load_opportunity_policy
 from josie.ebay_source import (
     import_ebay_fixture,
@@ -3628,7 +3677,8 @@ class JosieTests(unittest.TestCase):
                     "history_conversations": 1,
                     "history_messages": 2,
                     "history_message_imports": 4,
-                    "history_message_attachments": 2,
+                    "history_attachments": 0,
+                    "history_message_attachments": 1,
                 },
             )
             self.assertEqual(
@@ -3706,6 +3756,218 @@ class JosieTests(unittest.TestCase):
             self.assertEqual(
                 store.history_import_run("test-history-rollback")["status"],
                 "completed",
+            )
+
+    def test_gemini_attachment_metadata_is_bounded_and_metadata_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, archive_path, parsed, attachments = _phase2_history_fixture(root)
+            self.assertEqual(len(attachments), 2)
+            direct = [item for item in attachments if item.directly_referenced]
+            unreferenced = [item for item in attachments if not item.directly_referenced]
+            self.assertEqual(len(direct), 1)
+            self.assertEqual(direct[0].file_extension, ".jpg")
+            self.assertEqual(direct[0].mime_type, "image/jpeg")
+            self.assertEqual(direct[0].source_references, ("thread42/evidence.jpeg",))
+            self.assertEqual(len(unreferenced), 1)
+            self.assertEqual(unreferenced[0].file_extension, ".zip")
+            for item in attachments:
+                self.assertEqual(item.source_archive, archive_path.name)
+                self.assertEqual(item.checksum_algorithm, "zip_crc32")
+                self.assertEqual(len(item.checksum_value), 8)
+                self.assertFalse(item.payload_inspected)
+                self.assertFalse(item.payload_extracted)
+                self.assertFalse(item.nested_archive_inspected)
+                self.assertTrue(item.historical_only)
+                self.assertFalse(item.canonical_effect)
+            self.assertEqual(
+                sum(len(message.attachment_references) for message in parsed.messages),
+                1,
+            )
+            with self.assertRaisesRegex(GeminiHistoryError, "differs from Phase 1"):
+                validate_gemini_phase2_plan(parsed, attachments)
+            self.assertFalse((root / "Takeout").exists())
+
+    def test_activity_only_app_ids_remain_provenance_not_conversations(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "MyActivity.html"
+            activity = (
+                '<div class="outer-cell mdl-cell mdl-cell--12-col mdl-shadow--2dp">'
+                '<div class="content-cell mdl-cell mdl-cell--6-col '
+                'mdl-typography--body-1">Used an assistant feature<br>'
+                "Jan 2, 2026, 4:05:06 PM EST"
+                '<a href="https://gemini.google.com/app/activity-only-86"></a>'
+                "</div></div>"
+            )
+            _write_gemini_fixture(
+                source,
+                [
+                    _gemini_activity_card(
+                        prompt="dialogue question",
+                        timestamp="Jan 2, 2026, 3:05:06 PM EST",
+                        response="dialogue answer",
+                        conversation_id="dialogue-990",
+                    ),
+                    activity,
+                ],
+            )
+            parsed = dry_run_gemini_html(
+                source,
+                source_archive="takeout-test.zip",
+                source_archive_sha256="a" * 64,
+            )
+            store = LocalStore(root / "josie.db")
+            store.import_history_test_fixture(
+                run_id="test-activity-provenance",
+                source_set_id="google-takeout-test",
+                source_manifest_sha256="b" * 64,
+                source_format="google_my_activity_html_cards",
+                source_bytes=source.stat().st_size,
+                messages=parsed.messages,
+                isolated_test_fixture=True,
+            )
+            with closing(sqlite3.connect(store.path)) as connection:
+                connection.row_factory = sqlite3.Row
+                conversations = connection.execute(
+                    "SELECT source_conversation_id,canonical_effect,historical_only "
+                    "FROM history_conversations"
+                ).fetchall()
+                activity_row = connection.execute(
+                    "SELECT role,source_conversation_id,conversation_id,canonical_effect,"
+                    "historical_only FROM history_messages WHERE role='activity'"
+                ).fetchone()
+                self.assertEqual(len(conversations), 1)
+                self.assertEqual(
+                    conversations[0]["source_conversation_id"], "dialogue-990"
+                )
+                self.assertEqual(conversations[0]["canonical_effect"], 0)
+                self.assertEqual(conversations[0]["historical_only"], 1)
+                self.assertIsNotNone(activity_row)
+                assert activity_row is not None
+                self.assertEqual(activity_row["source_conversation_id"], "activity-only-86")
+                self.assertIsNone(activity_row["conversation_id"])
+                self.assertEqual(activity_row["canonical_effect"], 0)
+                self.assertEqual(activity_row["historical_only"], 1)
+            self.assertEqual(len(parsed.messages), 3)
+            self.assertEqual(
+                PHASE2_EXPECTED_SOURCE_COUNTS["normalized_conversations"], 990
+            )
+            self.assertEqual(
+                PHASE2_EXPECTED_SOURCE_COUNTS["normalized_messages"], 5108
+            )
+            self.assertEqual(
+                PHASE2_EXPECTED_SOURCE_COUNTS["activity_messages"], 123
+            )
+
+    def test_production_history_import_is_transactional_idempotent_and_searchable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, _, parsed, attachments = _phase2_history_fixture(root)
+            store = LocalStore(root / "josie.db")
+            memory_id = store.remember("protected canonical fact")
+            expected = {
+                "messages": 2,
+                "conversations": 1,
+                "user_messages": 1,
+                "assistant_messages": 1,
+                "activity_messages": 0,
+                "attachments": 2,
+                "direct_attachments": 1,
+                "unreferenced_attachments": 1,
+                "attachment_links": 1,
+                "fts_messages": 2,
+                "first_timestamp": "2026-02-03T15:11:12Z",
+                "last_timestamp": "2026-02-03T15:11:12Z",
+                "unreferenced_types": {".zip": 1},
+                "payloads_inspected": 0,
+                "canonical_effect_rows": 0,
+            }
+            arguments = {
+                "run_id": PHASE2_RUN_ID,
+                "source_set_id": "google-takeout-test",
+                "source_manifest_sha256": PHASE2_SOURCE_SET_SHA256,
+                "source_format": "google_my_activity_html_cards",
+                "source_bytes": source.stat().st_size,
+                "messages": parsed.messages,
+                "attachments": attachments,
+                "confirmation": "IMPORT_VERIFIED_GEMINI_PHASE2",
+                "expected": expected,
+            }
+            imported = store.import_history_production(**arguments)
+            self.assertTrue(imported["production_import"])
+            self.assertEqual(imported["inserted_messages"], 2)
+            self.assertEqual(imported["inserted_attachments"], 2)
+            self.assertEqual(imported["verified"], expected)
+            replay = store.import_history_production(**arguments)
+            self.assertTrue(replay["idempotent_replay"])
+            preflight = store.history_replay_preflight(
+                messages=parsed.messages, attachments=attachments
+            )
+            self.assertEqual(preflight["messages_would_insert"], 0)
+            self.assertEqual(preflight["attachments_would_insert"], 0)
+            self.assertEqual(preflight["message_conflicts"], 0)
+            self.assertEqual(preflight["attachment_conflicts"], 0)
+            self.assertEqual(preflight["writes_performed"], 0)
+            conversation = store.conversation_history(
+                source_platform="google_gemini",
+                source_conversation_id="thread42",
+            )
+            self.assertEqual([row["role"] for row in conversation], ["user", "assistant"])
+            self.assertTrue(
+                all(
+                    row["evidence_label"]
+                    == "imported_historical_evidence_not_canonical"
+                    for row in conversation
+                )
+            )
+            search = store.search_history(
+                "historical launch", source_platform="google_gemini"
+            )
+            self.assertEqual(len(search), 2)
+            self.assertEqual(store.memories(), [(memory_id, "protected canonical fact")])
+            attachment_summary = store.history_attachment_summary()
+            self.assertEqual(attachment_summary["message_relationships"], 1)
+            self.assertEqual(attachment_summary["payloads_inspected"], 0)
+            with closing(sqlite3.connect(store.path)) as connection:
+                self.assertEqual(
+                    connection.execute("PRAGMA integrity_check").fetchone()[0], "ok"
+                )
+
+    def test_production_history_count_mismatch_rolls_back_all_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, _, parsed, attachments = _phase2_history_fixture(root)
+            store = LocalStore(root / "josie.db")
+            memory_id = store.remember("canonical survives rollback")
+            expected = {
+                "messages": 999,
+                "conversations": 1,
+            }
+            with self.assertRaisesRegex(ValueError, "verification failed"):
+                store.import_history_production(
+                    run_id="gemini-phase2-mismatch",
+                    source_set_id="google-takeout-test",
+                    source_manifest_sha256=PHASE2_SOURCE_SET_SHA256,
+                    source_format="google_my_activity_html_cards",
+                    source_bytes=source.stat().st_size,
+                    messages=parsed.messages,
+                    attachments=attachments,
+                    confirmation="IMPORT_VERIFIED_GEMINI_PHASE2",
+                    expected=expected,
+                )
+            counts = store.history_counts()
+            self.assertEqual(counts["history_import_runs"], 1)
+            for table, count in counts.items():
+                if table != "history_import_runs":
+                    self.assertEqual(count, 0, table)
+            failed = store.history_import_run("gemini-phase2-mismatch")
+            self.assertIsNotNone(failed)
+            assert failed is not None
+            self.assertEqual(failed["status"], "rolled_back")
+            self.assertTrue(failed["production_import"])
+            self.assertEqual(
+                store.memories(), [(memory_id, "canonical survives rollback")]
             )
 
 

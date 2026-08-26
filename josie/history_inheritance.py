@@ -1,7 +1,8 @@
-"""Read-only history reconnaissance and normalized inheritance foundations.
+"""Google Takeout history parsing and metadata-only inheritance foundations.
 
-Phase 1 parses staged Google Takeout evidence only. It has no production-import
-entry point and never updates canonical state, memories, or current project facts.
+Historical evidence is normalized without changing canonical state, memories,
+authority, or current project facts. Attachment payloads are never extracted or
+inspected by this module.
 """
 
 from __future__ import annotations
@@ -11,14 +12,33 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 from html.parser import HTMLParser
-from pathlib import Path
+import mimetypes
+from pathlib import Path, PurePosixPath
+import posixpath
 import re
 from typing import Iterable
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
+import zipfile
 
 
 SOURCE_PLATFORM = "google_gemini"
 SOURCE_FORMAT = "google_my_activity_html_cards"
+PHASE2_SOURCE_SET_SHA256 = (
+    "e42d53b1e50a279148664d755e1f190666c16316899f5b137d194cf0acc6aed2"
+)
+PHASE2_RUN_ID = "gemini-phase2-20260825-retry1"
+PHASE2_EXPECTED_SOURCE_COUNTS = {
+    "normalized_conversations": 990,
+    "normalized_messages": 5108,
+    "user_messages": 2588,
+    "gemini_messages": 2397,
+    "activity_messages": 123,
+    "prompt_cards_without_exported_response": 191,
+    "prompt_cards_without_conversation_id": 0,
+    "attachment_references": 1037,
+    "malformed_records": 0,
+    "duplicate_messages": 0,
+}
 MAX_HTML_BYTES = 20_000_000
 GEMINI_ACTIVITY_PATH = "Takeout/My Activity/Gemini Apps/MyActivity.html"
 GEMINI_METADATA_PATHS = {
@@ -68,7 +88,7 @@ _ZONE_MAP = {
 
 
 class GeminiHistoryError(ValueError):
-    """The staged Gemini history is malformed or outside Phase 1 bounds."""
+    """The staged Gemini evidence is malformed or outside inheritance bounds."""
 
 
 @dataclass(frozen=True)
@@ -95,6 +115,28 @@ class ParsedHistoryMessage:
     message_order: int
     activity_type: str
     attachment_references: tuple[str, ...]
+    historical_only: bool = True
+    canonical_effect: bool = False
+
+
+@dataclass(frozen=True)
+class TakeoutAttachmentMetadata:
+    stable_id: str
+    source_archive: str
+    source_archive_sha256: str
+    source_path: str
+    filename: str
+    file_extension: str
+    mime_type: str
+    byte_size: int
+    compressed_bytes: int
+    checksum_algorithm: str
+    checksum_value: str
+    directly_referenced: bool
+    source_references: tuple[str, ...]
+    payload_inspected: bool = False
+    payload_extracted: bool = False
+    nested_archive_inspected: bool = False
     historical_only: bool = True
     canonical_effect: bool = False
 
@@ -303,6 +345,208 @@ def classify_takeout_member(source_path: str) -> str | None:
     return None
 
 
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(8 * 1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _attachment_candidate(source_reference: str) -> str:
+    parsed = urlparse(source_reference)
+    if parsed.scheme or parsed.netloc or parsed.query or parsed.fragment:
+        raise GeminiHistoryError("Gemini attachment reference is not a local member path")
+    normalized = posixpath.normpath(unquote(parsed.path).replace("\\", "/"))
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    if (
+        not normalized
+        or normalized == "."
+        or normalized == ".."
+        or normalized.startswith("../")
+        or normalized.startswith("/")
+    ):
+        raise GeminiHistoryError("Gemini attachment reference escapes its archive scope")
+    return posixpath.normpath("Takeout/My Activity/Gemini Apps/" + normalized)
+
+
+def inspect_gemini_attachment_metadata(
+    archive_path: Path,
+    *,
+    source_archive_sha256: str,
+    messages: Iterable[ParsedHistoryMessage],
+) -> tuple[TakeoutAttachmentMetadata, ...]:
+    """Read ZIP metadata only and resolve HTML references without payload reads."""
+
+    expected_archive_sha256 = source_archive_sha256.strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_archive_sha256):
+        raise GeminiHistoryError("Source archive SHA-256 is invalid")
+    if not archive_path.is_file() or archive_path.suffix.lower() != ".zip":
+        raise GeminiHistoryError("Gemini source archive is unavailable")
+    actual_archive_sha256 = _sha256_file(archive_path)
+    if actual_archive_sha256 != expected_archive_sha256:
+        raise GeminiHistoryError("Gemini source archive checksum does not match evidence")
+
+    references = {
+        reference
+        for message in messages
+        for reference in message.attachment_references
+    }
+    try:
+        with zipfile.ZipFile(archive_path) as archive:
+            infos = [
+                info
+                for info in archive.infolist()
+                if not info.is_dir()
+                and classify_takeout_member(info.filename)
+                == "gemini_activity_attachment"
+            ]
+    except (OSError, zipfile.BadZipFile) as exc:
+        raise GeminiHistoryError("Gemini source archive is not a readable ZIP") from exc
+    by_path = {info.filename: info for info in infos}
+    if len(by_path) != len(infos):
+        raise GeminiHistoryError("Gemini attachment archive paths are duplicated")
+
+    references_by_path: dict[str, list[str]] = defaultdict(list)
+    for reference in sorted(references):
+        candidate = _attachment_candidate(reference)
+        resolved = candidate if candidate in by_path else None
+        if resolved is None and candidate.lower().endswith(".jpeg"):
+            jpg_alias = candidate[:-5] + ".jpg"
+            if jpg_alias in by_path:
+                resolved = jpg_alias
+        if resolved is None:
+            raise GeminiHistoryError(
+                "Gemini attachment reference has no archive metadata match"
+            )
+        references_by_path[resolved].append(reference)
+
+    metadata: list[TakeoutAttachmentMetadata] = []
+    for source_path, info in sorted(by_path.items()):
+        filename = PurePosixPath(source_path).name
+        extension = PurePosixPath(filename).suffix.lower()
+        stable_material = "\0".join(
+            (SOURCE_PLATFORM, expected_archive_sha256, source_path)
+        )
+        metadata.append(
+            TakeoutAttachmentMetadata(
+                stable_id="histatt_"
+                + hashlib.sha256(stable_material.encode("utf-8")).hexdigest(),
+                source_archive=archive_path.name,
+                source_archive_sha256=expected_archive_sha256,
+                source_path=source_path,
+                filename=filename,
+                file_extension=extension,
+                mime_type=mimetypes.guess_type(filename, strict=False)[0]
+                or "application/octet-stream",
+                byte_size=int(info.file_size),
+                compressed_bytes=int(info.compress_size),
+                checksum_algorithm="zip_crc32",
+                checksum_value=f"{info.CRC:08x}",
+                directly_referenced=source_path in references_by_path,
+                source_references=tuple(references_by_path.get(source_path, ())),
+            )
+        )
+    return tuple(metadata)
+
+
+def validate_gemini_phase2_plan(
+    dry_run: GeminiDryRun,
+    attachments: Iterable[TakeoutAttachmentMetadata],
+) -> dict[str, object]:
+    """Validate the exact approved Phase 2 evidence before opening a write transaction."""
+
+    public = dry_run.public()
+    mismatches = {
+        key: {"expected": value, "actual": public.get(key)}
+        for key, value in PHASE2_EXPECTED_SOURCE_COUNTS.items()
+        if public.get(key) != value
+    }
+    expected_dates = {
+        "start": "2025-05-15T01:09:21Z",
+        "end": "2026-08-25T19:27:15Z",
+    }
+    if public.get("date_range") != expected_dates:
+        mismatches["date_range"] = {
+            "expected": expected_dates,
+            "actual": public.get("date_range"),
+        }
+
+    materialized = tuple(attachments)
+    direct = [item for item in materialized if item.directly_referenced]
+    unreferenced = [item for item in materialized if not item.directly_referenced]
+    unreferenced_types = dict(
+        sorted(Counter(item.file_extension for item in unreferenced).items())
+    )
+    attachment_expectations = {
+        "attachment_count": (1281, len(materialized)),
+        "direct_attachment_count": (1037, len(direct)),
+        "unreferenced_attachment_count": (244, len(unreferenced)),
+        "unreferenced_attachment_types": (
+            {".wav": 6, ".zip": 238},
+            unreferenced_types,
+        ),
+        "attachment_links": (
+            1037,
+            sum(len(message.attachment_references) for message in dry_run.messages),
+        ),
+    }
+    for key, (expected_value, actual_value) in attachment_expectations.items():
+        if actual_value != expected_value:
+            mismatches[key] = {
+                "expected": expected_value,
+                "actual": actual_value,
+            }
+    metadata_references = {
+        reference for item in materialized for reference in item.source_references
+    }
+    parsed_references = {
+        reference
+        for message in dry_run.messages
+        for reference in message.attachment_references
+    }
+    if metadata_references != parsed_references:
+        mismatches["attachment_reference_identity"] = {
+            "expected": len(parsed_references),
+            "actual": len(metadata_references),
+        }
+    if any(
+        item.payload_inspected
+        or item.payload_extracted
+        or item.nested_archive_inspected
+        or item.canonical_effect
+        or not item.historical_only
+        for item in materialized
+    ):
+        mismatches["attachment_policy"] = {
+            "expected": "metadata_only_historical_noncanonical",
+            "actual": "policy_violation",
+        }
+    if mismatches:
+        raise GeminiHistoryError(
+            "Phase 2 evidence differs from Phase 1: "
+            + repr(dict(sorted(mismatches.items())))
+        )
+    return {
+        "messages": 5108,
+        "conversations": 990,
+        "user_messages": 2588,
+        "assistant_messages": 2397,
+        "activity_messages": 123,
+        "attachments": 1281,
+        "direct_attachments": 1037,
+        "unreferenced_attachments": 244,
+        "attachment_links": 1037,
+        "fts_messages": 5108,
+        "first_timestamp": expected_dates["start"],
+        "last_timestamp": expected_dates["end"],
+        "unreferenced_types": {".wav": 6, ".zip": 238},
+        "payloads_inspected": 0,
+        "canonical_effect_rows": 0,
+    }
+
+
 def _parse_timestamp(value: str) -> str:
     normalized = re.sub(r"\s+", " ", value).strip()
     match = _TIMESTAMP.fullmatch(normalized)
@@ -490,7 +734,10 @@ def _parse_card(
                     raw_text=trailing,
                     within_card_order=1,
                     activity_type=activity_type,
-                    references=references,
+                    # References belong to the exported activity card. The user
+                    # turn is the deterministic anchor for a prompted card, so
+                    # do not duplicate the same relationship on the response.
+                    references=(),
                 )
             )
         return messages
