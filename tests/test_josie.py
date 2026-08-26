@@ -3181,6 +3181,7 @@ class JosieTests(unittest.TestCase):
         self.assertIn("accidental_status_unchanged", passthrough)
         self.assertIn("accidental_proposal_unchanged", passthrough)
         self.assertIn("proposal_message_exact", passthrough)
+        self.assertIn('"server:josie-subscription-seats"', passthrough)
         self.assertIn("indent=2", passthrough)
         self.assertIn("Warm that generation privately", passthrough)
         self.assertIn('"fixture_recorded": False', passthrough)

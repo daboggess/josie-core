@@ -12,6 +12,10 @@ from urllib.request import Request, urlopen
 
 MODEL_ID = "josie-local:1.0"
 FILTER_ID = "josie_exact_tool_response"
+EXPECTED_TOOL_IDS = [
+    "server:josie-core-review",
+    "server:josie-subscription-seats",
+]
 FILTER_PATH = Path("/opt/josie/exact-tool-response-filter.py")
 OLLAMA_CHAT_URL = "http://host.docker.internal:11434/api/chat"
 STATUS_URL = "http://proposal-server:3030/v1/status"
@@ -103,7 +107,7 @@ def main() -> int:
     capabilities = meta.get("capabilities") or {}
     binding_valid = bool(
         row[2]
-        and meta.get("toolIds") == ["server:josie-core-review"]
+        and meta.get("toolIds") == EXPECTED_TOOL_IDS
         and meta.get("filterIds") == [FILTER_ID]
         and capabilities.get("builtin_tools") is False
         and capabilities.get("file_context") is False
