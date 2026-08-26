@@ -10,17 +10,23 @@
   },
   "implementation": {
     "branch": "maintainer-mode-0.1",
+    "commit": "b397ebba3ec68a02dac22327942a55d5c4178cad",
     "tests": 106,
     "full_suite_status": "passed"
   },
   "acceptance": {
-    "status": "pending",
+    "status": "passed",
     "tests": 106,
     "full_suite_status": "passed",
-    "request_id": null,
-    "maintenance_branch": null,
-    "commit": null,
-    "openwebui_chat_id": null
+    "request_id": "openwebui-maintainer-7d62624153d019f5d91a7ee2f5b807bc",
+    "base_commit": "b397ebba3ec68a02dac22327942a55d5c4178cad",
+    "maintenance_branch": "maintenance/maintainer-acceptance-0a7b266f",
+    "commit": "b151fc215c8cf281ca8429abff7d7a7f884fb11f",
+    "openwebui_chat_id": "acad8353-4baa-4a57-bf20-8b87a687c920",
+    "intended_file_only": true,
+    "audit_persisted": true,
+    "rollback_recorded": true,
+    "remote_push_performed": false
   },
   "boundaries": {
     "arbitrary_shell_available": false,
