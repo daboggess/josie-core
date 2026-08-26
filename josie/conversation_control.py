@@ -23,6 +23,7 @@ import tempfile
 import threading
 from typing import Any
 from urllib.parse import urlparse
+from uuid import uuid4
 
 from .config import Config
 from .storage import LocalStore
@@ -46,6 +47,7 @@ _SECRET_MARKERS = re.compile(
     re.IGNORECASE,
 )
 _WORD = re.compile(r"[a-z0-9][a-z0-9_-]{2,}", re.IGNORECASE)
+_REQUEST_ID = re.compile(r"[a-z0-9][a-z0-9._:-]{7,127}", re.IGNORECASE)
 
 _CODEX_REMOVED_ENV = {
     "OPENAI_API_KEY",
@@ -73,6 +75,8 @@ class CliResult:
     status: str
     response: str
     error: str | None = None
+    rendered_prompt: str | None = None
+    invocation_attempted: bool = False
 
     def public(self) -> dict[str, object]:
         result: dict[str, object] = {
@@ -82,6 +86,8 @@ class CliResult:
             "local_fallback_available": True,
             "api_key_used": False,
             "actions_executed": 0,
+            "rendered_prompt": self.rendered_prompt,
+            "invocation_attempted": self.invocation_attempted,
         }
         if self.error:
             result["error"] = self.error
@@ -259,17 +265,28 @@ def consult_codex(query: str, *, context: str, project_root: Path) -> CliResult:
             )
             if completed.returncode != 0 or not final_path.is_file():
                 detail = completed.stderr or completed.stdout or "Codex CLI returned no final response"
-                return CliResult(CODEX_PROVIDER, "unavailable", "", _safe_error(detail))
+                return CliResult(
+                    CODEX_PROVIDER,
+                    "unavailable",
+                    "",
+                    _safe_error(detail),
+                    prompt,
+                    True,
+                )
             response = _bounded_text(
                 final_path.read_text(encoding="utf-8"),
                 label="Codex response",
                 limit=MAX_RESPONSE_CHARS,
             )
-            return CliResult(CODEX_PROVIDER, "ok", response)
+            return CliResult(CODEX_PROVIDER, "ok", response, None, prompt, True)
     except subprocess.TimeoutExpired:
-        return CliResult(CODEX_PROVIDER, "unavailable", "", "Codex CLI timed out")
+        return CliResult(
+            CODEX_PROVIDER, "unavailable", "", "Codex CLI timed out", prompt, True
+        )
     except (OSError, subprocess.SubprocessError, ValueError) as exc:
-        return CliResult(CODEX_PROVIDER, "unavailable", "", _safe_error(exc))
+        return CliResult(
+            CODEX_PROVIDER, "unavailable", "", _safe_error(exc), prompt, False
+        )
 
 
 def consult_gemini(query: str, *, context: str, project_root: Path) -> CliResult:
@@ -303,6 +320,8 @@ def consult_gemini(query: str, *, context: str, project_root: Path) -> CliResult
                 "unavailable",
                 "",
                 _safe_error(completed.stderr or completed.stdout),
+                prompt,
+                True,
             )
         payload = json.loads(completed.stdout)
         response = _bounded_text(
@@ -310,11 +329,15 @@ def consult_gemini(query: str, *, context: str, project_root: Path) -> CliResult
             label="Gemini response",
             limit=MAX_RESPONSE_CHARS,
         )
-        return CliResult(GEMINI_PROVIDER, "ok", response)
+        return CliResult(GEMINI_PROVIDER, "ok", response, None, prompt, True)
     except subprocess.TimeoutExpired:
-        return CliResult(GEMINI_PROVIDER, "unavailable", "", "Gemini CLI timed out")
+        return CliResult(
+            GEMINI_PROVIDER, "unavailable", "", "Gemini CLI timed out", prompt, True
+        )
     except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError) as exc:
-        return CliResult(GEMINI_PROVIDER, "unavailable", "", _safe_error(exc))
+        return CliResult(
+            GEMINI_PROVIDER, "unavailable", "", _safe_error(exc), prompt, False
+        )
 
 
 def _history_context(store: LocalStore) -> str:
@@ -363,8 +386,23 @@ def _provider_memory(provider: str, query: str, response: str) -> str:
 
 
 def _record_consultation(
-    store: LocalStore, *, provider: str, query: str, result: CliResult
-) -> None:
+    store: LocalStore,
+    *,
+    request_id: str,
+    provider: str,
+    query: str,
+    result: CliResult,
+) -> dict[str, object]:
+    record = store.record_subscription_consultation(
+        request_id=request_id,
+        provider=provider,
+        user_query=query,
+        rendered_prompt=result.rendered_prompt,
+        invocation_attempted=result.invocation_attempted,
+        status=result.status,
+        response=result.response,
+        error=result.error,
+    )
     store.add_message("consultation_request", f"{provider}: {query}")
     if result.status == "ok":
         store.add_message(provider, result.response)
@@ -372,6 +410,103 @@ def _record_consultation(
         store.audit("subscription_cli_consulted", provider)
     else:
         store.audit("subscription_cli_unavailable", f"{provider}: {result.error}")
+    return record
+
+
+def _consultation_public(
+    record: dict[str, object], *, cached: bool
+) -> dict[str, object]:
+    result: dict[str, object] = {
+        "status": record["status"],
+        "provider": record["provider"],
+        "request_id": record["request_id"],
+        "query": record["user_query"],
+        "rendered_prompt": record["rendered_prompt"],
+        "invocation_attempted": record["invocation_attempted"],
+        "response": record["response"],
+        "error": record["error"],
+        "persisted_locally": True,
+        "captured_response_is_exact": True,
+        "cached": cached,
+        "local_fallback_available": True,
+        "api_key_used": False,
+        "actions_executed": 0,
+    }
+    return result
+
+
+def _request_id(value: object, *, provider: str) -> str:
+    if value is None or value == "":
+        return f"{provider}-{uuid4()}"
+    if not isinstance(value, str) or not _REQUEST_ID.fullmatch(value.strip()):
+        raise ValueError("Request ID is invalid")
+    return value.strip()
+
+
+def conversation_state(project_root: Path, store: LocalStore) -> dict[str, object]:
+    lock_path = project_root / "deploy" / "subscription-conversation.lock.json"
+    lock: dict[str, Any] = {}
+    if lock_path.is_file():
+        loaded = json.loads(lock_path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            lock = loaded
+    seats = cli_seat_status(project_root)
+    latest = {CODEX_PROVIDER: None, GEMINI_PROVIDER: None}
+    for record in store.recent_subscription_consultations(limit=50):
+        provider = str(record["provider"])
+        if provider in latest and latest[provider] is None:
+            latest[provider] = {
+                "request_id": record["request_id"],
+                "created_at": record["created_at"],
+                "status": record["status"],
+                "invocation_attempted": record["invocation_attempted"],
+                "response_persisted": bool(record["response"]),
+                "error": record["error"],
+            }
+    retired = lock.get("retired") if isinstance(lock.get("retired"), dict) else {}
+    acceptance = (
+        lock.get("acceptance") if isinstance(lock.get("acceptance"), dict) else {}
+    )
+    test_count = acceptance.get("tests_after_live_changes")
+    test_status = acceptance.get("full_suite_status", "unknown")
+    summit_active = bool(retired.get("summit_function_active", False))
+    groq_active = bool(retired.get("groq_route_active", False))
+    codex = seats["openai"]
+    gemini = seats["gemini"]
+    message = "\n".join(
+        (
+            "DETERMINISTIC JOSIE STATE — MACHINE/CONFIG/SQLITE EVIDENCE",
+            "Front door: Open WebUI / Josie.",
+            "Ordinary inference: local Ollama.",
+            f"Codex CLI: installed={str(bool(codex['installed'])).lower()}; optional; "
+            "authentication path=existing ChatGPT login; no OpenAI API key.",
+            f"Gemini CLI: installed={str(bool(gemini['installed'])).lower()}; optional; "
+            "authentication path=Google OAuth cached login; no Gemini/Google API key.",
+            "Successful consultant results persist in Josie's existing local SQLite: yes.",
+            f"Summit/Groq route active: {str(summit_active or groq_active).lower()}.",
+            f"Full repository test checkpoint: {test_count if test_count is not None else 'unknown'} "
+            f"tests; status={test_status}.",
+            "Complete ChatGPT history imported: false.",
+            "Complete Gemini history imported: false.",
+            "Unified History Importer built: false.",
+        )
+    )
+    return {
+        "status": "ok",
+        "source": "machine_config_and_local_sqlite",
+        "front_door": "Open WebUI / Josie",
+        "default_provider": LOCAL_PROVIDER,
+        "codex_cli": {**codex, "last_consultation": latest[CODEX_PROVIDER]},
+        "gemini_cli": {**gemini, "last_consultation": latest[GEMINI_PROVIDER]},
+        "consultant_results_persisted_locally": True,
+        "summit_groq_active": summit_active or groq_active,
+        "tests": {"count": test_count, "status": test_status, "evidence": str(lock_path)},
+        "complete_chatgpt_history_imported": False,
+        "complete_gemini_history_imported": False,
+        "unified_history_importer_built": False,
+        "actions_executed": 0,
+        "assistant_message": message,
+    }
 
 
 def _openapi_spec(port: int) -> dict[str, object]:
@@ -380,7 +515,13 @@ def _openapi_spec(port: int) -> dict[str, object]:
         "additionalProperties": False,
         "required": ["query"],
         "properties": {
-            "query": {"type": "string", "minLength": 1, "maxLength": MAX_QUERY_CHARS}
+            "query": {"type": "string", "minLength": 1, "maxLength": MAX_QUERY_CHARS},
+            "request_id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]+$",
+            },
         },
     }
     return {
@@ -398,6 +539,22 @@ def _openapi_spec(port: int) -> dict[str, object]:
             "securitySchemes": {"bearerAuth": {"type": "http", "scheme": "bearer"}}
         },
         "paths": {
+            "/v1/state": {
+                "post": {
+                    "operationId": "get_josie_conversation_state",
+                    "summary": "Read deterministic Josie integration state",
+                    "description": (
+                        "Returns current provider, persistence, retired-route, test, and "
+                        "history-import facts from machine config and local SQLite evidence."
+                    ),
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {"application/json": {"schema": query_schema}},
+                    },
+                    "responses": {"200": {"description": "Deterministic local state"}},
+                }
+            },
             "/v1/recall": {
                 "post": {
                     "operationId": "recall_josie_history",
@@ -537,18 +694,38 @@ def _handler_class(
                 if path == "/v1/recall":
                     self._send(200, recall_history(store, payload.get("query")))
                     return
+                if path == "/v1/state":
+                    _bounded_text(
+                        payload.get("query"), label="State query", limit=MAX_QUERY_CHARS
+                    )
+                    self._send(200, conversation_state(project_root, store))
+                    return
                 if path in {"/v1/consult/codex", "/v1/consult/gemini"}:
                     query = _bounded_text(
                         payload.get("query"), label="Query", limit=MAX_QUERY_CHARS
                     )
+                    provider = CODEX_PROVIDER if path.endswith("codex") else GEMINI_PROVIDER
+                    request_id = _request_id(payload.get("request_id"), provider=provider)
+                    cached = store.subscription_consultation(request_id)
+                    if cached is not None:
+                        if cached["provider"] != provider or cached["user_query"] != query:
+                            raise ValueError("Request ID conflicts with existing evidence")
+                        self._send(200, _consultation_public(cached, cached=True))
+                        return
                     context = _history_context(store)
                     result = (
                         consult_codex(query, context=context, project_root=project_root)
                         if path.endswith("codex")
                         else consult_gemini(query, context=context, project_root=project_root)
                     )
-                    _record_consultation(store, provider=result.provider, query=query, result=result)
-                    self._send(200, result.public())
+                    record = _record_consultation(
+                        store,
+                        request_id=request_id,
+                        provider=result.provider,
+                        query=query,
+                        result=result,
+                    )
+                    self._send(200, _consultation_public(record, cached=False))
                     return
                 if path == "/v1/history":
                     role = _bounded_text(payload.get("role"), label="Role", limit=40)

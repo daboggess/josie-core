@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import importlib.util
 import sqlite3
 import json
 import hashlib
 import os
 import subprocess
+import sys
+import types
 import threading
 import urllib.error
 import urllib.request
@@ -39,8 +42,10 @@ from josie.handoffs import export_model_handoff
 from josie.conversation_control import (
     CODEX_PROVIDER,
     GEMINI_PROVIDER,
+    CliResult,
     _handler_class,
     cli_seat_status,
+    conversation_state,
     consult_codex,
     consult_gemini,
     find_codex_cli,
@@ -1249,6 +1254,196 @@ class JosieTests(unittest.TestCase):
                 self.assertFalse(result.public()["api_key_used"])
                 self.assertIn("timed out", result.error)
 
+    def test_subscription_consultation_evidence_is_exact_and_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = LocalStore(root / "data" / "josie.db")
+            config = load_config(root / ".env")
+            token = "local-test-token-that-is-long-enough"
+            handler = _handler_class(
+                project_root=root, config=config, store=store, token=token, port=0
+            )
+            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            result = CliResult(
+                CODEX_PROVIDER,
+                "ok",
+                "EXACT CODEX FINAL",
+                None,
+                "EXACT RENDERED PROMPT",
+                True,
+            )
+            try:
+                base = f"http://127.0.0.1:{server.server_address[1]}"
+                request_body = json.dumps(
+                    {"query": "Exact user question", "request_id": "acceptance-codex-0001"}
+                ).encode("utf-8")
+
+                def post() -> dict:
+                    request = urllib.request.Request(
+                        base + "/v1/consult/codex",
+                        data=request_body,
+                        headers={
+                            "Authorization": f"Bearer {token}",
+                            "Content-Type": "application/json",
+                        },
+                        method="POST",
+                    )
+                    with urllib.request.urlopen(request, timeout=2) as response:
+                        return json.loads(response.read())
+
+                with patch(
+                    "josie.conversation_control.consult_codex", return_value=result
+                ) as invoked:
+                    first = post()
+                    second = post()
+                self.assertEqual(invoked.call_count, 1)
+                self.assertFalse(first["cached"])
+                self.assertTrue(second["cached"])
+                self.assertEqual(first["response"], "EXACT CODEX FINAL")
+                self.assertEqual(first["rendered_prompt"], "EXACT RENDERED PROMPT")
+                self.assertTrue(first["invocation_attempted"])
+                self.assertTrue(first["persisted_locally"])
+                record = store.subscription_consultation("acceptance-codex-0001")
+                self.assertIsNotNone(record)
+                self.assertEqual(record["user_query"], "Exact user question")
+                self.assertEqual(record["response"], "EXACT CODEX FINAL")
+                self.assertEqual(record["rendered_prompt"], "EXACT RENDERED PROMPT")
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
+
+    def test_openwebui_filter_routes_explicit_seats_and_preserves_exact_output(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        filter_path = project_root / "deploy" / "open-webui" / "exact-tool-response-filter.py"
+        module_name = "josie_exact_tool_response_regression"
+        spec = importlib.util.spec_from_file_location(module_name, filter_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        pydantic_stub = types.ModuleType("pydantic")
+        pydantic_stub.BaseModel = object
+        pydantic_stub.Field = lambda *, default: default
+        with patch.dict(sys.modules, {"pydantic": pydantic_stub}):
+            spec.loader.exec_module(module)
+        calls: list[tuple[str, dict]] = []
+
+        def fake_control(path: str, payload: dict, *, timeout: int = 100) -> dict:
+            calls.append((path, payload))
+            provider = path.rsplit("/", 1)[-1]
+            return {
+                "status": "ok",
+                "provider": f"{provider}_cli",
+                "request_id": payload["request_id"],
+                "query": payload["query"],
+                "rendered_prompt": f"PROMPT FOR {provider.upper()}",
+                "invocation_attempted": True,
+                "response": f"EXACT {provider.upper()} FINAL",
+                "error": None,
+                "persisted_locally": True,
+                "captured_response_is_exact": True,
+                "cached": len([item for item in calls if item[0] == path]) > 1,
+                "local_fallback_available": True,
+                "api_key_used": False,
+                "actions_executed": 0,
+            }
+
+        request_body = {
+            "model": "josie-local:1.0",
+            "chat_id": "fidelity-chat",
+            "tool_ids": [
+                "server:josie-core-review",
+                "server:josie-subscription-seats",
+            ],
+            "messages": [
+                {
+                    "role": "user",
+                    "content": (
+                        "Ask Codex:\n“Review the architecture weakness.”\n\n"
+                        "Ask Gemini independently:\n“Give an independent review.”"
+                    ),
+                }
+            ],
+        }
+        with patch.object(module, "_control_post", side_effect=fake_control), patch.object(
+            module, "_record_history"
+        ):
+            inlet = module.Filter().inlet(request_body)
+            self.assertNotIn("server:josie-subscription-seats", inlet["tool_ids"])
+            response_body = {
+                **inlet,
+                "messages": [
+                    *inlet["messages"],
+                    {"role": "assistant", "content": "FABRICATED LOCAL SUMMARY"},
+                ],
+            }
+            outlet = module.Filter().outlet(response_body)
+        content = outlet["messages"][-1]["content"]
+        self.assertIn("CODEX — ACTUAL CONSULTANT RESULT\n\nEXACT CODEX FINAL", content)
+        self.assertIn("GEMINI — ACTUAL CONSULTANT RESULT\n\nEXACT GEMINI FINAL", content)
+        self.assertNotIn("FABRICATED", content)
+        self.assertEqual(
+            {payload["query"] for _, payload in calls},
+            {"Review the architecture weakness.", "Give an independent review."},
+        )
+        self.assertEqual(sum(path.endswith("codex") for path, _ in calls), 2)
+        self.assertEqual(sum(path.endswith("gemini") for path, _ in calls), 2)
+        source_names = {
+            source["source"]["name"] for source in outlet.get("sources", [])
+        }
+        self.assertIn("server:josie-subscription-seats/consult_codex", source_names)
+        self.assertIn("server:josie-subscription-seats/consult_gemini", source_names)
+        self.assertEqual(
+            module._recall_query(
+                "TEST 3 — LOCAL MEMORY\nSearch local memory and answer:\n"
+                "“What did we decide about Summit and Groq?”\nTEST 4 — CURRENT STATE"
+            ),
+            "What did we decide about Summit and Groq?",
+        )
+        sys.modules.pop(module_name, None)
+
+    def test_deterministic_state_rejects_acceptance_test_false_claims(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            deploy = root / "deploy"
+            deploy.mkdir()
+            (deploy / "subscription-conversation.lock.json").write_text(
+                json.dumps(
+                    {
+                        "acceptance": {
+                            "tests_after_live_changes": 93,
+                            "full_suite_status": "passed",
+                        },
+                        "retired": {
+                            "summit_function_active": False,
+                            "groq_route_active": False,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            store = LocalStore(root / "data" / "josie.db")
+            state = conversation_state(root, store)
+            self.assertEqual(state["front_door"], "Open WebUI / Josie")
+            self.assertEqual(state["default_provider"], "local_ollama")
+            self.assertTrue(state["consultant_results_persisted_locally"])
+            self.assertFalse(state["summit_groq_active"])
+            self.assertEqual(state["tests"], {
+                "count": 93,
+                "status": "passed",
+                "evidence": str(deploy / "subscription-conversation.lock.json"),
+            })
+            self.assertFalse(state["complete_chatgpt_history_imported"])
+            self.assertFalse(state["complete_gemini_history_imported"])
+            self.assertFalse(state["unified_history_importer_built"])
+            message = state["assistant_message"]
+            self.assertIn("Complete ChatGPT history imported: false.", message)
+            self.assertIn("Complete Gemini history imported: false.", message)
+            self.assertIn("Unified History Importer built: false.", message)
+
     def test_explicit_subscription_cli_paths_are_authoritative(self) -> None:
         missing_codex = str(Path(tempfile.gettempdir()) / "missing-josie-codex.exe")
         missing_node = str(Path(tempfile.gettempdir()) / "missing-josie-node.exe")
@@ -1276,6 +1471,13 @@ class JosieTests(unittest.TestCase):
         self.assertFalse(lock["providers"]["gemini_cli"]["adc_or_vertex_allowed"])
         self.assertFalse(lock["retired"]["summit_function_active"])
         self.assertFalse(lock["retired"]["groq_route_active"])
+        self.assertIn(
+            "get_josie_conversation_state",
+            lock["control_service"]["operation_ids"],
+        )
+        self.assertFalse(lock["history_import"]["complete_chatgpt_history_imported"])
+        self.assertFalse(lock["history_import"]["complete_gemini_history_imported"])
+        self.assertFalse(lock["history_import"]["unified_history_importer_built"])
         hidden = (
             project_root / "scripts" / "Run-JosieConversationControlHidden.vbs"
         ).read_text(encoding="utf-8").lower()

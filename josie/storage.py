@@ -324,6 +324,20 @@ class LocalStore:
                     response_untrusted INTEGER NOT NULL DEFAULT 1
                     CHECK (response_untrusted = 1)
                 );
+                CREATE TABLE IF NOT EXISTS subscription_consultations (
+                    id INTEGER PRIMARY KEY, created_at TEXT NOT NULL,
+                    request_id TEXT NOT NULL UNIQUE,
+                    provider TEXT NOT NULL
+                    CHECK (provider IN ('codex_cli','gemini_cli')),
+                    user_query TEXT NOT NULL,
+                    rendered_prompt TEXT,
+                    invocation_attempted INTEGER NOT NULL
+                    CHECK (invocation_attempted IN (0,1)),
+                    status TEXT NOT NULL
+                    CHECK (status IN ('ok','unavailable')),
+                    response TEXT NOT NULL,
+                    error TEXT
+                );
                 CREATE TABLE IF NOT EXISTS learning_units (
                     learning_id TEXT PRIMARY KEY,
                     created_at TEXT NOT NULL,
@@ -424,6 +438,75 @@ class LocalStore:
         with self._connect() as connection:
             rows = connection.execute("SELECT speaker,content FROM messages ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
         return [(row["speaker"], row["content"]) for row in reversed(rows)]
+
+    def record_subscription_consultation(
+        self,
+        *,
+        request_id: str,
+        provider: str,
+        user_query: str,
+        rendered_prompt: str | None,
+        invocation_attempted: bool,
+        status: str,
+        response: str,
+        error: str | None,
+    ) -> dict[str, object]:
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT OR IGNORE INTO subscription_consultations("
+                "created_at,request_id,provider,user_query,rendered_prompt,"
+                "invocation_attempted,status,response,error) VALUES (?,?,?,?,?,?,?,?,?)",
+                (
+                    self._now(),
+                    request_id,
+                    provider,
+                    user_query,
+                    rendered_prompt,
+                    int(invocation_attempted),
+                    status,
+                    response,
+                    error,
+                ),
+            )
+        record = self.subscription_consultation(request_id)
+        if record is None:
+            raise RuntimeError("Consultation evidence record was not persisted")
+        return record
+
+    def subscription_consultation(self, request_id: str) -> dict[str, object] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT id,created_at,request_id,provider,user_query,rendered_prompt,"
+                "invocation_attempted,status,response,error "
+                "FROM subscription_consultations WHERE request_id=?",
+                (request_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "id": int(row["id"]),
+            "created_at": row["created_at"],
+            "request_id": row["request_id"],
+            "provider": row["provider"],
+            "user_query": row["user_query"],
+            "rendered_prompt": row["rendered_prompt"],
+            "invocation_attempted": bool(row["invocation_attempted"]),
+            "status": row["status"],
+            "response": row["response"],
+            "error": row["error"],
+        }
+
+    def recent_subscription_consultations(
+        self, *, limit: int = 20
+    ) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT request_id FROM subscription_consultations "
+                "ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        records = [self.subscription_consultation(row["request_id"]) for row in rows]
+        return [record for record in records if record is not None]
 
     def remember(self, content: str) -> int:
         with self._connect() as connection:

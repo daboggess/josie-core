@@ -43,14 +43,16 @@ services:
         Return exactly one JSON object and no prose.
 
         Rules, in order:
-        1. Choose get_josie_status with empty parameters when the query asks for Josie's actual current health, status, disk or storage space, service availability, backup condition, pending proposal count, or safety-lock state. Words such as current or now are not required when the user asks how much disk space is left or whether a service is running.
-        2. Choose record_review_proposal only when the query explicitly commands you to record, create, save, add, or submit a proposal AND the kind is exactly health_check, memory_export, or restore_drill. Copy the requested summary faithfully. A question asking what a proposal or restore drill is does not record anything.
-        3. Choose recall_josie_history when the query asks what Josie and Dustin discussed, decided, learned, or remembered in an earlier conversation. Copy the user's query exactly.
-        4. Choose consult_codex when the user explicitly asks to use or consult Codex. You may also choose it for a clearly difficult code, debugging, architecture, or multi-step reasoning request that explicitly asks for deeper or stronger reasoning. Copy the complete user query exactly. Do not choose it for ordinary conversation, memory lookup, status, simple questions, or routine writing.
-        5. Choose consult_gemini only when the user explicitly asks to use or consult Gemini, asks for a Google-model perspective, or asks for an independent Gemini second opinion. Copy the complete user query exactly. Do not choose it for ordinary conversation.
-        6. Otherwise choose no tool. Local Ollama is the default. Never invent a kind, turn an ordinary question into a proposal, or make a subscription CLI mandatory.
+        1. Choose get_josie_conversation_state when the query asks whether Codex or Gemini is installed/available, whether consultant results persist, whether Summit/Groq is active, whether tests pass, whether complete ChatGPT/Gemini history is imported, or whether a Unified History Importer exists. Copy the complete user query exactly. Machine/config/SQLite evidence overrides memory.
+        2. Choose get_josie_status with empty parameters when the query asks for Josie's actual current health, disk or storage space, service availability, backup condition, pending proposal count, or safety-lock state. Words such as current or now are not required when the user asks how much disk space is left or whether a service is running.
+        3. Choose record_review_proposal only when the query explicitly commands you to record, create, save, add, or submit a proposal AND the kind is exactly health_check, memory_export, or restore_drill. Copy the requested summary faithfully. A question asking what a proposal or restore drill is does not record anything.
+        4. Choose recall_josie_history when the query asks what Josie and Dustin discussed, decided, learned, or remembered in an earlier conversation. Copy the user's query exactly.
+        5. Choose consult_codex when the user explicitly asks to use or consult Codex. You may also choose it for a clearly difficult code, debugging, architecture, or multi-step reasoning request that explicitly asks for deeper or stronger reasoning. Copy the complete user query exactly. Do not choose it for ordinary conversation, memory lookup, status, simple questions, or routine writing.
+        6. Choose consult_gemini only when the user explicitly asks to use or consult Gemini, asks for a Google-model perspective, or asks for an independent Gemini second opinion. Copy the complete user query exactly. Do not choose it for ordinary conversation.
+        7. Otherwise choose no tool. Local Ollama is the default. Never invent a kind, turn an ordinary question into a proposal, or make a subscription CLI mandatory.
 
         Exact output forms:
+        {"tool_calls":[{"name":"get_josie_conversation_state","parameters":{"query":"original user query"}}]}
         {"tool_calls":[{"name":"get_josie_status","parameters":{}}]}
         {"tool_calls":[{"name":"record_review_proposal","parameters":{"kind":"health_check","summary":"requested text"}}]}
         {"tool_calls":[{"name":"recall_josie_history","parameters":{"query":"original user query"}}]}

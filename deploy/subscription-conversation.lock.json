@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "active_local_first",
-  "validated_at": "2026-08-25T21:12:00-04:00",
+  "validated_at": "2026-08-26T06:52:50-04:00",
   "front_door": {
     "service": "Open WebUI",
     "model_id": "josie-local:1.0",
@@ -19,7 +19,8 @@
     "operation_ids": [
       "recall_josie_history",
       "consult_codex",
-      "consult_gemini"
+      "consult_gemini",
+      "get_josie_conversation_state"
     ]
   },
   "providers": {
@@ -48,22 +49,41 @@
   },
   "acceptance": {
     "tests_before_live_changes": 90,
-    "tests_after_live_changes": 93,
+    "tests_after_live_changes": 96,
     "full_suite_status": "passed",
     "open_webui_local_only": "passed: LOCAL_ONLY_OK",
-    "open_webui_codex_consult": "passed: CODEX_TOOL_E2E_20260825",
+    "open_webui_codex_consult": "passed: openwebui-codex-a0f19420ba8aafd58b7215997e0095a7",
     "codex_result_persisted_in_sqlite": true,
     "open_webui_codex_unavailable_fallback": "passed: CODEX_FALLBACK_LOCAL_OK",
     "gemini_cli_adapter_independent": "passed before live wiring: ADAPTER_GEMINI_OK",
     "open_webui_gemini_tool_selected": true,
-    "open_webui_gemini_current_result": "upstream unavailable; local fallback passed",
-    "gemini_upstream_evidence": "HTTP 503 high demand and fetch failure observed",
+    "open_webui_gemini_current_result": "passed: openwebui-gemini-57460fd01484f39a2c1a095263886730",
+    "gemini_upstream_evidence": "current acceptance succeeded; earlier HTTP 503 and timeout remain valid optional-provider fallback evidence",
     "open_webui_local_history_recall": "passed via recall_josie_history",
     "existing_status_tool": "passed via get_josie_status",
     "host_connectivity": true,
     "open_webui_container_connectivity": true,
     "restart_pid_changed": true,
     "restart_history_preserved": true
+  },
+  "tool_fidelity": {
+    "status": "passed",
+    "source_failed_chat_id": "33b44e6d-37bf-476b-9fcc-8128d9868585",
+    "passing_chat_id": "f99b90ae-2a53-4f91-8e6d-ea74eb0c3cb8",
+    "prompt_sha256": "7bcaf4c28f66ccdfae77606f2d4265ece4a5b03261cc76d6bf1ec8ab47682010",
+    "response_sha256": "3c598523ce867d0fb65fe449cbf3ec4b6e1acf7ca436daed76decc5c07f11b65",
+    "codex_invocation_attempted": true,
+    "codex_display_matches_captured_response": true,
+    "gemini_invocation_attempted": true,
+    "gemini_display_matches_captured_response": true,
+    "local_recall_source_exact": true,
+    "current_state_display_matches_evidence": true,
+    "evidence_source_count": 4
+  },
+  "history_import": {
+    "complete_chatgpt_history_imported": false,
+    "complete_gemini_history_imported": false,
+    "unified_history_importer_built": false
   },
   "startup": {
     "ollama_task": "Josie Local Model",
