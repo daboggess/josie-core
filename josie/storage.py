@@ -433,6 +433,152 @@ class LocalStore:
                     capability_change TEXT NOT NULL DEFAULT 'none'
                     CHECK (capability_change = 'none')
                 );
+                CREATE TABLE IF NOT EXISTS history_import_runs (
+                    run_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    completed_at TEXT,
+                    source_platform TEXT NOT NULL,
+                    source_set_id TEXT NOT NULL,
+                    source_manifest_sha256 TEXT NOT NULL
+                    CHECK (length(source_manifest_sha256) = 64),
+                    mode TEXT NOT NULL
+                    CHECK (mode IN ('isolated_test_fixture','production')),
+                    status TEXT NOT NULL
+                    CHECK (status IN ('running','completed','rolled_back')),
+                    stats_json TEXT NOT NULL DEFAULT '{}',
+                    canonical_records_changed INTEGER NOT NULL DEFAULT 0
+                    CHECK (canonical_records_changed = 0),
+                    production_import INTEGER NOT NULL DEFAULT 0
+                    CHECK (production_import IN (0,1)),
+                    error TEXT
+                );
+                CREATE TABLE IF NOT EXISTS history_sources (
+                    source_id INTEGER PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    source_archive TEXT NOT NULL,
+                    source_archive_sha256 TEXT NOT NULL
+                    CHECK (length(source_archive_sha256) = 64),
+                    source_path TEXT NOT NULL,
+                    source_member_sha256 TEXT NOT NULL
+                    CHECK (length(source_member_sha256) = 64),
+                    source_format TEXT NOT NULL,
+                    source_bytes INTEGER NOT NULL CHECK (source_bytes >= 0),
+                    UNIQUE (run_id,source_archive,source_path,source_member_sha256),
+                    FOREIGN KEY(run_id) REFERENCES history_import_runs(run_id)
+                );
+                CREATE TABLE IF NOT EXISTS history_conversations (
+                    conversation_id INTEGER PRIMARY KEY,
+                    stable_id TEXT NOT NULL UNIQUE,
+                    source_platform TEXT NOT NULL,
+                    source_conversation_id TEXT NOT NULL,
+                    conversation_title TEXT,
+                    source_identity TEXT NOT NULL,
+                    first_message_at TEXT NOT NULL,
+                    last_message_at TEXT NOT NULL,
+                    created_import_run TEXT NOT NULL,
+                    historical_only INTEGER NOT NULL DEFAULT 1
+                    CHECK (historical_only = 1),
+                    canonical_effect INTEGER NOT NULL DEFAULT 0
+                    CHECK (canonical_effect = 0),
+                    UNIQUE (source_platform,source_conversation_id),
+                    FOREIGN KEY(created_import_run) REFERENCES history_import_runs(run_id)
+                );
+                CREATE TABLE IF NOT EXISTS history_messages (
+                    message_id INTEGER PRIMARY KEY,
+                    stable_id TEXT NOT NULL UNIQUE,
+                    dedupe_key TEXT NOT NULL UNIQUE,
+                    conversation_id INTEGER,
+                    source_platform TEXT NOT NULL,
+                    source_conversation_id TEXT,
+                    conversation_title TEXT,
+                    source_message_id TEXT,
+                    timestamp TEXT NOT NULL,
+                    source_timestamp TEXT NOT NULL,
+                    speaker TEXT NOT NULL,
+                    role TEXT NOT NULL
+                    CHECK (role IN ('user','assistant','system','tool','activity')),
+                    raw_text TEXT NOT NULL,
+                    raw_checksum TEXT NOT NULL CHECK (length(raw_checksum) = 64),
+                    source_record_checksum TEXT NOT NULL
+                    CHECK (length(source_record_checksum) = 64),
+                    source_order INTEGER NOT NULL CHECK (source_order >= 0),
+                    message_order INTEGER NOT NULL CHECK (message_order >= 0),
+                    source_archive TEXT NOT NULL,
+                    source_archive_sha256 TEXT NOT NULL
+                    CHECK (length(source_archive_sha256) = 64),
+                    source_path TEXT NOT NULL,
+                    source_member_sha256 TEXT NOT NULL
+                    CHECK (length(source_member_sha256) = 64),
+                    source_pointer TEXT NOT NULL,
+                    activity_type TEXT NOT NULL,
+                    created_import_run TEXT NOT NULL,
+                    historical_only INTEGER NOT NULL DEFAULT 1
+                    CHECK (historical_only = 1),
+                    canonical_effect INTEGER NOT NULL DEFAULT 0
+                    CHECK (canonical_effect = 0),
+                    FOREIGN KEY(conversation_id)
+                    REFERENCES history_conversations(conversation_id),
+                    FOREIGN KEY(created_import_run)
+                    REFERENCES history_import_runs(run_id)
+                );
+                CREATE TABLE IF NOT EXISTS history_message_imports (
+                    run_id TEXT NOT NULL,
+                    message_id INTEGER NOT NULL,
+                    source_pointer TEXT NOT NULL,
+                    PRIMARY KEY (run_id,message_id),
+                    FOREIGN KEY(run_id) REFERENCES history_import_runs(run_id),
+                    FOREIGN KEY(message_id) REFERENCES history_messages(message_id)
+                );
+                CREATE TABLE IF NOT EXISTS history_message_attachments (
+                    message_id INTEGER NOT NULL,
+                    source_reference TEXT NOT NULL,
+                    PRIMARY KEY (message_id,source_reference),
+                    FOREIGN KEY(message_id) REFERENCES history_messages(message_id)
+                );
+                CREATE VIRTUAL TABLE IF NOT EXISTS history_messages_fts USING fts5(
+                    raw_text,
+                    conversation_title,
+                    source_platform UNINDEXED,
+                    speaker UNINDEXED,
+                    timestamp UNINDEXED,
+                    content='history_messages',
+                    content_rowid='message_id'
+                );
+                CREATE TRIGGER IF NOT EXISTS history_messages_fts_insert
+                AFTER INSERT ON history_messages BEGIN
+                    INSERT INTO history_messages_fts(
+                        rowid,raw_text,conversation_title,source_platform,speaker,timestamp
+                    ) VALUES (
+                        new.message_id,new.raw_text,new.conversation_title,
+                        new.source_platform,new.speaker,new.timestamp
+                    );
+                END;
+                CREATE TRIGGER IF NOT EXISTS history_messages_fts_delete
+                AFTER DELETE ON history_messages BEGIN
+                    INSERT INTO history_messages_fts(
+                        history_messages_fts,rowid,raw_text,conversation_title,
+                        source_platform,speaker,timestamp
+                    ) VALUES (
+                        'delete',old.message_id,old.raw_text,old.conversation_title,
+                        old.source_platform,old.speaker,old.timestamp
+                    );
+                END;
+                CREATE TRIGGER IF NOT EXISTS history_messages_fts_update
+                AFTER UPDATE ON history_messages BEGIN
+                    INSERT INTO history_messages_fts(
+                        history_messages_fts,rowid,raw_text,conversation_title,
+                        source_platform,speaker,timestamp
+                    ) VALUES (
+                        'delete',old.message_id,old.raw_text,old.conversation_title,
+                        old.source_platform,old.speaker,old.timestamp
+                    );
+                    INSERT INTO history_messages_fts(
+                        rowid,raw_text,conversation_title,source_platform,speaker,timestamp
+                    ) VALUES (
+                        new.message_id,new.raw_text,new.conversation_title,
+                        new.source_platform,new.speaker,new.timestamp
+                    );
+                END;
                 """
             )
             memory_columns = {
@@ -475,6 +621,372 @@ class LocalStore:
         with self._connect() as connection:
             rows = connection.execute("SELECT speaker,content FROM messages ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
         return [(row["speaker"], row["content"]) for row in reversed(rows)]
+
+    @staticmethod
+    def _history_field(message: object, name: str) -> object:
+        if isinstance(message, dict):
+            if name not in message:
+                raise ValueError(f"Historical message is missing {name}")
+            return message[name]
+        if not hasattr(message, name):
+            raise ValueError(f"Historical message is missing {name}")
+        return getattr(message, name)
+
+    def history_import_run(self, run_id: str) -> dict[str, object] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM history_import_runs WHERE run_id=?", (run_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        record = dict(row)
+        record["stats"] = json.loads(str(record.pop("stats_json")))
+        record["canonical_records_changed"] = int(
+            record["canonical_records_changed"]
+        )
+        record["production_import"] = bool(record["production_import"])
+        return record
+
+    def history_counts(self) -> dict[str, int]:
+        with self._connect() as connection:
+            return {
+                name: int(
+                    connection.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
+                )
+                for name in (
+                    "history_import_runs",
+                    "history_sources",
+                    "history_conversations",
+                    "history_messages",
+                    "history_message_imports",
+                    "history_message_attachments",
+                )
+            }
+
+    def import_history_test_fixture(
+        self,
+        *,
+        run_id: str,
+        source_set_id: str,
+        source_manifest_sha256: str,
+        source_format: str,
+        source_bytes: int,
+        messages: Iterator[object] | tuple[object, ...] | list[object],
+        isolated_test_fixture: bool = False,
+        simulate_failure_after: int | None = None,
+    ) -> dict[str, object]:
+        """Exercise the normalized importer without enabling production import.
+
+        Phase 1 deliberately exposes no production import method or CLI action.
+        This gate exists only so deterministic, temporary-database fixtures can
+        prove idempotency, provenance, constraints, and transaction rollback.
+        """
+
+        if not isolated_test_fixture:
+            raise PermissionError(
+                "Production history import is locked during Phase 1 reconnaissance"
+            )
+        if not re.fullmatch(r"test[-_][A-Za-z0-9._-]{1,120}", run_id):
+            raise ValueError("Isolated history run ID must begin with test- or test_")
+        if not source_set_id.strip() or len(source_set_id) > 200:
+            raise ValueError("History source set ID is invalid")
+        manifest_sha256 = source_manifest_sha256.strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", manifest_sha256):
+            raise ValueError("History source manifest SHA-256 is invalid")
+        if not source_format.strip() or len(source_format) > 200:
+            raise ValueError("History source format is invalid")
+        if source_bytes < 0:
+            raise ValueError("History source byte count is invalid")
+        materialized = tuple(messages)
+        if not materialized:
+            raise ValueError("History fixture must include at least one record")
+
+        prior = self.history_import_run(run_id)
+        if prior is not None and prior["status"] == "completed":
+            if (
+                prior["source_set_id"] != source_set_id
+                or prior["source_manifest_sha256"] != manifest_sha256
+            ):
+                raise ValueError("Completed history run ID belongs to another source set")
+            cached = dict(prior["stats"])
+            cached["idempotent_replay"] = True
+            return cached
+
+        now = self._now()
+        inserted = 0
+        deduplicated = 0
+        conversation_keys: set[tuple[str, str]] = set()
+        try:
+            with self._connect() as connection:
+                connection.execute("PRAGMA foreign_keys=ON")
+                connection.execute("BEGIN IMMEDIATE")
+                connection.execute(
+                    "INSERT INTO history_import_runs("
+                    "run_id,created_at,source_platform,source_set_id,"
+                    "source_manifest_sha256,mode,status,production_import) "
+                    "VALUES (?,?,?,?,?,'isolated_test_fixture','running',0) "
+                    "ON CONFLICT(run_id) DO UPDATE SET "
+                    "created_at=excluded.created_at,completed_at=NULL,"
+                    "source_platform=excluded.source_platform,"
+                    "source_set_id=excluded.source_set_id,"
+                    "source_manifest_sha256=excluded.source_manifest_sha256,"
+                    "mode=excluded.mode,status='running',stats_json='{}',error=NULL "
+                    "WHERE history_import_runs.status='rolled_back'",
+                    (
+                        run_id,
+                        now,
+                        str(self._history_field(materialized[0], "source_platform")),
+                        source_set_id,
+                        manifest_sha256,
+                    ),
+                )
+
+                sources: set[tuple[str, str, str, str]] = set()
+                for message in materialized:
+                    sources.add(
+                        (
+                            str(self._history_field(message, "source_archive")),
+                            str(
+                                self._history_field(
+                                    message, "source_archive_sha256"
+                                )
+                            ).lower(),
+                            str(self._history_field(message, "source_path")),
+                            str(
+                                self._history_field(message, "source_member_sha256")
+                            ).lower(),
+                        )
+                    )
+                for archive, archive_sha, source_path, member_sha in sorted(sources):
+                    connection.execute(
+                        "INSERT OR IGNORE INTO history_sources("
+                        "run_id,source_archive,source_archive_sha256,source_path,"
+                        "source_member_sha256,source_format,source_bytes) "
+                        "VALUES (?,?,?,?,?,?,?)",
+                        (
+                            run_id,
+                            archive,
+                            archive_sha,
+                            source_path,
+                            member_sha,
+                            source_format,
+                            source_bytes,
+                        ),
+                    )
+
+                for index, message in enumerate(materialized):
+                    platform = str(self._history_field(message, "source_platform"))
+                    source_conversation_id_value = self._history_field(
+                        message, "source_conversation_id"
+                    )
+                    source_conversation_id = (
+                        None
+                        if source_conversation_id_value is None
+                        else str(source_conversation_id_value)
+                    )
+                    title_value = self._history_field(message, "conversation_title")
+                    title = None if title_value is None else str(title_value)
+                    timestamp = str(self._history_field(message, "timestamp"))
+                    conversation_row_id: int | None = None
+                    if source_conversation_id:
+                        conversation_keys.add((platform, source_conversation_id))
+                        stable_material = f"{platform}\0{source_conversation_id}"
+                        conversation_stable_id = "histconv_" + hashlib.sha256(
+                            stable_material.encode("utf-8")
+                        ).hexdigest()
+                        connection.execute(
+                            "INSERT INTO history_conversations("
+                            "stable_id,source_platform,source_conversation_id,"
+                            "conversation_title,source_identity,first_message_at,"
+                            "last_message_at,created_import_run) VALUES (?,?,?,?,?,?,?,?) "
+                            "ON CONFLICT(source_platform,source_conversation_id) DO UPDATE SET "
+                            "conversation_title=COALESCE("
+                            "history_conversations.conversation_title,excluded.conversation_title),"
+                            "first_message_at=MIN(history_conversations.first_message_at,"
+                            "excluded.first_message_at),"
+                            "last_message_at=MAX(history_conversations.last_message_at,"
+                            "excluded.last_message_at)",
+                            (
+                                conversation_stable_id,
+                                platform,
+                                source_conversation_id,
+                                title,
+                                "account_owner",
+                                timestamp,
+                                timestamp,
+                                run_id,
+                            ),
+                        )
+                        conversation_row_id = int(
+                            connection.execute(
+                                "SELECT conversation_id FROM history_conversations "
+                                "WHERE source_platform=? AND source_conversation_id=?",
+                                (platform, source_conversation_id),
+                            ).fetchone()[0]
+                        )
+
+                    values = (
+                        str(self._history_field(message, "stable_id")),
+                        str(self._history_field(message, "dedupe_key")),
+                        conversation_row_id,
+                        platform,
+                        source_conversation_id,
+                        title,
+                        self._history_field(message, "source_message_id"),
+                        timestamp,
+                        str(self._history_field(message, "source_timestamp")),
+                        str(self._history_field(message, "speaker")),
+                        str(self._history_field(message, "role")),
+                        str(self._history_field(message, "raw_text")),
+                        str(self._history_field(message, "raw_checksum")).lower(),
+                        str(
+                            self._history_field(message, "source_record_checksum")
+                        ).lower(),
+                        int(self._history_field(message, "source_order")),
+                        int(self._history_field(message, "message_order")),
+                        str(self._history_field(message, "source_archive")),
+                        str(
+                            self._history_field(message, "source_archive_sha256")
+                        ).lower(),
+                        str(self._history_field(message, "source_path")),
+                        str(
+                            self._history_field(message, "source_member_sha256")
+                        ).lower(),
+                        str(self._history_field(message, "source_pointer")),
+                        str(self._history_field(message, "activity_type")),
+                        run_id,
+                    )
+                    cursor = connection.execute(
+                        "INSERT OR IGNORE INTO history_messages("
+                        "stable_id,dedupe_key,conversation_id,source_platform,"
+                        "source_conversation_id,conversation_title,source_message_id,"
+                        "timestamp,source_timestamp,speaker,role,raw_text,raw_checksum,"
+                        "source_record_checksum,source_order,message_order,source_archive,"
+                        "source_archive_sha256,source_path,source_member_sha256,"
+                        "source_pointer,activity_type,created_import_run) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        values,
+                    )
+                    if cursor.rowcount == 1:
+                        inserted += 1
+                    else:
+                        deduplicated += 1
+                    message_row = connection.execute(
+                        "SELECT message_id,raw_checksum FROM history_messages "
+                        "WHERE stable_id=? OR dedupe_key=?",
+                        (values[0], values[1]),
+                    ).fetchone()
+                    if message_row is None or message_row["raw_checksum"] != values[12]:
+                        raise ValueError("Historical dedupe identity conflicts with content")
+                    message_row_id = int(message_row["message_id"])
+                    connection.execute(
+                        "INSERT OR IGNORE INTO history_message_imports("
+                        "run_id,message_id,source_pointer) VALUES (?,?,?)",
+                        (run_id, message_row_id, values[20]),
+                    )
+                    references = self._history_field(
+                        message, "attachment_references"
+                    )
+                    for reference in sorted({str(item) for item in references}):
+                        connection.execute(
+                            "INSERT OR IGNORE INTO history_message_attachments("
+                            "message_id,source_reference) VALUES (?,?)",
+                            (message_row_id, reference),
+                        )
+                    if (
+                        simulate_failure_after is not None
+                        and index + 1 >= simulate_failure_after
+                    ):
+                        raise RuntimeError("Simulated isolated history import failure")
+
+                stats: dict[str, object] = {
+                    "requested_messages": len(materialized),
+                    "inserted_messages": inserted,
+                    "deduplicated_messages": deduplicated,
+                    "conversations_seen": len(conversation_keys),
+                    "canonical_records_changed": 0,
+                    "production_import": False,
+                    "idempotent_replay": False,
+                }
+                connection.execute(
+                    "UPDATE history_import_runs SET completed_at=?,status='completed',"
+                    "stats_json=?,canonical_records_changed=0,production_import=0 "
+                    "WHERE run_id=?",
+                    (self._now(), json.dumps(stats, sort_keys=True), run_id),
+                )
+            return stats
+        except Exception as exc:
+            # Closing the failed transaction rolls back all source, conversation,
+            # message, attachment, and FTS writes.  Preserve only a content-free
+            # failure record in a separate transaction for auditability.
+            with self._connect() as connection:
+                connection.execute(
+                    "INSERT INTO history_import_runs("
+                    "run_id,created_at,completed_at,source_platform,source_set_id,"
+                    "source_manifest_sha256,mode,status,stats_json,"
+                    "canonical_records_changed,production_import,error) "
+                    "VALUES (?,?,?,?,? ,?,'isolated_test_fixture','rolled_back','{}',0,0,?) "
+                    "ON CONFLICT(run_id) DO UPDATE SET completed_at=excluded.completed_at,"
+                    "status='rolled_back',stats_json='{}',"
+                    "canonical_records_changed=0,production_import=0,error=excluded.error",
+                    (
+                        run_id,
+                        now,
+                        self._now(),
+                        str(self._history_field(materialized[0], "source_platform")),
+                        source_set_id,
+                        manifest_sha256,
+                        str(exc)[:500],
+                    ),
+                )
+            raise
+
+    def search_history(
+        self,
+        query: str,
+        *,
+        limit: int = 20,
+        source_platform: str | None = None,
+        speaker: str | None = None,
+        start_at: str | None = None,
+        end_at: str | None = None,
+        conversation_title: str | None = None,
+    ) -> list[dict[str, object]]:
+        clean_query = query.strip()
+        if not clean_query or len(clean_query) > 500:
+            raise ValueError("Historical search query must contain 1 to 500 characters")
+        if limit < 1 or limit > 100:
+            raise ValueError("Historical search limit must be between 1 and 100")
+        phrase = '"' + clean_query.replace('"', '""') + '"'
+        clauses = ["history_messages_fts MATCH ?"]
+        values: list[object] = [phrase]
+        for column, value in (
+            ("h.source_platform", source_platform),
+            ("h.speaker", speaker),
+            ("h.conversation_title", conversation_title),
+        ):
+            if value is not None:
+                clauses.append(f"{column}=?")
+                values.append(value)
+        if start_at is not None:
+            clauses.append("h.timestamp>=?")
+            values.append(start_at)
+        if end_at is not None:
+            clauses.append("h.timestamp<=?")
+            values.append(end_at)
+        values.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT h.stable_id,h.source_platform,h.source_conversation_id,"
+                "h.conversation_title,h.source_message_id,h.timestamp,h.speaker,"
+                "h.role,h.raw_text,h.source_pointer,h.historical_only,"
+                "h.canonical_effect FROM history_messages_fts "
+                "JOIN history_messages h ON h.message_id=history_messages_fts.rowid "
+                f"WHERE {' AND '.join(clauses)} "
+                "ORDER BY h.timestamp DESC,h.message_order DESC LIMIT ?",
+                values,
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def record_subscription_consultation(
         self,

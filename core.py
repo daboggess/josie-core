@@ -49,6 +49,7 @@ from josie.conversation_control import (
     recall_history,
     run_conversation_control,
 )
+from josie.history_inheritance import dry_run_gemini_html
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -269,6 +270,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     evidence.add_argument("--observed-at")
+    history = subcommands.add_parser(
+        "history", help="Inspect staged historical evidence without production import"
+    )
+    history.add_argument("action", choices=("gemini-dry-run",))
+    history.add_argument("--html", required=True)
+    history.add_argument("--source-archive", required=True)
+    history.add_argument("--archive-sha256", required=True)
+    history.add_argument("--member-sha256")
     return parser
 
 
@@ -316,6 +325,16 @@ def main() -> int:
                     request_text, context=context, project_root=project_root
                 )
             ).public()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "history":
+        result = dry_run_gemini_html(
+            Path(args.html),
+            source_archive=args.source_archive,
+            source_archive_sha256=args.archive_sha256,
+            expected_member_sha256=args.member_sha256,
+        ).public()
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

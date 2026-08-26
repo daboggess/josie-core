@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "phase": "unified_history_importer_inheritance_0.1_phase1_reconnaissance",
+  "recorded_on": "2026-08-26",
+  "source_root": "D:\\Josie-Storage\\GoogleTO",
+  "source_policy": "immutable_read_only_evidence",
+  "inventory_scope": "all_files_recursive",
+  "archive_count": 10,
+  "total_archive_bytes": 302262938079,
+  "total_archive_member_count": 98739,
+  "archive_member_path_duplicates": 0,
+  "source_set_identity": {
+    "algorithm": "sha256 of filename NUL byte_size NUL archive_sha256, newline-delimited in filename order",
+    "sha256": "e42d53b1e50a279148664d755e1f190666c16316899f5b137d194cf0acc6aed2"
+  },
+  "archives": [
+    {
+      "filename": "takeout-20260825T192605Z-1-001.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-1-001.zip",
+      "byte_size": 4775770847,
+      "modified_utc": "2026-08-26T14:10:59.0641774Z",
+      "sha256": "5a63559b512f06f3ce3d4e597fa1c1318ecc133ef7d96228cb118e680159a252",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 51,
+      "member_uncompressed_bytes": 4788916015,
+      "member_compressed_bytes": 4775749759,
+      "content_group": "YouTube and YouTube Music",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-2-001.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-2-001.zip",
+      "byte_size": 53691668876,
+      "modified_utc": "2026-08-26T15:15:22.4528794Z",
+      "sha256": "6fdac5d0b9d591f7ee7de430ebfac7b1079dd28ef365dafe4d76566437b886b7",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 20389,
+      "member_uncompressed_bytes": 53682983625,
+      "member_compressed_bytes": 53682737512,
+      "content_group": "Google Photos",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-2-002.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-2-002.zip",
+      "byte_size": 53691293058,
+      "modified_utc": "2026-08-26T15:16:20.9647446Z",
+      "sha256": "1a627ba4232468e41c2bc26a649e964b41a3827e2c3769dbcf28ec462a158038",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 18760,
+      "member_uncompressed_bytes": 53685976155,
+      "member_compressed_bytes": 53683094076,
+      "content_group": "Google Photos",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-2-003.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-2-003.zip",
+      "byte_size": 53690223474,
+      "modified_utc": "2026-08-26T15:16:06.3270427Z",
+      "sha256": "2f964d9b540ac8d72b5b05623eafe1fb1765dda1bdf80a7c30b3d4fec28bbd0f",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 14269,
+      "member_uncompressed_bytes": 53683317410,
+      "member_compressed_bytes": 53684116102,
+      "content_group": "Google Photos",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-2-004.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-2-004.zip",
+      "byte_size": 53174687278,
+      "modified_utc": "2026-08-26T15:33:55.6130938Z",
+      "sha256": "9de05e6d58ad1f591bc0244f3154e9f05a4f4f3c59b8a037146bacb1de08d73d",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 9936,
+      "member_uncompressed_bytes": 53169661740,
+      "member_compressed_bytes": 53170506820,
+      "content_group": "Google Photos",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-2-005.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-2-005.zip",
+      "byte_size": 53688167878,
+      "modified_utc": "2026-08-26T15:41:26.6794789Z",
+      "sha256": "aeb4ddccefe70fe0d7499bf07ee7f14bd0f8f43dc810fa960f00f33550bc1f28",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 5256,
+      "member_uncompressed_bytes": 53680911032,
+      "member_compressed_bytes": 53686075980,
+      "content_group": "Google Photos",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-2-006.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-2-006.zip",
+      "byte_size": 24118286990,
+      "modified_utc": "2026-08-26T14:45:22.6709096Z",
+      "sha256": "14630896e3fb275636f271171ba197fb4f46dc85fbe97d9f59286bc319b8c660",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 2780,
+      "member_uncompressed_bytes": 24115232897,
+      "member_compressed_bytes": 24117183144,
+      "content_group": "Google Photos",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-3-001.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-3-001.zip",
+      "byte_size": 1327073591,
+      "modified_utc": "2026-08-26T14:12:44.1368981Z",
+      "sha256": "1ae9330d5c2481ac552e118d82dcc71f0bcd912e2f3ab5333c3d0a7f4a78cc00",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 1799,
+      "member_uncompressed_bytes": 1688347961,
+      "member_compressed_bytes": 1325994583,
+      "content_group": "Drive",
+      "inheritance_scope": "excluded"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-4-001.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-4-001.zip",
+      "byte_size": 1155201896,
+      "modified_utc": "2026-08-26T14:11:45.1579766Z",
+      "sha256": "7095a481e1bdd8a6a6904a83eb8a53b742dd4ae14ba897466bf583baec20f2ac",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 5497,
+      "member_uncompressed_bytes": 1908807726,
+      "member_compressed_bytes": 1153161712,
+      "content_group": "mixed products including Gemini",
+      "inheritance_scope": "partially_relevant"
+    },
+    {
+      "filename": "takeout-20260825T192605Z-5-001.zip",
+      "full_source_path": "D:\\Josie-Storage\\GoogleTO\\takeout-20260825T192605Z-5-001.zip",
+      "byte_size": 2950564191,
+      "modified_utc": "2026-08-26T14:12:54.6484774Z",
+      "sha256": "86435817f306772a37029f7f696321076e5db8e402d035f5748afeaac543e777",
+      "archive_type": "zip",
+      "magic_hex": "504b0304",
+      "member_count": 2,
+      "member_uncompressed_bytes": 8334104204,
+      "member_compressed_bytes": 2950563381,
+      "content_group": "Mail",
+      "inheritance_scope": "excluded"
+    }
+  ],
+  "gemini_evidence": {
+    "containing_archive": "takeout-20260825T192605Z-4-001.zip",
+    "relevant_member_count": 1284,
+    "relevant_member_uncompressed_bytes": 1131435050,
+    "relevant_member_compressed_bytes": 1032741738,
+    "structured_members": [
+      {
+        "path": "Takeout/Gemini/gemini_gems_data.html",
+        "byte_size": 11,
+        "staged_sha256": "93636fa047400919d3a6fa2c57a114596546d97c9681645ed857fb014fb8fb18",
+        "records_present": false
+      },
+      {
+        "path": "Takeout/Gemini/gemini_scheduled_actions_data.html",
+        "byte_size": 11,
+        "staged_sha256": "93636fa047400919d3a6fa2c57a114596546d97c9681645ed857fb014fb8fb18",
+        "records_present": false
+      },
+      {
+        "path": "Takeout/My Activity/Gemini Apps/MyActivity.html",
+        "byte_size": 6944510,
+        "compressed_bytes": 1402669,
+        "staged_sha256": "1336fb5dd0959513a854fa9c428fa8d28b821fbaadf6b22f2b73c73a041087f5",
+        "format": "UTF-8 HTML, Google My Activity card stream",
+        "records_present": true
+      }
+    ],
+    "attachment_members_by_extension": {
+      ".docx": 1,
+      ".jpg": 438,
+      ".m4a": 1,
+      ".mp4": 2,
+      ".pdf": 7,
+      ".png": 24,
+      ".wav": 568,
+      ".xlsx": 2,
+      ".zip": 238
+    },
+    "attachment_members_uncompressed_bytes": 1124490518,
+    "attachment_policy": "central_directory_only_not_extracted"
+  },
+  "selective_staging": {
+    "root": "D:\\Josie-Storage\\staging\\history-inheritance-0.1\\google-takeout-20260825",
+    "files_extracted": 3,
+    "bulk_extraction_performed": false,
+    "source_folder_modified": false
+  },
+  "dry_run": {
+    "production_import_performed": false,
+    "production_rows_inserted": 0,
+    "canonical_state_changes": 0,
+    "memories_changed": 0,
+    "activity_cards": 2711,
+    "prompted_cards": 2588,
+    "non_prompt_activity_cards": 123,
+    "normalized_conversations": 990,
+    "normalized_messages": 5108,
+    "user_messages": 2588,
+    "gemini_messages": 2397,
+    "activity_messages": 123,
+    "prompt_cards_without_exported_response": 191,
+    "prompt_cards_without_conversation_id": 0,
+    "date_range_utc": {
+      "start": "2025-05-15T01:09:21Z",
+      "end": "2026-08-25T19:27:15Z"
+    },
+    "duplicate_normalized_messages": 0,
+    "malformed_records": 0,
+    "conversation_titles_present": 0,
+    "source_message_ids_present": 0,
+    "direct_attachment_references": 1037,
+    "raw_text_utf8_bytes": 3417646
+  },
+  "excluded_from_phase1": [
+    "Google Photos",
+    "Mail",
+    "YouTube and YouTube Music",
+    "Drive",
+    "all non-Gemini product paths in the mixed archive",
+    "Gemini attachment payload extraction and content analysis"
+  ]
+}

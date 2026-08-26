@@ -25,6 +25,11 @@ from josie.tools import available_tools, run_tool
 from josie.providers import probe_openai, provider_status
 from josie.gui import respond
 from josie.storage import LocalStore
+from josie.history_inheritance import (
+    GeminiHistoryError,
+    classify_takeout_member,
+    dry_run_gemini_html,
+)
 from josie.diagnostics import (
     memory_export_snapshot, recovery_snapshot, restore_drill_snapshot, system_snapshot, uptime_snapshot,
 )
@@ -81,6 +86,37 @@ from josie.learning_assessment import (
     load_foundational_holdout,
     score_local_judgment_response,
 )
+
+
+def _gemini_activity_card(
+    *,
+    prompt: str,
+    timestamp: str,
+    response: str = "",
+    conversation_id: str = "abc123",
+    attachment: str | None = None,
+) -> str:
+    attachment_html = (
+        f'<a href="{attachment}"></a>' if attachment is not None else ""
+    )
+    return (
+        '<div class="outer-cell mdl-cell mdl-cell--12-col mdl-shadow--2dp">'
+        '<div class="content-cell mdl-cell mdl-cell--6-col '
+        'mdl-typography--body-1">'
+        f"Prompted {prompt}<br>{timestamp}"
+        + (f"<br>{response}" if response else "")
+        + f'<a href="https://gemini.google.com/app/{conversation_id}"></a>'
+        + attachment_html
+        + "</div>"
+        '<div class="mdl-typography--caption">Gemini Apps</div>'
+        "</div>"
+    )
+
+
+def _write_gemini_fixture(path: Path, cards: list[str]) -> str:
+    content = '<html><body><title>My Activity History</title>' + "".join(cards) + "</body></html>"
+    path.write_text(content, encoding="utf-8")
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 from josie.opportunity_policy import load_opportunity_policy
 from josie.ebay_source import (
     import_ebay_fixture,
@@ -3384,6 +3420,293 @@ class JosieTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("Version: 0.1.0", constitution)
         self.assertIn("LOCKED / RATIFIED BY DUSTIN", constitution)
+
+    def test_gemini_takeout_parser_preserves_roles_order_text_and_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "MyActivity.html"
+            member_sha = _write_gemini_fixture(
+                source,
+                [
+                    _gemini_activity_card(
+                        prompt="new question",
+                        timestamp="Aug 25, 2026, 3:27:15 PM EDT",
+                        response="new answer",
+                        conversation_id="thread42",
+                    ),
+                    _gemini_activity_card(
+                        prompt="older π question",
+                        timestamp="Nov 5, 2025, 1:02:03 PM EST",
+                        response="verbatim  café  answer",
+                        conversation_id="thread42",
+                        attachment="thread42/file.pdf",
+                    ),
+                ],
+            )
+            result = dry_run_gemini_html(
+                source,
+                source_archive="takeout-test.zip",
+                source_archive_sha256="a" * 64,
+                expected_member_sha256=member_sha,
+            )
+
+            self.assertEqual(result.card_count, 2)
+            self.assertEqual(result.prompted_cards, 2)
+            self.assertEqual(len(result.messages), 4)
+            self.assertEqual(
+                [message.role for message in result.messages],
+                ["user", "assistant", "user", "assistant"],
+            )
+            self.assertEqual(
+                [message.message_order for message in result.messages], [0, 1, 2, 3]
+            )
+            self.assertEqual(result.messages[0].raw_text, "older π question")
+            self.assertEqual(result.messages[1].raw_text, "verbatim  café  answer")
+            self.assertEqual(result.messages[0].timestamp, "2025-11-05T18:02:03Z")
+            self.assertEqual(result.messages[2].timestamp, "2026-08-25T19:27:15Z")
+            self.assertEqual(result.messages[0].source_conversation_id, "thread42")
+            self.assertIsNone(result.messages[0].conversation_title)
+            self.assertIsNone(result.messages[0].source_message_id)
+            self.assertEqual(result.messages[0].source_order, 1)
+            self.assertIn("#activity-card-2:0", result.messages[0].source_pointer)
+            self.assertEqual(len(result.messages[0].raw_checksum), 64)
+            self.assertEqual(len(result.messages[0].source_record_checksum), 64)
+            self.assertEqual(
+                result.messages[0].source_member_sha256, member_sha
+            )
+            self.assertEqual(result.messages[0].source_archive_sha256, "a" * 64)
+            self.assertEqual(
+                result.public()["attachment_types"], {".pdf": 1}
+            )
+
+    def test_gemini_takeout_parser_records_non_dialogue_activity_separately(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "MyActivity.html"
+            activity = (
+                '<div class="outer-cell mdl-cell mdl-cell--12-col mdl-shadow--2dp">'
+                '<div class="content-cell mdl-cell mdl-cell--6-col '
+                'mdl-typography--body-1">Used Gemini Apps<br>'
+                "Jan 2, 2026, 4:05:06 PM EST</div></div>"
+            )
+            _write_gemini_fixture(source, [activity])
+            result = dry_run_gemini_html(
+                source,
+                source_archive="takeout-test.zip",
+                source_archive_sha256="b" * 64,
+            )
+            self.assertEqual(result.prompted_cards, 0)
+            self.assertEqual(result.activity_cards, 1)
+            self.assertEqual(result.messages[0].role, "activity")
+            self.assertEqual(result.messages[0].activity_type, "used_gemini_apps")
+            self.assertEqual(result.messages[0].speaker, "Google My Activity")
+
+    def test_gemini_takeout_parser_fails_closed_on_bad_or_unrelated_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "MyActivity.html"
+            _write_gemini_fixture(
+                source,
+                [
+                    _gemini_activity_card(
+                        prompt="missing time",
+                        timestamp="not a Takeout timestamp",
+                    )
+                ],
+            )
+            malformed = dry_run_gemini_html(
+                source,
+                source_archive="takeout-test.zip",
+                source_archive_sha256="c" * 64,
+            )
+            self.assertEqual(len(malformed.messages), 0)
+            self.assertEqual(len(malformed.malformed_records), 1)
+            with self.assertRaisesRegex(GeminiHistoryError, "not Gemini Apps"):
+                dry_run_gemini_html(
+                    source,
+                    source_archive="takeout-test.zip",
+                    source_archive_sha256="c" * 64,
+                    source_path="Takeout/Drive/MyActivity.html",
+                )
+            with self.assertRaisesRegex(GeminiHistoryError, "checksum"):
+                dry_run_gemini_html(
+                    source,
+                    source_archive="takeout-test.zip",
+                    source_archive_sha256="c" * 64,
+                    expected_member_sha256="0" * 64,
+                )
+            source.write_text("<html>not activity history</html>", encoding="utf-8")
+            with self.assertRaisesRegex(GeminiHistoryError, "cards were not found"):
+                dry_run_gemini_html(
+                    source,
+                    source_archive="takeout-test.zip",
+                    source_archive_sha256="c" * 64,
+                )
+
+    def test_takeout_member_classification_excludes_unrelated_products(self) -> None:
+        self.assertEqual(
+            classify_takeout_member(
+                "Takeout/My Activity/Gemini Apps/MyActivity.html"
+            ),
+            "gemini_activity_html",
+        )
+        self.assertEqual(
+            classify_takeout_member("Takeout/Gemini/gemini_gems_data.html"),
+            "gemini_metadata_html",
+        )
+        self.assertEqual(
+            classify_takeout_member("Takeout/My Activity/Gemini Apps/file.wav"),
+            "gemini_activity_attachment",
+        )
+        for unrelated in (
+            "Takeout/Google Photos/photo.jpg",
+            "Takeout/Mail/All mail Including Spam and Trash.mbox",
+            "Takeout/Drive/project.docx",
+            "Takeout/My Activity/Search/MyActivity.html",
+            "Takeout/YouTube and YouTube Music/history/watch-history.html",
+        ):
+            self.assertIsNone(classify_takeout_member(unrelated), unrelated)
+
+    def test_history_fixture_import_is_idempotent_searchable_and_noncanonical(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "MyActivity.html"
+            member_sha = _write_gemini_fixture(
+                source,
+                [
+                    _gemini_activity_card(
+                        prompt="Where is the nebula?",
+                        timestamp="Feb 3, 2026, 10:11:12 AM EST",
+                        response="The café nebula is historical evidence.",
+                        conversation_id="space1",
+                        attachment="space1/map.png",
+                    )
+                ],
+            )
+            parsed = dry_run_gemini_html(
+                source,
+                source_archive="takeout-test.zip",
+                source_archive_sha256="d" * 64,
+                expected_member_sha256=member_sha,
+            )
+            store = LocalStore(root / "josie.db")
+            memory_id = store.remember("canonical current fact remains unchanged")
+            first = store.import_history_test_fixture(
+                run_id="test-history-001",
+                source_set_id="google-takeout-test",
+                source_manifest_sha256="e" * 64,
+                source_format="google_my_activity_html_cards",
+                source_bytes=source.stat().st_size,
+                messages=parsed.messages,
+                isolated_test_fixture=True,
+            )
+            self.assertEqual(first["inserted_messages"], 2)
+            self.assertFalse(first["production_import"])
+            replay = store.import_history_test_fixture(
+                run_id="test-history-001",
+                source_set_id="google-takeout-test",
+                source_manifest_sha256="e" * 64,
+                source_format="google_my_activity_html_cards",
+                source_bytes=source.stat().st_size,
+                messages=parsed.messages,
+                isolated_test_fixture=True,
+            )
+            self.assertTrue(replay["idempotent_replay"])
+            second = store.import_history_test_fixture(
+                run_id="test-history-002",
+                source_set_id="google-takeout-test",
+                source_manifest_sha256="e" * 64,
+                source_format="google_my_activity_html_cards",
+                source_bytes=source.stat().st_size,
+                messages=parsed.messages,
+                isolated_test_fixture=True,
+            )
+            self.assertEqual(second["inserted_messages"], 0)
+            self.assertEqual(second["deduplicated_messages"], 2)
+            self.assertEqual(
+                store.history_counts(),
+                {
+                    "history_import_runs": 2,
+                    "history_sources": 2,
+                    "history_conversations": 1,
+                    "history_messages": 2,
+                    "history_message_imports": 4,
+                    "history_message_attachments": 2,
+                },
+            )
+            self.assertEqual(
+                store.memories(),
+                [(memory_id, "canonical current fact remains unchanged")],
+            )
+            run = store.history_import_run("test-history-001")
+            self.assertIsNotNone(run)
+            assert run is not None
+            self.assertEqual(run["canonical_records_changed"], 0)
+            self.assertFalse(run["production_import"])
+            results = store.search_history(
+                "café", source_platform="google_gemini", speaker="Gemini Apps"
+            )
+            self.assertEqual(len(results), 1)
+            self.assertEqual(
+                results[0]["raw_text"], "The café nebula is historical evidence."
+            )
+            self.assertEqual(results[0]["historical_only"], 1)
+            self.assertEqual(results[0]["canonical_effect"], 0)
+            with self.assertRaisesRegex(ValueError, "between 1 and 100"):
+                store.search_history("nebula", limit=101)
+
+    def test_history_fixture_import_is_locked_and_rolls_back_atomically(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "MyActivity.html"
+            _write_gemini_fixture(
+                source,
+                [
+                    _gemini_activity_card(
+                        prompt="rollback prompt",
+                        timestamp="Mar 4, 2026, 9:10:11 AM EST",
+                        response="rollback answer",
+                    )
+                ],
+            )
+            parsed = dry_run_gemini_html(
+                source,
+                source_archive="takeout-test.zip",
+                source_archive_sha256="f" * 64,
+            )
+            store = LocalStore(root / "josie.db")
+            arguments = {
+                "run_id": "test-history-rollback",
+                "source_set_id": "google-takeout-test",
+                "source_manifest_sha256": "1" * 64,
+                "source_format": "google_my_activity_html_cards",
+                "source_bytes": source.stat().st_size,
+                "messages": parsed.messages,
+            }
+            with self.assertRaisesRegex(PermissionError, "Production history import"):
+                store.import_history_test_fixture(**arguments)
+            self.assertEqual(store.history_counts()["history_import_runs"], 0)
+            with self.assertRaisesRegex(RuntimeError, "Simulated isolated"):
+                store.import_history_test_fixture(
+                    **arguments,
+                    isolated_test_fixture=True,
+                    simulate_failure_after=1,
+                )
+            counts = store.history_counts()
+            self.assertEqual(counts["history_import_runs"], 1)
+            for table, count in counts.items():
+                if table != "history_import_runs":
+                    self.assertEqual(count, 0, table)
+            failed = store.history_import_run("test-history-rollback")
+            self.assertIsNotNone(failed)
+            assert failed is not None
+            self.assertEqual(failed["status"], "rolled_back")
+            self.assertIn("Simulated isolated", str(failed["error"]))
+            recovered = store.import_history_test_fixture(
+                **arguments, isolated_test_fixture=True
+            )
+            self.assertEqual(recovered["inserted_messages"], 2)
+            self.assertEqual(
+                store.history_import_run("test-history-rollback")["status"],
+                "completed",
+            )
 
 
 if __name__ == "__main__":
