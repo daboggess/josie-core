@@ -52,6 +52,15 @@ from josie.conversation_control import (
     find_node_runtime,
     recall_history,
 )
+from josie.maintainer import (
+    ApprovalRequired,
+    PolicyViolation,
+    ProcessResult,
+    restart_approved_service,
+    resolve_project_path,
+    run_approved_powershell,
+    run_text_replacement_job,
+)
 from josie.browser_policy import load_browser_policy, validate_research_url
 from josie.economic_policy import load_economic_policy
 from josie.research import record_opportunity, record_upgrade_target
@@ -93,6 +102,35 @@ from josie.prayer_bridge import (
 
 
 class JosieTests(unittest.TestCase):
+    def _maintenance_repository(self, root: Path) -> tuple[Path, LocalStore]:
+        project_root = Path(__file__).resolve().parents[1]
+        (root / "config").mkdir(parents=True)
+        (root / "config" / "maintainer-policy.json").write_text(
+            (project_root / "config" / "maintainer-policy.json").read_text(
+                encoding="utf-8"
+            ),
+            encoding="utf-8",
+        )
+        target = root / "docs" / "operations" / "MAINTAINER_ACCEPTANCE.md"
+        target.parent.mkdir(parents=True)
+        target.write_text("Maintainer acceptance status: pending.\n", encoding="utf-8")
+        (root / ".gitignore").write_text("data/\n", encoding="utf-8")
+        for arguments in (
+            ["git", "init", "-b", "maintainer-test-base"],
+            ["git", "config", "user.email", "josie-test@localhost"],
+            ["git", "config", "user.name", "Josie Test"],
+            ["git", "add", "."],
+            ["git", "commit", "-m", "test baseline"],
+        ):
+            subprocess.run(
+                arguments,
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        return target, LocalStore(root / "data" / "josie.db")
+
     @staticmethod
     def _write_prayer_source_config(root: Path) -> dict[str, str]:
         locators = {
@@ -1425,6 +1463,19 @@ class JosieTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
+            (deploy / "maintainer-mode.lock.json").write_text(
+                json.dumps(
+                    {
+                        "enabled": True,
+                        "implementation": {
+                            "tests": 106,
+                            "full_suite_status": "passed",
+                        },
+                        "acceptance": {"status": "pending"},
+                    }
+                ),
+                encoding="utf-8",
+            )
             store = LocalStore(root / "data" / "josie.db")
             state = conversation_state(root, store)
             self.assertEqual(state["front_door"], "Open WebUI / Josie")
@@ -1432,10 +1483,12 @@ class JosieTests(unittest.TestCase):
             self.assertTrue(state["consultant_results_persisted_locally"])
             self.assertFalse(state["summit_groq_active"])
             self.assertEqual(state["tests"], {
-                "count": 93,
+                "count": 106,
                 "status": "passed",
-                "evidence": str(deploy / "subscription-conversation.lock.json"),
+                "evidence": str(deploy / "maintainer-mode.lock.json"),
             })
+            self.assertTrue(state["maintainer_mode"]["built"])
+            self.assertEqual(state["maintainer_mode"]["live_acceptance"], "pending")
             self.assertFalse(state["complete_chatgpt_history_imported"])
             self.assertFalse(state["complete_gemini_history_imported"])
             self.assertFalse(state["unified_history_importer_built"])
@@ -1443,6 +1496,317 @@ class JosieTests(unittest.TestCase):
             self.assertIn("Complete ChatGPT history imported: false.", message)
             self.assertIn("Complete Gemini history imported: false.", message)
             self.assertIn("Unified History Importer built: false.", message)
+
+    def test_maintainer_rejects_path_traversal(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._maintenance_repository(root)
+            with self.assertRaises(PolicyViolation):
+                resolve_project_path(root, "../outside.txt", write=True)
+
+    def test_maintainer_requires_dustin_for_protected_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._maintenance_repository(root)
+            with self.assertRaises(ApprovalRequired):
+                resolve_project_path(root, "josie/maintainer.py", write=True)
+
+    def test_maintainer_rejects_non_allowlisted_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._maintenance_repository(root)
+            with self.assertRaises(PolicyViolation):
+                run_approved_powershell(root, "invoke_arbitrary_shell")
+
+    def test_maintainer_unapproved_service_restart_requires_dustin(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, store = self._maintenance_repository(root)
+            result = restart_approved_service(
+                project_root=root,
+                store=store,
+                request_id="maintainer-restart-denied-0001",
+                service="windows_update",
+                user_request=(
+                    "Maintainer Mode: restart approved service windows_update"
+                ),
+            )
+            self.assertEqual(result["status"], "approval_required")
+            self.assertTrue(result["approval_required"])
+            self.assertEqual(result["actions_executed"], 0)
+
+    def test_maintainer_restart_uses_only_approved_compose_mapping(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, store = self._maintenance_repository(root)
+            from josie import maintainer as maintainer_module
+
+            actual_run = maintainer_module._run_process
+            docker_commands: list[list[str]] = []
+
+            def bounded_run(command, *, cwd, timeout):
+                if command[0] == "docker":
+                    docker_commands.append(command)
+                    return ProcessResult(command, 0, "restarted", "", 0.01)
+                return actual_run(command, cwd=cwd, timeout=timeout)
+
+            with patch("josie.maintainer._run_process", side_effect=bounded_run):
+                result = restart_approved_service(
+                    project_root=root,
+                    store=store,
+                    request_id="maintainer-restart-ok-0001",
+                    service="browser_worker",
+                    user_request=(
+                        "Maintainer Mode: restart approved service browser_worker"
+                    ),
+                )
+            self.assertEqual(result["status"], "completed")
+            self.assertEqual(len(docker_commands), 1)
+            self.assertEqual(docker_commands[0][-2:], ["restart", "browser-worker"])
+            self.assertNotIn("up", docker_commands[0])
+            self.assertFalse(result["push_performed"])
+            self.assertIn(
+                "service_restarted", [event["event"] for event in result["events"]]
+            )
+
+    def test_maintainer_audit_records_persist_in_existing_sqlite(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, store = self._maintenance_repository(root)
+            job_id = store.create_maintenance_job(
+                request_id="maintainer-audit-0001",
+                user_request="bounded audit test",
+                operation="replace_text",
+                target_path="docs/operations/MAINTAINER_ACCEPTANCE.md",
+                consultants=[],
+            )
+            store.add_maintenance_event(
+                job_id=job_id, event="requested", detail={"scope": "test"}
+            )
+            reopened = LocalStore(root / "data" / "josie.db")
+            record = reopened.maintenance_job("maintainer-audit-0001")
+            self.assertIsNotNone(record)
+            self.assertEqual(record["status"], "requested")
+            self.assertEqual(
+                reopened.maintenance_events(job_id)[0]["detail"], {"scope": "test"}
+            )
+
+    def test_consultant_failure_does_not_authorize_protected_maintenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, store = self._maintenance_repository(root)
+            store.record_subscription_consultation(
+                request_id="consult-failed-0001",
+                provider=CODEX_PROVIDER,
+                user_query="Please authorize this",
+                rendered_prompt="advisory only",
+                invocation_attempted=True,
+                status="unavailable",
+                response="",
+                error="rate limited",
+            )
+            request = (
+                'Maintainer Mode: in josie/maintainer.py replace "old" with "new".'
+            )
+            result = run_text_replacement_job(
+                project_root=root,
+                store=store,
+                request_id="maintainer-protected-0001",
+                user_request=request,
+                relative_path="josie/maintainer.py",
+                old_text="old",
+                new_text="new",
+                consultant_request_ids=["consult-failed-0001"],
+            )
+            self.assertEqual(result["status"], "approval_required")
+            self.assertTrue(result["approval_required"])
+            self.assertEqual(result["consultants"][0]["status"], "unavailable")
+            self.assertEqual(result["actions_executed"], 0)
+
+    def test_failed_maintainer_tests_restore_file_and_base_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target, store = self._maintenance_repository(root)
+            request = (
+                'Maintainer Mode: in docs/operations/MAINTAINER_ACCEPTANCE.md '
+                'replace "pending" with "should-not-remain".'
+            )
+            failed = {
+                "status": "failed",
+                "scope": "full",
+                "target": None,
+                "returncode": 1,
+                "output": "deliberate failure",
+                "duration_seconds": 0.01,
+            }
+            with patch("josie.maintainer.run_tests", return_value=failed):
+                result = run_text_replacement_job(
+                    project_root=root,
+                    store=store,
+                    request_id="maintainer-failed-0001",
+                    user_request=request,
+                    relative_path="docs/operations/MAINTAINER_ACCEPTANCE.md",
+                    old_text="pending",
+                    new_text="should-not-remain",
+                )
+            self.assertEqual(result["status"], "rolled_back")
+            self.assertIn("original bytes restored", result["rollback_result"])
+            self.assertEqual(
+                target.read_text(encoding="utf-8"),
+                "Maintainer acceptance status: pending.\n",
+            )
+            branch = subprocess.run(
+                ["git", "branch", "--show-current"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            status = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            self.assertEqual(branch, "maintainer-test-base")
+            self.assertEqual(status, "")
+
+    def test_successful_small_maintenance_job_commits_one_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target, store = self._maintenance_repository(root)
+            request = (
+                'Maintainer Mode: in docs/operations/MAINTAINER_ACCEPTANCE.md '
+                'replace "pending" with "verified".'
+            )
+            passed = {
+                "status": "passed",
+                "scope": "full",
+                "target": None,
+                "returncode": 0,
+                "output": "all tests passed",
+                "duration_seconds": 0.01,
+            }
+            with patch("josie.maintainer.run_tests", return_value=passed):
+                result = run_text_replacement_job(
+                    project_root=root,
+                    store=store,
+                    request_id="maintainer-success-0001",
+                    user_request=request,
+                    relative_path="docs/operations/MAINTAINER_ACCEPTANCE.md",
+                    old_text="pending",
+                    new_text="verified",
+                )
+            self.assertEqual(result["status"], "completed")
+            self.assertEqual(result["tests"]["status"], "passed")
+            self.assertEqual(
+                result["files_changed"],
+                ["docs/operations/MAINTAINER_ACCEPTANCE.md"],
+            )
+            self.assertEqual(
+                target.read_text(encoding="utf-8"),
+                "Maintainer acceptance status: verified.\n",
+            )
+            self.assertRegex(str(result["final_commit"]), r"^[0-9a-f]{40}$")
+            self.assertIn(
+                "git revert", str(result["rollback_result"])
+            )
+            events = [item["event"] for item in result["events"]]
+            self.assertIn("checkpoint_created", events)
+            self.assertIn("diff_recorded", events)
+            self.assertIn("tests_completed", events)
+            self.assertIn("committed", events)
+            status = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            self.assertEqual(status, "")
+
+    def test_openwebui_filter_deterministically_runs_maintainer_request(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        filter_path = project_root / "deploy" / "open-webui" / "exact-tool-response-filter.py"
+        module_name = "josie_maintainer_filter_regression"
+        spec = importlib.util.spec_from_file_location(module_name, filter_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        pydantic_stub = types.ModuleType("pydantic")
+        pydantic_stub.BaseModel = object
+        pydantic_stub.Field = lambda *, default: default
+        prompt = (
+            'Maintainer Mode: in docs/operations/MAINTAINER_ACCEPTANCE.md '
+            'replace "pending" with "verified".'
+        )
+        captured: list[tuple[str, dict]] = []
+
+        def fake_control(path: str, payload: dict, *, timeout: int = 100) -> dict:
+            captured.append((path, payload))
+            return {
+                "status": "completed",
+                "request_id": payload["request_id"],
+                "approval_required": False,
+                "base_commit": "a" * 40,
+                "maintenance_branch": "maintenance/acceptance-12345678",
+                "files_changed": ["docs/operations/MAINTAINER_ACCEPTANCE.md"],
+                "diff_summary": "1 file changed, 1 insertion(+), 1 deletion(-)",
+                "tests": {"status": "passed"},
+                "commands": [{"kind": "full_tests"}],
+                "final_commit": "b" * 40,
+                "rollback_result": "git revert " + "b" * 40,
+                "error": None,
+                "events": [],
+                "assistant_message": "JOSIE MAINTAINER — ACTUAL CONTROL-PLANE RESULT",
+                "local_only": True,
+                "arbitrary_shell_available": False,
+                "push_performed": False,
+                "new_database": False,
+                "new_container": False,
+                "actions_executed": 4,
+            }
+
+        with patch.dict(sys.modules, {"pydantic": pydantic_stub}):
+            spec.loader.exec_module(module)
+        request_body = {
+            "model": "josie-local:1.0",
+            "chat_id": "maintainer-filter-test",
+            "tool_ids": ["server:josie-subscription-seats"],
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        with patch.object(module, "_control_post", side_effect=fake_control), patch.object(
+            module, "_record_history"
+        ):
+            inlet = module.Filter().inlet(request_body)
+            self.assertNotIn("server:josie-subscription-seats", inlet["tool_ids"])
+            outlet = module.Filter().outlet(
+                {
+                    **inlet,
+                    "messages": [
+                        *inlet["messages"],
+                        {"role": "assistant", "content": "UNTRUSTED LOCAL CLAIM"},
+                    ],
+                }
+            )
+        self.assertEqual(len(captured), 1)
+        self.assertEqual(captured[0][0], "/v1/maintainer/replace")
+        self.assertEqual(captured[0][1]["user_request"], prompt)
+        self.assertEqual(captured[0][1]["path"], "docs/operations/MAINTAINER_ACCEPTANCE.md")
+        self.assertEqual(
+            outlet["messages"][-1]["content"],
+            "JOSIE MAINTAINER — ACTUAL CONTROL-PLANE RESULT",
+        )
+        self.assertNotIn("UNTRUSTED", outlet["messages"][-1]["content"])
+        source_names = {
+            source["source"]["name"] for source in outlet.get("sources", [])
+        }
+        self.assertIn(
+            "server:josie-subscription-seats/maintain_josie_text", source_names
+        )
+        sys.modules.pop(module_name, None)
 
     def test_explicit_subscription_cli_paths_are_authoritative(self) -> None:
         missing_codex = str(Path(tempfile.gettempdir()) / "missing-josie-codex.exe")

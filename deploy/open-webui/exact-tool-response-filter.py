@@ -26,6 +26,8 @@ CODEX_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_codex"
 GEMINI_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_gemini"
 STATE_SOURCE = f"{CONTROL_SOURCE_PREFIX}get_josie_conversation_state"
 RECALL_SOURCE = f"{CONTROL_SOURCE_PREFIX}recall_josie_history"
+MAINTAINER_SOURCE = f"{CONTROL_SOURCE_PREFIX}maintain_josie_text"
+MAINTAINER_STATUS_SOURCE = f"{CONTROL_SOURCE_PREFIX}get_josie_maintainer_status"
 STATUS_KEYS = {
     "status",
     "read_only",
@@ -91,6 +93,14 @@ RECALL_QUERY = re.compile(
     r"\b(?:local memory|local history|search your own .*memory|"
     r"what (?:did|have) (?:we|you) (?:discuss|decide|remember))\b",
     re.IGNORECASE,
+)
+MAINTAINER_PREFIX = re.compile(r"(?im)^\s*Maintainer\s+Mode\s*:")
+MAINTAINER_STATUS_QUERY = re.compile(
+    r"\b(?:maintainer mode status|maintenance capability status)\b", re.IGNORECASE
+)
+MAINTAINER_REPLACEMENT = re.compile(
+    r"(?is)^\s*Maintainer\s+Mode\s*:\s*in\s+([A-Za-z0-9_.\\/-]+)\s*,?\s*"
+    r"replace\s+[\"“](.*?)[\"”]\s+with\s+[\"“](.*?)[\"”]"
 )
 
 
@@ -177,6 +187,22 @@ def _explicit_consultations(user_text: str) -> dict[str, str]:
         provider: query
         for provider in ("codex", "gemini")
         if (query := _explicit_query(user_text, provider)) is not None
+    }
+
+
+def _maintenance_directive(user_text: str) -> dict[str, str] | None:
+    match = MAINTAINER_REPLACEMENT.search(user_text)
+    if match is None:
+        return None
+    path, old_text, new_text = (item.strip() for item in match.groups())
+    if not path or not old_text or not new_text:
+        return None
+    if len(user_text) > 8_000 or len(old_text) > 20_000 or len(new_text) > 20_000:
+        return None
+    return {
+        "path": path.replace("\\", "/"),
+        "old_text": old_text,
+        "new_text": new_text,
     }
 
 
@@ -310,6 +336,29 @@ def _consultation_payload(body: dict, provider: str, query: str) -> dict:
     }
 
 
+def _maintenance_request_id(body: dict, user_text: str) -> str:
+    metadata = body.get("metadata") or {}
+    scope = str(
+        body.get("chat_id")
+        or metadata.get("chat_id")
+        or body.get("id")
+        or metadata.get("message_id")
+        or "openwebui"
+    )
+    digest = hashlib.sha256(f"{scope}\0{user_text}".encode("utf-8")).hexdigest()
+    return f"openwebui-maintainer-{digest[:32]}"
+
+
+def _maintenance_payload(body: dict, user_text: str, directive: dict[str, str]) -> dict:
+    return {
+        "request_id": _maintenance_request_id(body, user_text),
+        "user_request": user_text,
+        "path": directive["path"],
+        "old_text": directive["old_text"],
+        "new_text": directive["new_text"],
+    }
+
+
 def _prefetch_consultations(body: dict, directives: dict[str, str]) -> None:
     def invoke(item: tuple[str, str]) -> None:
         provider, query = item
@@ -431,7 +480,109 @@ def _recall_message(payload: dict) -> str:
     return "\n\n".join(lines[:2]) + "\n" + "\n".join(lines[2:])
 
 
+def _maintenance_message(payload: dict) -> str:
+    if (
+        payload.get("status")
+        not in {"completed", "rolled_back", "blocked", "approval_required"}
+        or not isinstance(payload.get("request_id"), str)
+        or payload.get("local_only") is not True
+        or payload.get("arbitrary_shell_available") is not False
+        or payload.get("push_performed") is not False
+        or payload.get("new_database") is not False
+        or payload.get("new_container") is not False
+        or not isinstance(payload.get("actions_executed"), int)
+        or not isinstance(payload.get("assistant_message"), str)
+    ):
+        raise ValueError("Maintainer evidence is invalid")
+    if payload["status"] == "completed":
+        tests = payload.get("tests") or {}
+        if (
+            tests.get("status") != "passed"
+            or not isinstance(payload.get("final_commit"), str)
+            or not payload.get("final_commit")
+            or payload.get("approval_required") is not False
+            or not isinstance(payload.get("files_changed"), list)
+            or len(payload["files_changed"]) != 1
+        ):
+            raise ValueError("Completed Maintainer evidence is invalid")
+    if payload["status"] == "approval_required" and payload.get("approval_required") is not True:
+        raise ValueError("Maintainer approval evidence is invalid")
+    return str(payload["assistant_message"])
+
+
+def _maintainer_status_message(payload: dict) -> str:
+    if (
+        payload.get("status") != "ok"
+        or payload.get("mode") != "maintainer_0_1"
+        or payload.get("enabled") is not True
+        or payload.get("arbitrary_shell_available") is not False
+        or payload.get("package_install_allowed") is not False
+        or payload.get("push_allowed") is not False
+        or payload.get("consultants_are_advisory_only") is not True
+    ):
+        raise ValueError("Maintainer status evidence is invalid")
+    git = payload.get("git") or {}
+    return "\n".join(
+        (
+            "JOSIE MAINTAINER — ACTUAL CONTROL-PLANE STATUS",
+            "Mode: maintainer_0_1; enabled=true.",
+            f"Git branch: {git.get('branch', 'unknown')}.",
+            f"Git commit: {git.get('commit', 'unknown')}.",
+            "Arbitrary shell: unavailable.",
+            "Package installation: not allowed.",
+            "Remote push: not allowed.",
+            "Consultants: advisory only; their failure grants no authority.",
+        )
+    )
+
+
 def _authoritative_response(body: dict, user_text: str) -> tuple[str, list[dict], str] | None:
+    maintenance = _maintenance_directive(user_text)
+    if MAINTAINER_PREFIX.search(user_text):
+        if maintenance is None:
+            return (
+                'JOSIE MAINTAINER — REQUEST REJECTED\n\nUse exactly: Maintainer Mode: '
+                'in <path> replace "<exact old text>" with "<exact new text>".',
+                [],
+                "local_maintainer_rejected",
+            )
+        try:
+            payload = _control_post(
+                "/v1/maintainer/replace",
+                _maintenance_payload(body, user_text, maintenance),
+                timeout=300,
+            )
+            return (
+                _maintenance_message(payload),
+                [_evidence_source(MAINTAINER_SOURCE, payload)],
+                "local_maintainer",
+            )
+        except Exception as exc:
+            return (
+                "JOSIE MAINTAINER — CONTROL SERVICE UNAVAILABLE\n\n"
+                f"No unverified success is claimed. Error: {type(exc).__name__}.",
+                [],
+                "local_maintainer_failed_closed",
+            )
+
+    if MAINTAINER_STATUS_QUERY.search(user_text):
+        try:
+            payload = _control_post(
+                "/v1/maintainer/status", {"query": user_text}, timeout=10
+            )
+            return (
+                _maintainer_status_message(payload),
+                [_evidence_source(MAINTAINER_STATUS_SOURCE, payload)],
+                "local_maintainer_status",
+            )
+        except Exception as exc:
+            return (
+                "JOSIE MAINTAINER — STATUS UNAVAILABLE\n\n"
+                f"Local evidence service error: {type(exc).__name__}.",
+                [],
+                "local_maintainer_status_unavailable",
+            )
+
     directives = _explicit_consultations(user_text)
     state_requested = bool(STATE_QUERY.search(user_text))
     recall_requested = bool(RECALL_QUERY.search(user_text))
@@ -494,6 +645,8 @@ def _conversation_route(body: dict) -> str:
         return "codex_cli"
     if GEMINI_SOURCE in source_names:
         return "gemini_cli"
+    if MAINTAINER_SOURCE in source_names:
+        return "local_maintainer"
     return "local_ollama"
 
 
@@ -575,7 +728,15 @@ class Filter:
         updated = {**body, "features": features}
         user_text = _last_user_text(updated)
         explicit = _explicit_consultations(user_text)
-        deterministic = bool(STATE_QUERY.search(user_text) or RECALL_QUERY.search(user_text))
+        maintenance = bool(
+            MAINTAINER_PREFIX.search(user_text)
+            or MAINTAINER_STATUS_QUERY.search(user_text)
+        )
+        deterministic = bool(
+            STATE_QUERY.search(user_text)
+            or RECALL_QUERY.search(user_text)
+            or maintenance
+        )
         if explicit:
             _prefetch_consultations(updated, explicit)
         if explicit or deterministic:

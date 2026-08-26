@@ -338,6 +338,43 @@ class LocalStore:
                     response TEXT NOT NULL,
                     error TEXT
                 );
+                CREATE TABLE IF NOT EXISTS maintenance_jobs (
+                    id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    request_id TEXT NOT NULL UNIQUE,
+                    user_request TEXT NOT NULL,
+                    operation TEXT NOT NULL
+                    CHECK (operation IN ('replace_text','restart_service')),
+                    target_path TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'requested'
+                    CHECK (status IN (
+                        'requested','in_progress','completed','rolled_back',
+                        'blocked','approval_required'
+                    )),
+                    base_branch TEXT,
+                    maintenance_branch TEXT,
+                    base_commit TEXT,
+                    files_read_json TEXT NOT NULL DEFAULT '[]',
+                    files_changed_json TEXT NOT NULL DEFAULT '[]',
+                    commands_json TEXT NOT NULL DEFAULT '[]',
+                    diff_summary TEXT,
+                    tests_json TEXT NOT NULL DEFAULT '{}',
+                    consultants_json TEXT NOT NULL DEFAULT '[]',
+                    final_commit TEXT,
+                    rollback_result TEXT,
+                    approval_required INTEGER NOT NULL DEFAULT 0
+                    CHECK (approval_required IN (0,1)),
+                    error TEXT
+                );
+                CREATE TABLE IF NOT EXISTS maintenance_events (
+                    id INTEGER PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    job_id INTEGER NOT NULL,
+                    event TEXT NOT NULL,
+                    detail_json TEXT NOT NULL DEFAULT '{}',
+                    FOREIGN KEY(job_id) REFERENCES maintenance_jobs(id)
+                );
                 CREATE TABLE IF NOT EXISTS learning_units (
                     learning_id TEXT PRIMARY KEY,
                     created_at TEXT NOT NULL,
@@ -507,6 +544,150 @@ class LocalStore:
             ).fetchall()
         records = [self.subscription_consultation(row["request_id"]) for row in rows]
         return [record for record in records if record is not None]
+
+    @staticmethod
+    def _maintenance_record(row: sqlite3.Row) -> dict[str, object]:
+        return {
+            "id": int(row["id"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "request_id": row["request_id"],
+            "user_request": row["user_request"],
+            "operation": row["operation"],
+            "target_path": row["target_path"],
+            "status": row["status"],
+            "base_branch": row["base_branch"],
+            "maintenance_branch": row["maintenance_branch"],
+            "base_commit": row["base_commit"],
+            "files_read": json.loads(row["files_read_json"]),
+            "files_changed": json.loads(row["files_changed_json"]),
+            "commands": json.loads(row["commands_json"]),
+            "diff_summary": row["diff_summary"],
+            "tests": json.loads(row["tests_json"]),
+            "consultants": json.loads(row["consultants_json"]),
+            "final_commit": row["final_commit"],
+            "rollback_result": row["rollback_result"],
+            "approval_required": bool(row["approval_required"]),
+            "error": row["error"],
+        }
+
+    def create_maintenance_job(
+        self,
+        *,
+        request_id: str,
+        user_request: str,
+        operation: str,
+        target_path: str,
+        consultants: list[dict[str, object]],
+    ) -> int:
+        now = self._now()
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO maintenance_jobs("
+                "created_at,updated_at,request_id,user_request,operation,target_path,"
+                "consultants_json) VALUES (?,?,?,?,?,?,?)",
+                (
+                    now,
+                    now,
+                    request_id,
+                    user_request,
+                    operation,
+                    target_path,
+                    json.dumps(consultants, sort_keys=True),
+                ),
+            )
+            return int(cursor.lastrowid)
+
+    def update_maintenance_job(self, job_id: int, **changes: object) -> None:
+        allowed = {
+            "status",
+            "base_branch",
+            "maintenance_branch",
+            "base_commit",
+            "files_read",
+            "files_changed",
+            "commands",
+            "diff_summary",
+            "tests",
+            "consultants",
+            "final_commit",
+            "rollback_result",
+            "approval_required",
+            "error",
+        }
+        unknown = set(changes) - allowed
+        if unknown:
+            raise ValueError(f"Unsupported maintenance fields: {sorted(unknown)}")
+        if not changes:
+            return
+        json_fields = {
+            "files_read": "files_read_json",
+            "files_changed": "files_changed_json",
+            "commands": "commands_json",
+            "tests": "tests_json",
+            "consultants": "consultants_json",
+        }
+        assignments = ["updated_at=?"]
+        values: list[object] = [self._now()]
+        for key, value in changes.items():
+            column = json_fields.get(key, key)
+            assignments.append(f"{column}=?")
+            if key in json_fields:
+                values.append(json.dumps(value, sort_keys=True))
+            elif key == "approval_required":
+                values.append(int(bool(value)))
+            else:
+                values.append(value)
+        values.append(job_id)
+        with self._connect() as connection:
+            cursor = connection.execute(
+                f"UPDATE maintenance_jobs SET {','.join(assignments)} WHERE id=?",
+                values,
+            )
+            if cursor.rowcount != 1:
+                raise ValueError("Maintenance job was not found")
+
+    def maintenance_job(self, request_id: str) -> dict[str, object] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM maintenance_jobs WHERE request_id=?", (request_id,)
+            ).fetchone()
+        return None if row is None else self._maintenance_record(row)
+
+    def recent_maintenance_jobs(self, limit: int = 20) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM maintenance_jobs ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [self._maintenance_record(row) for row in rows]
+
+    def add_maintenance_event(
+        self, *, job_id: int, event: str, detail: dict[str, object]
+    ) -> int:
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "INSERT INTO maintenance_events(created_at,job_id,event,detail_json) "
+                "VALUES (?,?,?,?)",
+                (self._now(), job_id, event, json.dumps(detail, sort_keys=True)),
+            )
+            return int(cursor.lastrowid)
+
+    def maintenance_events(self, job_id: int) -> list[dict[str, object]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT id,created_at,event,detail_json FROM maintenance_events "
+                "WHERE job_id=? ORDER BY id",
+                (job_id,),
+            ).fetchall()
+        return [
+            {
+                "id": int(row["id"]),
+                "created_at": row["created_at"],
+                "event": row["event"],
+                "detail": json.loads(row["detail_json"]),
+            }
+            for row in rows
+        ]
 
     def remember(self, content: str) -> int:
         with self._connect() as connection:

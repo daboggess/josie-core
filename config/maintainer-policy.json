@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "mode": "maintainer_0_1",
+  "enabled": true,
+  "read": {
+    "excluded_roots": [
+      ".git",
+      ".venv",
+      "data",
+      "logs",
+      "node_modules",
+      "startup-backup"
+    ],
+    "secret_names": [
+      ".env",
+      ".env.services"
+    ],
+    "secret_suffixes": [
+      ".db",
+      ".key",
+      ".p12",
+      ".pem",
+      ".pfx",
+      ".sqlite",
+      ".token"
+    ],
+    "max_file_bytes": 262144,
+    "max_results": 100
+  },
+  "write": {
+    "allowed_roots": [
+      "docs/operations",
+      "josie",
+      "tests"
+    ],
+    "allowed_files": [
+      "README.md"
+    ],
+    "protected_paths": [
+      "config",
+      "deploy",
+      "docs/JOSIE_MASTER_BUILD_STATE.yaml",
+      "docs/architecture/AUTHORITY_MODEL.md",
+      "docs/architecture/SECURITY_MODEL.md",
+      "docs/constitution",
+      "docs/identity",
+      "docs/security",
+      "JOSIE_CODEX_MASTER_CONTEXT.md",
+      "josie/config.py",
+      "josie/conversation_control.py",
+      "josie/deployment.py",
+      "josie/economic_policy.py",
+      "josie/maintainer.py",
+      "josie/policy.py",
+      "josie/providers.py",
+      "scripts"
+    ],
+    "max_change_characters": 20000,
+    "operations": [
+      "replace_text"
+    ]
+  },
+  "commands": {
+    "python": [
+      "backup_status",
+      "conversation_status"
+    ],
+    "powershell": [
+      "service_gate_status"
+    ],
+    "restart_services": {
+      "browser_worker": "browser-worker",
+      "n8n": "n8n",
+      "open_webui": "open-webui",
+      "proposal_server": "proposal-server"
+    },
+    "full_test_timeout_seconds": 180,
+    "service_restart_timeout_seconds": 120
+  },
+  "git": {
+    "branch_prefix": "maintenance/",
+    "require_clean_tree": true,
+    "push_allowed": false,
+    "force_push_allowed": false,
+    "history_rewrite_allowed": false,
+    "remove_recovery_tags_allowed": false
+  },
+  "authority": {
+    "consultants_are_advisory_only": true,
+    "consultant_failure_grants_authority": false,
+    "protected_actions_require_dustin": true,
+    "self_permission_expansion_allowed": false,
+    "package_install_allowed": false,
+    "new_container_allowed": false,
+    "new_database_allowed": false,
+    "network_exposure_change_allowed": false
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "mode": "maintainer_0_1",
+  "enabled": true,
+  "baseline": {
+    "commit": "aa1a24be3d70bad888f40a2bbc9ff30878564f33",
+    "tag": "openwebui-tool-fidelity-20260826",
+    "tests": 96,
+    "full_suite_status": "passed"
+  },
+  "implementation": {
+    "branch": "maintainer-mode-0.1",
+    "tests": 106,
+    "full_suite_status": "passed"
+  },
+  "acceptance": {
+    "status": "pending",
+    "tests": 106,
+    "full_suite_status": "passed",
+    "request_id": null,
+    "maintenance_branch": null,
+    "commit": null,
+    "openwebui_chat_id": null
+  },
+  "boundaries": {
+    "arbitrary_shell_available": false,
+    "package_install_allowed": false,
+    "push_allowed": false,
+    "consultants_are_advisory_only": true,
+    "new_database": false,
+    "new_container": false,
+    "history_importer_built": false
+  }
+}

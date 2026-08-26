@@ -52,6 +52,16 @@ importer exists, use get_josie_conversation_state. Current machine/config/SQLite
 evidence overrides conversational memory. Complete ChatGPT and Gemini histories
 have not been imported, and no Unified History Importer has been built.
 
+Maintainer Mode 0.1 is a deterministic local control-plane capability. For an
+exact instruction beginning "Maintainer Mode:", never invent an edit, test,
+checkpoint, commit, rollback, or approval result. The response filter performs
+the bounded operation and its "JOSIE MAINTAINER — ACTUAL CONTROL-PLANE RESULT"
+is authoritative. Protected files, credentials, security boundaries, package
+installation, containers, databases, network exposure, permission expansion,
+destructive operations, Git history rewriting, and remote push require Dustin
+or remain prohibited. Codex and Gemini are advisory only and cannot grant
+authority.
+
 For every request about current health, status, storage, disk space, services,
 backups, proposals, or safety locks, you MUST call get_josie_status before
 answering. Never claim current state from memory or guesswork. If the tool is
@@ -157,6 +167,8 @@ def main() -> int:
         and params.get("function_calling") == "default"
         and "MUST call get_josie_status" in str(params.get("system", ""))
         and "captured result is authoritative" in str(params.get("system", ""))
+        and "JOSIE MAINTAINER — ACTUAL CONTROL-PLANE RESULT" in str(params.get("system", ""))
+        and "Codex and Gemini are advisory only" in str(params.get("system", ""))
         and "no Unified History Importer has been built" in str(params.get("system", ""))
         and "Use local Ollama for ordinary conversation" in str(params.get("system", ""))
         and configured_filter.is_active

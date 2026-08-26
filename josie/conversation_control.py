@@ -1,10 +1,9 @@
 """Local Open WebUI bridge for optional subscription-authenticated CLI seats.
 
 Open WebUI and Ollama remain the conversational front door and default model.  This
-module exposes only three bounded operations to that local interface: recall local
-history, consult Codex CLI, and consult Gemini CLI.  It never accepts shell commands,
-never uses an API key, and records consultation results in Josie's existing SQLite
-store.
+module exposes bounded local history, consultant, and software-maintenance operations
+to that interface.  It never accepts arbitrary shell commands, never uses an API key,
+and records consultation and maintenance evidence in Josie's existing SQLite store.
 """
 
 from __future__ import annotations
@@ -26,6 +25,20 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 from .config import Config
+from .maintainer import (
+    git_diff,
+    git_status,
+    maintainer_status,
+    maintenance_public,
+    read_file,
+    restart_approved_service,
+    rollback_maintenance,
+    run_approved_powershell,
+    run_approved_python,
+    run_tests,
+    run_text_replacement_job,
+    search_repo,
+)
 from .storage import LocalStore
 
 
@@ -450,6 +463,12 @@ def conversation_state(project_root: Path, store: LocalStore) -> dict[str, objec
         loaded = json.loads(lock_path.read_text(encoding="utf-8"))
         if isinstance(loaded, dict):
             lock = loaded
+    maintainer_lock_path = project_root / "deploy" / "maintainer-mode.lock.json"
+    maintainer_lock: dict[str, Any] = {}
+    if maintainer_lock_path.is_file():
+        loaded = json.loads(maintainer_lock_path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            maintainer_lock = loaded
     seats = cli_seat_status(project_root)
     latest = {CODEX_PROVIDER: None, GEMINI_PROVIDER: None}
     for record in store.recent_subscription_consultations(limit=50):
@@ -469,6 +488,25 @@ def conversation_state(project_root: Path, store: LocalStore) -> dict[str, objec
     )
     test_count = acceptance.get("tests_after_live_changes")
     test_status = acceptance.get("full_suite_status", "unknown")
+    maintainer_acceptance = (
+        maintainer_lock.get("acceptance")
+        if isinstance(maintainer_lock.get("acceptance"), dict)
+        else {}
+    )
+    maintainer_implementation = (
+        maintainer_lock.get("implementation")
+        if isinstance(maintainer_lock.get("implementation"), dict)
+        else {}
+    )
+    maintainer_test_source = maintainer_implementation
+    if maintainer_acceptance.get("status") == "passed":
+        maintainer_test_source = maintainer_acceptance
+    if isinstance(maintainer_test_source.get("tests"), int):
+        test_count = maintainer_test_source["tests"]
+        test_status = maintainer_test_source.get("full_suite_status", "unknown")
+        test_evidence = maintainer_lock_path
+    else:
+        test_evidence = lock_path
     summit_active = bool(retired.get("summit_function_active", False))
     groq_active = bool(retired.get("groq_route_active", False))
     codex = seats["openai"]
@@ -486,6 +524,7 @@ def conversation_state(project_root: Path, store: LocalStore) -> dict[str, objec
             f"Summit/Groq route active: {str(summit_active or groq_active).lower()}.",
             f"Full repository test checkpoint: {test_count if test_count is not None else 'unknown'} "
             f"tests; status={test_status}.",
+            "Maintainer Mode 0.1: enabled=true; arbitrary shell=false; remote push=false.",
             "Complete ChatGPT history imported: false.",
             "Complete Gemini history imported: false.",
             "Unified History Importer built: false.",
@@ -500,7 +539,14 @@ def conversation_state(project_root: Path, store: LocalStore) -> dict[str, objec
         "gemini_cli": {**gemini, "last_consultation": latest[GEMINI_PROVIDER]},
         "consultant_results_persisted_locally": True,
         "summit_groq_active": summit_active or groq_active,
-        "tests": {"count": test_count, "status": test_status, "evidence": str(lock_path)},
+        "tests": {"count": test_count, "status": test_status, "evidence": str(test_evidence)},
+        "maintainer_mode": {
+            "built": bool(maintainer_lock),
+            "enabled": bool(maintainer_lock.get("enabled", False)),
+            "live_acceptance": maintainer_acceptance.get("status", "not_recorded"),
+            "arbitrary_shell_available": False,
+            "push_allowed": False,
+        },
         "complete_chatgpt_history_imported": False,
         "complete_gemini_history_imported": False,
         "unified_history_importer_built": False,
@@ -531,7 +577,8 @@ def _openapi_spec(port: int) -> dict[str, object]:
             "version": "1.0.0",
             "description": (
                 "Recalls local history and optionally consults official subscription-"
-                "authenticated CLIs. Ordinary conversation remains on local Ollama."
+                "authenticated CLIs. It also exposes read-only, allowlisted Maintainer "
+                "Mode inspection commands. Ordinary conversation remains on local Ollama."
             ),
         },
         "servers": [{"url": f"http://host.docker.internal:{port}"}],
@@ -605,6 +652,121 @@ def _openapi_spec(port: int) -> dict[str, object]:
                     "responses": {"200": {"description": "Advisory result or local fallback"}},
                 }
             },
+            "/v1/maintainer/status": {
+                "post": {
+                    "operationId": "get_josie_maintainer_status",
+                    "summary": "Inspect local Maintainer Mode policy and Git state",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {"application/json": {"schema": query_schema}},
+                    },
+                    "responses": {"200": {"description": "Read-only maintainer status"}},
+                }
+            },
+            "/v1/maintainer/read": {
+                "post": {
+                    "operationId": "read_josie_project_file",
+                    "summary": "Read an allowlisted Josie project file",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "required": ["path"],
+                                    "properties": {
+                                        "path": {"type": "string", "maxLength": 512}
+                                    },
+                                }
+                            }
+                        },
+                    },
+                    "responses": {"200": {"description": "Bounded file content"}},
+                }
+            },
+            "/v1/maintainer/search": {
+                "post": {
+                    "operationId": "search_josie_project",
+                    "summary": "Search allowlisted Josie project files",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "required": ["query"],
+                                    "properties": {
+                                        "query": {"type": "string", "maxLength": 200},
+                                        "path": {"type": "string", "maxLength": 512},
+                                    },
+                                }
+                            }
+                        },
+                    },
+                    "responses": {"200": {"description": "Bounded search matches"}},
+                }
+            },
+            "/v1/maintainer/git/status": {
+                "post": {
+                    "operationId": "read_josie_git_status",
+                    "summary": "Read Josie Git status",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {"application/json": {"schema": query_schema}},
+                    },
+                    "responses": {"200": {"description": "Read-only Git status"}},
+                }
+            },
+            "/v1/maintainer/git/diff": {
+                "post": {
+                    "operationId": "read_josie_git_diff",
+                    "summary": "Read a bounded Josie Git diff",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "path": {"type": "string", "maxLength": 512}
+                                    },
+                                }
+                            }
+                        },
+                    },
+                    "responses": {"200": {"description": "Read-only Git diff"}},
+                }
+            },
+            "/v1/maintainer/tests": {
+                "post": {
+                    "operationId": "run_approved_josie_tests",
+                    "summary": "Run the fixed Josie test suite or an allowlisted focused test",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "focused_test": {"type": "string", "maxLength": 180}
+                                    },
+                                }
+                            }
+                        },
+                    },
+                    "responses": {"200": {"description": "Fixed test result"}},
+                }
+            },
         },
     }
 
@@ -676,6 +838,10 @@ def _handler_class(
                         "binding": f"{SERVICE_HOST}:{port}",
                         "default_provider": LOCAL_PROVIDER,
                         "cli_seats": cli_seat_status(project_root),
+                        "maintainer_mode": {
+                            "enabled": (project_root / "config" / "maintainer-policy.json").is_file(),
+                            "arbitrary_shell_available": False,
+                        },
                     },
                 )
                 return
@@ -699,6 +865,113 @@ def _handler_class(
                         payload.get("query"), label="State query", limit=MAX_QUERY_CHARS
                     )
                     self._send(200, conversation_state(project_root, store))
+                    return
+                if path == "/v1/maintainer/status":
+                    _bounded_text(
+                        payload.get("query"), label="Status query", limit=MAX_QUERY_CHARS
+                    )
+                    self._send(200, maintainer_status(project_root, store))
+                    return
+                if path == "/v1/maintainer/read":
+                    relative = _bounded_text(
+                        payload.get("path"), label="Path", limit=512
+                    )
+                    self._send(200, read_file(project_root, relative))
+                    return
+                if path == "/v1/maintainer/search":
+                    self._send(
+                        200,
+                        search_repo(
+                            project_root,
+                            payload.get("query"),
+                            relative=str(payload.get("path") or ""),
+                        ),
+                    )
+                    return
+                if path == "/v1/maintainer/git/status":
+                    _bounded_text(
+                        payload.get("query"), label="Git status query", limit=MAX_QUERY_CHARS
+                    )
+                    self._send(200, git_status(project_root))
+                    return
+                if path == "/v1/maintainer/git/diff":
+                    relative = payload.get("path")
+                    if relative is not None and not isinstance(relative, str):
+                        raise ValueError("Path must be text")
+                    self._send(200, git_diff(project_root, relative=relative or None))
+                    return
+                if path == "/v1/maintainer/tests":
+                    focused = payload.get("focused_test")
+                    if focused is not None and not isinstance(focused, str):
+                        raise ValueError("Focused test must be text")
+                    self._send(200, run_tests(project_root, focused_test=focused or None))
+                    return
+                if path == "/v1/maintainer/python":
+                    self._send(
+                        200,
+                        run_approved_python(project_root, str(payload.get("command_id") or "")),
+                    )
+                    return
+                if path == "/v1/maintainer/powershell":
+                    self._send(
+                        200,
+                        run_approved_powershell(
+                            project_root, str(payload.get("command_id") or "")
+                        ),
+                    )
+                    return
+                if path == "/v1/maintainer/replace":
+                    consultant_ids = payload.get("consultant_request_ids")
+                    if consultant_ids is not None and not isinstance(consultant_ids, list):
+                        raise ValueError("Consultant request IDs must be a list")
+                    self._send(
+                        200,
+                        run_text_replacement_job(
+                            project_root=project_root,
+                            store=store,
+                            request_id=str(payload.get("request_id") or ""),
+                            user_request=payload.get("user_request"),
+                            relative_path=str(payload.get("path") or ""),
+                            old_text=str(payload.get("old_text") or ""),
+                            new_text=str(payload.get("new_text") or ""),
+                            consultant_request_ids=consultant_ids,
+                            focused_test=(
+                                str(payload["focused_test"])
+                                if payload.get("focused_test")
+                                else None
+                            ),
+                        ),
+                    )
+                    return
+                if path == "/v1/maintainer/job":
+                    request_id = str(payload.get("request_id") or "")
+                    record = maintenance_public(store, request_id)
+                    if record is None:
+                        self._send(404, {"status": "not_found"})
+                    else:
+                        self._send(200, record)
+                    return
+                if path == "/v1/maintainer/rollback":
+                    self._send(
+                        200,
+                        rollback_maintenance(
+                            project_root=project_root,
+                            store=store,
+                            request_id=str(payload.get("request_id") or ""),
+                        ),
+                    )
+                    return
+                if path == "/v1/maintainer/restart":
+                    self._send(
+                        200,
+                        restart_approved_service(
+                            project_root=project_root,
+                            store=store,
+                            request_id=str(payload.get("request_id") or ""),
+                            service=str(payload.get("service") or ""),
+                            user_request=payload.get("user_request"),
+                        ),
+                    )
                     return
                 if path in {"/v1/consult/codex", "/v1/consult/gemini"}:
                     query = _bounded_text(

@@ -74,7 +74,7 @@ $connection = @(
         info = [ordered]@{
             id = 'josie-subscription-seats'
             name = 'Josie Local Conversation Control'
-            description = 'Recalls local history and optionally consults official ChatGPT- and Google-authenticated CLIs; local Ollama remains the default.'
+            description = 'Recalls local history, exposes bounded local maintenance inspection, and optionally consults official authenticated CLIs; local Ollama remains the default.'
         }
     }
 )
