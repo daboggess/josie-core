@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+import asyncio
 import hashlib
 import json
 import os
@@ -23,6 +24,9 @@ HISTORY_URL = "http://host.docker.internal:8790/v1/history"
 CONTROL_URL = "http://host.docker.internal:8790"
 CONTROL_SOURCE_PREFIX = f"server:{CONTROL_CONNECTION_ID}/"
 CODEX_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_codex"
+DELEGATE_SOURCE = f"{CONTROL_SOURCE_PREFIX}delegate_codex"
+DELEGATE_PREFIX = re.compile(r"\A\s*Delegate[ _]+Codex\s*:\s*", re.I)
+DELEGATE_STATUS = re.compile(r"\A\s*Delegate[ _]+Codex\s+status\s*:\s*([A-Za-z0-9][A-Za-z0-9_-]{7,95})\s*\Z", re.I)
 GEMINI_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_gemini"
 STATE_SOURCE = f"{CONTROL_SOURCE_PREFIX}get_josie_conversation_state"
 RECALL_SOURCE = f"{CONTROL_SOURCE_PREFIX}recall_josie_history"
@@ -537,6 +541,27 @@ def _maintainer_status_message(payload: dict) -> str:
 
 
 def _authoritative_response(body: dict, user_text: str) -> tuple[str, list[dict], str] | None:
+    status_request = DELEGATE_STATUS.fullmatch(user_text)
+    if DELEGATE_PREFIX.match(user_text) or status_request:
+        try:
+            if status_request:
+                payload = _control_post('/v1/delegate/codex/status',
+                    {'request_id': status_request.group(1)}, timeout=10)
+            else:
+                payload = _control_post('/v1/delegate/codex', {
+                    'request_id': _consultation_request_id(body, 'delegate', user_text),
+                    'user_request': user_text,
+                }, timeout=960)
+            message = payload.get('assistant_message')
+            if not isinstance(message, str) or not message.startswith('JOSIE CODEX DELEGATION — ACTUAL RESULT'):
+                raise ValueError('Invalid delegation result')
+            return message, [_evidence_source(DELEGATE_SOURCE, payload)], 'local_codex_delegate'
+        except Exception as exc:
+            job_id = status_request.group(1) if status_request else _consultation_request_id(body, 'delegate', user_text)
+            return ('JOSIE CODEX DELEGATION — RESULT UNAVAILABLE\n'
+                    f'Job: {job_id}\nError: {type(exc).__name__}. '
+                    'The job may have started; do not submit a new job ID. '
+                    f'Use: Delegate Codex status: {job_id}', [], 'local_codex_delegate_unavailable')
     maintenance = _maintenance_directive(user_text)
     if MAINTAINER_PREFIX.search(user_text):
         if maintenance is None:
@@ -727,7 +752,10 @@ class Filter:
         features["memory"] = True
         updated = {**body, "features": features}
         user_text = _last_user_text(updated)
+        delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text))
         explicit = _explicit_consultations(user_text)
+        if delegation:
+            explicit = {}
         maintenance = bool(
             MAINTAINER_PREFIX.search(user_text)
             or MAINTAINER_STATUS_QUERY.search(user_text)
@@ -736,6 +764,7 @@ class Filter:
             STATE_QUERY.search(user_text)
             or RECALL_QUERY.search(user_text)
             or maintenance
+            or delegation
         )
         if explicit:
             _prefetch_consultations(updated, explicit)
@@ -762,7 +791,22 @@ class Filter:
             pass
         return updated
 
-    def outlet(self, body: dict, __model__: dict | None = None) -> dict:
+    async def outlet(self, body: dict, __model__: dict | None = None, __event_emitter__=None) -> dict:
+        user_text = _last_user_text(body)
+        delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text))
+        if not delegation:
+            return self._outlet_sync(body, __model__)
+        # A long Codex job must not block Open WebUI's event loop.
+        updated = await asyncio.to_thread(self._outlet_sync, body, __model__)
+        if __event_emitter__ is not None:
+            for message in reversed(updated.get('messages') or []):
+                if message.get('role') == 'assistant' and message.get('output'):
+                    await __event_emitter__({'type': 'chat:completion', 'data': {
+                        'done': True, 'content': message['content'], 'output': message['output']}})
+                    break
+        return updated
+
+    def _outlet_sync(self, body: dict, __model__: dict | None = None) -> dict:
         model_id = body.get("model") or ((__model__ or {}).get("id"))
         if model_id != MODEL_ID:
             return body
@@ -772,6 +816,15 @@ class Filter:
         if authoritative is not None:
             trusted, sources, route = authoritative
             updated = _attach_sources(_replace_last_assistant(body, trusted), sources)
+            if route.startswith('local_codex_delegate'):
+                # Open WebUI 0.11 renders structured output in preference to content.
+                # Replace only this new route; advisory/Maintainer behavior is unchanged.
+                for message in reversed(updated['messages']):
+                    if message.get('role') == 'assistant':
+                        message['output'] = [{'id': 'delegate-result', 'type': 'message',
+                            'role': 'assistant', 'status': 'completed',
+                            'content': [{'type': 'output_text', 'text': trusted}]}]
+                        break
         else:
             trusted = _trusted_source_message(body, user_text)
             if trusted is None and STATUS_QUERY.search(user_text):

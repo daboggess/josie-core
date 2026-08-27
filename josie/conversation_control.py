@@ -46,7 +46,7 @@ SERVICE_HOST = "127.0.0.1"
 SERVICE_PORT = 8790
 MAX_QUERY_CHARS = 8_000
 MAX_RESPONSE_CHARS = 16_000
-MAX_BODY_BYTES = 24_000
+MAX_BODY_BYTES = 100_000
 MAX_CONTEXT_CHARS = 6_000
 CLI_TIMEOUT_SECONDS = 90
 
@@ -635,6 +635,35 @@ def _openapi_spec(port: int) -> dict[str, object]:
                     "responses": {"200": {"description": "Advisory result or local fallback"}},
                 }
             },
+            "/v1/delegate/codex": {
+                "post": {
+                    "operationId": "delegate_codex",
+                    "summary": "Execute Dustin's explicit repository engineering task using local Codex",
+                    "description": "Use only for an explicit Delegate Codex: user instruction. Send the complete original user_request, without paraphrasing. Real repo edits, Git and tests; not advisory. No system-wide authority or production history changes.",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {"required": True, "content": {"application/json": {"schema": {
+                        "type": "object", "additionalProperties": False,
+                        "required": ["user_request", "request_id"],
+                        "properties": {
+                            "user_request": {"type": "string", "maxLength": 24000},
+                            "request_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,95}$"}
+                        }
+                    }}}},
+                    "responses": {"200": {"description": "Actual delegation result; may take up to 15 minutes"}},
+                }
+            },
+            "/v1/delegate/codex/status": {
+                "post": {
+                    "operationId": "get_codex_delegation_status",
+                    "summary": "Read a delegation receipt without rerunning the job",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {"required": True, "content": {"application/json": {"schema": {
+                        "type": "object", "required": ["request_id"],
+                        "properties": {"request_id": {"type": "string", "maxLength": 96}}
+                    }}}},
+                    "responses": {"200": {"description": "Current receipt"}},
+                }
+            },
             "/v1/consult/gemini": {
                 "post": {
                     "operationId": "consult_gemini",
@@ -857,6 +886,16 @@ def _handler_class(
                 return
             try:
                 payload = self._body()
+                if path == "/v1/delegate/codex":
+                    from .codex_delegate import delegate_codex
+                    self._send(200, delegate_codex(
+                        payload.get("user_request"), request_id=payload.get("request_id"),
+                        project_root=project_root))
+                    return
+                if path == "/v1/delegate/codex/status":
+                    from .codex_delegate import delegation_status
+                    self._send(200, delegation_status(project_root, payload.get("request_id")))
+                    return
                 if path == "/v1/recall":
                     self._send(200, recall_history(store, payload.get("query")))
                     return

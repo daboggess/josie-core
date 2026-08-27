@@ -1503,7 +1503,7 @@ class JosieTests(unittest.TestCase):
                     {"role": "assistant", "content": "FABRICATED LOCAL SUMMARY"},
                 ],
             }
-            outlet = module.Filter().outlet(response_body)
+            outlet = __import__('asyncio').run(module.Filter().outlet(response_body))
         content = outlet["messages"][-1]["content"]
         self.assertIn("CODEX — ACTUAL CONSULTANT RESULT\n\nEXACT CODEX FINAL", content)
         self.assertIn("GEMINI — ACTUAL CONSULTANT RESULT\n\nEXACT GEMINI FINAL", content)
@@ -1867,7 +1867,7 @@ class JosieTests(unittest.TestCase):
         ):
             inlet = module.Filter().inlet(request_body)
             self.assertNotIn("server:josie-subscription-seats", inlet["tool_ids"])
-            outlet = module.Filter().outlet(
+            outlet = module.Filter()._outlet_sync(
                 {
                     **inlet,
                     "messages": [
