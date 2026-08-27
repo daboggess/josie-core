@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "enabled_providers": ["ollama"],
+  "model": "ollama/josie-code-local:1.5b-16k",
+  "small_model": "ollama/josie-code-local:1.5b-16k",
+  "autoupdate": false,
+  "share": "disabled",
+  "snapshot": false,
+  "lsp": false,
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama local only",
+      "options": {"baseURL": "http://127.0.0.1:11434/v1"},
+      "models": {
+        "josie-code-local:1.5b-16k": {
+          "name": "Qwen 2.5 1.5B (plumbing only)",
+          "tool_call": true,
+          "limit": {"context": 16384, "output": 2048}
+        }
+      }
+    }
+  },
+  "agent": {
+    "josie-local": {
+      "description": "Execute Dustin's bounded local repository task",
+      "mode": "primary",
+      "temperature": 0,
+      "steps": 10,
+      "prompt": "You are Josie's local coding worker. Execute the assigned task with actual tools. Do not merely describe commands. Work only in the current repository. Preserve unrelated edits. Never access credentials, historical or canonical data; never publish, purchase, change accounts or system configuration. Use bash for commands; this is Git Bash on Windows, so Python is .venv/Scripts/python.exe. After successful tool output, report actual results concisely. Never claim an action without a successful tool result.",
+      "permission": {"*": "deny", "bash": "allow"}
+    }
+  }
+}

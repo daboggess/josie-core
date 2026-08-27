@@ -635,6 +635,35 @@ def _openapi_spec(port: int) -> dict[str, object]:
                     "responses": {"200": {"description": "Advisory result or local fallback"}},
                 }
             },
+            "/v1/delegate/local-code": {
+                "post": {
+                    "operationId": "delegate_local_code",
+                    "summary": "Execute an explicit bounded repo task using local OpenCode/Ollama",
+                    "description": "Only for Dustin's explicit Delegate Local Code: instruction. Preserve the complete task. No cloud runtime, system-wide authority, or historical/canonical changes.",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {"required": True, "content": {"application/json": {"schema": {
+                        "type": "object", "required": ["user_request", "request_id"],
+                        "properties": {
+                            "user_request": {"type": "string", "maxLength": 16030},
+                            "acceptance_criteria": {"type": "string", "maxLength": 4000},
+                            "request_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,95}$"}
+                        }
+                    }}}},
+                    "responses": {"200": {"description": "Actual local execution receipt; up to 15 minutes"}},
+                }
+            },
+            "/v1/delegate/local-code/status": {
+                "post": {
+                    "operationId": "get_local_code_status",
+                    "summary": "Read a local-code receipt without executing again",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {"required": True, "content": {"application/json": {"schema": {
+                        "type": "object", "required": ["request_id"],
+                        "properties": {"request_id": {"type": "string", "maxLength": 96}}
+                    }}}},
+                    "responses": {"200": {"description": "Local-code receipt"}},
+                }
+            },
             "/v1/delegate/codex": {
                 "post": {
                     "operationId": "delegate_codex",
@@ -886,6 +915,17 @@ def _handler_class(
                 return
             try:
                 payload = self._body()
+                if path == "/v1/delegate/local-code":
+                    from .local_code import delegate_local_code, explicit_task
+                    self._send(200, delegate_local_code(
+                        explicit_task(payload.get("user_request")),
+                        payload.get("acceptance_criteria", "Complete the explicit task and report actual evidence."),
+                        request_id=payload.get("request_id"), project_root=project_root))
+                    return
+                if path == "/v1/delegate/local-code/status":
+                    from .local_code import local_code_status
+                    self._send(200, local_code_status(project_root, payload.get("request_id")))
+                    return
                 if path == "/v1/delegate/codex":
                     from .codex_delegate import delegate_codex
                     self._send(200, delegate_codex(

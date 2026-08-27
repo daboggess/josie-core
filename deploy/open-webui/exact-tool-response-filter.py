@@ -24,6 +24,8 @@ HISTORY_URL = "http://host.docker.internal:8790/v1/history"
 CONTROL_URL = "http://host.docker.internal:8790"
 CONTROL_SOURCE_PREFIX = f"server:{CONTROL_CONNECTION_ID}/"
 CODEX_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_codex"
+LOCAL_CODE_PREFIX = re.compile(r"\A\s*Delegate[ _]+Local[ _]+Code\s*:\s*", re.I)
+LOCAL_CODE_STATUS = re.compile(r"\A\s*Delegate[ _]+Local[ _]+Code\s+status\s*:\s*([A-Za-z0-9][A-Za-z0-9_-]{7,95})\s*\Z", re.I)
 DELEGATE_SOURCE = f"{CONTROL_SOURCE_PREFIX}delegate_codex"
 DELEGATE_PREFIX = re.compile(r"\A\s*Delegate[ _]+Codex\s*:\s*", re.I)
 DELEGATE_STATUS = re.compile(r"\A\s*Delegate[ _]+Codex\s+status\s*:\s*([A-Za-z0-9][A-Za-z0-9_-]{7,95})\s*\Z", re.I)
@@ -541,6 +543,23 @@ def _maintainer_status_message(payload: dict) -> str:
 
 
 def _authoritative_response(body: dict, user_text: str) -> tuple[str, list[dict], str] | None:
+    local_status = LOCAL_CODE_STATUS.fullmatch(user_text)
+    if LOCAL_CODE_PREFIX.match(user_text) or local_status:
+        job_id = local_status.group(1) if local_status else _consultation_request_id(body, 'localcode', user_text)
+        try:
+            if local_status:
+                payload = _control_post('/v1/delegate/local-code/status', {'request_id': job_id}, timeout=10)
+            else:
+                payload = _control_post('/v1/delegate/local-code',
+                    {'request_id': job_id, 'user_request': user_text}, timeout=960)
+            message = payload.get('assistant_message')
+            if not isinstance(message, str) or not message.startswith('JOSIE LOCAL CODE — ACTUAL RESULT'):
+                raise ValueError('Invalid local-code result')
+            return message, [_evidence_source(f"{CONTROL_SOURCE_PREFIX}delegate_local_code", payload)], 'local_code_delegate'
+        except Exception as exc:
+            return ('JOSIE LOCAL CODE — RESULT UNAVAILABLE\n'
+                f'Job: {job_id}\nError: {type(exc).__name__}. The job may have started. '
+                f'Do not resubmit; use: Delegate Local Code status: {job_id}', [], 'local_code_delegate_unavailable')
     status_request = DELEGATE_STATUS.fullmatch(user_text)
     if DELEGATE_PREFIX.match(user_text) or status_request:
         try:
@@ -752,7 +771,8 @@ class Filter:
         features["memory"] = True
         updated = {**body, "features": features}
         user_text = _last_user_text(updated)
-        delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text))
+        delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text)
+            or LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text))
         explicit = _explicit_consultations(user_text)
         if delegation:
             explicit = {}
@@ -793,7 +813,8 @@ class Filter:
 
     async def outlet(self, body: dict, __model__: dict | None = None, __event_emitter__=None) -> dict:
         user_text = _last_user_text(body)
-        delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text))
+        delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text)
+            or LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text))
         if not delegation:
             return self._outlet_sync(body, __model__)
         # A long Codex job must not block Open WebUI's event loop.
@@ -816,7 +837,7 @@ class Filter:
         if authoritative is not None:
             trusted, sources, route = authoritative
             updated = _attach_sources(_replace_last_assistant(body, trusted), sources)
-            if route.startswith('local_codex_delegate'):
+            if route.startswith(('local_codex_delegate', 'local_code_delegate')):
                 # Open WebUI 0.11 renders structured output in preference to content.
                 # Replace only this new route; advisory/Maintainer behavior is unchanged.
                 for message in reversed(updated['messages']):
