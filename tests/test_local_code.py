@@ -216,7 +216,7 @@ class LocalCodeTests(unittest.TestCase):
         with patch.object(module, '_control_post', side_effect=TimeoutError()):
             message, _, route = module._authoritative_response(body, task)
         self.assertIn('RESULT UNAVAILABLE', message)
-        self.assertIn('Delegate Local Code status:', message)
+        self.assertIn('Delegate Local status:', message)
 
     def test_busy_does_not_overwrite_active_receipt(self):
         (self.root / '.git').mkdir()

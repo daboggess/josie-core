@@ -116,6 +116,15 @@ def _bounded_text(value: object, *, label: str, limit: int) -> str:
     return clean
 
 
+def _local_delegation_task(user_request: object) -> str:
+    """Normalize the phone-friendly alias without changing execution authority."""
+    from .local_code import explicit_task
+    if isinstance(user_request, str):
+        user_request = re.sub(r"\A(\s*Delegate[ _]+Local)(\s*:)",
+                              r"\1 Code\2", user_request, count=1, flags=re.I)
+    return explicit_task(user_request)
+
+
 def _safe_error(value: object) -> str:
     clean = " ".join(str(value).split())[-800:]
     return _SECRET_MARKERS.sub("[credential redacted]", clean) or "CLI call failed"
@@ -639,7 +648,7 @@ def _openapi_spec(port: int) -> dict[str, object]:
                 "post": {
                     "operationId": "delegate_local_code",
                     "summary": "Execute an explicit bounded repo task using local OpenCode/Ollama",
-                    "description": "Only for Dustin's explicit Delegate Local Code: instruction. Preserve the complete task. No cloud runtime, system-wide authority, or historical/canonical changes.",
+                    "description": "Only for Dustin's explicit Delegate Local: or Delegate Local Code: instruction. Preserve the complete task. No cloud runtime, system-wide authority, or historical/canonical changes.",
                     "security": [{"bearerAuth": []}],
                     "requestBody": {"required": True, "content": {"application/json": {"schema": {
                         "type": "object", "required": ["user_request", "request_id"],
@@ -916,9 +925,9 @@ def _handler_class(
             try:
                 payload = self._body()
                 if path == "/v1/delegate/local-code":
-                    from .local_code import delegate_local_code, explicit_task
+                    from .local_code import delegate_local_code
                     self._send(200, delegate_local_code(
-                        explicit_task(payload.get("user_request")),
+                        _local_delegation_task(payload.get("user_request")),
                         payload.get("acceptance_criteria", "Complete the explicit task and report actual evidence."),
                         request_id=payload.get("request_id"), project_root=project_root))
                     return

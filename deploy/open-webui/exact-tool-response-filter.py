@@ -24,8 +24,8 @@ HISTORY_URL = "http://host.docker.internal:8790/v1/history"
 CONTROL_URL = "http://host.docker.internal:8790"
 CONTROL_SOURCE_PREFIX = f"server:{CONTROL_CONNECTION_ID}/"
 CODEX_SOURCE = f"{CONTROL_SOURCE_PREFIX}consult_codex"
-LOCAL_CODE_PREFIX = re.compile(r"\A\s*Delegate[ _]+Local[ _]+Code\s*:\s*", re.I)
-LOCAL_CODE_STATUS = re.compile(r"\A\s*Delegate[ _]+Local[ _]+Code\s+status\s*:\s*([A-Za-z0-9][A-Za-z0-9_-]{7,95})\s*\Z", re.I)
+LOCAL_CODE_PREFIX = re.compile(r"\A\s*Delegate[ _]+Local(?:[ _]+Code)?\s*:\s*", re.I)
+LOCAL_CODE_STATUS = re.compile(r"\A\s*Delegate[ _]+Local(?:[ _]+Code)?\s+status\s*:\s*([A-Za-z0-9][A-Za-z0-9_-]{7,95})\s*\Z", re.I)
 DELEGATE_SOURCE = f"{CONTROL_SOURCE_PREFIX}delegate_codex"
 DELEGATE_PREFIX = re.compile(r"\A\s*Delegate[ _]+Codex\s*:\s*", re.I)
 DELEGATE_STATUS = re.compile(r"\A\s*Delegate[ _]+Codex\s+status\s*:\s*([A-Za-z0-9][A-Za-z0-9_-]{7,95})\s*\Z", re.I)
@@ -559,7 +559,7 @@ def _authoritative_response(body: dict, user_text: str) -> tuple[str, list[dict]
         except Exception as exc:
             return ('JOSIE LOCAL CODE — RESULT UNAVAILABLE\n'
                 f'Job: {job_id}\nError: {type(exc).__name__}. The job may have started. '
-                f'Do not resubmit; use: Delegate Local Code status: {job_id}', [], 'local_code_delegate_unavailable')
+                f'Do not resubmit; use: Delegate Local status: {job_id}', [], 'local_code_delegate_unavailable')
     status_request = DELEGATE_STATUS.fullmatch(user_text)
     if DELEGATE_PREFIX.match(user_text) or status_request:
         try:
@@ -773,6 +773,10 @@ class Filter:
         user_text = _last_user_text(updated)
         delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text)
             or LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text))
+        if LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text):
+            # Native stream filtering prevents the conversational model's draft
+            # from appearing as execution evidence, even with streaming disabled in UI.
+            updated['stream'] = True
         explicit = _explicit_consultations(user_text)
         if delegation:
             explicit = {}
@@ -811,12 +815,32 @@ class Filter:
             pass
         return updated
 
+    def stream(self, event: dict, __body__: dict | None = None, __model__: dict | None = None):
+        body = __body__ or {}
+        model_id = body.get('model') or ((__model__ or {}).get('id'))
+        user_text = _last_user_text(body)
+        if model_id == MODEL_ID and (LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text)):
+            return None  # hide all unverified conversational chunks; outlet supplies the receipt
+        return event
+
     async def outlet(self, body: dict, __model__: dict | None = None, __event_emitter__=None) -> dict:
         user_text = _last_user_text(body)
         delegation = bool(DELEGATE_PREFIX.match(user_text) or DELEGATE_STATUS.fullmatch(user_text)
             or LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text))
         if not delegation:
             return self._outlet_sync(body, __model__)
+        model_id = body.get('model') or ((__model__ or {}).get('id'))
+        if model_id == MODEL_ID and __event_emitter__ is not None and (
+                LOCAL_CODE_PREFIX.match(user_text) or LOCAL_CODE_STATUS.fullmatch(user_text)):
+            status_request = LOCAL_CODE_STATUS.fullmatch(user_text)
+            job_id = status_request.group(1) if status_request else _consultation_request_id(body, 'localcode', user_text)
+            pending = ('JOSIE LOCAL CODE — PENDING\n'
+                f'Job: {job_id}\nAwaiting the local execution receipt. No result is verified yet. '
+                'CPU execution may take up to 15 minutes. Do not resubmit.')
+            await __event_emitter__({'type': 'chat:completion', 'data': {
+                'done': False, 'content': pending, 'output': [{'id': 'local-pending',
+                    'type': 'message', 'role': 'assistant', 'status': 'in_progress',
+                    'content': [{'type': 'output_text', 'text': pending}]}]}})
         # A long Codex job must not block Open WebUI's event loop.
         updated = await asyncio.to_thread(self._outlet_sync, body, __model__)
         if __event_emitter__ is not None:
