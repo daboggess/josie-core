@@ -1,4 +1,10 @@
-# Local coding runtime — blocked proof checkpoint (2026-08-27)
+# Local coding runtime — original bootstrap checkpoint (2026-08-27)
+
+Update: the unchanged adapter subsequently passed the bounded engineering proof with
+official Qwen3 8B at 32K context. Native config now selects `josie-qual-qwen3:8b-32k`.
+See [Local model qualification](LOCAL_MODEL_QUALIFICATION.md) for evidence, comparison
+and model recovery. Open WebUI remains undeployed. The sections below preserve the
+original 1.5B bootstrap findings and installation details.
 
 ## Status and architecture
 

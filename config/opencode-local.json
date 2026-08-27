@@ -1,8 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "enabled_providers": ["ollama"],
-  "model": "ollama/josie-code-local:1.5b-16k",
-  "small_model": "ollama/josie-code-local:1.5b-16k",
+  "model": "ollama/josie-qual-qwen3:8b-32k",
+  "small_model": "ollama/josie-qual-qwen3:8b-32k",
   "autoupdate": false,
   "share": "disabled",
   "snapshot": false,
@@ -13,10 +13,10 @@
       "name": "Ollama local only",
       "options": {"baseURL": "http://127.0.0.1:11434/v1"},
       "models": {
-        "josie-code-local:1.5b-16k": {
-          "name": "Qwen 2.5 1.5B (plumbing only)",
+        "josie-qual-qwen3:8b-32k": {
+          "name": "Qwen3 8B (qualified bounded proof)",
           "tool_call": true,
-          "limit": {"context": 16384, "output": 2048}
+          "limit": {"context": 32768, "output": 2048}
         }
       }
     }
