@@ -1,2 +1,3 @@
 deploy/n8n/workflows/*.json text eol=lf
 deploy/*-workflow.lock.json text eol=lf
+josie-doctor.sh text eol=lf
