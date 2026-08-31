@@ -34,6 +34,25 @@ function Test-HttpHealth([string]$Uri) {
     catch { return $false }
 }
 
+function Invoke-DockerCapture([string[]]$Arguments) {
+    # Windows PowerShell can promote native stderr to a terminating error when
+    # the Docker Desktop engine pipe is changing. Capture exit state explicitly
+    # so the bounded retry loops—not ErrorActionPreference—control recovery.
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'SilentlyContinue'
+        $output = @(& $dockerPath @Arguments 2>$null)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Output = $output
+    }
+}
+
 try {
     foreach ($required in $dockerDesktop, $dockerPath, $ensureOllama, $storageMonitor) {
         if (-not (Test-Path -LiteralPath $required)) {
@@ -52,8 +71,8 @@ try {
     $dockerReady = $false
     $consecutiveDockerChecks = 0
     for ($attempt = 0; $attempt -lt 120; $attempt++) {
-        & $dockerPath info *> $null
-        if ($LASTEXITCODE -eq 0) {
+        $probe = Invoke-DockerCapture @('info')
+        if ($probe.ExitCode -eq 0) {
             $consecutiveDockerChecks++
             if ($consecutiveDockerChecks -ge 3) { $dockerReady = $true; break }
         }
@@ -63,23 +82,26 @@ try {
         Start-Sleep -Seconds 2
     }
     if (-not $dockerReady) { throw 'Docker did not become ready after sign-in.' }
+    Start-Sleep -Seconds 15
 
     # Existing containers retain their pinned images, volumes, networks, and restart policy.
     # This starts an exact known container only if Docker did not restore it automatically.
     foreach ($name in $containerNames) {
         $state = ''
         for ($attempt = 0; $attempt -lt 60; $attempt++) {
-            $candidate = & $dockerPath inspect --format '{{.State.Status}}' $name 2>$null
-            if ($LASTEXITCODE -eq 0) {
-                $state = ($candidate -join '').Trim()
+            $candidate = Invoke-DockerCapture @(
+                'inspect', '--format', '{{.State.Status}}', $name
+            )
+            if ($candidate.ExitCode -eq 0) {
+                $state = ($candidate.Output -join '').Trim()
                 break
             }
             Start-Sleep -Seconds 2
         }
         if (-not $state) { throw "Expected Josie container is unavailable: $name" }
         if ($state -ne 'running') {
-            & $dockerPath start $name | Out-Null
-            if ($LASTEXITCODE -ne 0) { throw "Josie container did not start: $name" }
+            $started = Invoke-DockerCapture @('start', $name)
+            if ($started.ExitCode -ne 0) { throw "Josie container did not start: $name" }
         }
     }
 
@@ -96,11 +118,13 @@ try {
     for ($attempt = 0; $attempt -lt 60; $attempt++) {
         $containerHealth = @{}
         foreach ($name in $containerNames) {
-            $healthOutput = & $dockerPath inspect --format `
-                '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' `
-                $name 2>$null
-            $containerHealth[$name] = if ($LASTEXITCODE -eq 0) {
-                ($healthOutput -join '').Trim()
+            $healthOutput = Invoke-DockerCapture @(
+                'inspect', '--format',
+                '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}',
+                $name
+            )
+            $containerHealth[$name] = if ($healthOutput.ExitCode -eq 0) {
+                ($healthOutput.Output -join '').Trim()
             } else {
                 'docker_api_unavailable'
             }
