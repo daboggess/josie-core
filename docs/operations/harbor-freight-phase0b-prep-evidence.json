@@ -1,0 +1,56 @@
+{
+  "changed_files": [
+    "config/harbor-freight-backup-manifest.json",
+    "docs/operations/HARBOR_FREIGHT_PHASE0B_ATTENDED_CHECKLIST.md",
+    "josie/harbor_freight_phase0b.py",
+    "scripts/Invoke-HarborFreightPhase0B.ps1",
+    "tests/test_harbor_freight_phase0b.py",
+    "docs/operations/harbor-freight-phase0b-prep-evidence.json"
+  ],
+  "evidence_scope": "parent_commit_and_phase0b_content",
+  "files": [
+    {
+      "bytes": 6439,
+      "path": "config/harbor-freight-backup-manifest.json",
+      "sha256": "e3285196e45683ec52d0b281c7b1ec2ba2cb8e1fa0754aa3c1f216d6c876d991"
+    },
+    {
+      "bytes": 2768,
+      "path": "docs/operations/HARBOR_FREIGHT_PHASE0B_ATTENDED_CHECKLIST.md",
+      "sha256": "a936d4190f1503d83b698b28954e5d51b3efa0439c95ae61f48f66ce8bcc304b"
+    },
+    {
+      "bytes": 9265,
+      "path": "josie/harbor_freight_phase0b.py",
+      "sha256": "0e01fec723eb673e350d768a5e265495a615cceb78e9362992e7eedadc1c151e"
+    },
+    {
+      "bytes": 4545,
+      "path": "scripts/Invoke-HarborFreightPhase0B.ps1",
+      "sha256": "3c373b51b69e2df778a369038a27a449bc3d96202069a512386c7969744838ed"
+    },
+    {
+      "bytes": 6278,
+      "path": "tests/test_harbor_freight_phase0b.py",
+      "sha256": "3958d69f35e76de05fda54ab8137f6c910d0d420ccabb329eb7a7e7b56f05bc5"
+    }
+  ],
+  "focused_tests": {
+    "count": 13,
+    "exit_code": 0
+  },
+  "full_suite": {
+    "duration_seconds": 93.171,
+    "errors": 0,
+    "exit_code": 1,
+    "failures": 2,
+    "result": "FAIL",
+    "tests_run": 224
+  },
+  "git_commit_sha": "ac2f9678eb0d97560b05912bef2cba3285fa84b9",
+  "manifest_category_count": 9,
+  "push_performed": false,
+  "schema_version": 1,
+  "self_reference": "Evidence excludes its own digest; embedding it would be self-referential. git_commit_sha is the parent at generation time.",
+  "timestamp": "2026-09-03T21:29:48.840354+00:00"
+}

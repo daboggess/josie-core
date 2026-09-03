@@ -1,40 +1,36 @@
-# Harbor Freight Phase 0B attended checklist
+# Harbor Freight Phase 0B-PREP attended checklist
 
-This verifies recovery readiness; it does not restore or overwrite production. Core recovery means "time until Josie works." Full-data recovery means "time until every required byte is restored" and follows core recovery. No duration is promised until volume and throughput are measured.
+This checklist covers preparation and an isolated harmless fixture only. It does not run attended Phase 0B, back up or restore production, write off-device, inspect secrets, or begin Phase 1.
 
-## Before the single sequence
+## Automated checks
 
-Dustin must personally:
-
-1. Be physically present and confirm the intended encrypted off-device test target and Windows recovery media are connected, correctly mapped, and safe to use. Do not paste secrets into chat.
-2. Confirm credential/key escrow can recover Windows, service encryption, Tailscale, Git/private forks, and required accounts through interactive prompts. The script will not read secret values.
-3. Open a normal PowerShell in `C:\Josie`. Elevation is not required for the prepared fixture; use UAC later only for an explicitly reviewed Windows export or recovery check.
-
-## One prepared sequence
-
-After reviewing the receipt destination, run:
+From a normal PowerShell whose current directory is `C:\Josie`, use one explicit mode:
 
 ```powershell
-.\scripts\Invoke-HarborFreightPhase0B.ps1 -SystemInventory -WriteRestoreTest -ReceiptPath .\harbor-freight-phase0b-receipt.json
+.\scripts\Invoke-HarborFreightPhase0B.ps1 -Mode DryRun
+.\scripts\Invoke-HarborFreightPhase0B.ps1 -Mode Inventory
+.\scripts\Invoke-HarborFreightPhase0B.ps1 -Mode VerifyFixture -AllowTemporaryWrite
 ```
 
-The script automates manifest parsing, local tool detection, a small temporary backup/delete/restore round trip, SHA-256 comparison, cleanup of only its generated temporary directory, and a JSON receipt. It does not inspect Docker volumes, databases, credentials, services, unrelated Git work, or external storage contents; it never pushes.
+`DryRun` validates the manifest and prints JSON describing skipped and unresolved checks. It accepts no receipt path and makes no writes.
 
-Dustin must then personally verify every `NEEDS_DUSTIN` item and retain the receipt with the approved recovery evidence. A PASS for the fixture proves only the fixture path, not production backup health.
+`Inventory` validates the manifest and performs read-only queries for logical/physical drive metadata, Docker availability and volume names, Credential Manager command accessibility (without listing credentials or retrieving values), and Git commit/branch/remote names (without remote URLs). It emits `NEEDS_DUSTIN` where machine evidence is insufficient and makes no writes.
 
-## Open verification matrix
+`VerifyFixture` fails unless `-AllowTemporaryWrite` is present. It creates known harmless files only beneath `C:\Josie\.harbor-freight-phase0b-temp`, copies them to an isolated backup directory, deletes only the generated source fixture, restores into a second isolated directory, compares SHA-256 and byte sizes, removes only the generated fixture directory, and leaves a JSON receipt in that temporary root. An explicit receipt is allowed only under the same temporary root:
 
-| Item | State | Evidence needed |
-|---|---|---|
-| Phase 0A repository inputs and documented gaps | REMOTE VERIFIED | Reviewed source, baseline, verifier, and tests |
-| Manifest schema and safe default behavior | REMOTE VERIFIED | Automated tests |
-| Isolated fixture checksum/cleanup logic | REMOTE VERIFIED | Automated test; attended run still required for chosen target |
-| Live process/service state and Docker volume health | ATTENDED VERIFICATION REQUIRED | Read-only inventory plus isolated service restore |
-| Physical drive mapping, D: contents/coverage, external/offsite target | ATTENDED VERIFICATION REQUIRED | Physical confirmation, inventory, sampled hashes |
-| Credential Manager and encryption-key escrow/recovery | ATTENDED VERIFICATION REQUIRED | Non-disclosing interactive recovery proof |
-| Windows recovery configuration and startup/firewall/task exports | ATTENDED VERIFICATION REQUIRED | Windows recovery review; elevate only if genuinely required |
-| Actual restore throughput and full-data duration | ATTENDED VERIFICATION REQUIRED | Measure volume and isolated restore throughput |
-| Production restore or cutover | DEFERRED / NOT REQUIRED | Outside Phase 0B-PREP and requires a later approved window |
-| Full historical import, Phase 1, D-bot, model/harness racing | DEFERRED / NOT REQUIRED | Explicitly outside scope |
+```powershell
+.\scripts\Invoke-HarborFreightPhase0B.ps1 -Mode VerifyFixture -AllowTemporaryWrite -ReceiptPath C:\Josie\.harbor-freight-phase0b-temp\phase0b-fixture-receipt.json
+```
 
-Stop on `FAIL`. Treat `SKIPPED` as not tested and `NEEDS_DUSTIN` as unresolved. Never promote an isolated restore over production during this procedure.
+No command changes PowerShell execution policy. If process-scoped policy handling is ever necessary, Dustin must approve it as a separate attended decision; this script does not bypass policy.
+
+## Dustin attestations
+
+Dustin confirms only facts the machine cannot establish safely:
+
+1. Physical drive identity and the mapping between reported device metadata and the intended media.
+2. Existence, ownership, encryption, capacity, and acceptable location of an independent off-device backup target.
+3. Recoverability of credential and key material through an approved interactive mechanism, without exposing or pasting values.
+4. Windows recovery media, licensing, firmware, boot, or host-recovery facts that read-only inventory cannot prove.
+
+Treat `PASS` as proof only of the named automated check, `SKIPPED` as not run, `NEEDS_DUSTIN` as unresolved, and any `FAIL` as a stop. Do not paste secrets anywhere. Production backup, production restore, external writes, service changes, and cutover remain outside Phase 0B-PREP.

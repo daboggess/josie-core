@@ -1,63 +1,83 @@
 [CmdletBinding()]
 param(
-    [switch]$SystemInventory,
-    [switch]$WriteRestoreTest,
+    [ValidateSet('DryRun','Inventory','VerifyFixture')]
+    [string]$Mode = 'DryRun',
+    [switch]$AllowTemporaryWrite,
     [string]$ReceiptPath
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$manifest = Join-Path $repo 'config/harbor-freight-backup-manifest.json'
-$results = [System.Collections.Generic.List[object]]::new()
-function Add-Result($Id, $Status, $Detail) {
-    $results.Add([ordered]@{ id=$Id; status=$Status; detail=$Detail })
-}
-try {
-    $parsed = Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json
-    if ($parsed.schema_version -ne 1 -or @($parsed.entries).Count -eq 0) { throw 'Unsupported or empty manifest' }
-    Add-Result 'manifest' 'PASS' "Parsed $(@($parsed.entries).Count) entries"
-} catch { Add-Result 'manifest' 'FAIL' $_.Exception.Message }
+$python = Join-Path $repo '.venv\Scripts\python.exe'
+$manifest = Join-Path $repo 'config\harbor-freight-backup-manifest.json'
+$temporaryRoot = Join-Path $repo '.harbor-freight-phase0b-temp'
 
-if ($SystemInventory) {
-    foreach ($tool in 'git','docker','wsl','sqlite3') {
-        $found = Get-Command $tool -ErrorAction SilentlyContinue
-        Add-Result "tool-$tool" $(if ($found) {'PASS'} else {'NEEDS_DUSTIN'}) $(if ($found) {$found.Source} else {'not found'})
+if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
+    Write-Error 'Repository Python runtime not found.'
+    exit 2
+}
+
+if ($Mode -eq 'DryRun') {
+    if ($AllowTemporaryWrite -or $ReceiptPath) {
+        Write-Error 'DryRun refuses write switches and receipt paths.'
+        exit 2
     }
-    Add-Result 'physical-storage' 'NEEDS_DUSTIN' 'Confirm drive mapping, encrypted off-device target, and recovery media physically.'
-    Add-Result 'service-volume-health' 'NEEDS_DUSTIN' 'Inventory does not inspect service, container, volume, database, or secret contents.'
-} else {
-    Add-Result 'system-inventory' 'SKIPPED' 'Use -SystemInventory for read-only host/tool inventory.'
+    & $python -m josie.harbor_freight_phase0b --mode DryRun --manifest $manifest
+    exit $LASTEXITCODE
 }
 
-if ($WriteRestoreTest) {
-    $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ("josie-phase0b-" + [guid]::NewGuid())
+if ($Mode -eq 'Inventory') {
+    if ($AllowTemporaryWrite -or $ReceiptPath) {
+        Write-Error 'Inventory is read-only and refuses write switches and receipt paths.'
+        exit 2
+    }
+    $baseJson = & $python -m josie.harbor_freight_phase0b --mode DryRun --manifest $manifest
+    if ($LASTEXITCODE -ne 0) { $baseJson; exit $LASTEXITCODE }
+    $base = $baseJson | ConvertFrom-Json
+    $results = [System.Collections.Generic.List[object]]::new()
+    foreach ($item in $base.results) { $results.Add($item) }
     try {
-        New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
-        $python = Join-Path $repo '.venv/Scripts/python.exe'
-        if (-not (Test-Path -LiteralPath $python)) { throw 'Repository Python runtime not found' }
-        $code = "from pathlib import Path; import json; from josie.harbor_freight_phase0b import run_fixture; print(json.dumps(run_fixture(Path(r'$($fixtureRoot.Replace("'","''"))'))))"
-        $output = & $python -c $code
-        if ($LASTEXITCODE -ne 0) { throw 'Fixture process failed' }
-        $fixture = $output | ConvertFrom-Json
-        Add-Result 'isolated-restore-fixture' $fixture.status "Verified $(@($fixture.checksums.psobject.Properties).Count) SHA-256 checksums; temporary content cleaned"
-    } catch { Add-Result 'isolated-restore-fixture' 'FAIL' $_.Exception.Message }
-    finally {
-        if ($fixtureRoot -and (Test-Path -LiteralPath $fixtureRoot)) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
+        $logical = @(Get-CimInstance Win32_LogicalDisk | Select-Object DeviceID, DriveType, FileSystem, Size, FreeSpace)
+        $physical = @(Get-CimInstance Win32_DiskDrive | Select-Object Index, Model, InterfaceType, Size, SerialNumber)
+        $results.Add([ordered]@{id='drive_inventory';status='PASS';evidence=@{logical=$logical;physical=$physical;read_only=$true}})
+    } catch {
+        $results.Add([ordered]@{id='drive_inventory';status='NEEDS_DUSTIN';evidence=@{reason=$_.Exception.Message;read_only=$true}})
     }
-} else {
-    Add-Result 'isolated-restore-fixture' 'SKIPPED' 'Use -WriteRestoreTest to create and clean an isolated temporary fixture.'
+    $docker = Get-Command docker -ErrorAction SilentlyContinue
+    if ($docker) {
+        $version = @(& docker version --format '{{.Client.Version}}' 2>$null)
+        $volumes = @(& docker volume ls --format '{{.Name}}' 2>$null)
+        $dockerStatus = if ($LASTEXITCODE -eq 0) { 'PASS' } else { 'NEEDS_DUSTIN' }
+        $results.Add([ordered]@{id='docker_metadata';status=$dockerStatus;evidence=@{available=$true;client_version=($version -join '');volume_names=$volumes;contents_accessed=$false}})
+    } else {
+        $results.Add([ordered]@{id='docker_metadata';status='SKIPPED';evidence=@{available=$false;contents_accessed=$false}})
+    }
+    $cmdkey = Get-Command cmdkey.exe -ErrorAction SilentlyContinue
+    $results.Add([ordered]@{id='credential_manager';status=$(if ($cmdkey){'PASS'}else{'NEEDS_DUSTIN'});evidence=@{command_accessible=[bool]$cmdkey;credential_values_accessed=$false;credential_list_accessed=$false}})
+    try {
+        $head = (& git -C $repo rev-parse HEAD).Trim()
+        $branch = (& git -C $repo branch --show-current).Trim()
+        $remotes = @(& git -C $repo remote)
+        $results.Add([ordered]@{id='git_recovery';status='PASS';evidence=@{commit=$head;branch=$branch;remote_names=$remotes;remote_urls_accessed=$false}})
+    } catch {
+        $results.Add([ordered]@{id='git_recovery';status='NEEDS_DUSTIN';evidence=@{reason=$_.Exception.Message}})
+    }
+    $results.Add([ordered]@{id='physical_and_offsite_attestation';status='NEEDS_DUSTIN';evidence=@{reason='Physical drive mapping, encrypted off-device target, credential recoverability, and recovery media require attended confirmation.'}})
+    [ordered]@{schema_version=1;mode='Inventory';status='PASS';production_changed=$false;external_write=$false;results=$results} | ConvertTo-Json -Depth 8
+    exit 0
 }
 
-$receipt = [ordered]@{
-    schema_version=1; generated_utc=[DateTime]::UtcNow.ToString('o'); mode=$(if ($WriteRestoreTest) {'isolated-write-test'} elseif ($SystemInventory) {'read-only-inventory'} else {'dry-run'})
-    production_changed=$false; external_write=$false; results=$results
+if (-not $AllowTemporaryWrite) {
+    Write-Error 'VerifyFixture requires -AllowTemporaryWrite.'
+    exit 2
 }
-$json = $receipt | ConvertTo-Json -Depth 6
-if ($ReceiptPath) {
-    if (-not $WriteRestoreTest) { throw '-ReceiptPath requires -WriteRestoreTest so default dry-run remains write-free.' }
-    $resolvedParent = Split-Path -Parent $ReceiptPath
-    if (-not $resolvedParent) { $resolvedParent = (Get-Location).Path }
-    if (-not (Test-Path -LiteralPath $resolvedParent)) { throw 'Receipt parent directory does not exist.' }
-    [IO.File]::WriteAllText($ReceiptPath, $json, [Text.UTF8Encoding]::new($false))
+$runId = [guid]::NewGuid().ToString('N')
+$target = Join-Path $temporaryRoot ("fixture-" + $runId)
+if (-not $ReceiptPath) { $ReceiptPath = Join-Path $temporaryRoot ("receipt-" + $runId + '.json') }
+$fullReceipt = [IO.Path]::GetFullPath($ReceiptPath)
+$fullTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot).TrimEnd('\') + '\'
+if (-not $fullReceipt.StartsWith($fullTemporaryRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    Write-Error 'VerifyFixture receipt must remain under C:\Josie\.harbor-freight-phase0b-temp.'
+    exit 2
 }
-$json
-if (@($results | Where-Object status -eq 'FAIL').Count) { exit 1 }
+& $python -m josie.harbor_freight_phase0b --mode VerifyFixture --manifest $manifest --allow-temporary-write --allowed-root $temporaryRoot --target $target --receipt $fullReceipt
+exit $LASTEXITCODE
