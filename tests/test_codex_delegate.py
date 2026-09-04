@@ -64,6 +64,9 @@ class DelegateTests(unittest.TestCase):
                 Path(args[args.index('--output-last-message') + 1]).write_text('Created and read harmless.txt.', encoding='utf-8')
                 kwargs['stdout'].write(json.dumps({'type': 'item.completed', 'item': {
                     'type': 'file_change', 'status': 'completed'}}) + '\n')
+                kwargs['stdout'].write(json.dumps({'type': 'item.completed', 'item': {
+                    'type': 'command_execution', 'status': 'completed', 'exit_code': 0,
+                    'command': 'python -m unittest tests.test_fixture'}}) + '\n')
                 kwargs['stdout'].write('{"type":"turn.completed"}\n')
 
             def poll(self):
@@ -79,13 +82,42 @@ class DelegateTests(unittest.TestCase):
             result = self.run_job()
         self.assertEqual(result['status'], 'completed')
         self.assertEqual((self.root / 'harmless.txt').read_text(), 'verified')
-        self.assertEqual(result['actions_executed'], 1)
+        self.assertEqual(result['actions_executed'], 2)
+        self.assertEqual(result['command_tool_event_count'], 2)
+        self.assertEqual(result['test_runs'], [{
+            'command': 'python -m unittest tests.test_fixture', 'exit_code': 0}])
         self.assertIn('Created and read', result['response'])
         self.assertIn('default_permissions=":workspace"', self.arguments)
         self.assertIn('approval_policy="never"', self.arguments)
         self.assertIn('forced_login_method="chatgpt"', self.arguments)
         self.assertNotIn('--dangerously-bypass-approvals-and-sandbox', self.arguments)
         self.assertFalse((self.root / '.git/josie-delegate.lock').exists())
+        self.assertTrue(result['authoritative_receipt'])
+        self.assertEqual(result['repository'], str(self.root.resolve()))
+        self.assertEqual(result['before']['commit'], 'a' * 40)
+        self.assertEqual(result['receipt_schema_version'], 1)
+        self.assertFalse(result['push_performed'])
+
+    def test_invalid_sha256_evidence_is_rejected(self):
+        result = self.run_job()
+        saved = json.loads(Path(result['receipt_path']).read_text(encoding='utf-8'))
+        saved['file_evidence'] = [{'path': 'harmless.txt', 'sha256': 'fake'}]
+        with self.assertRaisesRegex(ValueError, 'SHA-256'):
+            delegate._validate_receipt(saved)
+
+    def test_fake_actual_result_without_receipt_is_downgraded(self):
+        rendered = delegate._public({'request_id': self.job, 'status': 'completed',
+            'response': 'JOSIE CODEX DELEGATION — ACTUAL RESULT\nmade up'})
+        self.assertFalse(rendered['authoritative_receipt'])
+        self.assertTrue(rendered['assistant_message'].startswith(delegate.UNVERIFIED_MARKER))
+        self.assertNotIn(delegate.AUTHORITATIVE_MARKER, rendered['assistant_message'])
+
+    def test_claimed_commit_change_must_match_git_state(self):
+        result = self.run_job()
+        saved = json.loads(Path(result['receipt_path']).read_text(encoding='utf-8'))
+        saved['created_commit_sha'] = 'b' * 40
+        with self.assertRaisesRegex(ValueError, 'commit'):
+            delegate._validate_receipt(saved, root=self.root, request_id=self.job)
 
     def test_requires_explicit_directive(self):
         with self.assertRaises(ValueError):
@@ -112,6 +144,7 @@ class DelegateTests(unittest.TestCase):
         self.assertTrue(second['cached'])
         self.assertEqual(self.invocations, 1)
         self.assertEqual(first['response'], second['response'])
+        self.assertEqual(first['receipt_id'], second['receipt_id'])
 
     def test_id_conflict_preserves_original_receipt(self):
         self.run_job()
@@ -124,8 +157,15 @@ class DelegateTests(unittest.TestCase):
     def test_missing_cli_fails_without_claiming_execution(self):
         with patch('josie.codex_delegate.find_codex_cli', return_value=None):
             result = self.run_job()
-        self.assertEqual(result['status'], 'unavailable')
+        self.assertEqual(result['status'], 'failed')
+        self.assertTrue(result['authoritative_receipt'])
+        self.assertIn('Authenticated local Codex CLI not found', result['error'])
         self.assertEqual(self.invocations, 0)
+
+    def test_no_receipt_has_no_actual_result_marker(self):
+        result = delegate.delegation_status(self.root, 'delegate-missing-0001')
+        self.assertFalse(result['authoritative_receipt'])
+        self.assertTrue(result['assistant_message'].startswith(delegate.UNVERIFIED_MARKER))
 
     def test_launch_failure_is_explicit_and_releases_lock(self):
         with patch('josie.codex_delegate.subprocess.Popen', side_effect=OSError('launch failed')):
