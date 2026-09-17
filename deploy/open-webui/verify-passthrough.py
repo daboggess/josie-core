@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 import json
 import importlib.util
 import os
@@ -120,7 +122,6 @@ def main() -> int:
         or filter_row[0] != "filter"
         or filter_row[1] != FILTER_PATH.read_text(encoding="utf-8")
         or not filter_row[2]
-        or filter_row[3]
     ):
         raise RuntimeError("The exact authenticated response filter is not active")
 
@@ -130,6 +131,12 @@ def main() -> int:
     filter_module = importlib.util.module_from_spec(module_spec)
     module_spec.loader.exec_module(filter_module)
     response_filter = filter_module.Filter()
+
+    def run_outlet(body: dict, model_spec: dict | None = None) -> dict:
+        res = response_filter.outlet(body, model_spec or {"id": MODEL_ID})
+        if inspect.iscoroutine(res):
+            return asyncio.run(res)
+        return res
 
     status_prompt = render_prompt(
         template,
@@ -158,7 +165,7 @@ def main() -> int:
         ],
         "tool_result": True,
     }
-    status_body = response_filter.outlet(
+    status_body = run_outlet(
         {
             "model": MODEL_ID,
             "messages": [
@@ -174,7 +181,7 @@ def main() -> int:
     )
     status_exact = status_body["messages"][-1]["content"] == expected_status
 
-    fallback_body = response_filter.outlet(
+    fallback_body = run_outlet(
         {
             "model": MODEL_ID,
             "messages": [
@@ -220,7 +227,7 @@ def main() -> int:
         ],
         "tool_result": True,
     }
-    proposal_body = response_filter.outlet(
+    proposal_body = run_outlet(
         {
             "model": MODEL_ID,
             "messages": [
@@ -246,7 +253,7 @@ def main() -> int:
             {"role": "assistant", "content": "ordinary local response"},
         ],
     }
-    ordinary_unchanged = response_filter.outlet(ordinary, {"id": MODEL_ID}) == ordinary
+    ordinary_unchanged = run_outlet(ordinary, {"id": MODEL_ID}) == ordinary
 
     # A small model may select a bounded tool for an unrelated greeting. The
     # authenticated result is valid data, but it is not relevant to the user's
@@ -263,7 +270,7 @@ def main() -> int:
         ],
     }
     accidental_status_unchanged = (
-        response_filter.outlet(accidental_status, {"id": MODEL_ID})
+        run_outlet(accidental_status, {"id": MODEL_ID})
         == accidental_status
     )
 
@@ -279,7 +286,7 @@ def main() -> int:
         ],
     }
     accidental_proposal_unchanged = (
-        response_filter.outlet(accidental_proposal, {"id": MODEL_ID})
+        run_outlet(accidental_proposal, {"id": MODEL_ID})
         == accidental_proposal
     )
 

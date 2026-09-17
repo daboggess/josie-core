@@ -32,10 +32,17 @@ services:
     environment:
       ENABLE_SIGNUP: ${OPEN_WEBUI_ENABLE_SIGNUP:-false}
       ENABLE_PERSISTENT_CONFIG: "false"
+      ENABLE_TOOL_PERMISSIONS: "true"
       ENABLE_OLLAMA_API: "true"
       OLLAMA_BASE_URL: http://host.docker.internal:11434
-      ENABLE_OPENAI_API: "false"
+      ENABLE_OPENAI_API: "true"
+      OPENAI_API_BASE_URLS: "http://host.docker.internal:8792/v1"
+      OPENAI_API_KEYS: "antigravity-bridge"
       ENABLE_VERSION_UPDATE_CHECK: "false"
+      DEFAULT_MODELS: "josie-local:1.0"
+      JOSIE_IDENTITY_BOOTSTRAP_ENABLED: ${JOSIE_IDENTITY_BOOTSTRAP_ENABLED:-true}
+      JOSIE_HISTORY_CONTEXT_ENABLED: ${JOSIE_HISTORY_CONTEXT_ENABLED:-true}
+      JOSIE_HISTORY_CONTEXT_MAX_CHARS: ${JOSIE_HISTORY_CONTEXT_MAX_CHARS:-12000}
       CORS_ALLOW_ORIGIN: 'http://127.0.0.1:3000;http://localhost:3000;https://refurb.tail0ab4d2.ts.net'
       TOOL_SERVER_CONNECTIONS: '${JOSIE_TOOL_SERVER_CONNECTIONS:-[]}'
       TOOLS_FUNCTION_CALLING_PROMPT_TEMPLATE: |-
@@ -46,7 +53,7 @@ services:
         1. Lines beginning "Maintainer Mode:" are handled deterministically by Josie's response filter. Choose no tool for those lines; never simulate edits, tests, Git commits, rollbacks, or service restarts.
         2. Choose get_josie_maintainer_status when the query asks for Maintainer Mode status. Copy the complete user query exactly.
         3. Choose read_josie_project_file, search_josie_project, read_josie_git_status, read_josie_git_diff, or run_approved_josie_tests only when the user explicitly requests that exact read/test operation. Never infer a write from a read request.
-        4. Choose get_josie_conversation_state when the query asks whether Codex or Gemini is installed/available, whether consultant results persist, whether Summit/Groq is active, whether tests pass, whether complete ChatGPT/Gemini history is imported, or whether a Unified History Importer exists. Copy the complete user query exactly. Machine/config/SQLite evidence overrides memory.
+        4. Choose get_josie_conversation_state when the query asks whether Antigravity, Codex, or Gemini is installed/available, whether consultant results persist, whether Summit/Groq is active, whether tests pass, whether complete ChatGPT/Gemini history is imported, or whether a Unified History Importer exists. Copy the complete user query exactly. Machine/config/SQLite evidence overrides memory.
         5. Choose get_josie_status with empty parameters when the query asks for Josie's actual current health, disk or storage space, service availability, backup condition, pending proposal count, or safety-lock state. Words such as current or now are not required when the user asks how much disk space is left or whether a service is running.
         6. Choose record_review_proposal only when the query explicitly commands you to record, create, save, add, or submit a proposal AND the kind is exactly health_check, memory_export, or restore_drill. Copy the requested summary faithfully. A question asking what a proposal or restore drill is does not record anything.
         7. Choose recall_josie_history when the query asks what Josie and Dustin discussed, decided, learned, or remembered in an earlier conversation. Copy the user's query exactly.
@@ -98,6 +105,11 @@ services:
       - open_webui_data:/app/backend/data
       - ./open-webui/configure-model.py:/opt/josie/configure-model.py:ro
       - ./open-webui/exact-tool-response-filter.py:/opt/josie/exact-tool-response-filter.py:ro
+      - ../config/identity-bootstrap.json:/opt/josie/identity-bootstrap.json:ro
+      - ../docs/identity/ORIGIN_RECORD.md:/opt/josie/identity-sources/docs/identity/ORIGIN_RECORD.md:ro
+      - ../docs/constitution/JOSIE_CONSTITUTION.md:/opt/josie/identity-sources/docs/constitution/JOSIE_CONSTITUTION.md:ro
+      - ../docs/identity/genesis/GENESIS_SESSION_001.yaml:/opt/josie/identity-sources/docs/identity/genesis/GENESIS_SESSION_001.yaml:ro
+      - ../docs/identity/genesis/CLAIM_LEDGER.yaml:/opt/josie/identity-sources/docs/identity/genesis/CLAIM_LEDGER.yaml:ro
       - ./open-webui/verify-passthrough.py:/opt/josie/verify-passthrough.py:ro
       - ./open-webui/verify-maintainer-acceptance.py:/opt/josie/verify-maintainer-acceptance.py:ro
     networks:

@@ -1,0 +1,32 @@
+{
+    "schema_version":  1,
+    "relay_version":  "0.1.0",
+    "enabled":  true,
+    "binding":  "127.0.0.1",
+    "port":  8792,
+    "max_payload_chars":  8000,
+    "max_exchange_rounds":  3,
+    "action_timeout_seconds":  150,
+    "poll_interval_ms":  1500,
+    "providers":  {
+                      "sophie":  {
+                                     "source":  "ChatGPT",
+                                     "url_patterns":  [
+                                                          "https://chatgpt.com/*"
+                                                      ]
+                                 },
+                      "bernie":  {
+                                     "source":  "Gemini",
+                                     "url_patterns":  [
+                                                          "https://gemini.google.com/*"
+                                                      ]
+                                 },
+                      "josie":  {
+                                    "source":  "Open WebUI",
+                                    "url_patterns":  [
+                                                         "http://localhost:3000/*",
+                                                         "http://127.0.0.1:3000/*"
+                                                     ]
+                                }
+                  }
+}

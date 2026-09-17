@@ -3,7 +3,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$autologonPath = 'D:\Josie-Storage\apps\Sysinternals\Autologon\Autologon64.exe'
+$autologonPath = 'I:\Josie-Storage\apps\Sysinternals\Autologon\Autologon64.exe'
 $lockShortcut = Join-Path ([Environment]::GetFolderPath('Startup')) `
     'Josie Automatic Re-Lock.lnk'
 

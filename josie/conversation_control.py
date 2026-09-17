@@ -525,6 +525,7 @@ def conversation_state(project_root: Path, store: LocalStore) -> dict[str, objec
             "DETERMINISTIC JOSIE STATE — MACHINE/CONFIG/SQLITE EVIDENCE",
             "Front door: Open WebUI / Josie.",
             "Ordinary inference: local Ollama.",
+            "Antigravity Bridge: available on 127.0.0.1:8792; models: josie-antigravity-flash, josie-antigravity-pro; paid credits=off; escalation: ahead of Codex.",
             f"Codex CLI: installed={str(bool(codex['installed'])).lower()}; optional; "
             "authentication path=existing ChatGPT login; no OpenAI API key.",
             f"Gemini CLI: installed={str(bool(gemini['installed'])).lower()}; optional; "
@@ -544,6 +545,21 @@ def conversation_state(project_root: Path, store: LocalStore) -> dict[str, objec
         "source": "machine_config_and_local_sqlite",
         "front_door": "Open WebUI / Josie",
         "default_provider": LOCAL_PROVIDER,
+        "antigravity": {
+            "installed": True,
+            "bridge_url": "http://127.0.0.1:8792",
+            "models": ["josie-antigravity-flash", "josie-antigravity-pro"],
+            "paid_credits": "OFF",
+            "escalation_order": [
+                "deterministic_local",
+                "primary_local_worker",
+                "local_fallback_reviewer",
+                "antigravity_flash",
+                "antigravity_pro",
+                "codex",
+                "paid_api_authorized",
+            ],
+        },
         "codex_cli": {**codex, "last_consultation": latest[CODEX_PROVIDER]},
         "gemini_cli": {**gemini, "last_consultation": latest[GEMINI_PROVIDER]},
         "consultant_results_persisted_locally": True,
@@ -642,6 +658,43 @@ def _openapi_spec(port: int) -> dict[str, object]:
                         "content": {"application/json": {"schema": query_schema}},
                     },
                     "responses": {"200": {"description": "Advisory result or local fallback"}},
+                }
+            },
+            "/v1/missions/submit": {
+                "post": {
+                    "operationId": "submit_mission",
+                    "summary": "Submit a Mission Manager mission plan",
+                    "description": "Submit a valid mission plan to Mission Manager without direct Supervisor bypass.",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {"application/json": {"schema": {"type": "object"}}},
+                    },
+                    "responses": {"200": {"description": "Mission Manager submission result"}},
+                }
+            },
+            "/v1/missions/continue": {
+                "post": {
+                    "operationId": "continue_mission",
+                    "summary": "Continue or resume an existing Mission Manager mission",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {"application/json": {"schema": {"type": "object"}}},
+                    },
+                    "responses": {"200": {"description": "Mission Manager dispatch result"}},
+                }
+            },
+            "/v1/missions/status": {
+                "post": {
+                    "operationId": "mission_status",
+                    "summary": "Query status of an existing Mission Manager mission",
+                    "security": [{"bearerAuth": []}],
+                    "requestBody": {
+                        "required": True,
+                        "content": {"application/json": {"schema": {"type": "object"}}},
+                    },
+                    "responses": {"200": {"description": "Mission Manager status result"}},
                 }
             },
             "/v1/delegate/local-code": {
@@ -924,16 +977,56 @@ def _handler_class(
                 return
             try:
                 payload = self._body()
+                if path == "/v1/missions/submit":
+                    from mission_manager.ingress import submit_mission, MISSION_ID
+                    raw_plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else payload
+                    if not isinstance(raw_plan, dict):
+                        self._send(200, {
+                            "schema_version": 1, "status": "rejected", "reason": "INVALID_PLAN",
+                            "assistant_message": "JOSIE MISSION MANAGER — REQUEST REJECTED\nReason: plan must be a JSON object"
+                        })
+                        return
+                    mission_id = raw_plan.get("mission_id")
+                    if isinstance(mission_id, str) and MISSION_ID.fullmatch(mission_id):
+                        plans_dir = project_root / "mission_manager" / "plans"
+                        if plans_dir.is_dir():
+                            plan_path = plans_dir / f"{mission_id}.json"
+                            if not plan_path.exists():
+                                try:
+                                    plan_path.write_text(json.dumps(raw_plan, indent=2), encoding="utf-8")
+                                except OSError:
+                                    pass
+                    self._send(200, submit_mission(raw_plan, project_root=project_root))
+                    return
+                if path == "/v1/missions/continue":
+                    from mission_manager.ingress import continue_mission
+                    self._send(200, continue_mission(
+                        payload.get("mission_id"), project_root=project_root,
+                        request_id=payload.get("request_id"),
+                        fallback_worker=payload.get("fallback_worker")))
+                    return
+                if path == "/v1/missions/status":
+                    from mission_manager.ingress import mission_status
+                    self._send(200, mission_status(
+                        payload.get("mission_id"), project_root=project_root))
+                    return
                 if path == "/v1/delegate/local-code":
-                    from .local_code import delegate_local_code
-                    self._send(200, delegate_local_code(
-                        _local_delegation_task(payload.get("user_request")),
+                    from supervisor.remote_adapter import delegate_supervised_local_code
+                    from .context_builder import build_context
+                    normalized_task = _local_delegation_task(payload.get("user_request"))
+                    retrieval = build_context(
+                        project_root=project_root, store=store, query=normalized_task,
+                        request_id=payload.get("request_id"), max_evidence=5,
+                        max_packet_chars=8_000)
+                    self._send(200, delegate_supervised_local_code(
+                        normalized_task,
                         payload.get("acceptance_criteria", "Complete the explicit task and report actual evidence."),
-                        request_id=payload.get("request_id"), project_root=project_root))
+                        request_id=payload.get("request_id"), project_root=project_root,
+                        retrieval_context=retrieval))
                     return
                 if path == "/v1/delegate/local-code/status":
-                    from .local_code import local_code_status
-                    self._send(200, local_code_status(project_root, payload.get("request_id")))
+                    from supervisor.remote_adapter import supervised_local_code_status
+                    self._send(200, supervised_local_code_status(project_root, payload.get("request_id")))
                     return
                 if path == "/v1/delegate/codex":
                     from .codex_delegate import delegate_codex
@@ -944,6 +1037,43 @@ def _handler_class(
                 if path == "/v1/delegate/codex/status":
                     from .codex_delegate import delegation_status
                     self._send(200, delegation_status(project_root, payload.get("request_id")))
+                    return
+                if path == "/v1/context":
+                    from .context_builder import build_context
+                    query = _bounded_text(
+                        payload.get("query"), label="Context query", limit=2_000
+                    )
+                    request_id = _bounded_text(
+                        payload.get("request_id"), label="Request ID", limit=128
+                    )
+                    if _REQUEST_ID.fullmatch(request_id) is None:
+                        raise ValueError("Request ID is invalid")
+                    max_evidence = int(payload.get("max_evidence", 5))
+                    max_packet_chars = int(payload.get("max_packet_chars", 12_000))
+                    self._send(200, build_context(
+                        project_root=project_root,
+                        store=store,
+                        query=query,
+                        request_id=request_id,
+                        max_evidence=max_evidence,
+                        max_packet_chars=max_packet_chars,
+                    ))
+                    return
+                if path == "/v1/context/delivery":
+                    request_id = _bounded_text(
+                        payload.get("request_id"), label="Request ID", limit=128
+                    )
+                    checksum = _bounded_text(
+                        payload.get("packet_sha256"), label="Packet checksum", limit=64
+                    )
+                    if _REQUEST_ID.fullmatch(request_id) is None:
+                        raise ValueError("Request ID is invalid")
+                    self._send(200, {
+                        "status": "injected"
+                        if store.mark_retrieval_injected(request_id, checksum)
+                        else "not_found",
+                        "actions_executed": 0,
+                    })
                     return
                 if path == "/v1/recall":
                     self._send(200, recall_history(store, payload.get("query")))

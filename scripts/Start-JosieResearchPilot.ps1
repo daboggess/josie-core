@@ -9,7 +9,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $dockerPath = Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\docker.exe'
 $composePath = Join-Path $projectRoot 'deploy\compose.yaml'
 $environmentPath = Join-Path $projectRoot 'deploy\.env.services'
-$tokenPath = 'D:\Josie-Storage\secrets\browser-token.txt'
+$tokenPath = 'I:\Josie-Storage\secrets\browser-token.txt'
 $pythonPath = Join-Path $projectRoot '.venv\Scripts\python.exe'
 
 foreach ($required in $dockerPath, $composePath, $environmentPath, $pythonPath) {

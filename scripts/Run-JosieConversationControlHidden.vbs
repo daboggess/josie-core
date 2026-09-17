@@ -4,7 +4,7 @@ Dim shell, command, exitCode
 Set shell = CreateObject("WScript.Shell")
 
 command = """C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe""" & _
-    " -NoProfile -ExecutionPolicy Bypass -Command ""& 'C:\Josie\scripts\Start-JosieConversationControl.ps1' *>> 'C:\Josie\logs\conversation-control-background.log'"""
+    " -NoProfile -ExecutionPolicy Bypass -Command ""& 'D:\Josie\scripts\Start-JosieConversationControl.ps1' *>> 'D:\Josie\logs\conversation-control-background.log'"""
 
 exitCode = shell.Run(command, 0, True)
 WScript.Quit exitCode

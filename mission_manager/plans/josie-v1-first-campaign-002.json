@@ -1,0 +1,113 @@
+{
+  "mission_id": "josie-v1-first-campaign-002",
+  "title": "Josie v1 Bounded Multi-Job Campaign",
+  "objective": "Produce an evidence-based Josie v1 baseline, remaining-gap analysis, and prioritized next-action plan using explicit bounded source files and sequential dependent jobs.",
+  "jobs": [
+    {
+      "job_id": "job-1-v1-baseline",
+      "title": "Build Josie v1 Baseline",
+      "department": "coding",
+      "objective": "Read ONLY these evidence files: mission_manager/06_AUTONOMOUS_MISSION_GATE.md, mission_manager/08_LIVE_AUTONOMOUS_RECOVERY_GATE.md, mission_manager/09_LIVE_GATE2_CLOSURE.md, mission_manager/10_REMOTE_SUBMISSION_BRIDGE.md, and supervisor/README.md. Do not search the repository for additional evidence. Create reports/josie_v1_baseline.md summarizing what these sources prove is operational. Clearly separate proven facts from remaining unknowns. Include Mission Manager durability, Supervisor machine acceptance, worker fallback behavior, phone submission, phone execution, receipts, and idempotency.",
+      "first_action": "Open the five explicitly listed evidence files, extract proven facts, and write the baseline report.",
+      "dependencies": [],
+      "workspace": "D:/Josie",
+      "allowed_changes": [
+        "reports/josie_v1_baseline.md"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "reports/josie_v1_baseline.md"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:/Josie/.venv/Scripts/python.exe",
+            "-c",
+            "from pathlib import Path; t=Path('reports/josie_v1_baseline.md').read_text(encoding='utf-8'); assert len(t) > 1000 and 'Mission Manager' in t and 'Supervisor' in t and 'phone' in t.lower()"
+          ],
+          "expected_exit_code": 0
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    },
+    {
+      "job_id": "job-2-gap-analysis",
+      "title": "Analyze Remaining Josie Gaps",
+      "department": "coding",
+      "objective": "Read ONLY reports/josie_v1_baseline.md plus mission_manager/09_LIVE_GATE2_CLOSURE.md and mission_manager/10_REMOTE_SUBMISSION_BRIDGE.md. Do not perform whole-repository discovery. Create reports/josie_v1_gap_analysis.md identifying practical remaining gaps between the currently proven system and reliable everyday autonomous use. Organize findings under NOW, SOON, and LATER. Do not redesign components already proven working. Treat unknowns as unknowns rather than inventing problems.",
+      "first_action": "Read the completed baseline and the two explicit gate reports, then write the bounded gap analysis.",
+      "dependencies": [
+        "job-1-v1-baseline"
+      ],
+      "workspace": "D:/Josie",
+      "allowed_changes": [
+        "reports/josie_v1_gap_analysis.md"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "reports/josie_v1_gap_analysis.md"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:/Josie/.venv/Scripts/python.exe",
+            "-c",
+            "from pathlib import Path; t=Path('reports/josie_v1_gap_analysis.md').read_text(encoding='utf-8'); assert len(t) > 800 and 'NOW' in t and 'SOON' in t and 'LATER' in t"
+          ],
+          "expected_exit_code": 0
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    },
+    {
+      "job_id": "job-3-next-actions",
+      "title": "Create Josie v1 Priority Plan",
+      "department": "coding",
+      "objective": "Read ONLY reports/josie_v1_baseline.md and reports/josie_v1_gap_analysis.md. Create reports/josie_v1_next_actions.md. Rank the five highest-value next actions. For the top three actions, provide a proposed future Mission Manager job with objective, allowed scope, and machine-verifiable acceptance criteria. Prefer useful real-world work over additional infrastructure changes unless the gap analysis shows infrastructure is blocking use.",
+      "first_action": "Read the two completed reports and produce the prioritized next-action plan.",
+      "dependencies": [
+        "job-2-gap-analysis"
+      ],
+      "workspace": "D:/Josie",
+      "allowed_changes": [
+        "reports/josie_v1_next_actions.md"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "reports/josie_v1_next_actions.md"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:/Josie/.venv/Scripts/python.exe",
+            "-c",
+            "from pathlib import Path; t=Path('reports/josie_v1_next_actions.md').read_text(encoding='utf-8'); assert len(t) > 1000 and '1.' in t and '2.' in t and '3.' in t and 'acceptance' in t.lower()"
+          ],
+          "expected_exit_code": 0
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    }
+  ]
+}

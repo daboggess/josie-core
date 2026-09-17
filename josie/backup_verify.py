@@ -35,7 +35,7 @@ DEFAULT_ITEMS = (
 
 EXTERNAL_DEPENDENCIES = (
     "Docker named volumes josie_open_webui_data and josie_n8n_data",
-    "D:/Josie-Storage apps, models, evidence, proposals, status, secrets, and backups",
+    "I:/Josie-Storage apps, models, evidence, proposals, status, secrets, and backups",
     "native Ollama user state and model/runtime compatibility",
     "Tailscale account recovery and Serve configuration",
     "matching authentication/encryption material for service databases",

@@ -7,8 +7,8 @@ $taskPath = '\Josie\'
 $taskName = 'Josie Conversation Control'
 $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $execute = 'C:\Windows\System32\wscript.exe'
-$arguments = '//B //NoLogo "C:\Josie\scripts\Run-JosieConversationControlHidden.vbs"'
-$workingDirectory = 'C:\Josie'
+$arguments = '//B //NoLogo "D:\Josie\scripts\Run-JosieConversationControlHidden.vbs"'
+$workingDirectory = 'D:\Josie'
 
 $existing = Get-ScheduledTask -TaskPath $taskPath -TaskName $taskName `
     -ErrorAction SilentlyContinue

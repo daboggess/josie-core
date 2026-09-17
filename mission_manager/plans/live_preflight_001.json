@@ -1,0 +1,57 @@
+{
+  "mission_id": "live-preflight-001",
+  "title": "Josie Preflight Utility Live Gate 2",
+  "objective": "Build the reusable Josie preflight utility tools/josie_preflight.py and tests/test_josie_preflight.py.",
+  "jobs": [
+    {
+      "job_id": "job-1-preflight",
+      "title": "Josie Preflight Utility Implementation and Tests",
+      "department": "coding",
+      "objective": "Implement a reusable local preflight inspection utility in tools/josie_preflight.py and unit tests in tests/test_josie_preflight.py.\n\nThe utility must inspect local system state only using the Python standard library (json, pathlib, sys, socket, urllib.request, importlib) without external internet or third-party packages.\n\nIt must report at minimum a JSON dictionary containing these exact 9 keys:\n- josie_root_exists (bool): True if D:\\Josie exists as directory, else False.\n- mission_manager_importable (bool): True if mission_manager module can be imported, else False.\n- python_executable (str): Path to sys.executable.\n- ollama_reachable (bool): True if Ollama service at http://127.0.0.1:11434 responds, else False.\n- configured_local_model (str): The configured model name 'qwen3:14b'.\n- opencode_executable_exists (bool): True if I:\\Josie-Storage\\apps\\OpenCode\\1.18.23\\opencode.exe exists, else False.\n- goose_executable_exists (bool): True if I:\\Josie-Storage\\apps\\goose-1.50.0\\goose-package\\goose.exe exists, else False.\n- conversation_control_8790_listening (bool): True if TCP connection to 127.0.0.1:8790 succeeds, else False.\n- overall_ready (bool): Boolean summary of core components.\n\nWhen executed directly as a script (python tools/josie_preflight.py), it must print this dictionary as valid formatted JSON to stdout and exit with code 0.\n\nIn tests/test_josie_preflight.py, write standard library unittest test cases covering:\n1. That the inspection function returns a dictionary with all 9 required keys.\n2. That missing or stopped components are reported honestly rather than fabricated as healthy (using unittest.mock to mock unreachable or missing components).\n3. That the script output parses as valid JSON containing all 9 keys.\nHealth-check tests must use mocks or injection where appropriate so they do not fail if an external daemon is stopped.\n\nDo not modify any other files.",
+      "first_action": "Write tools/josie_preflight.py and tests/test_josie_preflight.py using the write tool, then run the unit tests.",
+      "dependencies": [],
+      "workspace": "D:\\Josie",
+      "allowed_changes": [
+        "tools/josie_preflight.py",
+        "tests/test_josie_preflight.py"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "tools/josie_preflight.py"
+        },
+        {
+          "type": "file_exists",
+          "path": "tests/test_josie_preflight.py"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:\\Josie\\.venv\\Scripts\\python.exe",
+            "-m",
+            "unittest",
+            "tests.test_josie_preflight"
+          ],
+          "expected_exit_code": 0,
+          "timeout_seconds": 60
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:\\Josie\\.venv\\Scripts\\python.exe",
+            "tools/josie_preflight.py"
+          ],
+          "expected_exit_code": 0,
+          "timeout_seconds": 30
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    }
+  ]
+}

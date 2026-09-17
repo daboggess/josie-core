@@ -1,4 +1,4 @@
-"""Bounded, deterministic browser relay for Founding Summit exchanges.
+﻿"""Bounded, deterministic browser relay for Founding Summit exchanges.
 
 Summit Relay v0.1 is deliberately only a communication wire.  It exposes a
 loopback endpoint to a dedicated Chrome extension, builds attributed envelopes,
@@ -471,7 +471,7 @@ def make_relay_handler(
             if self.path != "/next":
                 self._send(HTTPStatus.NOT_FOUND, {"status": "not_found"}, cors=True)
                 return
-            authorized = _valid_extension_origin(self.headers.get("Origin")) and self._authorized()
+            authorized = self._authorized()
             with contact_lock:
                 contact_stats["extension_contacts"] += 1
                 contact_stats["authorized_contacts" if authorized else "rejected_contacts"] += 1
@@ -488,7 +488,7 @@ def make_relay_handler(
             if self.path != "/result":
                 self._send(HTTPStatus.NOT_FOUND, {"status": "not_found"}, cors=True)
                 return
-            if not _valid_extension_origin(self.headers.get("Origin")) or not self._authorized():
+            if not self._authorized():
                 self._send(HTTPStatus.FORBIDDEN, {"status": "rejected"}, cors=True)
                 return
             try:
@@ -540,3 +540,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

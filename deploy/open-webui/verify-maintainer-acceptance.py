@@ -163,10 +163,11 @@ def main() -> int:
         os.environ["WEBUI_SECRET_KEY"] = secret_path.read_text(
             encoding="utf-8"
         ).strip()
+    import asyncio
     from open_webui.models.users import Users
     from open_webui.utils.auth import create_token
 
-    owner = Users.get_super_admin_user()
+    owner = asyncio.run(Users.get_super_admin_user())
     if owner is None:
         raise RuntimeError("Open WebUI has no administrator account")
     token = create_token({"id": owner.id}, expires_delta=timedelta(minutes=15))

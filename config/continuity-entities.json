@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "seed_version": "2b.1.0",
+  "source_pointer": "user_request:josie-continuity-phase-2b:2026-09-02",
+  "entities": [
+    {
+      "entity_id": "assistant:bernie",
+      "canonical_name": "Bernie",
+      "entity_type": "prior_assistant_project",
+      "description": "Prior assistant identity/project represented in imported Gemini history.",
+      "aliases": [
+        {
+          "text": "Bernadette",
+          "alias_type": "former_name",
+          "evidence_class": "RETRIEVED",
+          "confidence": 0.8,
+          "source_pointer": "Takeout/My Activity/Gemini Apps/MyActivity.html#activity-card-2103:0"
+        }
+      ]
+    },
+    {
+      "entity_id": "person:jessica",
+      "canonical_name": "Jessica",
+      "entity_type": "person",
+      "description": "Person referenced by the user as Jessica or Jess.",
+      "aliases": [
+        {
+          "text": "Jess",
+          "alias_type": "nickname",
+          "evidence_class": "CANONICAL",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "entity_id": "organization:full-steam-vapor",
+      "canonical_name": "Full Steam Vapor",
+      "entity_type": "organization",
+      "description": "Project and organization commonly abbreviated FSV.",
+      "aliases": [
+        {
+          "text": "FSV",
+          "alias_type": "acronym",
+          "evidence_class": "CANONICAL",
+          "confidence": 1.0
+        }
+      ]
+    },
+    {
+      "entity_id": "organization:becton-dickinson",
+      "canonical_name": "Becton Dickinson",
+      "entity_type": "organization",
+      "description": "Organization sometimes shortened to BD; the short form requires context.",
+      "aliases": [
+        {
+          "text": "BD",
+          "alias_type": "acronym",
+          "evidence_class": "CANONICAL",
+          "confidence": 0.8,
+          "ambiguity_state": "context_required"
+        }
+      ]
+    },
+    {
+      "entity_id": "system:open-webui",
+      "canonical_name": "Open WebUI",
+      "entity_type": "system",
+      "description": "The local conversational front door.",
+      "aliases": [
+        {
+          "text": "Open Web",
+          "alias_type": "shorthand",
+          "evidence_class": "CANONICAL",
+          "confidence": 1.0
+        }
+      ]
+    }
+  ]
+}

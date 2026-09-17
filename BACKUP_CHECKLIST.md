@@ -22,6 +22,15 @@ SHA-256 of the daily SQLite copies:
 
 They are sequential snapshots, not byte-identical replicas: normal backup/audit timing differs. At the earlier count check their main records agreed; audit counts were 4,063 versus 4,064. Neither was substituted for production. Today's source files could change if the monitor is restarted; compare fresh hashes before reuse.
 
+## Follow-up readiness — 2026-08-28
+
+- Working SQLite backups: both today's copies pass read-only quick_check again.
+- Current Open WebUI full backup: **REQUIRED BEFORE GPU DRIVER INSTALLATION**. Latest paired service archive is 20260826-065537; later WebUI-only archive is pre-upgrade, not current v0.11.1/delegation state.
+- Current n8n backup/restore validation: **REQUIRED BEFORE GPU DRIVER INSTALLATION**. Latest located service archive is 20260826-065537; current parity was not established.
+- Current configuration backup: **REQUIRED BEFORE GPU DRIVER INSTALLATION**. `backups/config` contains an older 20260808 env.services copy; Git omits current secrets and the uncommitted Compose setting. No secret values were read into this report.
+- Independent/off-device recovery copy: **REQUIRED BEFORE GPU DRIVER INSTALLATION**; none verified. D: holds live data as well as backups.
+- Full recoverability: runbook and source checkpoint explain recovery, but current complete data/config coverage and isolated restore validation are still **REQUIRED BEFORE GPU DRIVER INSTALLATION**. No backup helper or service restart was run in this follow-up.
+
 ## Before installing hardware/software
 
 - [ ] Create a fresh paired, labeled SQLite checkpoint using the existing process; integrity-check and restore-test both copies.

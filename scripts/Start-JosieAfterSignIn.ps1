@@ -9,7 +9,7 @@ $dockerPath = Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\
 $ensureOllama = Join-Path $PSScriptRoot 'Ensure-JosieOllama.ps1'
 $storageMonitor = Join-Path $PSScriptRoot 'Start-JosieStorageMonitor.ps1'
 $prayerBridge = Join-Path $PSScriptRoot 'Start-JosiePrayerBridge.ps1'
-$statusRoot = 'D:\Josie-Storage\status'
+$statusRoot = 'I:\Josie-Storage\status'
 $statusPath = Join-Path $statusRoot 'startup-recovery.json'
 $containerNames = @(
     'josie-open-webui-1',

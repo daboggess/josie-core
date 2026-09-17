@@ -1,0 +1,41 @@
+{
+  "mission_id": "phone-gate3-001",
+  "title": "First Remote Autonomous Mission",
+  "objective": "Prove remote autonomous mission execution from the phone front door.",
+  "jobs": [
+    {
+      "job_id": "job-1-phone-proof",
+      "title": "Create Phone Gate Proof",
+      "department": "coding",
+      "objective": "Create reports/phone_gate3_proof.txt containing exactly JOSIE PHONE AUTONOMOUS MISSION PASS",
+      "first_action": "Create the required proof file.",
+      "dependencies": [],
+      "workspace": "D:/Josie",
+      "allowed_changes": [
+        "reports/phone_gate3_proof.txt"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "reports/phone_gate3_proof.txt"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:/Josie/.venv/Scripts/python.exe",
+            "-c",
+            "from pathlib import Path; assert Path('reports/phone_gate3_proof.txt').read_text(encoding='utf-8').strip() == 'JOSIE PHONE AUTONOMOUS MISSION PASS'"
+          ],
+          "expected_exit_code": 0
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    }
+  ]
+}

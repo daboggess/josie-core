@@ -1,0 +1,52 @@
+{
+  "mission_id": "live-preflight-003",
+  "title": "Josie Preflight Utility Live Gate 2 Closure",
+  "objective": "Eliminate the recursion defect in tools/josie_preflight.py so machine acceptance passes cleanly.",
+  "jobs": [
+    {
+      "job_id": "job-1-fix-recursion",
+      "title": "Eliminate Recursion in Josie Preflight Utility",
+      "department": "coding",
+      "objective": "Inspect D:\\Josie\\tools\\josie_preflight.py and tests\\test_josie_preflight.py in workspace D:\\Josie.\n\nMachine traceback proves that in tools/josie_preflight.py, inspect_preflight() recursively calls itself from inside its own function body:\n\"result = inspect_preflight()\"\nThis causes:\n\"RecursionError: maximum recursion depth exceeded\"\n\nIn tests/test_josie_preflight.py, all unit tests are already working and must NOT be modified.\nNotice that test_script_output in tests/test_josie_preflight.py expects inspect_preflight() to print formatted JSON to stdout AND return the dictionary.\n\nYour task is to fix tools/josie_preflight.py by eliminating the recursive call:\n1. Inside inspect_preflight(), construct the 9-key dictionary:\n   result = {\n       'josie_root_exists': josie_root_exists,\n       'mission_manager_importable': mission_manager_importable,\n       'python_executable': python_executable,\n       'ollama_reachable': ollama_reachable,\n       'configured_local_model': configured_local_model,\n       'opencode_executable_exists': opencode_executable_exists,\n       'goose_executable_exists': goose_executable_exists,\n       'conversation_control_8790_listening': conversation_control_8790_listening,\n       'overall_ready': overall_ready\n   }\n   print(json.dumps(result, indent=4))\n   return result\n2. Ensure if __name__ == '__main__': calls inspect_preflight().\n3. Only edit tools/josie_preflight.py. Do NOT modify tests/test_josie_preflight.py or any other files.\n4. Do NOT create a virtual environment (never run python -m venv). Do NOT install packages.\n5. The host is Windows. For testing, use the existing interpreter:\n   D:\\Josie\\.venv\\Scripts\\python.exe -m unittest tests.test_josie_preflight\n   D:\\Josie\\.venv\\Scripts\\python.exe tools/josie_preflight.py\n\nWhen tests pass and the script exits 0 with valid JSON, stop.",
+      "first_action": "Inspect tools/josie_preflight.py, eliminate the recursive call, and verify tests pass.",
+      "dependencies": [],
+      "workspace": "D:\\Josie",
+      "allowed_changes": [
+        "tools/josie_preflight.py"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "tools/josie_preflight.py"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:\\Josie\\.venv\\Scripts\\python.exe",
+            "-m",
+            "unittest",
+            "tests.test_josie_preflight"
+          ],
+          "expected_exit_code": 0,
+          "timeout_seconds": 60
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:\\Josie\\.venv\\Scripts\\python.exe",
+            "tools/josie_preflight.py"
+          ],
+          "expected_exit_code": 0,
+          "timeout_seconds": 30
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    }
+  ]
+}

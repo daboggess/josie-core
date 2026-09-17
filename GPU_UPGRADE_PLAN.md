@@ -5,8 +5,8 @@
 ## Gate 1 — resolve physical unknowns
 
 - [ ] Confirm the card's exact EVGA part number and that it is the **12GB** RTX 3060, not a similarly named variant.
-- [ ] Photograph/read the actual motherboard, BIOS screen, PSU label and available PCIe power leads. OS says SKYBAY/BIOS 5.0.1.2; older notes say Advantech/different BIOS. Reconcile before changing firmware.
-- [ ] Verify the exact card manual's minimum PSU recommendation, connector requirement, dimensions and slot clearance against the installed system. Older Josie notes say **200 W PSU**: do not treat that as adequate or proceed without verification.
+- [ ] Dustin confirms the current board is Advantech Mini-ITX with SO-DIMMs, not the older micro-ATX reference. Photograph/read its exact model/revision and BIOS screen. OS SKYBAY/default strings and historical AIMB-205G2 BIOS notes do not identify it. Exact board/slot/firmware compatibility: **PHYSICAL VERIFICATION REQUIRED**.
+- [ ] Verify the exact card manual's minimum PSU recommendation, connector requirement, dimensions and slot clearance against the installed system. The **200 W PSU** is a historical/original reference, not proof of the current installed or intended PSU. Current PSU model/wattage and required PCIe GPU connector: **PHYSICAL VERIFICATION REQUIRED**. Do not clear readiness from documentation alone.
 - [ ] Confirm a suitable PCIe slot, bracket clearance, airflow and supported card weight. Do not force the card into an obstructed slot.
 - [ ] Use the correct PSU-provided PCIe power cable (6+2-pin when appropriate for the actual card), not CPU/EPS. Never mix modular PSU cables from different units. Do not improvise SATA/Molex adapters or open the PSU.
 - [ ] Stop for Dustin's decision if a PSU/case/board change is required; that is separate work, not part of this plan's authorization.

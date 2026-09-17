@@ -1,3 +1,4 @@
+# Hardware correction — Dustin, 2026-08-28: the current physical board is an Advantech Mini-ITX platform using SO-DIMM memory. Exact model is not verified. Older AIMB-205G2/micro-ATX identification and associated BIOS/slot claims are historical/superseded, not current compatibility evidence. The 200 W PSU reference is historical; current installed/intended PSU model, wattage and GPU PCIe connector: PHYSICAL VERIFICATION REQUIRED. See CURRENT_STATE.md.
 schema_version: 1
 updated_at: "2026-08-13"
 canonical_name: "JOSIE — MASTER BUILD STATE"
@@ -47,8 +48,8 @@ locked:
 
 owned:
   - item: "Josie 1.0 current system"
-    details: "Advantech AIMB-205G2, Intel i7-7700, 32 GB DDR4-2400, 128 GB SQF SATA SSD, Intel HD 630, 200 W PSU, no discrete GPU. BIOS A205000HF60E114; UEFI boot; Above 4GB MMIO enabled; IGFX primary/internal graphics enabled; PEG enabled at Gen3; PCIe slot-power limit 75 W / 1.0x; ReBAR unverified."
-    evidence: "Dustin's explicit current hardware statement, verified setup checklist, and attended BIOS verification on 2026-08-13"
+    details: "Advantech Mini-ITX with SO-DIMM memory (Dustin 2026-08-28); exact board model PHYSICAL VERIFICATION REQUIRED. Intel i7-7700, 32 GB RAM, SQF SATA SSD, Intel HD 630, no NVIDIA GPU detected. Current installed/intended PSU model/wattage and PCIe GPU connector PHYSICAL VERIFICATION REQUIRED. Older AIMB-205G2, 200 W and board-specific BIOS claims are historical/superseded; do not apply them to current hardware."
+    evidence: "Dustin's explicit Mini-ITX/SO-DIMM correction on 2026-08-28; OS CPU/RAM inventory. Older 2026-08-13 board-specific evidence superseded for current identification."
   - item: "10 TB external USB HDD"
     details: "UnionSine USB 3.2, GPT/NTFS, D:, approximately 9.1 TiB usable"
     evidence: "Locally verified on Josie"
@@ -114,7 +115,7 @@ considering:
   - "Claude or another provider-neutral optional editor/checker role"
 
 research:
-  - "AIMB-205G2 Resizable BAR support remains unverified; Arc stays less attractive on this board until verified"
+  - "Current Mini-ITX exact board, firmware, slot-power and ReBAR support require verification; historical AIMB-205G2 research is not current compatibility evidence"
   - "Exact MI25 card, case, PSU, cooling, power connectors, driver/runtime compatibility, and total-platform PPP"
   - "X99 ReBAR feasibility and trustworthy boards"
   - "Dual-Xeon and used-workstation PPP after power and complexity"
@@ -147,7 +148,7 @@ blocked:
   - item: "Prayer-source connections"
     dependency: "The local registry is working. Before any source connection, define source-by-source authentication, selected channel/group scope, member privacy expectations, live/backup retention, consent, identity exceptions, at-rest protection, cloud-use prohibition/redaction, and explicit approval for any reply, digest, or cross-post"
   - item: "Discrete GPU purchase/install on current board"
-    dependency: "Exact card draw, PSU, chassis, thermals, software compatibility, total PPP, budget, and Dustin approval; slot limit and Above-4G are no longer unknown"
+    dependency: "Exact current Mini-ITX board/slot/firmware, card draw, PSU and PCIe connector, chassis, thermals, software compatibility, budget and Dustin approval; historical slot-limit/Above-4G evidence is superseded for current hardware"
   - item: "Live opportunity discovery"
     dependency: "eBay is the exact selected source, but live use remains blocked on an eBay developer account, API License Agreement acceptance, additional Buy API license/access verification, application keyset, ignored local credentials, connector review, and Dustin's explicit activation approval"
   - item: "Outward economic or messaging actions"

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "ratified_at": "2026-09-12T10:39:14-04:00",
+  "ratified_by": "Dustin",
+  "topology_status": "LOCKED",
+  "primary_build_engineering": {
+    "provider": "google",
+    "model": "gemini-flash",
+    "role": "High-throughput expansion and primary cloud pair programming while available",
+    "required_for_sovereign_operation": false
+  },
+  "offline_private_generalist": {
+    "provider": "ollama",
+    "model": "qwen3.5:9b",
+    "quantization": "Q4_K_M",
+    "runtime_base_url": "http://127.0.0.1:11434",
+    "default_think": false,
+    "thinking_policy": "think:false is the default operational mode. think:true may be selected when Dustin explicitly requests deeper reasoning, or Josie's dispatcher determines the task materially benefits from deeper reasoning and the added latency/context cost is justified.",
+    "resident_in_vram": true,
+    "measured_context_tokens": 8192,
+    "measured_peak_vram_mib": 7576,
+    "measured_generation_speed_tps": 52.4,
+    "usable_vram_headroom_mib": 4712,
+    "context_status": "MEASURED: 8192 context qualified, peak VRAM 7576 MiB. TARGET / EXPECTED: larger context such as 32k appears feasible from available headroom but remains unqualified until measured.",
+    "role": "Qualified sovereign local generalist / intended resident local baseline for local repository discovery, privacy/PII scrubbing sandbox, and memory consolidation; full production front door routing pending independent verification."
+  },
+  "offline_coder": {
+    "provider": "ollama",
+    "model": "qwen2.5-coder:14b",
+    "quantization": "Q4_K_M",
+    "harness": "aider",
+    "harness_version": "0.86.2",
+    "harness_executable": "I:\\Josie-Storage\\apps\\aider-env\\Scripts\\aider.exe",
+    "edit_format": "diff",
+    "resident_in_vram": false,
+    "dispatch_mechanism": "on_demand_sequential_gpu_swap",
+    "measured_peak_vram_mib": 11110,
+    "qualification_receipt": "ec44774e-a91a-4cf3-97a5-cff21baffce2.json",
+    "role": "On-demand bounded code modification and automated self-maintenance"
+  },
+  "authority_acceptance": {
+    "gatekeeper": "Josie Supervisor",
+    "version": "0.2.1",
+    "role": "Preflight, thermal monitoring, scope boundaries, test runner, timeout watchdog, authoritative terminal receipts",
+    "rule": "Worker self-evaluations cannot override machine evidence"
+  },
+  "deterministic_l0": {
+    "tools": [
+      "PowerShell",
+      "Python 3.12",
+      "SQLite 3",
+      "ripgrep",
+      "unittest",
+      "JSON/YAML schemas"
+    ],
+    "rule": "Workers may perform authorized mutations through their harness. Deterministic Supervisor controls independently evaluate scope and external acceptance. Worker self-report cannot establish success."
+  }
+}

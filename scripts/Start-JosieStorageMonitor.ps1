@@ -9,8 +9,9 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $snapshotScript = Join-Path $PSScriptRoot 'Write-JosieStorageSnapshot.ps1'
 if (-not (Test-Path -LiteralPath $snapshotScript)) { throw 'The storage snapshot script is unavailable.' }
-$pythonPath = 'C:\Josie\.venv\Scripts\python.exe'
-$corePath = 'C:\Josie\core.py'
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$pythonPath = Join-Path $projectRoot '.venv\Scripts\python.exe'
+$corePath = Join-Path $projectRoot 'core.py'
 if (-not (Test-Path -LiteralPath $pythonPath)) { throw 'Josie Python is unavailable.' }
 if (-not (Test-Path -LiteralPath $corePath)) { throw 'Josie Core is unavailable.' }
 

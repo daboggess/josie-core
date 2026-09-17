@@ -182,6 +182,8 @@
 
 ## DEC-0014 — Attended BIOS evidence reopens the Advantech accelerator path
 
+> Hardware correction — Dustin, 2026-08-28: the current physical board is an Advantech Mini-ITX platform using SO-DIMM memory. Exact model is not verified. Older AIMB-205G2/micro-ATX identification and associated BIOS/slot claims are historical/superseded, not current compatibility evidence. The 200 W PSU reference is historical; current installed/intended PSU model, wattage and GPU PCIe connector: PHYSICAL VERIFICATION REQUIRED. See CURRENT_STATE.md.
+
 - Date: 2026-08-13.
 - Status: `WORKING PLATFORM EVIDENCE / NO PURCHASE AUTHORITY`
 - Authority: Dustin's direct attended BIOS verification on the active
@@ -337,6 +339,22 @@
 - Boundaries unchanged: Slack, Google Messages, and WhatsApp remain disconnected.
   No reading, ingestion, reply, digest, forwarding, sharing, or cross-posting is
   authorized.
+
+## DEC-0021 — Sovereign AI Operating Topology & Dual-Model Architecture
+
+- Date: 2026-09-12.
+- Status: `LOCKED / RATIFIED`.
+- Authority: Dustin's explicit operational architecture directive.
+- Decision: Adopt the 5-tier Sovereign AI Operating Topology:
+  1. Primary Build / Engineering: Gemini Flash while available (cloud force multiplier).
+  2. Offline / Private Generalist: `qwen3.5:9b` (Q4_K_M) in Ollama as qualified sovereign local generalist / intended resident local baseline (discovery, memory, privacy/PII scrubbing; full normal routing integration remains to be independently proven).
+  3. Offline Coder: `qwen2.5-coder:14b` (Q4_K_M) in Ollama executed via Aider 0.86.2 with `edit-format=diff` as an on-demand sequential GPU swap worker for bounded code modifications.
+  4. Authority / Acceptance: Josie Supervisor (L0 Deterministic Gatekeeper) owning preflight, thermal boundaries, snapshots, scope boundaries, test runner, timeout watchdog, and terminal receipts.
+  5. Deterministic L0 Foundation: PowerShell / Python / SQL / ripgrep / tests / validators. Rule: Workers may perform authorized mutations through their harness. Deterministic Supervisor controls independently evaluate scope and external acceptance. Worker self-report cannot establish success.
+- Thinking Policy: `think: false` is the default operational mode. `think: true` may be selected when Dustin explicitly requests deeper reasoning, or Josie's dispatcher determines the task materially benefits from deeper reasoning and the added latency/context cost is justified.
+- Context Evidence: MEASURED: 8192 context qualified, peak VRAM 7576 MiB. TARGET / EXPECTED: larger context such as 32k appears feasible from available headroom but remains unqualified until measured.
+- Coder Evidence: Coder under Aider `diff` achieves 10/10 unit test pass in 0.112s with 0 scope violations at 11,110 MiB peak VRAM (receipt: `ec44774e-a91a-4cf3-97a5-cff21baffce2.json`). All 16 supervisor regression tests pass.
+- Invariants: Sequential GPU allocation (one model in VRAM at a time); zero cloud dependency for core operation; worker self-declared status cannot override supervisor machine verification.
 
 ## Template
 

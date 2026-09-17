@@ -6,9 +6,9 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $expectedSha256 = '7c941ae084569d298062d29f8139163a3187c76dbca0479c70d085e78fd8c7bb'
-$runtimeRoot = 'D:\Josie-Storage\apps\Ollama\0.32.5'
+$runtimeRoot = 'I:\Josie-Storage\apps\Ollama\0.32.5'
 $ollamaPath = Join-Path $runtimeRoot 'ollama.exe'
-$modelRoot = 'D:\Josie-Storage\models\ollama'
+$modelRoot = 'I:\Josie-Storage\models\ollama'
 $model = 'qwen2.5:1.5b-instruct-q4_K_M'
 $josieModel = 'josie-local:1.0'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -17,7 +17,7 @@ $modelfile = Join-Path $projectRoot 'deploy\Josie.Modelfile'
 if (-not (Test-Path -LiteralPath $ArchivePath)) { throw 'The Ollama archive is missing.' }
 $actualHash = (Get-FileHash -LiteralPath $ArchivePath -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($actualHash -ne $expectedSha256) { throw 'The Ollama archive failed SHA-256 verification.' }
-if (-not (Test-Path -LiteralPath 'D:\Josie-Storage')) { throw 'D:\Josie-Storage is unavailable.' }
+if (-not (Test-Path -LiteralPath 'I:\Josie-Storage')) { throw 'I:\Josie-Storage is unavailable.' }
 if (-not (Test-Path -LiteralPath $modelfile)) { throw 'The governed Josie Modelfile is missing.' }
 
 if ($PSCmdlet.ShouldProcess($runtimeRoot, 'Install verified native Ollama and the approved local model')) {

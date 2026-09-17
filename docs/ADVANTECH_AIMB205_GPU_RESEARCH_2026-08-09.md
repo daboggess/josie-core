@@ -1,5 +1,7 @@
 # AIMB-205 GPU compatibility research — 2026-08-09
 
+> Hardware correction — Dustin, 2026-08-28: the current physical board is an Advantech Mini-ITX platform using SO-DIMM memory. Exact model is not verified. Older AIMB-205G2/micro-ATX identification and associated BIOS/slot claims are historical/superseded, not current compatibility evidence. The 200 W PSU reference is historical; current installed/intended PSU model, wattage and GPU PCIe connector: PHYSICAL VERIFICATION REQUIRED. See CURRENT_STATE.md.
+
 ## Superseding attended BIOS evidence — 2026-08-13
 
 Dustin recovered BIOS administrator access and directly verified the active

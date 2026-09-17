@@ -56,6 +56,12 @@ from josie.history_inheritance import (
     inspect_gemini_attachment_metadata,
     validate_gemini_phase2_plan,
 )
+from josie.continuity import (
+    apply_adjudication,
+    continuity_status,
+    load_continuity_json,
+    sync_entity_seed,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -99,6 +105,24 @@ def build_parser() -> argparse.ArgumentParser:
         "recall", help="Search Josie's existing local messages and memories"
     )
     conversation_recall.add_argument("query", nargs="+")
+
+    continuity = subcommands.add_parser(
+        "continuity", help="Manage the bounded local entity and canonical-claim registry"
+    )
+    continuity_commands = continuity.add_subparsers(
+        dest="continuity_command", required=True
+    )
+    continuity_commands.add_parser("status", help="Inspect Phase 2B record counts")
+    continuity_seed = continuity_commands.add_parser(
+        "seed-entities", help="Synchronize a small reviewed entity/alias seed"
+    )
+    continuity_seed.add_argument("--file", required=True)
+    continuity_adjudicate = continuity_commands.add_parser(
+        "adjudicate", help="Apply one explicit Dustin-authorized canonical adjudication"
+    )
+    continuity_adjudicate.add_argument("--file", required=True)
+    continuity_adjudicate.add_argument("--authorized-by", required=True)
+    continuity_adjudicate.add_argument("--confirm", required=True)
 
     subcommands.add_parser("gui", help="Open Josie's local graphical interface")
     deploy = subcommands.add_parser("deploy", help="Run or inspect resumable deployment")
@@ -335,6 +359,27 @@ def main() -> int:
                     request_text, context=context, project_root=project_root
                 )
             ).public()
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "continuity":
+        store = LocalStore(project_root / "data" / "josie.db")
+        if args.continuity_command == "status":
+            result = continuity_status(store)
+        else:
+            source = Path(args.file)
+            if not source.is_absolute():
+                source = project_root / source
+            payload = load_continuity_json(source)
+            if args.continuity_command == "seed-entities":
+                result = sync_entity_seed(store=store, payload=payload)
+            else:
+                result = apply_adjudication(
+                    store=store,
+                    payload=payload,
+                    authorized_by=args.authorized_by,
+                    confirmation=args.confirm,
+                )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
 

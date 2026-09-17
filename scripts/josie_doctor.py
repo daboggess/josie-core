@@ -14,7 +14,7 @@ import time
 from urllib.request import HTTPRedirectHandler, ProxyHandler, build_opener
 
 ROOT = Path(__file__).resolve().parents[1]
-STORAGE = Path("D:/Josie-Storage")
+STORAGE = Path("I:/Josie-Storage")
 OLLAMA = STORAGE / "apps/Ollama/0.32.5/ollama.exe"
 EXPECTED_MODEL = "josie-local:1.0"
 LOCAL_URLS = frozenset(f"http://127.0.0.1:{port}{path}" for port, path in [

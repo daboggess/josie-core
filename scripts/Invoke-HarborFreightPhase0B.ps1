@@ -76,7 +76,7 @@ if (-not $ReceiptPath) { $ReceiptPath = Join-Path $temporaryRoot ("receipt-" + $
 $fullReceipt = [IO.Path]::GetFullPath($ReceiptPath)
 $fullTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot).TrimEnd('\') + '\'
 if (-not $fullReceipt.StartsWith($fullTemporaryRoot, [StringComparison]::OrdinalIgnoreCase)) {
-    Write-Error 'VerifyFixture receipt must remain under C:\Josie\.harbor-freight-phase0b-temp.'
+    Write-Error 'VerifyFixture receipt must remain under D:\Josie\.harbor-freight-phase0b-temp.'
     exit 2
 }
 & $python -m josie.harbor_freight_phase0b --mode VerifyFixture --manifest $manifest --allow-temporary-write --allowed-root $temporaryRoot --target $target --receipt $fullReceipt

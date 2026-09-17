@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$ollamaPath = 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
+$ollamaPath = 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
 $modelfile = Join-Path $projectRoot 'deploy\Josie.Modelfile'
 $model = 'josie-local:1.0'
 $rollbackModel = 'josie-local:pre-grounding'

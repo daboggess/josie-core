@@ -4,8 +4,8 @@ param()
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $ruleName = 'Josie-Ollama-Docker-Only'
-$ollamaPath = 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
-$dockerSources = @('172.18.0.0/16', '172.19.0.0/16', '192.168.65.0/24')
+$ollamaPath = 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
+$dockerSources = @('172.18.0.0/16', '172.19.0.0/16', '172.31.0.0/20', '192.168.65.0/24')
 $principal = [Security.Principal.WindowsPrincipal]::new(
     [Security.Principal.WindowsIdentity]::GetCurrent()
 )

@@ -1,0 +1,57 @@
+{
+  "mission_id": "live-preflight-002",
+  "title": "Josie Preflight Utility Live Gate 2R",
+  "objective": "Repair the existing implementation of tools/josie_preflight.py and tests/test_josie_preflight.py so all Gate 2 requirements pass.",
+  "jobs": [
+    {
+      "job_id": "job-1-repair-preflight",
+      "title": "Repair Josie Preflight Utility and Unit Tests",
+      "department": "coding",
+      "objective": "Inspect the existing failed implementation of tools/josie_preflight.py and tests/test_josie_preflight.py in workspace D:\\Josie.\n\nThe host operating system is Windows.\nFor testing and execution, use the existing interpreter exactly:\nD:\\Josie\\.venv\\Scripts\\python.exe\n\nDo not create a virtual environment (never run python -m venv or virtualenv).\nDo not install packages (never run pip install).\nDo not pull models or modify system configuration.\nOnly edit tools/josie_preflight.py and tests/test_josie_preflight.py. Do not modify or create any other files.\n\nDiagnose and repair the defects in tests/test_josie_preflight.py and tools/josie_preflight.py:\n1. Ensure StringIO is properly imported from io in tests/test_josie_preflight.py.\n2. In tests/test_josie_preflight.py, ensure mock targets correctly patch the inspection function's dependencies (e.g. patch 'tools.josie_preflight.urlopen' or inject appropriately, rather than unpatched module-level imports) so tests pass regardless of external daemons.\n3. In tools/josie_preflight.py, ensure all 9 required keys are returned:\n   - josie_root_exists (bool)\n   - mission_manager_importable (bool)\n   - python_executable (str)\n   - ollama_reachable (bool)\n   - configured_local_model (str: 'qwen3:14b')\n   - opencode_executable_exists (bool)\n   - goose_executable_exists (bool)\n   - conversation_control_8790_listening (bool)\n   - overall_ready (bool)\n4. When executed as a script (python tools/josie_preflight.py), it must print valid formatted JSON containing all 9 keys and exit 0.\n5. Standard library unittests in tests/test_josie_preflight.py must pass cleanly (exit 0) when run with:\n   D:\\Josie\\.venv\\Scripts\\python.exe -m unittest tests.test_josie_preflight\n\nWhen shell execution is needed, use Windows-safe quoting. A shell quoting failure is not evidence that Python or the environment is missing.\nInspect the existing files, diagnose machine-test failures, repair the implementation, run the required tests, and stop.",
+      "first_action": "Inspect tools/josie_preflight.py and tests/test_josie_preflight.py, then repair the tests.",
+      "dependencies": [],
+      "workspace": "D:\\Josie",
+      "allowed_changes": [
+        "tools/josie_preflight.py",
+        "tests/test_josie_preflight.py"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "tools/josie_preflight.py"
+        },
+        {
+          "type": "file_exists",
+          "path": "tests/test_josie_preflight.py"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:\\Josie\\.venv\\Scripts\\python.exe",
+            "-m",
+            "unittest",
+            "tests.test_josie_preflight"
+          ],
+          "expected_exit_code": 0,
+          "timeout_seconds": 60
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:\\Josie\\.venv\\Scripts\\python.exe",
+            "tools/josie_preflight.py"
+          ],
+          "expected_exit_code": 0,
+          "timeout_seconds": 30
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 300
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+
+class JobState:
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    RETRY = "RETRY"
+    WAITING_APPROVAL = "WAITING_APPROVAL"
+    BLOCKED = "BLOCKED"
+    PASS = "PASS"
+    FAIL = "FAIL"
+    CANCELLED = "CANCELLED"
+
+
+VALID_JOB_STATES = frozenset({
+    JobState.QUEUED,
+    JobState.RUNNING,
+    JobState.RETRY,
+    JobState.WAITING_APPROVAL,
+    JobState.BLOCKED,
+    JobState.PASS,
+    JobState.FAIL,
+    JobState.CANCELLED,
+})
+
+TERMINAL_JOB_STATES = frozenset({
+    JobState.PASS,
+    JobState.FAIL,
+    JobState.CANCELLED,
+})
+
+RUNNABLE_JOB_STATES = frozenset({
+    JobState.QUEUED,
+    JobState.RETRY,
+})
+
+
+class CampaignStatus:
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    BLOCKED = "BLOCKED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+
+VALID_CAMPAIGN_STATUSES = frozenset({
+    CampaignStatus.QUEUED,
+    CampaignStatus.RUNNING,
+    CampaignStatus.COMPLETED,
+    CampaignStatus.BLOCKED,
+    CampaignStatus.FAILED,
+    CampaignStatus.CANCELLED,
+})
+
+
+class EventType:
+    CAMPAIGN_CREATED = "CAMPAIGN_CREATED"
+    JOB_CLAIMED = "JOB_CLAIMED"
+    JOB_DISPATCHED = "JOB_DISPATCHED"
+    RECEIPT_CONSUMED = "RECEIPT_CONSUMED"
+    JOB_COMPLETED = "JOB_COMPLETED"
+    JOB_RETRYING = "JOB_RETRYING"
+    JOB_BLOCKED = "JOB_BLOCKED"
+    JOB_FAILED = "JOB_FAILED"
+    JOB_RECONCILED = "JOB_RECONCILED"
+    JOB_APPROVAL_REQUESTED = "JOB_APPROVAL_REQUESTED"
+    JOB_APPROVED = "JOB_APPROVED"
+    JOB_CANCELLED = "JOB_CANCELLED"
+    STATE_TRANSITION = "STATE_TRANSITION"
+    CAMPAIGN_LEASE_ACQUIRED = "CAMPAIGN_LEASE_ACQUIRED"
+    CAMPAIGN_LEASE_RELEASED = "CAMPAIGN_LEASE_RELEASED"
+    ATTEMPT_RECORDED = "ATTEMPT_RECORDED"
+
+
+DEFAULT_DB_PATH = Path(r"D:\Josie\data\campaigns.db")
+DEFAULT_LEASE_SECONDS = 300
+DEFAULT_LEASE_GRACE_SECONDS = 60
+

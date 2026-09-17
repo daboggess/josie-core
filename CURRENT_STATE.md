@@ -36,9 +36,13 @@ Evidence: Git and source scripts; CIM; Task Scheduler; firewall/listener queries
 | Pagefile | C:/pagefile.sys; 2,048 MiB allocated, 52 MiB used at benchmark, 880 MiB peak since boot |
 | Temperatures | Existing ACPI query supplied no usable CPU temperature; not measured |
 
-**Physical discrepancy:** older attended notes identify an Advantech AIMB-205G2 and different BIOS; older canonical notes mention a **200 W PSU**. Current PSU, board identity, slot, case clearance and exact EVGA SKU cannot be verified from these OS readings. Resolve physically before GPU installation; do not guess.
+**Current physical hardware correction (Dustin, 2026-08-28):** Advantech **Mini-ITX with SO-DIMM memory**, not the older micro-ATX identification. Exact model: **PHYSICAL VERIFICATION REQUIRED**. SKYBAY/default SMBIOS strings do not establish the model. No reliable exact Mini-ITX model identifier was found in the reviewed repository evidence.
 
-Docker's data disk is `C:/Users/dusti/AppData/Local/Docker/wsl/disk/docker_data.vhdx`, about 28.94 GiB. C: headroom is limited. D: contains the actual model server executable and models, not just archives. Do not delete the VHDX, unplug D: or change its drive letter.
+The AIMB-205G2 identification and associated firmware/slot claims in older setup/research records are **historical/superseded** for this host. The **200 W** reference describes historical/original notes, not the PSU now intended for the RTX 3060. Current installed/intended PSU model and wattage, required PCIe GPU connector, board slot/card clearance and exact EVGA SKU: **PHYSICAL VERIFICATION REQUIRED**. Nothing in this correction clears installation readiness.
+
+Conflict locations: `docs/JOSIE_SETUP_CHECKLIST.md`, `docs/JOSIE_MASTER_BUILD_STATE.yaml`, `docs/state/HARDWARE_INVENTORY.yaml`, `docs/ADVANTECH_AIMB205_GPU_RESEARCH_2026-08-09.md`, and DEC-0014 in `docs/decisions/DECISION_LOG.md`. Their old claims are retained with supersession notices. `docs/PROJECT_HISTORY_SEED.json` and the manual URL in `docs/BROWSER_CAPABILITY_REVIEW.md` remain historical source/research artifacts, **not current hardware evidence**; no seed reimport or database correction was performed.
+
+Docker's data disk is `C:/Users/dusti/AppData/Local/Docker/wsl/disk/docker_data.vhdx`, about 28.94 GiB. C: headroom is limited. Follow-up observed 19.22 GiB free (previously about 18.6 GiB); retain the warning for NVIDIA driver staging, Windows updates, Docker growth, temporary files, logs and caches. No cleanup or data move was performed. D: contains the actual model server executable and models, not just archives. Do not delete the VHDX, unplug D: or change its drive letter.
 
 ## Components
 
@@ -195,6 +199,10 @@ No existing shell script was replaced. The new .sh is a Git Bash entry point to 
 Today's `C:/Josie/data/backups/josie-2026-08-28.db` and `D:/Josie-Storage/backups/josie-database/josie-2026-08-28.db` passed quick_check. Latest paired service archives in D:/Josie-Storage/backups/services are **20260826-065537**. A later WebUI-only archive is under backups/open-webui-v0.8.9-pre-upgrade-20260826-221447. No fresh full-volume backup of today's v0.11.1/delegation state was found. Older restore drills do not verify today's service state.
 
 Never casually delete SQLite/sidecars, Docker volumes/VHDX, model blobs, keys, source/manifests, receipts, checkpoint tags/backups, canonical rules, Compose/env or startup definitions. Git does not back up most of these.
+
+## Follow-up verification — 2026-08-28
+
+HEAD remains `49709472a5740149ebbd63c20cfe35477e5bc8c6` (`pre-rtx3060-known-good`); no duplicate checkpoint. Doctor: 71 PASS / 10 WARN / 0 FAIL. Tests: 167/167, 37.064s. Four containers and six local APIs healthy; Ollama 0.32.5 and Tailscale online. Startup remains unchanged: Tailscale at boot, native tasks after sign-in, Docker manual. Additional Qwen3 measurements are separate in [PRE_GPU_QWEN3_BASELINE.md](PRE_GPU_QWEN3_BASELINE.md); the original 1.5B report is unchanged.
 
 ## Readiness
 

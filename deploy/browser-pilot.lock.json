@@ -56,7 +56,7 @@
     "client": "71a8bcfb1d02d7e268194e6955269431903b689fb0f2571e07ee274d9af192aa"
   },
   "recovery": {
-    "stop_script": "C:\\Josie\\scripts\\Stop-JosieResearchPilot.ps1",
+    "stop_script": "D:\\Josie\\scripts\\Stop-JosieResearchPilot.ps1",
     "automatic_restart": "unless-stopped",
     "policy_expiration_fail_closed": true,
     "stateful_browser_data": false,

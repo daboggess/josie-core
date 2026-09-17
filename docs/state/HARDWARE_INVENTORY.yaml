@@ -1,11 +1,13 @@
+# Hardware correction — Dustin, 2026-08-28: the current physical board is an Advantech Mini-ITX platform using SO-DIMM memory. Exact model is not verified. Older AIMB-205G2/micro-ATX identification and associated BIOS/slot claims are historical/superseded, not current compatibility evidence. The 200 W PSU reference is historical; current installed/intended PSU model, wattage and GPU PCIe connector: PHYSICAL VERIFICATION REQUIRED. See CURRENT_STATE.md.
 schema_version: 1
 updated_at: "2026-08-13"
 rule: "Only verified current ownership belongs under owned. Historical references require reverification."
 owned:
-  - item: "Advantech AIMB-205G2 motherboard"
+  - item: "Advantech Mini-ITX motherboard with SO-DIMM memory; exact model PHYSICAL VERIFICATION REQUIRED"
     installed: true
     working: true
-    firmware:
+    # Preserved historical firmware record, NOT verified for the current board.
+    historical_superseded_firmware:
       bios_version: "A205000HF60E114"
       bios_admin_access: "recovered"
       boot_mode: "UEFI via Windows Boot Manager"
@@ -17,7 +19,7 @@ owned:
       peg_root_port: "enabled; Gen3"
       pcie_slot_power_limit: "75 W / 1.0x"
       resizable_bar: "unverified"
-    evidence: "Dustin's attended BIOS verification on 2026-08-13"
+    evidence: "Current form factor/memory: Dustin 2026-08-28. Firmware values above: superseded 2026-08-13 historical record, not current verification."
   - item: "Intel Core i7-7700"
     installed: true
     working: true
@@ -31,9 +33,11 @@ owned:
   - item: "Intel HD 630"
     installed: true
     working: true
-  - item: "200 W PSU"
+  - item: "Current PSU; exact model/wattage PHYSICAL VERIFICATION REQUIRED"
     installed: true
     working: true
+    note: "Historical/original 200 W reference does not identify the currently intended RTX 3060 PSU."
+    gpu_pcie_connector: "PHYSICAL VERIFICATION REQUIRED"
   - item: "10 TB UnionSine USB 3.2 HDD"
     installed: true
     working: true

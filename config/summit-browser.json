@@ -1,0 +1,69 @@
+{
+    "schema_version":  1,
+    "transport":  "direct_playwright",
+    "chrome_executable":  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "profile_directory":  "data/private/summit-browser-profile",
+    "headless":  true,
+    "navigation_timeout_ms":  45000,
+    "providers":  {
+                      "sophie":  {
+                                     "url":  "https://chatgpt.com/",
+                                     "composer":  [
+                                                      "#prompt-textarea"
+                                                  ],
+                                     "send":  [
+                                                  "button[data-testid=\u0027send-button\u0027]",
+                                                  "button[data-testid=\u0027composer-submit-button\u0027]"
+                                              ],
+                                     "stop":  [
+                                                  "button[data-testid=\u0027stop-button\u0027]",
+                                                  "button[aria-label*=\u0027Stop\u0027 i]"
+                                              ],
+                                     "assistant":  [
+                                                       "[data-message-author-role=\u0027assistant\u0027] .markdown",
+                                                       "[data-message-author-role=\u0027assistant\u0027]"
+                                                   ],
+                                     "login":  [
+                                                   "a:has-text(\u0027Log in\u0027)",
+                                                   "button:has-text(\u0027Log in\u0027)"
+                                               ]
+                                 },
+                      "bernie":  {
+                                     "url":  "https://gemini.google.com/app",
+                                     "composer":  [
+                                                      "rich-textarea .ql-editor[contenteditable=\u0027true\u0027]",
+                                                      ".ql-editor[contenteditable=\u0027true\u0027]"
+                                                  ],
+                                     "send":  [
+                                                  "button[aria-label*=\u0027Send message\u0027 i]",
+                                                  "button.send-button",
+                                                  ".send-button button"
+                                              ],
+                                     "stop":  [
+                                                  "button[aria-label*=\u0027Stop\u0027 i]"
+                                              ],
+                                     "assistant":  [
+                                                       "model-response .model-response-text",
+                                                       "model-response",
+                                                       ".model-response-text"
+                                                   ],
+                                     "login":  [
+                                                   "a:has-text(\u0027Sign in\u0027)",
+                                                   "button:has-text(\u0027Sign in\u0027)"
+                                               ]
+                                 }
+                  },
+    "josie_http":  {
+                       "base_url":  "http://127.0.0.1:3000",
+                       "model":  "josie-qwen3-8b:1.0",
+                       "completion_path":  "/api/chat/completions",
+                       "completed_path":  "/api/chat/completed",
+                       "filter_ids":  [
+                                          "josie_exact_tool_response"
+                                      ],
+                       "tool_ids":  [
+
+                                    ],
+                       "timeout_seconds":  180
+                   }
+}

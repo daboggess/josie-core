@@ -42,7 +42,8 @@ class LocalPhonePathTests(unittest.TestCase):
         task = 'Delegate Local: execute Python and report actual output'
         body = {'model': module.MODEL_ID, 'chat_id': 'phone-routing-test', 'messages': [
             {'role': 'user', 'content': task}, {'role': 'assistant', 'content': 'unverified draft'}],
-            'tool_ids': ['server:josie-subscription-seats']}
+            'tool_ids': ['server:josie-subscription-seats',
+                         'server:josie-subscription-seats/delegate_local_code']}
         response = {'assistant_message': 'JOSIE LOCAL CODE — ACTUAL RESULT\nStatus: completed'}
         emitted = []
         async def emit(event): emitted.append(event)
@@ -59,13 +60,84 @@ class LocalPhonePathTests(unittest.TestCase):
         self.assertIn('PENDING', emitted[0]['data']['content'])
         self.assertFalse(emitted[0]['data']['done'])
 
+    def test_full_raw_local_code_request_dispatches_once_without_xml(self):
+        module = self.load_filter()
+        raw = "\n".join((
+            "Delegate Local Code:", "", r"Workspace: D:\fixture\repo", "",
+            "Task:", "Preserve this task text exactly; no XML.", "",
+            "Allowed changes:", "value.py", "", "Acceptance:",
+            r"command: D:\Josie\.venv\Scripts\python.exe -m unittest -v",
+        ))
+        body = {
+            'model': module.MODEL_ID,
+            'chat_id': 'raw-ingress-test',
+            'messages': [{'role': 'user', 'content': raw},
+                         {'role': 'assistant', 'content': 'model draft'}],
+            'tool_ids': ['server:josie-subscription-seats/delegate_local_code'],
+        }
+        response = {'assistant_message':
+                    'JOSIE LOCAL CODE — ACTUAL RESULT\nLOCAL CODE RESULT: PASS'}
+        with patch.object(module, '_record_history'), patch.object(
+                module, '_control_post', return_value=response) as dispatch:
+            inlet = module.Filter().inlet(body)
+            rendered = asyncio.run(module.Filter().outlet(inlet))
+        dispatch.assert_called_once()
+        self.assertEqual(dispatch.call_args.args[0], '/v1/delegate/local-code')
+        self.assertEqual(dispatch.call_args.args[1]['user_request'], raw)
+        self.assertNotIn('<task>', dispatch.call_args.args[1]['user_request'])
+        self.assertEqual(inlet['tool_ids'], [])
+        self.assertEqual(rendered['messages'][-1]['content'], response['assistant_message'])
+
+    def test_missing_required_details_returns_authoritative_rejection_once(self):
+        module = self.load_filter()
+        raw = 'Delegate Local Code:\n\nTask:\nInspect the repository.'
+        response = {'assistant_message':
+                    'JOSIE LOCAL CODE — ACTUAL RESULT\nLOCAL CODE RESULT: NEEDS_JOB_DETAILS'}
+        body = {'model': module.MODEL_ID, 'chat_id': 'missing-details-test',
+                'messages': [{'role': 'user', 'content': raw},
+                             {'role': 'assistant', 'content': 'model draft'}],
+                'tool_ids': ['server:josie-subscription-seats/delegate_local_code']}
+        with patch.object(module, '_record_history'), patch.object(
+                module, '_control_post', return_value=response) as dispatch:
+            inlet = module.Filter().inlet(body)
+            rendered = asyncio.run(module.Filter().outlet(inlet))
+        dispatch.assert_called_once()
+        self.assertEqual(inlet['tool_ids'], [])
+        self.assertIn('NEEDS_JOB_DETAILS', rendered['messages'][-1]['content'])
+
     def test_short_status_alias_does_not_execute(self):
         module = self.load_filter()
+        body = {'model': module.MODEL_ID, 'chat_id': 'phone-status-test',
+                'messages': [{'role': 'user',
+                              'content': 'Delegate Local status: phone-test-0001'},
+                             {'role': 'assistant', 'content': 'draft'}]}
         with patch.object(module, '_control_post', return_value={
             'assistant_message': 'JOSIE LOCAL CODE — ACTUAL RESULT\nStatus: failed'}) as call:
-            result = module._authoritative_response({}, 'Delegate Local status: phone-test-0001')
+            inlet = module.Filter().inlet(body)
+            result = module._authoritative_response(
+                inlet, 'Delegate Local status: phone-test-0001')
         self.assertEqual(call.call_args.args[0], '/v1/delegate/local-code/status')
         self.assertIn('Status: failed', result[0])
+
+    def test_status_refresh_does_not_reuse_or_overwrite_submission_cache(self):
+        module = self.load_filter()
+        module._LOCAL_CODE_INGRESS_RESULTS.clear()
+        job_id = 'phone-cache-test-0002'
+        module._LOCAL_CODE_INGRESS_RESULTS[f'submit:{job_id}'] = {
+            'assistant_message': 'JOSIE LOCAL CODE — ACTUAL RESULT\nLOCAL CODE RESULT: PASS'}
+        body = {'model': module.MODEL_ID,
+                'messages': [{'role': 'user',
+                              'content': f'Delegate Local status: {job_id}'}]}
+        fresh = {'assistant_message':
+                 'JOSIE LOCAL CODE — ACTUAL RESULT\nLOCAL CODE RESULT: VALIDATION_FAIL'}
+        with patch.object(module, '_control_post', return_value=fresh) as call:
+            inlet = module.Filter().inlet(body)
+            result = module._authoritative_response(
+                inlet, f'Delegate Local status: {job_id}')
+        call.assert_called_once()
+        self.assertIn('VALIDATION_FAIL', result[0])
+        self.assertIn(f'submit:{job_id}', module._LOCAL_CODE_INGRESS_RESULTS)
+        self.assertEqual(module._LOCAL_CODE_INGRESS_RESULTS[f'status:{job_id}'], fresh)
 
     def test_local_drafts_are_suppressed_at_native_stream_boundary(self):
         module = self.load_filter()
@@ -88,3 +160,27 @@ class LocalPhonePathTests(unittest.TestCase):
             body = module.Filter().inlet({'model': module.MODEL_ID, 'stream': False,
                 'messages': [{'role': 'user', 'content': 'Delegate Local: inspect'}]})
         self.assertTrue(body['stream'])
+
+    def test_explicit_model_allowlist_includes_wrappers_and_raw_qwen_front_door(self):
+        module = self.load_filter()
+        self.assertEqual(module.MODEL_IDS, {
+            'josie-local:1.0', 'josie-qwen3-8b:1.0', 'qwen3:14b',
+            'gemma4:12b', 'josie-antigravity-flash', 'josie-antigravity-pro'})
+        for model_id in module.MODEL_IDS:
+            with patch.object(module, '_record_history'):
+                body = module.Filter().inlet({'model': model_id, 'stream': False,
+                    'messages': [{'role': 'user', 'content': 'Delegate Local: inspect'}]})
+            self.assertTrue(body['stream'])
+        raw = {'model': 'josie-qual-qwen3:8b-32k', 'stream': False,
+            'messages': [{'role': 'user', 'content': 'Delegate Local: inspect'}]}
+        self.assertIs(module.Filter().inlet(raw), raw)
+
+    def test_ordinary_new_front_door_chat_does_not_trigger_local_execution(self):
+        module = self.load_filter()
+        body = {'model': 'josie-qwen3-8b:1.0',
+            'messages': [{'role': 'user', 'content': 'Say hello in one sentence.'},
+                         {'role': 'assistant', 'content': 'Hello.'}]}
+        with patch.object(module, '_control_post') as execute:
+            rendered = asyncio.run(module.Filter().outlet(body))
+        execute.assert_not_called()
+        self.assertEqual(rendered['messages'][-1]['content'], 'Hello.')

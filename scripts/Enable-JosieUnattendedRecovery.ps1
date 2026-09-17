@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$autologonPath = 'D:\Josie-Storage\apps\Sysinternals\Autologon\Autologon64.exe'
+$autologonPath = 'I:\Josie-Storage\apps\Sysinternals\Autologon\Autologon64.exe'
 $lockRunner = Join-Path $PSScriptRoot 'Run-JosieAutoLockHidden.vbs'
 $recoveryShortcut = Join-Path ([Environment]::GetFolderPath('Startup')) `
     'Josie Background Services.lnk'

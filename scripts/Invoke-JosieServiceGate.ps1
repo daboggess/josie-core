@@ -35,13 +35,13 @@ $env:Path = "$dockerBin;$env:Path"
 & $dockerPath info *> $null
 if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop is not running or healthy.' }
 
-$storage = 'D:/Josie-Storage'
-if (-not (Test-Path -LiteralPath 'D:\Josie-Storage')) {
-    throw 'D:\Josie-Storage is unavailable; services will not start on the wrong disk.'
+$storage = 'I:/Josie-Storage'
+if (-not (Test-Path -LiteralPath 'I:\Josie-Storage')) {
+    throw 'I:\Josie-Storage is unavailable; services will not start on the wrong disk.'
 }
 
 $lines = @(
-    'JOSIE_STORAGE=D:/Josie-Storage'
+    'JOSIE_STORAGE=I:/Josie-Storage'
     'JOSIE_TIMEZONE=America/New_York'
     "N8N_IMAGE=$N8nImage"
     "OPEN_WEBUI_IMAGE=$OpenWebUIImage"

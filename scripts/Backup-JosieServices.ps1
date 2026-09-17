@@ -6,7 +6,7 @@ Set-StrictMode -Version Latest
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $composePath = Join-Path $projectRoot 'deploy\compose.yaml'
 $environmentPath = Join-Path $projectRoot 'deploy\.env.services'
-$backupRoot = 'D:\Josie-Storage\backups\services'
+$backupRoot = 'I:\Josie-Storage\backups\services'
 $dockerCommand = Get-Command docker.exe -ErrorAction SilentlyContinue
 $dockerPath = if ($dockerCommand) { $dockerCommand.Source } else {
     Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin\docker.exe'
@@ -52,7 +52,7 @@ finally {
     & $dockerPath compose --env-file $environmentPath -f $composePath up -d n8n open-webui
 }
 
-$ollamaPath = 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
+$ollamaPath = 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
 if (-not (Test-Path -LiteralPath $ollamaPath)) { throw 'The native Ollama runtime is unavailable.' }
 & $ollamaPath list | Set-Content -LiteralPath $modelManifest -Encoding UTF8
 if ($LASTEXITCODE -ne 0) { throw 'Ollama model manifest capture failed.' }

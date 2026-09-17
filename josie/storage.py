@@ -608,6 +608,210 @@ class LocalStore:
                         new.source_platform,new.speaker,new.timestamp
                     );
                 END;
+                CREATE TABLE IF NOT EXISTS retrieval_events (
+                    request_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    query_sha256 TEXT NOT NULL CHECK (length(query_sha256) = 64),
+                    trigger_reason TEXT NOT NULL,
+                    question_domain TEXT NOT NULL,
+                    query_terms_json TEXT NOT NULL,
+                    entity_candidates_json TEXT NOT NULL,
+                    source_types_json TEXT NOT NULL,
+                    evidence_ids_json TEXT NOT NULL,
+                    knowledge_state TEXT NOT NULL CHECK (
+                        knowledge_state IN (
+                            'VERIFIED','CANONICAL','RETRIEVED',
+                            'INFERRED','UNKNOWN','CONFLICT'
+                        )
+                    ),
+                    exclusions_json TEXT NOT NULL DEFAULT '[]',
+                    packet_chars INTEGER NOT NULL CHECK (packet_chars >= 0),
+                    failure_classification TEXT,
+                    delivery_status TEXT NOT NULL DEFAULT 'built' CHECK (
+                        delivery_status IN ('built','injected','unavailable')
+                    ),
+                    packet_sha256 TEXT CHECK (
+                        packet_sha256 IS NULL OR length(packet_sha256) = 64
+                    )
+                );
+                CREATE TABLE IF NOT EXISTS entities (
+                    entity_id TEXT PRIMARY KEY,
+                    canonical_name TEXT NOT NULL,
+                    normalized_name TEXT NOT NULL,
+                    entity_type TEXT NOT NULL,
+                    description TEXT NOT NULL DEFAULT '',
+                    status TEXT NOT NULL DEFAULT 'active' CHECK (
+                        status IN ('active','inactive','merged')
+                    ),
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS entities_normalized_name_idx
+                    ON entities(normalized_name);
+                CREATE TABLE IF NOT EXISTS entity_aliases (
+                    alias_id TEXT PRIMARY KEY,
+                    entity_id TEXT NOT NULL,
+                    alias_text TEXT NOT NULL,
+                    normalized_alias TEXT NOT NULL,
+                    alias_type TEXT NOT NULL CHECK (
+                        alias_type IN (
+                            'nickname','acronym','former_name','speech_variant','shorthand'
+                        )
+                    ),
+                    evidence_class TEXT NOT NULL CHECK (
+                        evidence_class IN (
+                            'VERIFIED','CANONICAL','RETRIEVED','INFERRED','UNKNOWN'
+                        )
+                    ),
+                    confidence REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+                    source_pointer TEXT NOT NULL,
+                    valid_from TEXT,
+                    valid_to TEXT,
+                    context_entity_id TEXT,
+                    ambiguity_state TEXT NOT NULL DEFAULT 'unambiguous' CHECK (
+                        ambiguity_state IN ('unambiguous','context_required','ambiguous')
+                    ),
+                    status TEXT NOT NULL DEFAULT 'active' CHECK (
+                        status IN ('active','superseded','rejected')
+                    ),
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(entity_id,normalized_alias),
+                    FOREIGN KEY(entity_id) REFERENCES entities(entity_id)
+                );
+                CREATE INDEX IF NOT EXISTS entity_aliases_normalized_idx
+                    ON entity_aliases(normalized_alias,status);
+                CREATE TABLE IF NOT EXISTS entity_relationships (
+                    relationship_id TEXT PRIMARY KEY,
+                    subject_entity_id TEXT NOT NULL,
+                    predicate TEXT NOT NULL,
+                    object_entity_id TEXT,
+                    object_literal TEXT,
+                    evidence_class TEXT NOT NULL,
+                    confidence REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+                    source_pointer TEXT NOT NULL,
+                    valid_from TEXT,
+                    valid_to TEXT,
+                    status TEXT NOT NULL DEFAULT 'active' CHECK (
+                        status IN ('candidate','active','disputed','superseded','rejected')
+                    ),
+                    superseded_by_relationship_id TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    CHECK ((object_entity_id IS NULL) != (object_literal IS NULL)),
+                    FOREIGN KEY(subject_entity_id) REFERENCES entities(entity_id),
+                    FOREIGN KEY(object_entity_id) REFERENCES entities(entity_id)
+                );
+                CREATE TABLE IF NOT EXISTS memory_claims (
+                    claim_id TEXT PRIMARY KEY,
+                    subject_entity_id TEXT NOT NULL,
+                    predicate TEXT NOT NULL,
+                    object_entity_id TEXT,
+                    value_text TEXT,
+                    memory_layer TEXT NOT NULL CHECK (
+                        memory_layer IN ('identity','semantic','episodic','procedural','relational')
+                    ),
+                    status TEXT NOT NULL CHECK (
+                        status IN ('candidate','active','disputed','superseded','rejected')
+                    ),
+                    evidence_class TEXT NOT NULL CHECK (
+                        evidence_class IN (
+                            'VERIFIED','CANONICAL','RETRIEVED','INFERRED','UNKNOWN'
+                        )
+                    ),
+                    authority_scope TEXT NOT NULL,
+                    confidence REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+                    confidence_basis TEXT NOT NULL,
+                    valid_from TEXT,
+                    valid_to TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    approved_by TEXT,
+                    reviewed_at TEXT,
+                    canonical_effect INTEGER NOT NULL DEFAULT 0 CHECK (
+                        canonical_effect IN (0,1)
+                    ),
+                    superseded_by_claim_id TEXT,
+                    version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
+                    CHECK ((object_entity_id IS NULL) != (value_text IS NULL)),
+                    CHECK (
+                        canonical_effect = 0 OR (
+                            status = 'active' AND evidence_class = 'CANONICAL'
+                            AND approved_by IS NOT NULL AND reviewed_at IS NOT NULL
+                        )
+                    ),
+                    FOREIGN KEY(subject_entity_id) REFERENCES entities(entity_id),
+                    FOREIGN KEY(object_entity_id) REFERENCES entities(entity_id)
+                );
+                CREATE INDEX IF NOT EXISTS memory_claims_subject_predicate_idx
+                    ON memory_claims(subject_entity_id,predicate,status,canonical_effect);
+                CREATE TABLE IF NOT EXISTS claim_evidence (
+                    claim_id TEXT NOT NULL,
+                    evidence_id TEXT NOT NULL,
+                    relation_type TEXT NOT NULL CHECK (
+                        relation_type IN (
+                            'supports','contradicts','derived_from','execution_receipt',
+                            'supersedes','refines','caused_by','related_to'
+                        )
+                    ),
+                    source_type TEXT NOT NULL,
+                    source_platform TEXT,
+                    conversation_id TEXT,
+                    history_message_id INTEGER,
+                    source_message_id TEXT,
+                    source_timestamp TEXT,
+                    role TEXT,
+                    speaker TEXT,
+                    source_pointer TEXT NOT NULL,
+                    evidence_class TEXT NOT NULL,
+                    excerpt_sha256 TEXT,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY(claim_id,evidence_id,relation_type),
+                    FOREIGN KEY(claim_id) REFERENCES memory_claims(claim_id),
+                    FOREIGN KEY(history_message_id) REFERENCES history_messages(message_id)
+                );
+                CREATE TABLE IF NOT EXISTS claim_conflicts (
+                    conflict_id TEXT PRIMARY KEY,
+                    claim_scope TEXT NOT NULL,
+                    domain TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK (status IN ('unresolved','resolved')),
+                    resolver TEXT,
+                    resolution_timestamp TEXT,
+                    resolution_reason TEXT,
+                    resolution_claim_id TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    CHECK (
+                        status = 'unresolved' OR (
+                            resolver IS NOT NULL AND resolution_timestamp IS NOT NULL
+                            AND resolution_reason IS NOT NULL
+                            AND resolution_claim_id IS NOT NULL
+                        )
+                    )
+                );
+                CREATE TABLE IF NOT EXISTS conflict_claims (
+                    conflict_id TEXT NOT NULL,
+                    claim_id TEXT NOT NULL,
+                    outcome TEXT NOT NULL CHECK (
+                        outcome IN ('competing','prevailing','superseded','rejected','context')
+                    ),
+                    PRIMARY KEY(conflict_id,claim_id),
+                    FOREIGN KEY(conflict_id) REFERENCES claim_conflicts(conflict_id),
+                    FOREIGN KEY(claim_id) REFERENCES memory_claims(claim_id)
+                );
+                CREATE TABLE IF NOT EXISTS canonical_adjudications (
+                    adjudication_id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    authorized_by TEXT NOT NULL,
+                    authority_scope TEXT NOT NULL,
+                    explicit_statement TEXT NOT NULL,
+                    statement_sha256 TEXT NOT NULL CHECK (length(statement_sha256)=64),
+                    source_pointer TEXT NOT NULL,
+                    payload_sha256 TEXT NOT NULL CHECK (length(payload_sha256)=64),
+                    conflict_id TEXT,
+                    status TEXT NOT NULL CHECK (status IN ('applied','rejected')),
+                    actions_executed INTEGER NOT NULL DEFAULT 0 CHECK (actions_executed=0)
+                );
                 """
             )
             memory_columns = {
@@ -653,6 +857,25 @@ class LocalStore:
                     "ALTER TABLE history_message_attachments ADD COLUMN relationship "
                     "TEXT NOT NULL DEFAULT 'activity_card_reference'"
                 )
+            retrieval_columns = {
+                str(row[1]) for row in connection.execute(
+                    "PRAGMA table_info(retrieval_events)"
+                ).fetchall()
+            }
+            retrieval_additions = {
+                "resolved_entity_ids_json": "TEXT NOT NULL DEFAULT '[]'",
+                "alias_matches_json": "TEXT NOT NULL DEFAULT '[]'",
+                "candidate_ambiguity_json": "TEXT NOT NULL DEFAULT '[]'",
+                "canonical_claim_ids_json": "TEXT NOT NULL DEFAULT '[]'",
+                "conflict_ids_json": "TEXT NOT NULL DEFAULT '[]'",
+                "superseded_evidence_json": "TEXT NOT NULL DEFAULT '[]'",
+                "adjudication_state": "TEXT NOT NULL DEFAULT 'not_applicable'",
+            }
+            for column, definition in retrieval_additions.items():
+                if column not in retrieval_columns:
+                    connection.execute(
+                        f"ALTER TABLE retrieval_events ADD COLUMN {column} {definition}"
+                    )
 
     @staticmethod
     def _now() -> str:
@@ -1430,6 +1653,168 @@ class LocalStore:
             }
             for row in rows
         ]
+
+    def search_history_ranked(
+        self,
+        terms: list[str] | tuple[str, ...],
+        *,
+        limit: int = 30,
+        source_platform: str | None = None,
+        match_all: bool = True,
+    ) -> list[dict[str, object]]:
+        """Search imported history with a safely constructed FTS expression.
+
+        The existing exact-phrase ``search_history`` behavior remains unchanged.
+        Terms, never caller-provided FTS syntax, cross this boundary.
+        """
+        clean_terms: list[str] = []
+        for value in terms:
+            for token in re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]{1,63}", str(value)):
+                normalized = token.casefold()
+                if normalized not in clean_terms:
+                    clean_terms.append(normalized)
+        if not clean_terms or len(clean_terms) > 12:
+            raise ValueError("Historical ranked search requires 1 to 12 safe terms")
+        if limit < 1 or limit > 100:
+            raise ValueError("Historical search limit must be between 1 and 100")
+        operator = " AND " if match_all else " OR "
+        expression = operator.join(f'"{term}"' for term in clean_terms)
+        clauses = ["history_messages_fts MATCH ?"]
+        values: list[object] = [expression]
+        if source_platform is not None:
+            clauses.append("h.source_platform=?")
+            values.append(source_platform)
+        values.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT h.message_id,h.stable_id,h.source_platform,"
+                "h.source_conversation_id,h.conversation_id,h.conversation_title,"
+                "h.source_message_id,h.timestamp,h.speaker,h.role,h.raw_text,"
+                "h.message_order,h.source_pointer,h.historical_only,h.canonical_effect,"
+                "bm25(history_messages_fts) AS relevance_rank "
+                "FROM history_messages_fts JOIN history_messages h "
+                "ON h.message_id=history_messages_fts.rowid "
+                f"WHERE {' AND '.join(clauses)} "
+                "ORDER BY relevance_rank,h.timestamp LIMIT ?",
+                values,
+            ).fetchall()
+        return [
+            {
+                **dict(row),
+                "evidence_label": "imported_historical_evidence_not_canonical",
+            }
+            for row in rows
+        ]
+
+    def history_message_window(
+        self, message_id: int, *, before: int = 1, after: int = 2
+    ) -> list[dict[str, object]]:
+        if before < 0 or after < 0 or before > 10 or after > 10:
+            raise ValueError("Historical message window must be between 0 and 10")
+        with self._connect() as connection:
+            anchor = connection.execute(
+                "SELECT conversation_id,message_order FROM history_messages WHERE message_id=?",
+                (message_id,),
+            ).fetchone()
+            if anchor is None or anchor["conversation_id"] is None:
+                return []
+            rows = connection.execute(
+                "SELECT message_id,stable_id,source_platform,source_conversation_id,"
+                "conversation_id,conversation_title,source_message_id,timestamp,speaker,"
+                "role,raw_text,message_order,source_pointer,historical_only,canonical_effect "
+                "FROM history_messages WHERE conversation_id=? AND message_order BETWEEN ? AND ? "
+                "ORDER BY message_order",
+                (
+                    anchor["conversation_id"],
+                    int(anchor["message_order"]) - before,
+                    int(anchor["message_order"]) + after,
+                ),
+            ).fetchall()
+        return [
+            {
+                **dict(row),
+                "evidence_label": "imported_historical_evidence_not_canonical",
+            }
+            for row in rows
+        ]
+
+    def record_retrieval_event(
+        self,
+        *,
+        request_id: str,
+        query: str,
+        trigger_reason: str,
+        question_domain: str,
+        query_terms: list[str],
+        entity_candidates: list[str],
+        source_types: list[str],
+        evidence_ids: list[str],
+        knowledge_state: str,
+        exclusions: list[str],
+        packet_chars: int,
+        failure_classification: str | None,
+        delivery_status: str = "built",
+    ) -> None:
+        if knowledge_state not in {
+            "VERIFIED", "CANONICAL", "RETRIEVED", "INFERRED", "UNKNOWN", "CONFLICT"
+        }:
+            raise ValueError("Invalid retrieval knowledge state")
+        if delivery_status not in {"built", "injected", "unavailable"}:
+            raise ValueError("Invalid retrieval delivery status")
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO retrieval_events("
+                "request_id,created_at,query_sha256,trigger_reason,question_domain,"
+                "query_terms_json,entity_candidates_json,source_types_json,"
+                "evidence_ids_json,knowledge_state,exclusions_json,packet_chars,"
+                "failure_classification,delivery_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+                "ON CONFLICT(request_id) DO UPDATE SET "
+                "trigger_reason=excluded.trigger_reason,question_domain=excluded.question_domain,"
+                "query_terms_json=excluded.query_terms_json,"
+                "entity_candidates_json=excluded.entity_candidates_json,"
+                "source_types_json=excluded.source_types_json,"
+                "evidence_ids_json=excluded.evidence_ids_json,"
+                "knowledge_state=excluded.knowledge_state,"
+                "exclusions_json=excluded.exclusions_json,packet_chars=excluded.packet_chars,"
+                "failure_classification=excluded.failure_classification,"
+                "delivery_status=excluded.delivery_status",
+                (
+                    request_id,
+                    self._now(),
+                    hashlib.sha256(query.encode("utf-8")).hexdigest(),
+                    trigger_reason,
+                    question_domain,
+                    json.dumps(query_terms, ensure_ascii=False),
+                    json.dumps(entity_candidates, ensure_ascii=False),
+                    json.dumps(source_types, ensure_ascii=False),
+                    json.dumps(evidence_ids, ensure_ascii=False),
+                    knowledge_state,
+                    json.dumps(exclusions, ensure_ascii=False),
+                    packet_chars,
+                    failure_classification,
+                    delivery_status,
+                ),
+            )
+
+    def mark_retrieval_injected(self, request_id: str, packet_sha256: str) -> bool:
+        if not re.fullmatch(r"[0-9a-f]{64}", packet_sha256):
+            raise ValueError("Retrieval packet checksum is invalid")
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "UPDATE retrieval_events SET delivery_status='injected',packet_sha256=? "
+                "WHERE request_id=?",
+                (packet_sha256, request_id),
+            )
+        return cursor.rowcount == 1
+
+    def retrieval_events(self, *, limit: int = 50) -> list[dict[str, object]]:
+        if limit < 1 or limit > 500:
+            raise ValueError("Retrieval event limit must be between 1 and 500")
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM retrieval_events ORDER BY created_at DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def conversation_history(
         self,

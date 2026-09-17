@@ -3,11 +3,19 @@ param()
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$ollamaPath = 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
-$modelRoot = 'D:\Josie-Storage\models\ollama'
+$ollamaPath = 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe'
+$modelRoot = 'I:\Josie-Storage\models\ollama'
 
-if (-not (Test-Path -LiteralPath $ollamaPath)) { throw 'The verified Ollama runtime is unavailable.' }
-if (-not (Test-Path -LiteralPath $modelRoot)) { throw 'The Ollama model directory is unavailable.' }
+# The D: storage volume can become available after a logon-triggered task starts.
+$storageReady = $false
+for ($attempt = 0; $attempt -lt 60; $attempt++) {
+    if ((Test-Path -LiteralPath $ollamaPath) -and (Test-Path -LiteralPath $modelRoot)) {
+        $storageReady = $true
+        break
+    }
+    Start-Sleep -Seconds 2
+}
+if (-not $storageReady) { throw 'The verified Ollama runtime or model directory was unavailable after waiting 120 seconds.' }
 
 $env:OLLAMA_HOST = '0.0.0.0:11434'
 $env:OLLAMA_MODELS = $modelRoot
@@ -20,8 +28,8 @@ $env:OLLAMA_MAX_QUEUE = '8'
 $process = Start-Process -FilePath $ollamaPath -ArgumentList @('serve') `
     -WindowStyle Hidden -PassThru
 $ready = $false
-for ($attempt = 0; $attempt -lt 40; $attempt++) {
-    Start-Sleep -Milliseconds 250
+for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    Start-Sleep -Seconds 1
     if ($process.HasExited) { break }
     try {
         $health = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/version' -TimeoutSec 1

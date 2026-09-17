@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "adjudication_id": "adjudication:bernie-naming-origin:20260902",
+  "authorized_by": "Dustin",
+  "authority_scope": "assistant:bernie:naming_history",
+  "source_pointer": "user_request:josie-continuity-phase-2b:2026-09-02",
+  "explicit_statement": "Bernie’s name originated from Bernard from Westworld. The Bernadette / Big Bang Theory connection was a later coincidental association, not the naming origin.",
+  "claims": [
+    {
+      "claim_id": "claim:bernie:naming-origin:v1",
+      "subject_entity_id": "assistant:bernie",
+      "predicate": "naming_origin",
+      "value_text": "Bernie’s name originated from Bernard from Westworld.",
+      "memory_layer": "identity",
+      "status": "active",
+      "evidence_class": "CANONICAL",
+      "canonical_effect": true,
+      "confidence": 1.0,
+      "confidence_basis": "Explicit Dustin adjudication of Bernie’s naming history.",
+      "version": 1,
+      "evidence": [
+        {"relation_type": "supports"},
+        {"relation_type": "supports", "history_message_id": 1106},
+        {"relation_type": "supports", "history_message_id": 1394},
+        {"relation_type": "contradicts", "history_message_id": 1344}
+      ]
+    },
+    {
+      "claim_id": "claim:bernie:related-association:v1",
+      "subject_entity_id": "assistant:bernie",
+      "predicate": "related_association",
+      "value_text": "Bernadette from The Big Bang Theory was a later coincidental association with Bernie, not Bernie’s naming origin.",
+      "memory_layer": "relational",
+      "status": "active",
+      "evidence_class": "CANONICAL",
+      "canonical_effect": true,
+      "confidence": 1.0,
+      "confidence_basis": "Explicit Dustin adjudication separating naming origin from later association.",
+      "version": 1,
+      "evidence": [
+        {"relation_type": "supports"},
+        {"relation_type": "related_to", "history_message_id": 1107},
+        {"relation_type": "contradicts", "history_message_id": 1344}
+      ]
+    },
+    {
+      "claim_id": "claim:bernie:synthesis-origin:retrieved:v1",
+      "subject_entity_id": "assistant:bernie",
+      "predicate": "naming_origin",
+      "value_text": "Bernie’s name originated as an intentional synthesis of Bernard from Westworld and Bernadette from The Big Bang Theory.",
+      "memory_layer": "identity",
+      "status": "superseded",
+      "evidence_class": "RETRIEVED",
+      "canonical_effect": false,
+      "confidence": 0.7,
+      "confidence_basis": "Imported Gemini exchange and later assistant summary; never canonical.",
+      "superseded_by_claim_id": "claim:bernie:naming-origin:v1",
+      "version": 1,
+      "evidence": [
+        {"relation_type": "supports", "history_message_id": 1107},
+        {"relation_type": "supports", "history_message_id": 1344},
+        {"relation_type": "supersedes"}
+      ]
+    },
+    {
+      "claim_id": "claim:bernie:bernadette-only-origin:retrieved:v1",
+      "subject_entity_id": "assistant:bernie",
+      "predicate": "naming_origin",
+      "value_text": "Bernie was named only after Bernadette.",
+      "memory_layer": "identity",
+      "status": "rejected",
+      "evidence_class": "RETRIEVED",
+      "canonical_effect": false,
+      "confidence": 0.2,
+      "confidence_basis": "Later Gemini assertion directly corrected by Dustin in the following message.",
+      "superseded_by_claim_id": "claim:bernie:naming-origin:v1",
+      "version": 1,
+      "evidence": [
+        {"relation_type": "supports", "history_message_id": 1393},
+        {"relation_type": "contradicts", "history_message_id": 1394},
+        {"relation_type": "supersedes"}
+      ]
+    }
+  ],
+  "conflict": {
+    "conflict_id": "conflict:bernie:naming-origin:20260902",
+    "domain": "historical_naming_origin",
+    "resolution_claim_id": "claim:bernie:naming-origin:v1",
+    "resolution_reason": "Dustin explicitly resolved the naming origin while preserving Bernadette as a separate later association and retaining all imported evidence.",
+    "claim_outcomes": {
+      "claim:bernie:naming-origin:v1": "prevailing",
+      "claim:bernie:related-association:v1": "context",
+      "claim:bernie:synthesis-origin:retrieved:v1": "superseded",
+      "claim:bernie:bernadette-only-origin:retrieved:v1": "rejected"
+    }
+  }
+}

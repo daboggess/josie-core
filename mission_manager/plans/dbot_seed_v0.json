@@ -1,0 +1,78 @@
+{
+  "mission_id": "dbot-seed-v0",
+  "title": "D-bot Seed v0",
+  "objective": "Build and independently verify the minimal Seal, Ring, and Scroll authority contracts in four sequential bounded jobs.",
+  "jobs": [
+    {
+      "job_id": "job-1-contracts",
+      "title": "Contract definitions",
+      "department": "coding",
+      "objective": "Implement minimal, typed Python data structures named Seal, Ring, and Scroll in contracts.py. Seal represents an identity and public verification material without secrets. Ring represents delegated authority including expiration, allowed actions, prohibited actions, and nonnegative spending authority. Scroll represents a bounded mission request including requested actions, expiration, requested spending, and acceptance statements. Add deterministic standard-library unit tests in tests/test_contracts.py covering construction, JSON-compatible serialization round trips, and rejection of structurally invalid values. Use no external packages.",
+      "dependencies": [],
+      "workspace": "D:\\Josie\\dbot",
+      "allowed_changes": ["contracts.py", "tests/test_contracts.py"],
+      "acceptance": [
+        {"type": "file_exists", "path": "contracts.py"},
+        {"type": "file_exists", "path": "tests/test_contracts.py"},
+        {"type": "command", "argv": ["python", "-m", "unittest", "discover", "-s", "tests", "-p", "test_contracts.py", "-v"], "expected_exit_code": 0, "timeout_seconds": 60},
+        {"type": "changed_paths"},
+        {"type": "no_unexpected_files"}
+      ],
+      "timeout": 120
+    },
+    {
+      "job_id": "job-2-authority",
+      "title": "Authority validation",
+      "department": "coding",
+      "objective": "Using the existing Seal, Ring, and Scroll contracts, implement deterministic authority validation in authority.py and tests/test_authority.py. Validate expiration; require every Scroll action to be allowed by its Ring; make a prohibited action win even if also allowed; forbid a D-bot/Scroll from expanding its own authority; and ensure zero spending authority cannot silently become positive. Return structured validation results or raise a specific validation error, with tests for valid and denied cases. Use no external packages and do not change the contract files.",
+      "dependencies": ["job-1-contracts"],
+      "workspace": "D:\\Josie\\dbot",
+      "allowed_changes": ["authority.py", "tests/test_authority.py"],
+      "acceptance": [
+        {"type": "file_exists", "path": "authority.py"},
+        {"type": "file_exists", "path": "tests/test_authority.py"},
+        {"type": "command", "argv": ["python", "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py", "-v"], "expected_exit_code": 0, "timeout_seconds": 60},
+        {"type": "changed_paths"},
+        {"type": "no_unexpected_files"}
+      ],
+      "timeout": 120
+    },
+    {
+      "job_id": "job-3-docs",
+      "title": "Examples and documentation",
+      "department": "coding",
+      "objective": "Add a concise README.md describing the D-bot Seed Seal/Ring/Scroll contracts and validation rules, plus examples/example_authority.json containing no secrets and showing a bounded zero-spend authority request. Keep documentation aligned with the implemented code and do not change implementation or tests.",
+      "dependencies": ["job-1-contracts", "job-2-authority"],
+      "workspace": "D:\\Josie\\dbot",
+      "allowed_changes": ["README.md", "examples/example_authority.json"],
+      "acceptance": [
+        {"type": "file_exists", "path": "README.md"},
+        {"type": "file_exists", "path": "examples/example_authority.json"},
+        {"type": "command", "argv": ["python", "-c", "import json,pathlib; p=pathlib.Path('examples/example_authority.json'); d=json.loads(p.read_text(encoding='utf-8')); assert d and 'secret' not in p.read_text(encoding='utf-8').lower()"], "expected_exit_code": 0, "timeout_seconds": 30},
+        {"type": "changed_paths"},
+        {"type": "no_unexpected_files"}
+      ],
+      "timeout": 120
+    },
+    {
+      "job_id": "job-4-verification",
+      "title": "Integrated verification",
+      "department": "coding",
+      "objective": "Run the complete D-bot contract and authority unittest suite, verify contracts.py, authority.py, README.md, and examples/example_authority.json exist, and record the executed verification command and concise factual result in VERIFICATION.md. Do not change implementation, tests, examples, or README.",
+      "dependencies": ["job-1-contracts", "job-2-authority", "job-3-docs"],
+      "workspace": "D:\\Josie\\dbot",
+      "allowed_changes": ["VERIFICATION.md"],
+      "acceptance": [
+        {"type": "file_exists", "path": "contracts.py"},
+        {"type": "file_exists", "path": "authority.py"},
+        {"type": "file_exists", "path": "README.md"},
+        {"type": "file_exists", "path": "examples/example_authority.json"},
+        {"type": "file_exists", "path": "VERIFICATION.md"},
+        {"type": "command", "argv": ["python", "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py", "-v"], "expected_exit_code": 0, "timeout_seconds": 60},
+        {"type": "changed_paths"},
+        {"type": "no_unexpected_files"}
+      ],
+      "timeout": 120
+    }
+  ]
+}

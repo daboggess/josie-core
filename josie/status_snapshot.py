@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import sqlite3
 
@@ -44,8 +45,33 @@ def _read_storage_snapshot(config: Config) -> dict[str, object]:
             for item in raw.get("drives", [])
             if isinstance(item, dict)
         }
-        system = drives.get("C:\\", {})
-        external = drives.get("D:\\", {})
+        system_key = (os.environ.get("SystemDrive", "C:").upper().rstrip("\\") + "\\")
+        system = drives.get(system_key) or drives.get("C:\\", {})
+
+        ext_anchor = ""
+        if config.external_storage:
+            ext_anchor = config.external_storage.anchor.upper()
+            if not ext_anchor and config.external_storage.drive:
+                ext_anchor = f"{config.external_storage.drive.upper()}\\"
+
+        external = (
+            drives.get(ext_anchor)
+            or drives.get(ext_anchor.rstrip("\\"))
+            or next(
+                (
+                    item
+                    for drive_key, item in drives.items()
+                    if ext_anchor and (drive_key.startswith(ext_anchor) or ext_anchor.startswith(drive_key))
+                ),
+                {},
+            )
+        )
+        if not external:
+            for drive_key, item in drives.items():
+                if drive_key not in {system_key, "C:\\"}:
+                    external = item
+                    break
+
         status = str(raw.get("status", "critical"))
         valid = bool(
             status in {"ok", "warning", "critical"}

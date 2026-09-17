@@ -42,7 +42,7 @@
   },
   "persistence": {
     "open_webui_history": "existing Open WebUI webui.db volume",
-    "josie_history": "existing C:\\Josie\\data\\josie.db",
+    "josie_history": "existing D:\\Josie\\data\\josie.db",
     "successful_consultant_results_saved": true,
     "consultation_decisions_saved": true,
     "failures_audited": true

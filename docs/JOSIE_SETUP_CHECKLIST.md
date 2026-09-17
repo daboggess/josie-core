@@ -1,12 +1,16 @@
 # JOSIE 0.99 / 1.0 — Running Setup State
 
+> Hardware correction — Dustin, 2026-08-28: the current physical board is an Advantech Mini-ITX platform using SO-DIMM memory. Exact model is not verified. Older AIMB-205G2/micro-ATX identification and associated BIOS/slot claims are historical/superseded, not current compatibility evidence. The 200 W PSU reference is historical; current installed/intended PSU model, wattage and GPU PCIe connector: PHYSICAL VERIFICATION REQUIRED. See CURRENT_STATE.md.
+
 Last reconciled: 2026-08-13
 
 This is the canonical project roadmap. Update it when work is completed,
 rejected, deferred, or materially changed. Claims marked **verified** have been
 confirmed on Josie or by the repository test suite.
 
-## Base hardware and OS
+## Historical base hardware and OS — superseded hardware identification
+
+The checked entries below preserve the 2026-08-13 record; they are not renewed verification of the current board, PSU or firmware.
 
 - [x] Advantech AIMB-205G2 motherboard. **Known configuration**
 - [x] Intel Core i7-7700.
@@ -217,7 +221,11 @@ confirmed on Josie or by the repository test suite.
 - [ ] Potential first major GPU target: RTX 3060 12 GB, subject to chassis, PSU, slot-power, thermals, and compatibility review.
 - [ ] AMD Instinct MI25 remains a headless-accelerator candidate only; no case, PSU, or GPU has been purchased, and exact power/cooling/software compatibility still requires review.
 
-## GPU and chassis path — not required for Josie 1.0
+## Historical GPU and chassis path — superseded board/PSU assumptions
+
+The following older options and checked slot claim are retained for provenance,
+not current installation instructions. Use GPU_UPGRADE_PLAN.md for the current
+Mini-ITX platform; exact PSU, connector and board compatibility remain unverified.
 
 - [ ] Evaluate moving the AIMB-205G2/i7/32 GB platform into a standard case.
 - [ ] Inspect the potential Dell shop chassis before assuming compatibility.

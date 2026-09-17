@@ -1,0 +1,14 @@
+{
+  "profile": "unattended-conservative",
+  "gpu_index": 0,
+  "nvidia_smi": "auto",
+  "warning_c": 70,
+  "block_new_job_c": 75,
+  "terminate_active_c": 82,
+  "critical_c": 90,
+  "monitor_interval_seconds": 10,
+  "sustained_over_limit_samples": 2,
+  "hysteresis_c": 3,
+  "telemetry_failure_samples": 2,
+  "query_timeout_seconds": 5
+}
