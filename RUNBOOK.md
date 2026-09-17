@@ -7,15 +7,15 @@ For the Windows deployment audited 2026-08-28. Commands are PowerShell unless la
 Desktop: http://localhost:3000. Phone: connect Tailscale, open https://refurb.tail0ab4d2.ts.net, sign in, select **Josie** (`josie-local:1.0`). Ordinary chat is local. “Ask Codex …” / “Ask Gemini …” uses the optional consultant. Do not use a delegation request as a health check: it can edit files.
 
 ```powershell
-Set-Location C:/Josie
-& 'C:/Program Files/Git/bin/bash.exe' C:/Josie/josie-doctor.sh
+Set-Location D:/Josie
+& 'C:/Program Files/Git/bin/bash.exe' D:/Josie/josie-doctor.sh
 ```
 
 Or use existing Windows Python directly:
 
 ```powershell
-& C:/Josie/.venv/Scripts/python.exe -B C:/Josie/scripts/josie_doctor.py
-& C:/Josie/.venv/Scripts/python.exe -B C:/Josie/scripts/josie_doctor.py --json
+& D:/Josie/.venv/Scripts/python.exe -B D:/Josie/scripts/josie_doctor.py
+& D:/Josie/.venv/Scripts/python.exe -B D:/Josie/scripts/josie_doctor.py --json
 ```
 
 PASS = check succeeded; WARN = limitation/optional absence/attention; FAIL = critical check failed. Exit code 1 means a FAIL. Missing NVIDIA and Windows' lack of Unix load average are warnings. A restricted shell may not see Docker/CIM: rerun in a normal host terminal.
@@ -27,7 +27,7 @@ Doctor uses fixed read-only commands and allowlisted loopback GETs, disables red
 Tailscale starts at boot. Josie tasks run **after Dustin signs in**, when D: must be mounted. Docker Desktop currently needs **manual launch**.
 
 ```powershell
-Test-Path D:/Josie-Storage/models/ollama
+Test-Path I:/Josie-Storage/models/ollama
 Get-ScheduledTask -TaskPath '\Josie\' | Select-Object TaskName,State
 Get-Service Tailscale
 Invoke-RestMethod http://127.0.0.1:11434/api/version -TimeoutSec 5
@@ -55,7 +55,7 @@ Other exact names: josie-n8n-1, josie-browser-worker-1, josie-proposal-server-1.
 
 ```powershell
 docker.exe compose ls
-docker.exe compose --project-name josie --env-file C:/Josie/deploy/.env.services -f C:/Josie/deploy/compose.yaml --profile proposal-interface ps -a
+docker.exe compose --project-name josie --env-file D:/Josie/deploy/.env.services -f D:/Josie/deploy/compose.yaml --profile proposal-interface ps -a
 ```
 
 If a container or named volume is **missing**, stop and inspect backups. Blind recreation can present an empty new database as lost history. Do not initialize replacement volumes over missing evidence.
@@ -84,9 +84,9 @@ Do not print full Docker environment or expanded Compose configuration: secrets 
 Read-only checks:
 
 ```powershell
-& 'D:/Josie-Storage/apps/Ollama/0.32.5/ollama.exe' --version
-& 'D:/Josie-Storage/apps/Ollama/0.32.5/ollama.exe' list
-& 'D:/Josie-Storage/apps/Ollama/0.32.5/ollama.exe' ps
+& 'I:/Josie-Storage/apps/Ollama/0.32.5/ollama.exe' --version
+& 'I:/Josie-Storage/apps/Ollama/0.32.5/ollama.exe' list
+& 'I:/Josie-Storage/apps/Ollama/0.32.5/ollama.exe' ps
 Invoke-RestMethod http://127.0.0.1:11434/api/version -TimeoutSec 5
 (Invoke-RestMethod http://127.0.0.1:11434/api/tags -TimeoutSec 5).models |
     Select-Object name,size,digest
@@ -97,7 +97,7 @@ No loaded model after five idle minutes is normal. The server can be healthy wit
 For a direct test without WebUI, first confirm no chat/job is active, then opt into the one bounded local benchmark:
 
 ```powershell
-Set-Location C:/Josie
+Set-Location D:/Josie
 .venv/Scripts/python.exe -B scripts/measure_pre_gpu.py --run
 ```
 
@@ -106,7 +106,7 @@ Without --run, no inference occurs. The script refuses if a model is already res
 If Ollama is stopped and D: is ready, this existing readiness helper starts it:
 
 ```powershell
-& C:/Josie/scripts/Ensure-JosieOllama.ps1
+& D:/Josie/scripts/Ensure-JosieOllama.ps1
 ```
 
 That is a start action, not a read-only check. Avoid repeatedly using Start-JosieOllama.ps1 directly; it is the lower-level launcher, not the readiness guard.
@@ -147,9 +147,9 @@ Get-CimInstance Win32_LogicalDisk -Filter 'DriveType=3' |
     Select-Object DeviceID,Size,FreeSpace
 Get-CimInstance Win32_PageFileUsage |
     Select-Object Name,AllocatedBaseSize,CurrentUsage,PeakUsage
-Get-ChildItem C:/Josie/logs -File | Select-Object Name,Length,LastWriteTime
-Get-Content C:/Josie/logs/conversation-control-background.log -Tail 50
-Get-Content C:/Josie/logs/ollama-background.log -Tail 50
+Get-ChildItem D:/Josie/logs -File | Select-Object Name,Length,LastWriteTime
+Get-Content D:/Josie/logs/conversation-control-background.log -Tail 50
+Get-Content D:/Josie/logs/ollama-background.log -Tail 50
 docker.exe logs --tail 60 josie-n8n-1
 ```
 
@@ -157,7 +157,7 @@ OS memory values are KiB; pagefile values are MiB. Windows has no native Unix lo
 
 ## Targeted restarts — maintenance window only
 
-Save work; confirm no active chat, consultant, backup, maintenance or delegation. Check UI/receipts and C:/Josie/.git/josie-delegate.lock. An absent lock is not universal proof of inactivity; never delete one just to proceed.
+Save work; confirm no active chat, consultant, backup, maintenance or delegation. Check UI/receipts and D:/Josie/.git/josie-delegate.lock. An absent lock is not universal proof of inactivity; never delete one just to proceed.
 
 **WebUI:** restart only the named existing container. Connections drop; volume remains.
 
@@ -171,7 +171,7 @@ Allow startup before retrying health. Optional services can be individually rest
 **Conversation control:** the existing stop helper validates the stored PID command. If it reports missing/stale PID while :8790 is still alive, inspect the actual process instead of killing Python broadly.
 
 ```powershell
-& C:/Josie/scripts/Stop-JosieConversationControl.ps1
+& D:/Josie/scripts/Stop-JosieConversationControl.ps1
 Start-ScheduledTask -TaskPath '\Josie\' -TaskName 'Josie Conversation Control'
 Invoke-RestMethod http://127.0.0.1:8790/health -TimeoutSec 5
 ```
@@ -185,17 +185,17 @@ $ollamaListeners = @(Get-NetTCPConnection -State Listen -LocalPort 11434 -ErrorA
 $ollamaIds = @($ollamaListeners.OwningProcess | Sort-Object -Unique)
 if ($ollamaIds.Count -ne 1) { throw 'Expected one Ollama owner; investigate.' }
 $ollamaProcess = Get-CimInstance Win32_Process -Filter ("ProcessId=" + $ollamaIds[0])
-if ($ollamaProcess.ExecutablePath -ine 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe') {
+if ($ollamaProcess.ExecutablePath -ine 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe') {
     throw 'Unexpected executable; no process stopped.'
 }
 Stop-Process -Id $ollamaIds[0]
-& C:/Josie/scripts/Ensure-JosieOllama.ps1
+& D:/Josie/scripts/Ensure-JosieOllama.ps1
 ```
 
 **Storage monitor:** do not disable backups or interrupt one in progress. The cooperative stop event ends the loop; wait until its task is no longer Running before restarting.
 
 ```powershell
-& C:/Josie/scripts/Stop-JosieStorageMonitor.ps1
+& D:/Josie/scripts/Stop-JosieStorageMonitor.ps1
 Get-ScheduledTask -TaskPath '\Josie\' -TaskName 'Josie Storage Monitor'
 ```
 
@@ -233,7 +233,7 @@ Do not restart all WSL/Docker for a single application failure without diagnosin
 ## Git, tests and data recovery
 
 ```powershell
-Set-Location C:/Josie
+Set-Location D:/Josie
 git status --short --branch
 git diff --stat
 git log -5 --oneline

@@ -17,11 +17,11 @@ flowchart TB
         Control["Python control<br/>127.0.0.1:8790"]
         Prayer["Optional prayer bridge :8788"]
         Monitor["Storage monitor<br/>300-second loop + daily backups"]
-        SQL[("C:/Josie/data/josie.db")]
-        Core["C:/Josie code / policies / tests"]
+        SQL[("D:/Josie/data/josie.db")]
+        Core["D:/Josie code / policies / tests"]
         Receipts[("data/private worker receipts")]
         Workers["Optional CLI workers<br/>Codex / Gemini / OpenCode"]
-        DiskD[("D:/Josie-Storage<br/>apps / models / evidence / backups")]
+        DiskD[("I:/Josie-Storage<br/>apps / models / evidence / backups")]
         subgraph Docker["Docker Desktop / WSL2 — manually started"]
             WebUI["Open WebUI :3000<br/>Josie + exact-response filter"]
             WebData[("josie_open_webui_data")]
@@ -60,7 +60,7 @@ flowchart TB
     Monitor --> DiskD
 ```
 
-Docker volumes physically live in Docker's C: VHDX, not in C:/Josie. D: supplies live model/application files and many backups. Tailscale is the reverse proxy; no separate reverse-proxy container was found.
+Docker volumes physically live in Docker's C: VHDX, not in D:/Josie. I: supplies live model/application files and many backups. Tailscale is the reverse proxy; no separate reverse-proxy container was found.
 
 ## Three distinct execution paths
 
@@ -75,7 +75,7 @@ The current local worker is `josie-qual-qwen3:8b-32k`, **not** the small chat mo
 | Store | Contents | Not a substitute for |
 | --- | --- | --- |
 | WebUI volume | Accounts, chat JSON, model/functions, WebUI memories/assets | Core SQLite |
-| C:/Josie/data/josie.db | Memory, historical evidence, consultant/maintenance/audit records | WebUI volume or worker receipt files |
+| D:/Josie/data/josie.db | Memory, historical evidence, consultant/maintenance/audit records | WebUI volume or worker receipt files |
 | data/private worker directories | Delegation receipts/runtime state | Core SQLite |
 | D: source/staging | Immutable source evidence and provenance | Canonical truth or independent backup |
 | Git | Tracked source/configuration/documentation | Secrets, DBs, volumes, model blobs, untracked live edits |

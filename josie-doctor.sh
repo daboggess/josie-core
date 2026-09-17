@@ -12,7 +12,7 @@ case "$(uname -s)" in
     ;;
   *)
     printf '%s\n' 'WARN | Josie runs on Windows. Use Git Bash, not the WindowsApps/WSL bash shim.'
-    printf '%s\n' 'WARN | Or run: C:\Josie\.venv\Scripts\python.exe -B C:\Josie\scripts\josie_doctor.py'
+    printf '%s\n' 'WARN | Or run: D:\Josie\.venv\Scripts\python.exe -B D:\Josie\scripts\josie_doctor.py'
     exit 0
     ;;
 esac

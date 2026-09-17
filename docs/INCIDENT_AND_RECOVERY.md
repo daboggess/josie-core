@@ -5,16 +5,16 @@ volumes, databases, backups, or external-drive folders during diagnosis.
 
 ## Normal start
 
-1. Open `C:\Josie\Start Josie.cmd` or the Josie desktop shortcut.
+1. Open `D:\Josie\Start Josie.cmd` or the Josie desktop shortcut.
 2. Confirm the header says `HEALTH: OK` and `CLOUD LOCKED`.
-3. Run `C:\Josie\.venv\Scripts\python.exe C:\Josie\core.py audit` for evidence.
+3. Run `D:\Josie\.venv\Scripts\python.exe D:\Josie\core.py audit` for evidence.
 
 ## Normal stop
 
 Close the Josie window. After container deployment, stop local services without
 deleting data:
 
-`docker compose --env-file C:\Josie\deploy\.env.services -f C:\Josie\deploy\compose.yaml down`
+`docker compose --env-file D:\Josie\deploy\.env.services -f D:\Josie\deploy\compose.yaml down`
 
 Do not add `--volumes`.
 
@@ -22,31 +22,31 @@ Do not add `--volumes`.
 
 1. Do not reinstall or delete the database.
 2. Run the health check:
-   `C:\Josie\.venv\Scripts\python.exe C:\Josie\core.py health --json`
+   `D:\Josie\.venv\Scripts\python.exe D:\Josie\core.py health --json`
 3. Run the non-overwriting restore drill:
-   `C:\Josie\.venv\Scripts\python.exe C:\Josie\core.py tools run restore-drill --json`
+   `D:\Josie\.venv\Scripts\python.exe D:\Josie\core.py tools run restore-drill --json`
 4. Export secret-free diagnostics:
-   `C:\Josie\.venv\Scripts\python.exe C:\Josie\core.py tools run health --json`
-5. Review `C:\Josie\logs\josie.log` without posting API keys or `.env` contents.
+   `D:\Josie\.venv\Scripts\python.exe D:\Josie\core.py tools run health --json`
+5. Review `D:\Josie\logs\josie.log` without posting API keys or `.env` contents.
 
 ## Recovery boundaries
 
 - The restore drill loads the newest backup into memory; it never overwrites the live database.
 - A real restore requires Dustin's approval immediately before replacement.
-- Preserve `C:\Josie\data\josie.db`, local backups, and `D:\Josie-Storage\backups`.
+- Preserve `D:\Josie\data\josie.db`, local backups, and `I:\Josie-Storage\backups`.
 - Before a real restore, take an additional copy of the live database and verify both copies.
 - Network exposure, firewall changes, Tailscale changes, and account sign-in require approval.
 - If cloud spending unexpectedly appears enabled, close Josie and set
   `JOSIE_ALLOW_CLOUD=false` in the ignored `.env` before restarting.
 - If a rebuilt local model responds incorrectly after tool use, restore the
   metadata-only rollback tag with
-  `D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe cp josie-local:pre-grounding josie-local:1.0`.
+  `I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe cp josie-local:pre-grounding josie-local:1.0`.
 
 ## Service backups
 
-Run `C:\Josie\scripts\Backup-JosieServices.ps1` through a one-process
+Run `D:\Josie\scripts\Backup-JosieServices.ps1` through a one-process
 PowerShell execution-policy bypass. It briefly stops n8n and Open WebUI, archives
-their named volumes read-only to `D:\Josie-Storage\backups\services`, verifies
+their named volumes read-only to `I:\Josie-Storage\backups\services`, verifies
 each archive, writes SHA-256 checksums, and restarts the services in a `finally`
 block. It never deletes an older backup. A real restore remains approval-gated.
 

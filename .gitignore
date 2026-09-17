@@ -54,4 +54,6 @@ creative_studio/qualification/
 *.png
 *.jpg
 *.jpeg
+startup-backup/
+*.lnk
 

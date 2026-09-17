@@ -22,7 +22,7 @@ The current human proposal-review packet is [docs/PROPOSAL_REVIEW_2026-08-09.md]
 
 Josie Core is a lightweight, local-first orchestration foundation for Josie 1.0. The Python kernel uses only the standard library. Native Windows Ollama runs the CPU-only `josie-local:1.0` model from the external drive; no GPU packages are installed and cloud providers remain locked off.
 
-Large, archival, and replaceable data is rooted at `D:\Josie-Storage`; the live
+Large, archival, and replaceable data is rooted at `I:\Josie-Storage`; the live
 application and SQLite database remain on the internal SSD.
 
 The 128 GB internal SSD is guarded by a 20 GB warning threshold and a 15 GB
@@ -41,7 +41,7 @@ so storage monitoring is mandatory even though Ollama and its model are on D:.
 
 ## First-time start
 
-Open PowerShell in `C:\Josie`, then run:
+Open PowerShell in `D:\Josie`, then run:
 
 ```powershell
 python -m venv .venv
@@ -64,7 +64,7 @@ deactivate
 ## Everyday commands
 
 ```powershell
-cd C:\Josie
+cd D:\Josie
 .\.venv\Scripts\python.exe .\core.py health
 .\.venv\Scripts\python.exe .\core.py health --json
 .\.venv\Scripts\python.exe .\core.py tools list
@@ -120,8 +120,8 @@ connector. It has no login, forms, JavaScript, cookies, saved downloads,
 uploads, purchases, messages, or model-direct access. Start or stop it with:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Josie\scripts\Start-JosieResearchPilot.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Josie\scripts\Stop-JosieResearchPilot.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\Josie\scripts\Start-JosieResearchPilot.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\Josie\scripts\Stop-JosieResearchPilot.ps1
 ```
 
 Its exact scope and recovery boundary are documented in
@@ -168,7 +168,7 @@ read-only operation backed by a strict, secret-free snapshot. It reports drive
 headroom, local service reachability, backup age and integrity, pending review
 counts, and the cloud/spending/browser/shell safety locks. The bridge receives
 no Docker socket, database, shell, cloud access, or broad Windows filesystem;
-its only read mount is `D:\Josie-Storage\status\josie-status.json`.
+its only read mount is `I:\Josie-Storage\status\josie-status.json`.
 The `josie-local:1.0` Open WebUI model override attaches this bridge by default,
 uses a bounded JSON routing preflight, disables unrelated built-in tools, and
 requires a fresh status call before Josie may describe current health. A
@@ -200,7 +200,7 @@ are human-controlled. See [docs/ECONOMIC_BOUNDARY.md](docs/ECONOMIC_BOUNDARY.md)
 Start or repair the local model and containers:
 
 ```powershell
-cd C:\Josie
+cd D:\Josie
 .\scripts\Ensure-JosieOllama.ps1
 .\scripts\Start-JosieStorageMonitor.ps1 -Once
 docker compose --env-file .\deploy\.env.services -f .\deploy\compose.yaml up -d
@@ -211,20 +211,20 @@ Stop the containers without deleting data, then unload the local model:
 ```powershell
 docker compose --env-file .\deploy\.env.services -f .\deploy\compose.yaml stop
 .\scripts\Stop-JosieStorageMonitor.ps1
-& 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' stop josie-local:1.0
+& 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' stop josie-local:1.0
 ```
 
 Check the model, storage thresholds, and acceptance state:
 
 ```powershell
-& 'D:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' list
+& 'I:\Josie-Storage\apps\Ollama\0.32.5\ollama.exe' list
 .\scripts\Write-JosieStorageSnapshot.ps1
 .\.venv\Scripts\python.exe .\core.py deploy validate
 .\.venv\Scripts\python.exe .\core.py audit
 ```
 
 Josie's GUI and storage monitor start at sign-in. The storage monitor refreshes
-`D:\Josie-Storage\staging\storage-status.json` every five minutes; the active
+`I:\Josie-Storage\staging\storage-status.json` every five minutes; the active
 n8n headroom guard checks it daily and records a failed execution if C: reaches
 warning or critical status. It sends no external message and uses no network node.
 The same monitor also ingests and validates any records in the proposal inbox.
@@ -282,7 +282,7 @@ opening more than one Josie GUI instance.
 
 ## Cloud configuration
 
-Edit `C:\Josie\.env` locally and place keys after the appropriate equals sign. Do not paste keys into chat or commit `.env`.
+Edit `D:\Josie\.env` locally and place keys after the appropriate equals sign. Do not paste keys into chat or commit `.env`.
 
 ```text
 OPENAI_API_KEY=

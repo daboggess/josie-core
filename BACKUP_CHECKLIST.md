@@ -47,7 +47,7 @@ They are sequential snapshots, not byte-identical replicas: normal backup/audit 
 Use immediately before the future upgrade, not as a read-only health check:
 
 ```powershell
-Set-Location C:/Josie
+Set-Location D:/Josie
 .venv/Scripts/python.exe core.py backups create-checkpoint --label pre-rtx3060
 ```
 
@@ -56,7 +56,7 @@ It reuses existing local/external paths and creates non-deleting labeled checkpo
 ### Existing service backup helper — interrupts WebUI/n8n
 
 ```powershell
-& C:/Josie/scripts/Backup-JosieServices.ps1
+& D:/Josie/scripts/Backup-JosieServices.ps1
 ```
 
 **Do not run unattended during active work.** It stops WebUI/n8n, uses temporary helper containers from already pinned images, archives the existing volumes, validates archive listings and writes SHA-256 sidecars/model listing. Its finally block runs Compose up for those services, which may also apply current Compose changes. Inspect current Git/config state and ensure pinned images/volumes are present before authorizing this maintenance window.
@@ -67,20 +67,20 @@ The helper was **not executed** in this documentation pass. It does not include 
 
 | Location | Why it matters / handling |
 | --- | --- |
-| C:/Josie tracked tree and .git | Code, scripts, tests, protected rules, model/deployment definitions, recovery tags/history |
+| D:/Josie tracked tree and .git | Code, scripts, tests, protected rules, model/deployment definitions, recovery tags/history |
 | Uncommitted/untracked operator artifacts | Current deployment may differ from HEAD; save a scoped diff plus actual files |
-| C:/Josie/.env and deploy/.env.services | Secrets and current image/config pins; encrypt, restrict access, never paste contents |
-| C:/Josie/config and deploy | Policies, Compose, WebUI filters/config helpers, n8n definitions, browser/proposal sources, OpenCode config |
-| C:/Josie/data/josie.db | Main memories/history/consultants/maintenance/audit data; use SQLite-consistent backup |
+| D:/Josie/.env and deploy/.env.services | Secrets and current image/config pins; encrypt, restrict access, never paste contents |
+| D:/Josie/config and deploy | Policies, Compose, WebUI filters/config helpers, n8n definitions, browser/proposal sources, OpenCode config |
+| D:/Josie/data/josie.db | Main memories/history/consultants/maintenance/audit data; use SQLite-consistent backup |
 | josie_open_webui_data | WebUI DB/chat JSON, accounts, model/functions, assets; full volume required |
 | josie_n8n_data | Workflow DB, execution/configuration/encryption state |
-| C:/Josie/data/private | Service tokens/source config, job receipts and runtime state; credentials protected |
-| C:/Josie/data/tools/gemini-cli | Existing package/lock/version and installation provenance |
-| D:/Josie-Storage/apps | Pinned Ollama and OpenCode runtimes |
-| D:/Josie-Storage/models/ollama | Models/manifests and custom aliases; no need to redownload as a repair |
-| D:/Josie-Storage/GoogleTO, ChatGPTTO, staging | Immutable export/source/provenance evidence; do not rewrite or re-extract |
-| D:/Josie-Storage/proposals, status, secrets | Operational data and separate service credentials |
-| D:/Josie-Storage/backups and C:/Josie/data/backups | Existing recovery generations, manifests/hashes and preserved drills |
+| D:/Josie/data/private | Service tokens/source config, job receipts and runtime state; credentials protected |
+| D:/Josie/data/tools/gemini-cli | Existing package/lock/version and installation provenance |
+| I:/Josie-Storage/apps | Pinned Ollama and OpenCode runtimes |
+| I:/Josie-Storage/models/ollama | Models/manifests and custom aliases; no need to redownload as a repair |
+| I:/Josie-Storage/GoogleTO, ChatGPTTO, staging | Immutable export/source/provenance evidence; do not rewrite or re-extract |
+| I:/Josie-Storage/proposals, status, secrets | Operational data and separate service credentials |
+| I:/Josie-Storage/backups and D:/Josie/data/backups | Existing recovery generations, manifests/hashes and preserved drills |
 | C:/Users/dusti/.codex and .gemini | Authentication/configuration; prefer secure account recovery, never publish tokens |
 | C:/Users/dusti/.ollama | Existing native Ollama user configuration/state |
 | C:/Users/dusti/.wslconfig and AppData/Roaming/Docker/settings-store.json | Current Docker/WSL resource and startup behavior |
