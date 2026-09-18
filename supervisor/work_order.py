@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from .prompt_contract import DEFAULT_PROMPT_CONTRACT_VERSION, SUPPORTED_PROMPT_CONTRACT_VERSIONS
+
 
 class ValidationError(ValueError):
     pass
@@ -21,6 +23,7 @@ KNOWN_FIELDS = {
     "primary_harness_executable", "fallback_harness_executable",
     "goose_config", "context_limit", "max_tool_repetitions",
     "reporting_instructions", "edit_format", "aider_config", "read_only_paths",
+    "prompt_contract_version", "worker_failure_modes", "resource_rules", "receipt_instructions",
 }
 KNOWN_ACCEPTANCE = {"file_exists", "file_exact", "command", "changed_paths", "no_unexpected_files"}
 
@@ -41,6 +44,10 @@ class WorkOrder:
     workspace: Path
     allowed_changed_paths: tuple[str, ...]
     forbidden_paths: tuple[str, ...]
+
+    @property
+    def prompt_contract_version(self) -> str:
+        return self.raw.get("prompt_contract_version", DEFAULT_PROMPT_CONTRACT_VERSION)
 
     @classmethod
     def load(cls, path: Path) -> "WorkOrder":
@@ -124,4 +131,27 @@ class WorkOrder:
             raise ValidationError("retrieved_evidence must be a list")
         if not isinstance(data.get("retrieval_summary", {}), dict):
             raise ValidationError("retrieval_summary must be an object")
+        if "prompt_contract_version" in data:
+            pcv = data["prompt_contract_version"]
+            if not isinstance(pcv, str) or not pcv.strip():
+                raise ValidationError("prompt_contract_version must be a nonempty string")
+            if pcv not in SUPPORTED_PROMPT_CONTRACT_VERSIONS:
+                raise ValidationError(f"unsupported prompt_contract_version: {pcv}")
+        else:
+            data.setdefault("prompt_contract_version", DEFAULT_PROMPT_CONTRACT_VERSION)
+        if "worker_failure_modes" in data:
+            wfm = data["worker_failure_modes"]
+            if not isinstance(wfm, list) or not all(isinstance(item, str) and item.strip() for item in wfm):
+                raise ValidationError("worker_failure_modes must be a list of nonempty strings")
+        if "resource_rules" in data:
+            rr = data["resource_rules"]
+            if isinstance(rr, list):
+                if not all(isinstance(item, str) and item.strip() for item in rr):
+                    raise ValidationError("resource_rules must be a string or list of nonempty strings")
+            elif not isinstance(rr, str) or not rr.strip():
+                raise ValidationError("resource_rules must be a string or list of nonempty strings")
+        if "receipt_instructions" in data:
+            ri = data["receipt_instructions"]
+            if not isinstance(ri, str) or not ri.strip():
+                raise ValidationError("receipt_instructions must be a nonempty string")
         return cls(data, workspace, allowed_rules, forbidden)
