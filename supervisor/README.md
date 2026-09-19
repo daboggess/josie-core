@@ -48,10 +48,18 @@ Worker prompts are compiled and validated against the deterministic Prompt Contr
 - **WorkOrder Schema**: Work orders default to Prompt Contract 1.0 (`prompt_contract_version: "1.0"`). Unsupported contract versions fail validation. Work orders can supply optional contract fields including `worker_failure_modes`, `resource_rules`, and `receipt_instructions`.
 - **Authoritative Supervisor Acceptance**: While the worker prompt renders all configured acceptance criteria transparently, the Supervisor executes acceptance independently. Worker self-reports or narrative declarations of success cannot create PASS.
 
+## Knowledge + Priming (Phase 1)
+
+Task-specific priming (`supervisor/priming.py`) assembles bounded, task-relevant context before Prompt Contract compilation:
+
+1. **Manifest-Driven Assembly**: A `PrimingManifest` specifies the task identifier, requested knowledge categories, allowed source references, explicit exclusions, and item/character budgets.
+2. **Deterministic Provenance & Bundle Hash**: `PrimingBundle` produces a reproducible SHA-256 hash derived from the manifest and selected items (including their content and source provenance). Identical inputs produce identical bundle hashes; any change to content or provenance alters the hash.
+3. **Fail-Closed & Bounded**: Unsupported schema versions fail validation; empty results are explicit and valid (`is_empty=True`); item excerpts are bounded (default max 1,200 characters); total context is bounded (default max 4,000 characters).
+4. **WorkOrder & Receipt Integration**: `WorkOrder` carries structured provenance metadata (`priming_context`, `priming_bundle_hash`) without exposing internal database structures to the worker prompt. The worker prompt receives only compact task-relevant excerpts under `RESOURCE RULES`. Supervisor execution receipts record audit metadata (`used`, `bundle_hash`, `manifest_hash`, `is_empty`, `source_ids`, `sources` with hashes and locators) without bloating receipts with large source bodies.
+
 Run deterministic qualification tests without an LLM:
 
 ```powershell
 $env:PYTHONDONTWRITEBYTECODE='1'
-python -m unittest supervisor.tests.test_prompt_contract -v
-python -m unittest supervisor.tests.test_supervisor -v
+python -m unittest supervisor.tests.test_priming supervisor.tests.test_prompt_contract supervisor.tests.test_supervisor -v
 ```

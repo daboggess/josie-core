@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from .priming import SUPPORTED_PRIMING_SCHEMA_VERSIONS, is_sha256_hex
 from .prompt_contract import DEFAULT_PROMPT_CONTRACT_VERSION, SUPPORTED_PROMPT_CONTRACT_VERSIONS
 
 
@@ -24,6 +25,7 @@ KNOWN_FIELDS = {
     "goose_config", "context_limit", "max_tool_repetitions",
     "reporting_instructions", "edit_format", "aider_config", "read_only_paths",
     "prompt_contract_version", "worker_failure_modes", "resource_rules", "receipt_instructions",
+    "priming_context", "priming_bundle_hash",
 }
 KNOWN_ACCEPTANCE = {"file_exists", "file_exact", "command", "changed_paths", "no_unexpected_files"}
 
@@ -48,6 +50,18 @@ class WorkOrder:
     @property
     def prompt_contract_version(self) -> str:
         return self.raw.get("prompt_contract_version", DEFAULT_PROMPT_CONTRACT_VERSION)
+
+    @property
+    def priming_context(self) -> dict[str, Any] | None:
+        return self.raw.get("priming_context")
+
+    @property
+    def priming_bundle_hash(self) -> str | None:
+        if "priming_bundle_hash" in self.raw:
+            return self.raw["priming_bundle_hash"]
+        if "priming_context" in self.raw and isinstance(self.raw["priming_context"], dict):
+            return self.raw["priming_context"].get("bundle_hash")
+        return None
 
     @classmethod
     def load(cls, path: Path) -> "WorkOrder":
@@ -154,4 +168,37 @@ class WorkOrder:
             ri = data["receipt_instructions"]
             if not isinstance(ri, str) or not ri.strip():
                 raise ValidationError("receipt_instructions must be a nonempty string")
+        if "priming_context" in data:
+            pc = data["priming_context"]
+            if not isinstance(pc, dict):
+                raise ValidationError("priming_context must be an object")
+            pv = pc.get("schema_version", "1.0")
+            if pv not in SUPPORTED_PRIMING_SCHEMA_VERSIONS:
+                raise ValidationError(f"unsupported priming schema_version: {pv}")
+            bhash = pc.get("bundle_hash")
+            if not is_sha256_hex(bhash):
+                raise ValidationError("priming_context must have a valid SHA-256 hex bundle_hash")
+            mhash = pc.get("manifest_hash")
+            if mhash is not None and not is_sha256_hex(mhash):
+                raise ValidationError("priming_context.manifest_hash must be a valid SHA-256 hex string")
+            if not isinstance(pc.get("is_empty", False), bool):
+                raise ValidationError("priming_context.is_empty must be boolean")
+            if "source_ids" in pc:
+                sids = pc["source_ids"]
+                if not isinstance(sids, list) or any(not isinstance(s, str) or not s.strip() for s in sids):
+                    raise ValidationError("priming_context.source_ids must be a list of nonempty strings")
+            if "sources" in pc:
+                if not isinstance(pc["sources"], list):
+                    raise ValidationError("priming_context.sources must be a list")
+                for s in pc["sources"]:
+                    if not isinstance(s, dict) or not isinstance(s.get("item_id"), str) or not s.get("item_id", "").strip():
+                        raise ValidationError("invalid priming provenance metadata in sources")
+                    if "item_hash" in s and not is_sha256_hex(s["item_hash"]):
+                        raise ValidationError("sources item_hash must be a valid SHA-256 hex string")
+        if "priming_bundle_hash" in data:
+            pbh = data["priming_bundle_hash"]
+            if not is_sha256_hex(pbh):
+                raise ValidationError("priming_bundle_hash must be a valid SHA-256 hex string")
+            if "priming_context" in data and data["priming_context"].get("bundle_hash") != pbh:
+                raise ValidationError("priming_bundle_hash does not match priming_context.bundle_hash")
         return cls(data, workspace, allowed_rules, forbidden)
