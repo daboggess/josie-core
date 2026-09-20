@@ -463,6 +463,7 @@ class SeedResult:
     inserted: tuple[str, ...] = ()
     unchanged: tuple[str, ...] = ()
     conflicts: tuple[dict[str, Any], ...] = ()
+    dry_run: bool = False
 
     @property
     def has_conflicts(self) -> bool:
@@ -488,20 +489,23 @@ class SeedResult:
             "unchanged": list(self.unchanged),
             "conflicts": list(self.conflicts),
             "has_conflicts": self.has_conflicts,
+            "dry_run": self.dry_run,
         }
 
 
 def seed_canonical_knowledge(
     store: LocalStore,
     seeds: Sequence[KnowledgeRecord] | None = None,
+    dry_run: bool = False,
 ) -> SeedResult:
     """Seed bootstrap knowledge records into Josie's SQLite store with overwrite protection.
 
     Human-adjudication overwrite protection rules:
-    - NEW CLAIM ID: Insert bootstrap record.
+    - NEW CLAIM ID: Insert bootstrap record (or report as would-insert if dry_run).
     - EXISTING CLAIM ID + materially identical canonical record: Leave unchanged.
     - EXISTING CLAIM ID + different content/status/provenance: DO NOT overwrite.
       Preserve previous persisted claim and record deterministic conflict/drift.
+    - When dry_run=True: absolutely no database mutations are performed.
     """
     target_seeds = BOOTSTRAP_KNOWLEDGE_SEEDS if seeds is None else tuple(seeds)
     now = store._now()
@@ -525,14 +529,15 @@ def seed_canonical_knowledge(
 
     with store._connect() as conn:
         for eid, cname, nname, etype, desc, stat in entities:
-            conn.execute(
-                "INSERT INTO entities(entity_id, canonical_name, normalized_name, entity_type, description, status, created_at, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
-                "ON CONFLICT(entity_id) DO UPDATE SET "
-                "canonical_name=excluded.canonical_name, normalized_name=excluded.normalized_name, "
-                "entity_type=excluded.entity_type, description=excluded.description, status=excluded.status, updated_at=excluded.updated_at",
-                (eid, cname, nname, etype, desc, stat, now, now),
-            )
+            if not dry_run:
+                conn.execute(
+                    "INSERT INTO entities(entity_id, canonical_name, normalized_name, entity_type, description, status, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+                    "ON CONFLICT(entity_id) DO UPDATE SET "
+                    "canonical_name=excluded.canonical_name, normalized_name=excluded.normalized_name, "
+                    "entity_type=excluded.entity_type, description=excluded.description, status=excluded.status, updated_at=excluded.updated_at",
+                    (eid, cname, nname, etype, desc, stat, now, now),
+                )
             entities_seeded += 1
 
         for r in target_seeds:
@@ -545,67 +550,68 @@ def seed_canonical_knowledge(
 
             if existing is None:
                 # NEW CLAIM: Insert bootstrap record
-                meta = r.metadata
-                subject_id = meta.get("subject_entity_id", "system:josie")
-                predicate = meta.get("predicate", "statement")
-                canonical_effect = 1 if (r.status == "active" and r.evidence_class == "CANONICAL" and meta.get("approved_by")) else 0
-                approved_by = meta.get("approved_by") if canonical_effect == 1 else None
-                reviewed_at = (r.timestamp + "T00:00:00Z") if canonical_effect == 1 else None
+                if not dry_run:
+                    meta = r.metadata
+                    subject_id = meta.get("subject_entity_id", "system:josie")
+                    predicate = meta.get("predicate", "statement")
+                    canonical_effect = 1 if (r.status == "active" and r.evidence_class == "CANONICAL" and meta.get("approved_by")) else 0
+                    approved_by = meta.get("approved_by") if canonical_effect == 1 else None
+                    reviewed_at = (r.timestamp + "T00:00:00Z") if canonical_effect == 1 else None
 
-                layer_map = {
-                    "identity": "identity",
-                    "architecture": "procedural",
-                    "procedure": "procedural",
-                    "hardware": "semantic",
-                    "project_state": "semantic",
-                }
-                memory_layer = layer_map.get(r.category, "semantic")
-                conf_val = 1.0 if r.confidence == "high" else (0.7 if r.confidence == "medium" else 0.3)
+                    layer_map = {
+                        "identity": "identity",
+                        "architecture": "procedural",
+                        "procedure": "procedural",
+                        "hardware": "semantic",
+                        "project_state": "semantic",
+                    }
+                    memory_layer = layer_map.get(r.category, "semantic")
+                    conf_val = 1.0 if r.confidence == "high" else (0.7 if r.confidence == "medium" else 0.3)
 
-                conn.execute(
-                    "INSERT INTO memory_claims("
-                    "claim_id, subject_entity_id, predicate, value_text, memory_layer, status, evidence_class, "
-                    "authority_scope, confidence, confidence_basis, created_at, updated_at, approved_by, reviewed_at, "
-                    "canonical_effect, superseded_by_claim_id, version"
-                    ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
-                    (
-                        r.record_id,
-                        subject_id,
-                        predicate,
-                        r.content,
-                        memory_layer,
-                        r.status,
-                        r.evidence_class,
-                        f"{r.source_kind}:{r.category}",
-                        conf_val,
-                        f"Canonical record from {r.source_reference}",
-                        now,
-                        now,
-                        approved_by,
-                        reviewed_at,
-                        canonical_effect,
-                        r.superseded_by,
-                    ),
-                )
+                    conn.execute(
+                        "INSERT INTO memory_claims("
+                        "claim_id, subject_entity_id, predicate, value_text, memory_layer, status, evidence_class, "
+                        "authority_scope, confidence, confidence_basis, created_at, updated_at, approved_by, reviewed_at, "
+                        "canonical_effect, superseded_by_claim_id, version"
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+                        (
+                            r.record_id,
+                            subject_id,
+                            predicate,
+                            r.content,
+                            memory_layer,
+                            r.status,
+                            r.evidence_class,
+                            f"{r.source_kind}:{r.category}",
+                            conf_val,
+                            f"Canonical record from {r.source_reference}",
+                            now,
+                            now,
+                            approved_by,
+                            reviewed_at,
+                            canonical_effect,
+                            r.superseded_by,
+                        ),
+                    )
 
-                evidence_id = f"ev:{r.record_id}"
-                relation_type = "supersedes" if r.superseded_by else "supports"
-                excerpt_sha = hashlib.sha256(r.content.encode("utf-8")).hexdigest()
-                conn.execute(
-                    "INSERT INTO claim_evidence("
-                    "claim_id, evidence_id, relation_type, source_type, source_pointer, evidence_class, excerpt_sha256, created_at"
-                    ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (
-                        r.record_id,
-                        evidence_id,
-                        relation_type,
-                        r.source_kind,
-                        r.source_reference,
-                        r.evidence_class,
-                        excerpt_sha,
-                        now,
-                    ),
-                )
+                    evidence_id = f"ev:{r.record_id}"
+                    relation_type = "supersedes" if r.superseded_by else "supports"
+                    excerpt_sha = hashlib.sha256(r.content.encode("utf-8")).hexdigest()
+                    conn.execute(
+                        "INSERT INTO claim_evidence("
+                        "claim_id, evidence_id, relation_type, source_type, source_pointer, evidence_class, excerpt_sha256, created_at"
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            r.record_id,
+                            evidence_id,
+                            relation_type,
+                            r.source_kind,
+                            r.source_reference,
+                            r.evidence_class,
+                            excerpt_sha,
+                            now,
+                        ),
+                    )
                 inserted.append(r.record_id)
             else:
                 # EXISTING CLAIM: Check for material drift/conflict
@@ -659,7 +665,118 @@ def seed_canonical_knowledge(
         inserted=tuple(inserted),
         unchanged=tuple(unchanged),
         conflicts=tuple(conflicts),
+        dry_run=dry_run,
     )
+
+
+def bootstrap_canonical_knowledge(
+    store: LocalStore,
+    seeds: Sequence[KnowledgeRecord] | None = None,
+    *,
+    dry_run: bool = False,
+    backup: bool = True,
+    backup_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Safe canonical-knowledge bootstrap entrypoint supporting dry-run and backup.
+
+    Requirements:
+    - Dry-run mode inspects target database without mutation.
+    - Rollback and abort on unexpected conflict/drift.
+    - Creates a pre-mutation SQLite checkpoint backup using native LocalStore.create_checkpoint_backup.
+    - Reports target database path, counts, inserted/would_insert, unchanged, conflicts, and backup path.
+    """
+    target_db = str(store.path.resolve())
+
+    # 1. Always inspect first (dry run)
+    inspection = seed_canonical_knowledge(store, seeds=seeds, dry_run=True)
+
+    if dry_run:
+        return {
+            "status": "dry_run",
+            "dry_run": True,
+            "target_db": target_db,
+            "would_insert": list(inspection.inserted),
+            "unchanged": list(inspection.unchanged),
+            "conflicts": list(inspection.conflicts),
+            "has_conflicts": inspection.has_conflicts,
+            "entities_seeded": inspection.entities_seeded,
+            "claims_seeded": inspection.claims_seeded,
+            "evidence_seeded": inspection.evidence_seeded,
+            "backup_path": None,
+        }
+
+    # 2. Live execution: check for conflict/drift
+    if inspection.has_conflicts:
+        return {
+            "status": "conflict_stopped",
+            "dry_run": False,
+            "target_db": target_db,
+            "would_insert": list(inspection.inserted),
+            "unchanged": list(inspection.unchanged),
+            "conflicts": list(inspection.conflicts),
+            "has_conflicts": True,
+            "error": "Unexpected conflict/drift detected before bootstrap mutation; stopped without writing.",
+            "backup_path": None,
+            "entities_seeded": 0,
+            "claims_seeded": 0,
+            "evidence_seeded": 0,
+        }
+
+    # 3. No-op check: if all seeds are already unchanged, return success without backup or write transaction
+    if len(inspection.inserted) == 0:
+        return {
+            "status": "success",
+            "dry_run": False,
+            "target_db": target_db,
+            "inserted": [],
+            "unchanged": list(inspection.unchanged),
+            "conflicts": [],
+            "has_conflicts": False,
+            "entities_seeded": inspection.entities_seeded,
+            "claims_seeded": 0,
+            "evidence_seeded": 0,
+            "backup_path": None,
+        }
+
+    # 4. Mutation required: create pre-mutation backup using existing project mechanism
+    backup_path: str | None = None
+    if backup and store.path.exists():
+        bdir = backup_dir or (store.path.parent / "backups")
+        backup_file = store.create_checkpoint_backup(bdir, label="canonical-bootstrap")
+        backup_path = str(backup_file.resolve())
+
+    # 5. Perform live mutation inside SQLite transaction
+    live_result = seed_canonical_knowledge(store, seeds=seeds, dry_run=False)
+
+    if live_result.has_conflicts:
+        return {
+            "status": "conflict_observed",
+            "dry_run": False,
+            "target_db": target_db,
+            "inserted": list(live_result.inserted),
+            "unchanged": list(live_result.unchanged),
+            "conflicts": list(live_result.conflicts),
+            "has_conflicts": True,
+            "error": "Conflict observed during live bootstrap; preserved existing persisted claims.",
+            "backup_path": backup_path,
+            "entities_seeded": live_result.entities_seeded,
+            "claims_seeded": live_result.claims_seeded,
+            "evidence_seeded": live_result.evidence_seeded,
+        }
+
+    return {
+        "status": "success",
+        "dry_run": False,
+        "target_db": target_db,
+        "inserted": list(live_result.inserted),
+        "unchanged": list(live_result.unchanged),
+        "conflicts": list(live_result.conflicts),
+        "has_conflicts": False,
+        "entities_seeded": live_result.entities_seeded,
+        "claims_seeded": live_result.claims_seeded,
+        "evidence_seeded": live_result.evidence_seeded,
+        "backup_path": backup_path,
+    }
 
 
 def load_knowledge_from_store(store: LocalStore) -> list[KnowledgeRecord]:
@@ -828,3 +945,32 @@ def assemble_priming_from_knowledge(
         include_rejected=include_rejected,
     )
     return assemble_priming_bundle(manifest, selected_records)
+
+
+if __name__ == "__main__":
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Josie Canonical Knowledge Bootstrap Entrypoint")
+    parser.add_argument("--dry-run", action="store_true", help="Inspect without mutating the database")
+    parser.add_argument("--live", "--execute", action="store_true", dest="live", help="Perform live bootstrap mutation")
+    parser.add_argument("--db", type=str, default="data/josie.db", help="Path to SQLite database")
+    parser.add_argument("--no-backup", action="store_true", help="Skip pre-mutation checkpoint backup")
+    args = parser.parse_args()
+
+    db_path = Path(args.db).resolve()
+    if not db_path.exists():
+        print(f"ERROR: Database not found at {db_path}", file=sys.stderr)
+        sys.exit(1)
+
+    store = LocalStore(db_path)
+    dry_run_mode = not args.live or args.dry_run
+
+    result = bootstrap_canonical_knowledge(
+        store,
+        dry_run=dry_run_mode,
+        backup=not args.no_backup,
+    )
+    print(json.dumps(result, indent=2))
+    if result.get("has_conflicts"):
+        sys.exit(2)

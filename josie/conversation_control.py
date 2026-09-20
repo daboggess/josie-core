@@ -1022,7 +1022,7 @@ def _handler_class(
                         normalized_task,
                         payload.get("acceptance_criteria", "Complete the explicit task and report actual evidence."),
                         request_id=payload.get("request_id"), project_root=project_root,
-                        retrieval_context=retrieval))
+                        retrieval_context=retrieval, store=store))
                     return
                 if path == "/v1/delegate/local-code/status":
                     from supervisor.remote_adapter import supervised_local_code_status

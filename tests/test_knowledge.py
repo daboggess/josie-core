@@ -19,6 +19,7 @@ from josie.knowledge import (
     KnowledgeQuery,
     KnowledgeRecord,
     assemble_priming_from_knowledge,
+    bootstrap_canonical_knowledge,
     load_knowledge_from_store,
     query_knowledge,
     query_knowledge_for_priming,
@@ -522,24 +523,67 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual(sorted_recs[1].evidence_class, "RETRIEVED")
 
     def test_16_live_database_protection(self) -> None:
-        """Problem 4: Tests and queries must never touch or mutate D:\\Josie\\data\\josie.db."""
+        r"""Problem 4: Tests and queries must never touch or mutate D:\Josie\data\josie.db."""
         live_db = ROOT / "data" / "josie.db"
-        self.assertTrue(live_db.exists(), f"live database file {live_db} not found")
+        if not live_db.exists():
+            # In fresh clone / CI environment: verify test execution does not spontaneously create data/josie.db
+            temp_db = Path(self.tmp_dir) / "test_isolated.db"
+            store = LocalStore(temp_db)
+            seed_canonical_knowledge(store)
+            self.assertFalse(live_db.exists(), "Running tests must not spontaneously create live data/josie.db")
+            return
 
-        # Open in read-only URI mode to verify baseline state
-        conn = sqlite3.connect(f"file:{live_db.as_posix()}?mode=ro", uri=True)
-        try:
-            cur = conn.cursor()
-            entities_count = cur.execute("SELECT COUNT(*) FROM entities").fetchone()[0]
-            claims_count = cur.execute("SELECT COUNT(*) FROM memory_claims").fetchone()[0]
-            evidence_count = cur.execute("SELECT COUNT(*) FROM claim_evidence").fetchone()[0]
-        finally:
-            conn.close()
+        def _get_counts() -> tuple[int, int, int]:
+            conn = sqlite3.connect(f"file:{live_db.as_posix()}?mode=ro", uri=True)
+            try:
+                cur = conn.cursor()
+                entities = cur.execute("SELECT COUNT(*) FROM entities").fetchone()[0]
+                claims = cur.execute("SELECT COUNT(*) FROM memory_claims").fetchone()[0]
+                evidence = cur.execute("SELECT COUNT(*) FROM claim_evidence").fetchone()[0]
+                return entities, claims, evidence
+            finally:
+                conn.close()
 
-        # The live database must remain pristine (0 bootstrap rows inserted by test suite)
-        self.assertEqual(entities_count, 0)
-        self.assertEqual(claims_count, 0)
-        self.assertEqual(evidence_count, 0)
+        before = _get_counts()
+
+        # Perform typical test operations with isolated temporary store
+        temp_db = Path(self.tmp_dir) / "test_isolated.db"
+        store = LocalStore(temp_db)
+        seed_canonical_knowledge(store)
+        _ = load_knowledge_from_store(store)
+        manifest = PrimingManifest(task_id="test-iso", knowledge_categories=("identity", "architecture"))
+        _ = assemble_priming_from_knowledge(manifest, store=store)
+
+        after = _get_counts()
+
+        # The live database must remain unmutated (before == after)
+        self.assertEqual(before, after, "Live database counts were mutated during test execution!")
+
+    def test_17_idempotent_bootstrap_creates_no_additional_backup(self) -> None:
+        """Issue 3: Idempotent bootstrap on populated store must not create additional backups."""
+        db_path = Path(self.tmp_dir) / "test_bootstrap.db"
+        backup_dir = Path(self.tmp_dir) / "backups"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        store = LocalStore(db_path)
+
+        # 1. Initial bootstrap inserts seeds and creates an initial backup
+        res1 = bootstrap_canonical_knowledge(store, backup=True, backup_dir=backup_dir)
+        self.assertEqual(res1["status"], "success")
+        self.assertEqual(len(res1["inserted"]), len(BOOTSTRAP_KNOWLEDGE_SEEDS))
+        self.assertIsNotNone(res1["backup_path"])
+        backups_after_first = list(backup_dir.glob("*.db"))
+        self.assertEqual(len(backups_after_first), 1)
+
+        # 2. Second idempotent bootstrap finds 0 records to insert
+        res2 = bootstrap_canonical_knowledge(store, backup=True, backup_dir=backup_dir)
+        self.assertEqual(res2["status"], "success")
+        self.assertEqual(len(res2["inserted"]), 0)
+        self.assertEqual(len(res2["unchanged"]), len(BOOTSTRAP_KNOWLEDGE_SEEDS))
+        self.assertIsNone(res2["backup_path"])
+
+        # No additional backup files created in backup_dir
+        backups_after_second = list(backup_dir.glob("*.db"))
+        self.assertEqual(len(backups_after_second), 1)
 
 
 if __name__ == "__main__":

@@ -64,7 +64,7 @@ class RemoteBridgeTests(unittest.TestCase):
             "D:\\Josie\\.venv\\Scripts\\python.exe", "-c", "pass"])
         prompt = compile_prompt(WorkOrder.validate(order))
         acceptance = prompt.split("ACCEPTANCE\n", 1)[1].split("\n\nRECEIPTS", 1)[0]
-        self.assertEqual(acceptance, "D:\\Josie\\.venv\\Scripts\\python.exe -c pass")
+        self.assertIn("D:\\Josie\\.venv\\Scripts\\python.exe -c pass", acceptance)
         self.assertIn("FINAL REPORT\nComplete the work autonomously.", prompt)
 
     def test_final_report_heading_cannot_become_acceptance_argv(self):

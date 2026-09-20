@@ -10,6 +10,11 @@ from pathlib import Path
 
 from . import VERSION
 from .authority import authorize_command
+from .priming import (
+    PrimingManifest,
+    apply_priming_to_work_order,
+    assemble_priming_bundle,
+)
 from .receipts import write_receipt
 from .run_job import execute
 from .work_order import ValidationError, WorkOrder
@@ -25,11 +30,91 @@ STOPWORDS = {
     "and", "are", "for", "from", "into", "must", "not", "only", "that",
     "the", "this", "with", "without", "workspace", "task", "files", "file",
 }
+ARCH_PATH_PREFIXES = (
+    "supervisor/",
+    "josie/knowledge.py",
+    "josie/context_builder.py",
+    "josie/conversation_control.py",
+    "mission_manager/",
+    "campaign_manager/",
+    "docs/architecture/",
+)
+AUTHORITY_PATH_PREFIXES = (
+    "docs/identity/",
+    "docs/governance/",
+    "josie/authority",
+)
 OPENCODE = Path(r"I:\Josie-Storage\apps\OpenCode\1.18.23\opencode.exe")
 GOOSE = Path(r"I:\Josie-Storage\apps\goose-1.50.0\goose-package\goose.exe")
 GOOSE_CONFIG = Path(r"C:\Users\dusti\AppData\Roaming\Block\goose\config\config.yaml")
 CONFIG = Path(r"D:\Josie\config\opencode-local.json")
 AGENT_PROFILE = Path(r"D:\Josie\.opencode\agents\josie-coder.md")
+
+
+def resolve_task_categories(
+    task: str = "",
+    *,
+    prompt_profile: str = "josie-coder-v1",
+    allowed_changes: list[str] | None = None,
+    retrieval_context: dict | None = None,
+) -> tuple[str, ...]:
+    """Deterministically resolve relevant canonical knowledge categories for a task.
+
+    Precedence:
+    1. Explicit structured "priming_categories" metadata, when valid.
+    2. Known route / operation / prompt_profile / task class metadata.
+    3. Authorized or allowed changed-path prefixes that deterministically identify a known project area.
+    4. Otherwise EMPTY categories.
+
+    Arbitrary conversational wording in `task` alone does NOT trigger categories.
+    """
+    retrieval = retrieval_context or {}
+
+    # 1. Explicit structured "priming_categories" metadata
+    explicit = retrieval.get("priming_categories") or retrieval.get("categories")
+    if isinstance(explicit, (list, tuple)):
+        valid = tuple(c.strip().lower() for c in explicit if isinstance(c, str) and c.strip())
+        if valid:
+            return valid
+
+    # 2. Known route / operation / prompt_profile / task class metadata
+    task_class = str(retrieval.get("task_class") or retrieval.get("operation") or "").strip().lower()
+    if task_class in {"architecture", "supervisor", "supervisor_core"}:
+        return ("architecture", "procedure")
+    if task_class in {"identity", "governance", "authority"}:
+        return ("identity", "procedure")
+
+    # 3. Authorized or allowed changed-path prefixes
+    allowed = [p.replace("\\", "/").strip().lstrip("/") for p in (allowed_changes or [])]
+    touches_arch = any(
+        any(p == prefix.rstrip("/") or p.startswith(prefix) for prefix in ARCH_PATH_PREFIXES)
+        for p in allowed
+    )
+    touches_authority = any(
+        any(p == prefix.rstrip("/") or p.startswith(prefix) for prefix in AUTHORITY_PATH_PREFIXES)
+        for p in allowed
+    )
+
+    categories: list[str] = []
+    if touches_arch:
+        categories.extend(["architecture", "procedure"])
+    if touches_authority:
+        if "identity" not in categories:
+            categories.append("identity")
+        if "procedure" not in categories:
+            categories.append("procedure")
+
+    if categories:
+        seen = set()
+        result = []
+        for c in categories:
+            if c not in seen:
+                seen.add(c)
+                result.append(c)
+        return tuple(result)
+
+    # 4. Otherwise EMPTY categories
+    return ()
 
 
 class NeedsJobDetails(ValueError):
@@ -97,7 +182,8 @@ def _command_argv(text: str) -> list[str]:
 
 
 def parse_remote_job(text: str, *, request_id: str, project_root: Path,
-                     retrieval_context: dict | None = None) -> tuple[dict, Path]:
+                     retrieval_context: dict | None = None,
+                     store: Any = None) -> tuple[dict, Path]:
     if not isinstance(request_id, str) or not ID.fullmatch(request_id):
         raise ValueError("Invalid local-code job ID")
     sections = _sections(text)
@@ -164,6 +250,45 @@ def parse_remote_job(text: str, *, request_id: str, project_root: Path,
         "receipt_destination": str(receipt_dir),
         "ollama_url": "http://127.0.0.1:11434",
     }
+
+    # Resolve store if not explicitly passed
+    active_store = store
+    if active_store is None:
+        db_path = Path(project_root).resolve() / "data" / "josie.db"
+        if db_path.is_file():
+            from josie.storage import LocalStore
+            active_store = LocalStore(db_path)
+
+    # Deterministic Priming Integration:
+    # Supplements existing retrieval with bounded canonical knowledge excerpts
+    categories = resolve_task_categories(
+        sections["task"],
+        prompt_profile="josie-coder-v1",
+        allowed_changes=order["allowed_changed_paths"],
+        retrieval_context=retrieval,
+    )
+
+    try:
+        if categories:
+            from josie.knowledge import assemble_priming_from_knowledge
+            manifest = PrimingManifest(
+                task_id=request_id,
+                knowledge_categories=categories,
+            )
+            bundle = assemble_priming_from_knowledge(
+                manifest,
+                store=active_store,
+                include_superseded=False,
+                include_rejected=False,
+            )
+        else:
+            manifest = PrimingManifest(task_id=request_id)
+            bundle = assemble_priming_bundle(manifest, [])
+    except Exception:
+        manifest = PrimingManifest(task_id=request_id)
+        bundle = assemble_priming_bundle(manifest, [])
+
+    apply_priming_to_work_order(order, bundle)
     WorkOrder.validate(order)
     order_dir = private / "supervisor-work-orders"
     order_dir.mkdir(parents=True, exist_ok=True)
@@ -259,7 +384,7 @@ def _record_failure(project_root: Path, request_id: str, *, reason: str,
 
 
 def delegate_supervised_local_code(task, acceptance_criteria, *, request_id, project_root,
-                                   retrieval_context=None):
+                                   retrieval_context=None, store=None):
     del acceptance_criteria
     root = Path(project_root).resolve()
     receipt_dir = root / "data" / "private" / "supervisor-local-code"
@@ -272,7 +397,8 @@ def delegate_supervised_local_code(task, acceptance_criteria, *, request_id, pro
     try:
         _, order_path = parse_remote_job(
             task, request_id=request_id, project_root=root,
-            retrieval_context=retrieval_context)
+            retrieval_context=retrieval_context,
+            store=store)
     except NeedsJobDetails as exc:
         receipt, receipt_path = _record_failure(
             root, request_id, reason="NEEDS_JOB_DETAILS", error=exc)
