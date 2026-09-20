@@ -175,18 +175,20 @@ class PrimingBundle:
         }
 
 
-def _normalize_record(record: dict | PrimingItem) -> PrimingItem:
+def _normalize_record(record: Any) -> PrimingItem:
     if isinstance(record, PrimingItem):
         return record
+    if hasattr(record, "to_priming_item") and callable(record.to_priming_item):
+        return record.to_priming_item()
     if not isinstance(record, dict):
-        raise ValueError("source record must be a dict or PrimingItem")
-    item_id = str(record.get("item_id") or record.get("evidence_id") or record.get("claim_id") or "").strip()
+        raise ValueError("source record must be a dict, PrimingItem, or provide to_priming_item()")
+    item_id = str(record.get("item_id") or record.get("evidence_id") or record.get("claim_id") or record.get("record_id") or "").strip()
     if not item_id:
         raise ValueError("source record missing item_id/evidence_id/claim_id")
-    excerpt = str(record.get("excerpt") or record.get("text") or record.get("claim") or "")
+    excerpt = str(record.get("excerpt") or record.get("text") or record.get("claim") or record.get("content") or record.get("value_text") or "")
     category = str(record.get("category") or "general").strip()
     source_kind = str(record.get("source_kind") or "canonical_versioned").strip()
-    source_reference = str(record.get("source_reference") or record.get("locator") or "").strip()
+    source_reference = str(record.get("source_reference") or record.get("locator") or record.get("source_pointer") or "").strip()
     confidence = str(record.get("confidence") or "high").strip()
     return PrimingItem(
         item_id=item_id,
@@ -200,7 +202,7 @@ def _normalize_record(record: dict | PrimingItem) -> PrimingItem:
 
 def assemble_priming_bundle(
     manifest: PrimingManifest,
-    source_records: Iterable[dict | PrimingItem],
+    source_records: Iterable[Any],
 ) -> PrimingBundle:
     """Deterministically filter, bound, and assemble a PrimingBundle."""
     normalized_items: list[PrimingItem] = []
