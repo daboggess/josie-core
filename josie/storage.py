@@ -1051,6 +1051,42 @@ class LocalStore:
             simulate_failure_after=simulate_failure_after,
         )
 
+    def import_raw_evidence(
+        self,
+        *,
+        run_id: str,
+        source_set_id: str,
+        source_manifest_sha256: str,
+        source_format: str,
+        source_bytes: int,
+        messages: Iterator[object] | tuple[object, ...] | list[object],
+        attachments: Iterator[object] | tuple[object, ...] | list[object] = (),
+        mode: str = "isolated_test_fixture",
+        authorized: bool = True,
+        expected: dict[str, object] | None = None,
+        simulate_failure_after: int | None = None,
+    ) -> dict[str, object]:
+        """Provider-neutral raw evidence ingestion into SQLite history tables.
+
+        Raw evidence records are preserved as historical-only (historical_only=1, canonical_effect=0)
+        and never automatically create active memory_claims or affect canonical priming.
+        """
+        if not authorized:
+            raise PermissionError("Raw evidence import authorization required")
+        return self._import_history_records(
+            run_id=run_id,
+            source_set_id=source_set_id,
+            source_manifest_sha256=source_manifest_sha256,
+            source_format=source_format,
+            source_bytes=source_bytes,
+            messages=messages,
+            attachments=attachments,
+            mode=mode,
+            authorized=authorized,
+            expected=expected,
+            simulate_failure_after=simulate_failure_after,
+        )
+
     def import_history_production(
         self,
         *,
@@ -1121,10 +1157,18 @@ class LocalStore:
     ) -> dict[str, object]:
         if mode not in {"isolated_test_fixture", "production"} or not authorized:
             raise PermissionError("History import authorization is invalid")
+        if (
+            not run_id
+            or len(run_id) > 120
+            or ".." in run_id
+            or run_id.startswith(".")
+            or run_id.endswith(".")
+        ):
+            raise ValueError("History import run ID is invalid for its mode")
         run_pattern = (
-            r"test[-_][A-Za-z0-9._-]{1,120}"
+            r"test[-_][A-Za-z0-9._-]{1,119}"
             if mode == "isolated_test_fixture"
-            else r"gemini-phase2-[A-Za-z0-9._-]{1,120}"
+            else r"[A-Za-z0-9][A-Za-z0-9._-]{0,119}"
         )
         if not re.fullmatch(run_pattern, run_id):
             raise ValueError("History import run ID is invalid for its mode")
@@ -1141,7 +1185,11 @@ class LocalStore:
         if not materialized:
             raise ValueError("History fixture must include at least one record")
         attachment_materialized = tuple(attachments)
-        if mode == "production" and not attachment_materialized:
+        if (
+            mode == "production"
+            and not attachment_materialized
+            and (expected is not None and int(expected.get("attachments", 0)) > 0)
+        ):
             raise ValueError("Production history import requires attachment metadata")
         if mode == "production" and expected is None:
             raise ValueError("Production history import requires exact expected counts")
