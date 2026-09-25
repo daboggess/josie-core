@@ -1,0 +1,168 @@
+# Candidate Claims Architecture (Phase 3B)
+
+Memory Vault Phase 3B establishes the formal boundary between unverified historical evidence and Josie's canonical beliefs.
+
+## Core Epistemic Pipeline
+
+```
+Raw Historical Evidence (history_messages)
+       │
+       ▼
+Extraction Engine (LocalModelClaimExtractor / StubClaimExtractor)
+       │  [Fail-Closed Validation Layer]
+       ▼
+Candidate Claims (memory_claims status='candidate', canonical_effect=0)
+       │  [Preserves full claim_evidence links, role weighting, timestamps]
+       ▼
+Human Adjudication Gate (Dustin explicit review)
+       │  [EXPLICIT HUMAN APPROVAL required; models cannot approve]
+       ▼
+Approved Canonical Knowledge (memory_claims status='active', canonical_effect=1)
+       │
+       ▼
+Deterministic Task Priming (PrimingManifest -> PrimingBundle)
+       │
+       ▼
+Worker Execution (Prompt Contract v1)
+```
+
+## Epistemic Rules
+
+1. **A model may PROPOSE a claim. A model may NOT APPROVE a claim.**
+2. **Historical evidence may SUPPORT or CONTRADICT a candidate. Historical evidence may NOT become canonical merely because it exists.**
+3. **Required separation**:
+   `RAW EVIDENCE != CANDIDATE CLAIM != APPROVED / CANONICAL CLAIM != PRIMED WORKER CONTEXT`
+4. **Candidate claims must default to non-canonical**:
+   - `status = 'candidate'`
+   - `canonical_effect = 0`
+   - `approved_by = NULL`
+   - `reviewed_at = NULL`
+   - Excluded from all ordinary worker prompt contract priming.
+
+## Persistence Architecture
+
+Phase 3B reuses the existing SQLite schema directly without migrations:
+
+- `memory_claims`: Holds both candidate and active canonical claims.
+  - `status`: `'candidate'`, `'active'`, `'disputed'`, `'superseded'`, `'rejected'`.
+  - `canonical_effect`: Strictly `0` for candidates; `1` only when `status='active'` and `approved_by` is populated.
+- `claim_evidence`: Holds provenance links connecting claims to `history_messages(message_id)`.
+  - `relation_type`: `'supports'`, `'contradicts'`, `'derived_from'`, `'related_to'`, `'supersedes'`, `'refines'`.
+  - Captures `role`, `speaker`, `source_timestamp`, `source_pointer`, and excerpt hash.
+- `entities`: Referential integrity for `subject_entity_id`.
+- `audit`: Immutable record of candidate staging, review actions, and promotions.
+
+## Stable Identity and Deduplication
+
+Candidate claims derive a deterministic stable ID from semantic proposition content:
+```
+claim:candidate:{subject_entity_id}:{predicate}:{normalized_value_hash}
+```
+Where `normalized_value_hash` is computed from Unicode NFKC, lowercased, whitespace-collapsed proposition text.
+
+- **Re-discovery**: When the same proposition appears across multiple messages, exactly ONE candidate claim is maintained, and multiple distinct `claim_evidence` rows are attached.
+- **Contradictions**: When different values are stated for the same subject/predicate (e.g. "no NVIDIA GPU" vs "has RTX 3060"), they produce separate candidate claims with distinct IDs. They are never silently merged.
+
+## Evidence-Role Weighting
+
+- **Direct User / Dustin statements** (`role='user'`): Primary evidence. High confidence (0.85 - 1.0).
+- **Assistant assertions** (`role='assistant'`): Secondary evidence. Capped confidence (max 0.60). Explicit basis indicating unconfirmed assistant statement.
+
+## Adjudication & Promotion Gate
+
+Human review actions:
+- `approve`: Requires explicit reviewer identity (`reviewer='Dustin'`) and confirmation (`EXPLICIT HUMAN APPROVAL`). Verifies existing candidate state, non-empty evidence links, and valid structure. Sets `status='active'`, `canonical_effect=1`, `evidence_class='CANONICAL'`. Preserves all historical evidence links.
+- `reject`: Sets `status='rejected'`, `canonical_effect=0`. Provenance links remain permanently intact.
+- `dispute` / `needs_review`: Sets `status='disputed'`, `canonical_effect=0`.
+- `supersede`: Marks prior claim as `status='superseded'` by a successor claim. The superseded record is preserved, never deleted.
+- `defer`: Leaves candidate in review queue.
+
+Models and workers are explicitly forbidden from acting as reviewers or approvers.
+
+## Canonical Priming Isolation
+
+Candidate claims, rejected claims, and disputed claims are strictly excluded from normal canonical queries (`KnowledgeQuery(statuses=("active", "confirmed"))`) and never enter `PrimingBundle`s generated for worker tasks.
+
+Strict 5-condition priming isolation:
+1. `pending` / `candidate` (`canonical_effect=0`): Excluded.
+2. `rejected` (`canonical_effect=0`): Excluded.
+3. `needs_review` / `disputed` (`canonical_effect=0`): Excluded.
+4. `superseded` (`canonical_effect=0`): Excluded.
+5. ONLY `approved` / `active` (`canonical_effect=1`, `evidence_class='CANONICAL'`, `approved_by` populated): Included in priming manifests and bundles.
+
+## Claim Taxonomy and Memory Layer Mapping
+
+Phase 3B formalizes 13 allowed claim categories with deterministic mapping to SQLite memory layers:
+
+| Category | Description | Underlying Memory Layer |
+|---|---|---|
+| `profile` | Dustin's identity, preferences, roles | `identity` |
+| `identity` | Josie / Bernie / system identity attributes | `identity` |
+| `preference` | General behavioral and styling preferences | `relational` |
+| `relationship_context` | Working dynamics between human and system | `relational` |
+| `decision` | Settled technical and project decisions | `semantic` |
+| `project_state` | Current milestone, build, and repository state | `semantic` |
+| `hardware` | Physical host hardware, GPUs, specs | `semantic` |
+| `general` | Cross-cutting facts and assertions | `semantic` |
+| `procedure` | Step-by-step operating guidelines | `procedural` |
+| `recurring_task` | Scheduled, repetitive workflows | `procedural` |
+| `constraint` | Hard architectural or constitutional rules | `procedural` |
+| `architecture` | Subsystem topology, boundaries, and contracts | `procedural` |
+| `lesson` | Post-mortem learnings and observed bugs | `episodic` |
+
+## Bounded Evidence Bundle Contract
+
+To guarantee bounded context windows and deterministic runtime limits:
+- `DEFAULT_MAX_BUNDLE_MESSAGES`: 50 messages per extraction batch.
+- `DEFAULT_MAX_BUNDLE_CHARS`: 25,000 characters per bundle.
+- `DEFAULT_MAX_MESSAGE_CHARS`: 2,500 characters per message.
+- Batch processing uses `split_evidence_bundle(messages, max_messages=50, max_chars=25000)` to deterministically partition large evidence streams.
+
+## CLI Usage Reference
+
+The candidate claims system provides a deterministic CLI via `python -m josie.candidate_claims`:
+
+```bash
+# Inspection / dry-run extraction (zero database writes)
+python -m josie.candidate_claims extract --dry-run --rule-based --limit 25
+
+# Live candidate staging (persists non-canonical review candidates: status='candidate', canonical_effect=0)
+python -m josie.candidate_claims extract --stage --rule-based --limit 25
+
+# List candidates in the review queue
+python -m josie.candidate_claims list --status candidate --limit 25
+
+# Inspect a specific candidate claim with full evidence excerpts
+python -m josie.candidate_claims inspect <claim_id>
+
+# Show full provenance chain back to source history_messages
+python -m josie.candidate_claims show-provenance <claim_id>
+
+# Explicit human approval (promotes to canonical_effect=1; requires explicit reviewer AND confirmation token)
+python -m josie.candidate_claims approve <claim_id> --reviewer Dustin --confirmation "EXPLICIT HUMAN APPROVAL" --reason "Verified from logs"
+
+# Approval with explicit supersession of an older claim
+python -m josie.candidate_claims approve <claim_id> --reviewer Dustin --confirmation "EXPLICIT HUMAN APPROVAL" --supersedes <old_claim_id> --reason "Policy updated"
+
+# Human rejection (sets status='rejected', canonical_effect=0, keeps provenance)
+python -m josie.candidate_claims reject <claim_id> --reviewer Dustin --reason "Disproved by benchmark"
+
+# Mark as needs-review / disputed
+python -m josie.candidate_claims needs-review <claim_id> --reviewer Dustin --reason "Requires reproduction"
+
+# Verify canonical store and priming eligibility
+python -m josie.candidate_claims verify-canonical <claim_id>
+```
+
+## Section K Synthetic History Reference Fixture
+
+The test suite includes a comprehensive lifecycle and temporal evolution fixture (`test_24_synthetic_history_fixture_full_lifecycle_and_temporal_evolution`) verifying:
+1. **Raw Evidence**:
+   - `Msg 1` (2026-08-01): `"For coding tasks, use OpenCode as the primary coding worker."`
+   - `Msg 2` (2026-08-15): `"Update policy: Goose is primary; OpenCode is fallback."`
+   - `Msg 3` (2026-08-20): `"Remember our test policy: Do not let NOT_RUN win a result gate."`
+2. **Extraction & Staging**: All 3 messages extracted into distinct candidate claims (`status='candidate'`, `canonical_effect=0`, `approved_by=NULL`).
+3. **Priming Isolation**: None of the pending candidates enter worker priming bundles.
+4. **Approval & Priming**: Approving `Msg 1` claim promotes it to `canonical_effect=1`; enters architecture priming.
+5. **Temporal Supersession**: Approving `Msg 2` claim with `supersedes_claim_id=claim_1` sets `Msg 2` active (`canonical_effect=1`) and transitions `Msg 1` to `superseded` (`canonical_effect=0`). Architecture priming delivers `Msg 2` and strictly excludes `Msg 1`. Evidence rows for `Msg 1` remain 100% intact.
+6. **Procedure Promotion**: Approving `Msg 3` claim promotes it to `canonical_effect=1`, primed under procedure.

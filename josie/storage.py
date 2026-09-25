@@ -812,6 +812,19 @@ class LocalStore:
                     status TEXT NOT NULL CHECK (status IN ('applied','rejected')),
                     actions_executed INTEGER NOT NULL DEFAULT 0 CHECK (actions_executed=0)
                 );
+                CREATE TABLE IF NOT EXISTS candidate_extractions (
+                    extraction_id TEXT PRIMARY KEY,
+                    claim_id TEXT NOT NULL,
+                    extractor_id TEXT NOT NULL,
+                    extractor_version TEXT,
+                    extracted_at TEXT NOT NULL,
+                    claim_category TEXT NOT NULL,
+                    temporal_hint TEXT,
+                    notes TEXT,
+                    raw_proposal_json TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(claim_id) REFERENCES memory_claims(claim_id)
+                );
                 """
             )
             memory_columns = {
