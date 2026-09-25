@@ -26,6 +26,7 @@ from josie.candidate_claims import (
     CandidateClaimProposal,
     CandidateClaimRecord,
     EvidenceReference,
+    LocalModelClaimExtractor,
     StubClaimExtractor,
     adjudicate_candidate_claim,
     compute_candidate_claim_id,
@@ -1489,6 +1490,123 @@ class CandidateClaimsTests(unittest.TestCase):
                 self.assertEqual(cols, expected_cols)
         finally:
             shutil.rmtree(fresh_dir, ignore_errors=True)
+
+    def test_34_local_model_extractor_wiring_and_normalization(self) -> None:
+        """LocalModelClaimExtractor normalizes entity IDs, enriches evidence references, and integrates with CLI."""
+        _seed_test_history_message(
+            self.store,
+            42,
+            raw_text="I have two 4TB NVMe drives on hand.",
+            role="user",
+            speaker="google_account_owner",
+            timestamp="2026-08-20T10:00:00Z",
+        )
+
+        mock_response_payload = {
+            "message": {
+                "content": json.dumps({
+                    "proposals": [
+                        {
+                            "subject_entity_id": "google_account_owner",
+                            "predicate": "owns-hardware",
+                            "value_text": "Dustin owns two 4TB NVMe drives.",
+                            "claim_category": "hardware",
+                            "confidence": 0.95,
+                            "confidence_basis": "Direct statement by user in message 42",
+                            "evidence_references": [
+                                {
+                                    "history_message_id": 42,
+                                    "relation_type": "supports",
+                                    "excerpt": "two 4TB NVMe drives",
+                                }
+                            ],
+                        }
+                    ]
+                })
+            }
+        }
+
+        class FakeHTTPResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self):
+                return json.dumps(mock_response_payload).encode("utf-8")
+
+        extractor = LocalModelClaimExtractor(model="qwen3:14b")
+        messages = [
+            {
+                "message_id": 42,
+                "role": "user",
+                "speaker": "google_account_owner",
+                "timestamp": "2026-08-20T10:00:00Z",
+                "raw_text": "I have two 4TB NVMe drives on hand.",
+            }
+        ]
+
+        with patch("josie.candidate_claims.urlopen", return_value=FakeHTTPResponse()):
+            props = extractor.extract_claims(messages)
+            self.assertEqual(len(props), 1)
+            p = props[0]
+            # Verify subject normalized to person:dustin
+            self.assertEqual(p.subject_entity_id, "person:dustin")
+            # Verify predicate sanitized to alphanumeric/underscores
+            self.assertEqual(p.predicate, "owns_hardware")
+            self.assertEqual(p.claim_category, "hardware")
+            # Verify evidence enriched with role and speaker
+            self.assertEqual(len(p.evidence_references), 1)
+            ref = p.evidence_references[0]
+            self.assertEqual(ref.history_message_id, 42)
+            self.assertEqual(ref.role, "user")
+            self.assertEqual(ref.speaker, "google_account_owner")
+
+            # CLI dry-run with --local-model flag
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = main([
+                    "--db", str(self.store.path),
+                    "extract", "--dry-run", "--local-model", "--message-ids", "42", "--json"
+                ])
+            self.assertEqual(code, 0)
+            dry_out = json.loads(buf.getvalue())
+            self.assertEqual(dry_out["status"], "dry_run_complete")
+            self.assertTrue(dry_out["dry_run"])
+            self.assertEqual(dry_out["unique_candidates_staged_count"], 1)
+
+            # Ensure zero database writes during dry-run
+            with self.store._connect() as conn:
+                self.assertEqual(conn.execute("SELECT count(*) FROM memory_claims").fetchone()[0], 0)
+
+            # CLI live staging with --local-model flag
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = main([
+                    "--db", str(self.store.path),
+                    "extract", "--stage", "--local-model", "--message-ids", "42", "--json"
+                ])
+            self.assertEqual(code, 0)
+            stage_out = json.loads(buf.getvalue())
+            self.assertEqual(stage_out["status"], "staged")
+            self.assertFalse(stage_out["dry_run"])
+            self.assertEqual(stage_out["unique_candidates_staged_count"], 1)
+
+            # Verify persisted record in memory_claims
+            with self.store._connect() as conn:
+                claims = conn.execute("SELECT * FROM memory_claims").fetchall()
+                self.assertEqual(len(claims), 1)
+                c = claims[0]
+                self.assertEqual(c["subject_entity_id"], "person:dustin")
+                self.assertEqual(c["predicate"], "owns_hardware")
+                self.assertEqual(c["status"], "candidate")
+                self.assertEqual(c["canonical_effect"], 0)
+                self.assertIsNone(c["approved_by"])
+                self.assertIsNone(c["reviewed_at"])
+
+            # Verify candidate has zero priming authority
+            manifest = PrimingManifest(task_id="check_hw", knowledge_categories=("hardware",))
+            bundle = assemble_priming_from_knowledge(manifest, store=self.store)
+            self.assertEqual(len(bundle.items), 0)
 
 
 if __name__ == "__main__":

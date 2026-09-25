@@ -157,8 +157,8 @@ APPROVAL_CONFIRMATION = "EXPLICIT HUMAN APPROVAL"
 
 # Safe Bounded Processing limits
 DEFAULT_MAX_BUNDLE_MESSAGES = 50
-DEFAULT_MAX_BUNDLE_CHARS = 25000
-DEFAULT_MAX_MESSAGE_CHARS = 2500
+DEFAULT_MAX_BUNDLE_CHARS = 100000
+DEFAULT_MAX_MESSAGE_CHARS = 10000
 
 
 @dataclass(frozen=True)
@@ -570,11 +570,11 @@ def evaluate_evidence_weight(
     An assistant assertion carries secondary weight and must be distinguished.
     """
     has_user = any(
-        ref.role == "user" or ref.speaker.lower() in {"dustin", "user"}
+        ref.role == "user" or ref.speaker.lower() in {"dustin", "user", "google_account_owner"}
         for ref in refs
     )
     has_assistant = any(
-        ref.role == "assistant" or ref.speaker.lower() in {"model", "assistant", "bernie", "sophie"}
+        ref.role == "assistant" or ref.speaker.lower() in {"model", "assistant", "bernie", "sophie", "gemini apps"}
         for ref in refs
     )
 
@@ -784,12 +784,16 @@ class LocalModelClaimExtractor:
         self,
         *,
         ollama_url: str = "http://127.0.0.1:11434",
-        model: str = "josie-local:1.0",
-        timeout: int = 90,
+        model: str = "qwen3:14b",
+        timeout: int = 180,
+        max_messages: int = 50,
+        max_message_chars: int = 400,
     ) -> None:
         self.ollama_url = ollama_url.rstrip("/")
         self.model = model
         self.timeout = timeout
+        self.max_messages = max_messages
+        self.max_message_chars = max_message_chars
 
     @staticmethod
     def _schema() -> dict[str, object]:
@@ -844,31 +848,36 @@ class LocalModelClaimExtractor:
             },
         }
 
-    def extract_claims(
+    def _extract_batch(
         self,
-        messages: Sequence[dict[str, Any]],
-        *,
-        provenance: dict[str, Any] | None = None,
+        batch_messages: Sequence[dict[str, Any]],
     ) -> list[CandidateClaimProposal]:
-        if not messages:
+        if not batch_messages:
             return []
 
         formatted_messages: list[str] = []
-        for m in messages[:25]:
+        msg_lookup: dict[int, dict[str, Any]] = {}
+        for m in batch_messages:
             mid = m.get("message_id")
+            if mid is not None:
+                try:
+                    msg_lookup[int(mid)] = m
+                except (ValueError, TypeError):
+                    pass
             speaker = m.get("speaker") or "unknown"
             role = m.get("role") or "unknown"
             ts = m.get("timestamp") or ""
-            raw = (m.get("raw_text") or "")[:400]
+            raw = (m.get("raw_text") or "")[: self.max_message_chars]
             formatted_messages.append(
                 f"[Message ID {mid} | Speaker: {speaker} | Role: {role} | Time: {ts}]\n{raw}"
             )
 
         user_content = (
-            "Extract candidate claims from the following historical messages. "
+            "Extract structured candidate claims from the following historical messages. "
             "Propose ONLY statements directly supported by evidence. "
             "Distinguish user statements from assistant assertions. "
-            "Return 0 proposals if evidence is insufficient.\n\n"
+            "Use subject_entity_id 'person:dustin' for Dustin/user, 'system:josie' for the system/architecture. "
+            "Return 0 proposals if evidence is insufficient or purely conversational filler.\n\n"
             + "\n\n---\n\n".join(formatted_messages)
         )
 
@@ -877,7 +886,10 @@ class LocalModelClaimExtractor:
             "You propose structured candidate claims from historical conversation evidence. "
             "You CANNOT approve or promote claims; every claim starts as an unverified candidate. "
             "Do not infer beyond the evidence. "
-            "Distinguish Dustin/user facts from assistant assertions. "
+            "Entity naming: use 'person:dustin' for Dustin/user facts, preferences, background, and hardware owned/lacked; "
+            "use 'system:josie' for system/architecture specifications. "
+            "Distinguish Dustin/user facts (role: user) from assistant assertions (role: assistant). "
+            "For evidence_references, history_message_id MUST be the integer Message ID where the fact is stated. "
             "Return an empty proposals list if the evidence does not state clear persistent facts."
         )
 
@@ -923,6 +935,37 @@ class LocalModelClaimExtractor:
         for raw_prop in parsed.get("proposals", []):
             if isinstance(raw_prop, dict):
                 raw_prop["extractor_id"] = f"local_model:{self.model}"
+
+                # Normalize subject entity ID
+                subj = str(raw_prop.get("subject_entity_id") or "").strip().lower()
+                if subj in {"google_account_owner", "user", "dustin", "me"}:
+                    raw_prop["subject_entity_id"] = "person:dustin"
+                elif subj in {"josie", "system"}:
+                    raw_prop["subject_entity_id"] = "system:josie"
+
+                # Normalize predicate format (alphanumeric + underscores only)
+                pred = str(raw_prop.get("predicate") or "").strip().lower()
+                pred = re.sub(r"[^a-z0-9_]+", "_", pred).strip("_")
+                if pred:
+                    raw_prop["predicate"] = pred
+
+                # Enrich evidence references with actual metadata from inspected messages
+                refs = raw_prop.get("evidence_references") or []
+                if isinstance(refs, list):
+                    for r in refs:
+                        if isinstance(r, dict):
+                            mid = r.get("history_message_id")
+                            if mid in msg_lookup:
+                                src_m = msg_lookup[mid]
+                                if not r.get("role"):
+                                    r["role"] = src_m.get("role") or ""
+                                if not r.get("speaker"):
+                                    r["speaker"] = src_m.get("speaker") or ""
+                                if not r.get("source_timestamp"):
+                                    r["source_timestamp"] = src_m.get("timestamp") or ""
+                                if not r.get("excerpt"):
+                                    r["excerpt"] = (src_m.get("raw_text") or "")[:200]
+
                 try:
                     p = CandidateClaimProposal.from_dict(raw_prop)
                     proposals.append(p)
@@ -930,6 +973,26 @@ class LocalModelClaimExtractor:
                     continue
 
         return proposals
+
+    def extract_claims(
+        self,
+        messages: Sequence[dict[str, Any]],
+        *,
+        provenance: dict[str, Any] | None = None,
+    ) -> list[CandidateClaimProposal]:
+        if not messages:
+            return []
+
+        bounded = list(messages)[: self.max_messages]
+        batch_size = 15
+        if len(bounded) <= batch_size:
+            return self._extract_batch(bounded)
+
+        all_props: list[CandidateClaimProposal] = []
+        for i in range(0, len(bounded), batch_size):
+            chunk = bounded[i : i + batch_size]
+            all_props.extend(self._extract_batch(chunk))
+        return all_props
 
 
 def stage_candidate_claims(
@@ -1016,6 +1079,27 @@ def stage_candidate_claims(
             )
 
             for cid, data in grouped_claims.items():
+                enriched_refs = []
+                for ref in data["evidence_references"]:
+                    if ref.history_message_id is not None and (not ref.role or not ref.speaker):
+                        h_info = conn.execute(
+                            "SELECT role, speaker, timestamp, raw_text FROM history_messages WHERE message_id = ?",
+                            (ref.history_message_id,),
+                        ).fetchone()
+                        if h_info:
+                            ref = EvidenceReference(
+                                history_message_id=ref.history_message_id,
+                                relation_type=ref.relation_type,
+                                excerpt=ref.excerpt or (h_info["raw_text"] or "")[:300],
+                                role=ref.role or h_info["role"] or "",
+                                speaker=ref.speaker or h_info["speaker"] or "",
+                                source_timestamp=ref.source_timestamp or h_info["timestamp"] or "",
+                                source_pointer=ref.source_pointer,
+                                evidence_class=ref.evidence_class,
+                            )
+                    enriched_refs.append(ref)
+                data["evidence_references"] = enriched_refs
+
                 conf, conf_basis, evidence_class = evaluate_evidence_weight(
                     data["evidence_references"],
                     base_confidence=data["base_confidence"],
@@ -1668,6 +1752,7 @@ def extract_claims_pipeline(
     limit: int = 50,
     max_bundle_messages: int = DEFAULT_MAX_BUNDLE_MESSAGES,
     max_bundle_chars: int = DEFAULT_MAX_BUNDLE_CHARS,
+    max_message_chars: int = DEFAULT_MAX_MESSAGE_CHARS,
     stage: bool = False,
 ) -> dict[str, Any]:
     """Execute candidate claim extraction pipeline from historical evidence messages.
@@ -1720,6 +1805,7 @@ def extract_claims_pipeline(
         raw_messages,
         max_messages=max_bundle_messages,
         max_chars=max_bundle_chars,
+        max_message_chars=max_message_chars,
     )
 
     if extractor is None:
@@ -1767,9 +1853,10 @@ def dry_run_extraction(
     history_message_ids: Sequence[int] | None = None,
     messages: Sequence[dict[str, Any]] | None = None,
     extractor: CandidateClaimExtractor | None = None,
-    limit: int = 25,
+    limit: int = 50,
     max_bundle_messages: int = DEFAULT_MAX_BUNDLE_MESSAGES,
     max_bundle_chars: int = DEFAULT_MAX_BUNDLE_CHARS,
+    max_message_chars: int = DEFAULT_MAX_MESSAGE_CHARS,
 ) -> dict[str, Any]:
     """Execute candidate claim extraction in DRY-RUN ONLY mode with zero database mutation."""
     return extract_claims_pipeline(
@@ -1780,6 +1867,7 @@ def dry_run_extraction(
         limit=limit,
         max_bundle_messages=max_bundle_messages,
         max_bundle_chars=max_bundle_chars,
+        max_message_chars=max_message_chars,
         stage=False,
     )
 
@@ -1804,11 +1892,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     # extract
     p_extract = subparsers.add_parser("extract", help="Extract candidate claims from historical evidence")
     p_extract.add_argument("--message-ids", help="Comma-separated history_message IDs")
-    p_extract.add_argument("--limit", type=int, default=25, help="Max messages to inspect")
+    p_extract.add_argument("--limit", type=int, default=50, help="Max messages to inspect")
     mode_group = p_extract.add_mutually_exclusive_group(required=True)
     mode_group.add_argument("--dry-run", action="store_true", help="Perform inspection/extraction dry-run without writing to database")
     mode_group.add_argument("--stage", action="store_true", help="Extract and persist validated NON-CANONICAL review candidates (status='candidate', canonical_effect=0)")
     p_extract.add_argument("--rule-based", action="store_true", default=False, help="Use rule-based stub extractor")
+    p_extract.add_argument("--local-model", action="store_true", default=False, help="Use LocalModelClaimExtractor with configured local model")
+    p_extract.add_argument("--model", default=None, help="Local model name for LocalModelClaimExtractor (e.g. 'qwen3:14b')")
+    p_extract.add_argument("--ollama-url", default="http://127.0.0.1:11434", help="Ollama API base URL")
+    p_extract.add_argument("--timeout", type=int, default=180, help="Extractor request timeout in seconds")
     p_extract.add_argument("--json", action="store_true", help="Output JSON")
 
     # approve
@@ -1895,7 +1987,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     elif args.command == "extract":
-        extractor = StubClaimExtractor(rule_based=args.rule_based)
+        model_name = args.model
+        if not model_name and args.local_model:
+            model_name = "qwen3:14b"
+
+        if model_name:
+            extractor = LocalModelClaimExtractor(
+                ollama_url=args.ollama_url,
+                model=model_name,
+                timeout=args.timeout,
+            )
+        else:
+            extractor = StubClaimExtractor(rule_based=args.rule_based)
+
         mids = [int(x.strip()) for x in args.message_ids.split(",")] if args.message_ids else None
         res = extract_claims_pipeline(
             store,
