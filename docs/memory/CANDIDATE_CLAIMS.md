@@ -63,10 +63,25 @@ Where `normalized_value_hash` is computed from Unicode NFKC, lowercased, whitesp
 - **Re-discovery**: When the same proposition appears across multiple messages, exactly ONE candidate claim is maintained, and multiple distinct `claim_evidence` rows are attached.
 - **Contradictions**: When different values are stated for the same subject/predicate (e.g. "no NVIDIA GPU" vs "has RTX 3060"), they produce separate candidate claims with distinct IDs. They are never silently merged.
 
-## Evidence-Role Weighting
+## Evidence Attribution and Role Decoupling (Phase 3B.1)
 
-- **Direct User / Dustin statements** (`role='user'`): Primary evidence. High confidence (0.85 - 1.0).
-- **Assistant assertions** (`role='assistant'`): Secondary evidence. Capped confidence (max 0.60). Explicit basis indicating unconfirmed assistant statement.
+A core vulnerability identified in Real Memory Pilot 001 is that provider envelope roles do NOT automatically equal semantic claim authority:
+- Historical messages authored by a user may contain pasted AI output (e.g. Dustin copying a ChatGPT response into a Google Messages turn).
+- External historical cloud assistants (e.g. Gemini Apps) were offering recommendations in 2025 and must not be conflated with the Josie architecture (`system:josie`).
+
+Phase 3B.1 decouples provider envelope roles from semantic authority via a strict 4-class attribution taxonomy:
+
+| Attribution | Description | Evidence Class | Base Confidence | Max Authority |
+|---|---|---|---|---|
+| `direct_user_assertion` | Direct statement spoken by Dustin | `RETRIEVED` | 0.85 – 1.0 | Primary |
+| `assistant_assertion` | Assertion by external conversational assistant | `INFERRED` | <= 0.60 | Secondary |
+| `quoted_or_pasted_content` | Quoted, forwarded, or pasted AI/external text | `INFERRED` | <= 0.60 | Secondary |
+| `ambiguous_source` | Mixed, unattributed, or unclear provenance | `INFERRED` | <= 0.50 | Context Only |
+
+### Deterministic Attribution Rules:
+1. **Envelope Role Decoupling**: Envelope `role == 'user'` alone NEVER confers primary authority if the content contains pasted assistant markers (e.g. `gpt response`, `chatgpt:`, blockquotes `> `). It is classified as `quoted_or_pasted_content`.
+2. **Identity Separation**: Gemini output maps to `assistant:gemini`, ChatGPT output maps to `assistant:chatgpt`. Neither is ever assigned to `system:josie`.
+3. **Fail-Closed Weighting**: In `evaluate_evidence_weight()`, only verified `direct_user_assertion` references receive primary confidence (`RETRIEVED`). Quoted, pasted, or assistant assertions are strictly capped at `confidence <= 0.60` with `evidence_class = 'INFERRED'`.
 
 ## Adjudication & Promotion Gate
 

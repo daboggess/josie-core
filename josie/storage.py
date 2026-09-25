@@ -762,6 +762,12 @@ class LocalStore:
                     source_timestamp TEXT,
                     role TEXT,
                     speaker TEXT,
+                    attribution TEXT NOT NULL DEFAULT 'ambiguous_source' CHECK (
+                        attribution IN (
+                            'direct_user_assertion','assistant_assertion',
+                            'quoted_or_pasted_content','ambiguous_source'
+                        )
+                    ),
                     source_pointer TEXT NOT NULL,
                     evidence_class TEXT NOT NULL,
                     excerpt_sha256 TEXT,
@@ -889,6 +895,17 @@ class LocalStore:
                     connection.execute(
                         f"ALTER TABLE retrieval_events ADD COLUMN {column} {definition}"
                     )
+            claim_evidence_columns = {
+                str(row[1])
+                for row in connection.execute(
+                    "PRAGMA table_info(claim_evidence)"
+                ).fetchall()
+            }
+            if "attribution" not in claim_evidence_columns:
+                connection.execute(
+                    "ALTER TABLE claim_evidence ADD COLUMN attribution "
+                    "TEXT NOT NULL DEFAULT 'ambiguous_source'"
+                )
 
     @staticmethod
     def _now() -> str:

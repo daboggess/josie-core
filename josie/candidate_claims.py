@@ -61,6 +61,13 @@ ALLOWED_RELATION_TYPES = frozenset({
     "refines",
 })
 
+ALLOWED_ATTRIBUTIONS = frozenset({
+    "direct_user_assertion",
+    "assistant_assertion",
+    "quoted_or_pasted_content",
+    "ambiguous_source",
+})
+
 ALLOWED_MEMORY_LAYERS = frozenset({
     "identity",
     "semantic",
@@ -294,6 +301,7 @@ class EvidenceReference:
     excerpt: str = ""
     role: str = ""
     speaker: str = ""
+    attribution: str = "ambiguous_source"
     source_timestamp: str = ""
     source_pointer: str = ""
     evidence_class: str = "RETRIEVED"
@@ -307,6 +315,10 @@ class EvidenceReference:
             raise ValueError(
                 f"evidence_class must be one of {sorted(ALLOWED_EVIDENCE_CLASSES)}, got {self.evidence_class!r}"
             )
+        if self.attribution not in ALLOWED_ATTRIBUTIONS:
+            raise ValueError(
+                f"attribution must be one of {sorted(ALLOWED_ATTRIBUTIONS)}, got {self.attribution!r}"
+            )
         if self.history_message_id is None and not self.source_pointer.strip():
             raise ValueError("EvidenceReference requires history_message_id or source_pointer")
 
@@ -317,6 +329,7 @@ class EvidenceReference:
             "excerpt": self.excerpt,
             "role": self.role,
             "speaker": self.speaker,
+            "attribution": self.attribution,
             "source_timestamp": self.source_timestamp,
             "source_pointer": self.source_pointer,
             "evidence_class": self.evidence_class,
@@ -325,12 +338,16 @@ class EvidenceReference:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> EvidenceReference:
         hid = data.get("history_message_id")
+        raw_attr = str(data.get("attribution") or "").strip().lower()
+        if raw_attr not in ALLOWED_ATTRIBUTIONS:
+            raw_attr = "ambiguous_source"
         return cls(
             history_message_id=int(hid) if hid is not None else None,
             relation_type=str(data.get("relation_type") or "supports").strip().lower(),
             excerpt=str(data.get("excerpt") or "").strip()[:500],
             role=str(data.get("role") or "").strip().lower(),
             speaker=str(data.get("speaker") or "").strip(),
+            attribution=raw_attr,
             source_timestamp=str(data.get("source_timestamp") or "").strip(),
             source_pointer=str(data.get("source_pointer") or "").strip(),
             evidence_class=str(data.get("evidence_class") or "RETRIEVED").strip().upper(),
@@ -560,36 +577,117 @@ def validate_proposal(
     return True, ""
 
 
+def classify_evidence_attribution(
+    *,
+    role: str = "",
+    speaker: str = "",
+    raw_text: str = "",
+    excerpt: str = "",
+    proposed_attribution: str | None = None,
+) -> str:
+    """Classify provenance attribution of historical evidence.
+
+    Returns one of:
+      - 'direct_user_assertion': statement spoken directly by Dustin/user.
+      - 'assistant_assertion': assertion by conversational assistant (Gemini, Claude, etc.).
+      - 'quoted_or_pasted_content': third-party AI or external content pasted/quoted inside a turn.
+      - 'ambiguous_source': unclear speaker or unattributed context.
+
+    Guarantees:
+      - Assistant envelopes NEVER receive 'direct_user_assertion'.
+      - Pasted AI text inside a user envelope is demoted to 'quoted_or_pasted_content'.
+      - Unrecognized or ambiguous sources default conservatively to 'ambiguous_source'.
+    """
+    r = (role or "").lower().strip()
+    spk = (speaker or "").lower().strip()
+    text = (raw_text or "").strip()
+    ex = (excerpt or "").strip()
+
+    # Rule 1: Assistant / Model turns cannot be direct user assertions.
+    if r in ("assistant", "model") or spk in (
+        "gemini apps", "gemini", "assistant", "model", "bernie", "sophie", "chatgpt"
+    ):
+        if proposed_attribution in ("assistant_assertion", "quoted_or_pasted_content"):
+            return proposed_attribution
+        return "assistant_assertion"
+
+    # Rule 2: User turns (Dustin / google_account_owner)
+    if r == "user" or spk in ("dustin", "user", "google_account_owner"):
+        lower_text = text.lower()
+        lower_ex = ex.lower() if ex else lower_text
+
+        # Indicators of quoted / pasted AI responses
+        pasted_indicators = (
+            "gpt response", "chatgpt response", "chapgpt response",
+            "chatgpt:", "gpt:", "claude:", "gemini:",
+            "working on woth chatgpt", "working on with chatgpt",
+            "alright soph", "sophie (me", "sophie's official pick",
+            "where gemini is right", "where gemini is wrong",
+            "here's my take on gemini", "here’s my take on gemini",
+            "i will generate for you", "i’m going to show you",
+            "forwarded message",
+        )
+
+        has_blockquote = any(line.strip().startswith(">") for line in (ex or text).splitlines())
+        has_indicator = any(ind in lower_ex for ind in pasted_indicators)
+
+        # Check if the entire message was framed as a pasted response
+        first_lines = "\n".join(lower_text.splitlines()[:3])
+        message_is_pasted = any(
+            ind in first_lines
+            for ind in (
+                "gpt response", "chapgpt response", "chatgpt response",
+                "working on woth chatgpt", "working on with chatgpt",
+                "from gpt", "from chatgpt",
+            )
+        )
+
+        if has_indicator or has_blockquote or message_is_pasted:
+            return "quoted_or_pasted_content"
+
+        if proposed_attribution in ("quoted_or_pasted_content", "ambiguous_source"):
+            return proposed_attribution
+
+        return "direct_user_assertion"
+
+    # Rule 3: If proposed attribution is valid and speaker is not assistant, check it
+    if proposed_attribution in ALLOWED_ATTRIBUTIONS and proposed_attribution != "direct_user_assertion":
+        return proposed_attribution
+
+    return "ambiguous_source"
+
+
 def evaluate_evidence_weight(
     refs: Sequence[EvidenceReference],
     base_confidence: float = 0.8,
 ) -> tuple[float, str, str]:
-    """Calculate role-weighted confidence and evidentiary basis.
-    
-    A direct Dustin/user statement carries primary authority.
-    An assistant assertion carries secondary weight and must be distinguished.
-    """
-    has_user = any(
-        ref.role == "user" or ref.speaker.lower() in {"dustin", "user", "google_account_owner"}
-        for ref in refs
-    )
-    has_assistant = any(
-        ref.role == "assistant" or ref.speaker.lower() in {"model", "assistant", "bernie", "sophie", "gemini apps"}
-        for ref in refs
-    )
+    """Calculate attribution-weighted confidence and evidentiary basis.
 
-    if has_user:
+    A direct user assertion carries primary authority (>= 0.85, RETRIEVED).
+    Quoted/pasted content and assistant assertions carry secondary authority (capped at <= 0.60, INFERRED).
+    Ambiguous sources carry lower confidence (capped at <= 0.50, INFERRED).
+    Envelope role == 'user' alone is NOT sufficient for direct user authority.
+    """
+    has_direct_user = any(ref.attribution == "direct_user_assertion" for ref in refs)
+    has_quoted_or_pasted = any(ref.attribution == "quoted_or_pasted_content" for ref in refs)
+    has_assistant = any(ref.attribution == "assistant_assertion" for ref in refs)
+
+    if has_direct_user:
         conf = min(1.0, max(base_confidence, 0.85))
         basis = "Direct user statement in historical conversation (primary evidence)"
         e_class = "RETRIEVED"
+    elif has_quoted_or_pasted:
+        conf = min(0.60, base_confidence)
+        basis = "Quoted or pasted external content in historical conversation (secondary evidence; unconfirmed by user)"
+        e_class = "INFERRED"
     elif has_assistant:
         conf = min(0.60, base_confidence)
         basis = "Assistant assertion in historical conversation (secondary evidence; unconfirmed by user)"
         e_class = "INFERRED"
     else:
         conf = min(0.50, base_confidence)
-        basis = "Historical conversation context (unverified source)"
-        e_class = "RETRIEVED"
+        basis = "Historical conversation context (ambiguous source)"
+        e_class = "INFERRED"
 
     return round(conf, 3), basis, e_class
 
@@ -830,7 +928,7 @@ class LocalModelClaimExtractor:
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "required": ["history_message_id", "relation_type", "excerpt"],
+                                    "required": ["history_message_id", "relation_type", "excerpt", "attribution"],
                                     "additionalProperties": False,
                                     "properties": {
                                         "history_message_id": {"type": "integer"},
@@ -839,6 +937,10 @@ class LocalModelClaimExtractor:
                                             "enum": ["supports", "contradicts", "derived_from", "related_to", "supersedes", "refines"],
                                         },
                                         "excerpt": {"type": "string"},
+                                        "attribution": {
+                                            "type": "string",
+                                            "enum": sorted(list(ALLOWED_ATTRIBUTIONS)),
+                                        },
                                     },
                                 },
                             },
@@ -875,8 +977,12 @@ class LocalModelClaimExtractor:
         user_content = (
             "Extract structured candidate claims from the following historical messages. "
             "Propose ONLY statements directly supported by evidence. "
-            "Distinguish user statements from assistant assertions. "
-            "Use subject_entity_id 'person:dustin' for Dustin/user, 'system:josie' for the system/architecture. "
+            "Distinguish direct user statements from assistant assertions and quoted/pasted text. "
+            "Use subject_entity_id 'person:dustin' for Dustin/user, 'assistant:gemini' for Gemini Apps, "
+            "'assistant:chatgpt' for ChatGPT, and 'system:josie' ONLY for Josie system/architecture. "
+            "For each evidence reference, assign attribution: 'direct_user_assertion' (Dustin speaking directly), "
+            "'assistant_assertion' (Gemini/assistant speaking directly), "
+            "'quoted_or_pasted_content' (pasted AI output such as ChatGPT in a user turn), or 'ambiguous_source'. "
             "Return 0 proposals if evidence is insufficient or purely conversational filler.\n\n"
             + "\n\n---\n\n".join(formatted_messages)
         )
@@ -886,9 +992,13 @@ class LocalModelClaimExtractor:
             "You propose structured candidate claims from historical conversation evidence. "
             "You CANNOT approve or promote claims; every claim starts as an unverified candidate. "
             "Do not infer beyond the evidence. "
-            "Entity naming: use 'person:dustin' for Dustin/user facts, preferences, background, and hardware owned/lacked; "
-            "use 'system:josie' for system/architecture specifications. "
-            "Distinguish Dustin/user facts (role: user) from assistant assertions (role: assistant). "
+            "Entity naming: use 'person:dustin' for Dustin's direct facts, preferences, background, and hardware; "
+            "use 'assistant:gemini' for assertions made by Gemini Apps; "
+            "use 'assistant:chatgpt' for assertions made by or quoted from ChatGPT; "
+            "use 'system:josie' ONLY for specifications of the Josie architecture. "
+            "CRITICAL: Historical messages may contain quoted or pasted text from other AIs (e.g. ChatGPT pasted into a user message). "
+            "Pasted assistant content inside a user message MUST be classified as attribution 'quoted_or_pasted_content' and MUST NOT be attributed as direct Dustin assertions. "
+            "Use attribution 'direct_user_assertion' ONLY for genuine direct Dustin statements. "
             "For evidence_references, history_message_id MUST be the integer Message ID where the fact is stated. "
             "Return an empty proposals list if the evidence does not state clear persistent facts."
         )
@@ -938,10 +1048,35 @@ class LocalModelClaimExtractor:
 
                 # Normalize subject entity ID
                 subj = str(raw_prop.get("subject_entity_id") or "").strip().lower()
+                refs_data = raw_prop.get("evidence_references") or []
+                is_gemini = any(
+                    isinstance(r, dict) and (
+                        str(r.get("speaker", "")).lower() in {"gemini apps", "gemini"}
+                        or "gemini" in str(r.get("excerpt", "")).lower()
+                    )
+                    for r in refs_data
+                )
+                is_chatgpt = any(
+                    isinstance(r, dict) and (
+                        "chatgpt" in str(r.get("excerpt", "")).lower()
+                        or "gpt response" in str(r.get("excerpt", "")).lower()
+                    )
+                    for r in refs_data
+                )
+
                 if subj in {"google_account_owner", "user", "dustin", "me"}:
                     raw_prop["subject_entity_id"] = "person:dustin"
+                elif subj in {"gemini", "gemini apps", "gemini_apps"}:
+                    raw_prop["subject_entity_id"] = "assistant:gemini"
+                elif subj in {"chatgpt", "gpt", "chat_gpt"}:
+                    raw_prop["subject_entity_id"] = "assistant:chatgpt"
                 elif subj in {"josie", "system"}:
-                    raw_prop["subject_entity_id"] = "system:josie"
+                    if is_gemini:
+                        raw_prop["subject_entity_id"] = "assistant:gemini"
+                    elif is_chatgpt:
+                        raw_prop["subject_entity_id"] = "assistant:chatgpt"
+                    else:
+                        raw_prop["subject_entity_id"] = "system:josie"
 
                 # Normalize predicate format (alphanumeric + underscores only)
                 pred = str(raw_prop.get("predicate") or "").strip().lower()
@@ -949,22 +1084,29 @@ class LocalModelClaimExtractor:
                 if pred:
                     raw_prop["predicate"] = pred
 
-                # Enrich evidence references with actual metadata from inspected messages
+                # Enrich and classify evidence references with actual metadata from inspected messages
                 refs = raw_prop.get("evidence_references") or []
                 if isinstance(refs, list):
                     for r in refs:
                         if isinstance(r, dict):
                             mid = r.get("history_message_id")
-                            if mid in msg_lookup:
-                                src_m = msg_lookup[mid]
-                                if not r.get("role"):
-                                    r["role"] = src_m.get("role") or ""
-                                if not r.get("speaker"):
-                                    r["speaker"] = src_m.get("speaker") or ""
-                                if not r.get("source_timestamp"):
-                                    r["source_timestamp"] = src_m.get("timestamp") or ""
-                                if not r.get("excerpt"):
-                                    r["excerpt"] = (src_m.get("raw_text") or "")[:200]
+                            src_m = msg_lookup.get(mid, {})
+                            r_role = r.get("role") or src_m.get("role") or ""
+                            r_speaker = r.get("speaker") or src_m.get("speaker") or ""
+                            r_ts = r.get("source_timestamp") or src_m.get("timestamp") or ""
+                            r_text = src_m.get("raw_text") or ""
+                            r_excerpt = r.get("excerpt") or r_text[:200]
+                            r["role"] = r_role
+                            r["speaker"] = r_speaker
+                            r["source_timestamp"] = r_ts
+                            r["excerpt"] = r_excerpt
+                            r["attribution"] = classify_evidence_attribution(
+                                role=r_role,
+                                speaker=r_speaker,
+                                raw_text=r_text,
+                                excerpt=r_excerpt,
+                                proposed_attribution=r.get("attribution"),
+                            )
 
                 try:
                     p = CandidateClaimProposal.from_dict(raw_prop)
@@ -1081,22 +1223,38 @@ def stage_candidate_claims(
             for cid, data in grouped_claims.items():
                 enriched_refs = []
                 for ref in data["evidence_references"]:
-                    if ref.history_message_id is not None and (not ref.role or not ref.speaker):
+                    h_info = None
+                    if ref.history_message_id is not None:
                         h_info = conn.execute(
                             "SELECT role, speaker, timestamp, raw_text FROM history_messages WHERE message_id = ?",
                             (ref.history_message_id,),
                         ).fetchone()
-                        if h_info:
-                            ref = EvidenceReference(
-                                history_message_id=ref.history_message_id,
-                                relation_type=ref.relation_type,
-                                excerpt=ref.excerpt or (h_info["raw_text"] or "")[:300],
-                                role=ref.role or h_info["role"] or "",
-                                speaker=ref.speaker or h_info["speaker"] or "",
-                                source_timestamp=ref.source_timestamp or h_info["timestamp"] or "",
-                                source_pointer=ref.source_pointer,
-                                evidence_class=ref.evidence_class,
-                            )
+
+                    role_val = ref.role or (h_info["role"] if h_info else "")
+                    speaker_val = ref.speaker or (h_info["speaker"] if h_info else "")
+                    raw_text_val = h_info["raw_text"] if h_info else ""
+                    excerpt_val = ref.excerpt or (raw_text_val[:300] if raw_text_val else "")
+                    ts_val = ref.source_timestamp or (h_info["timestamp"] if h_info else "")
+
+                    classified_attr = classify_evidence_attribution(
+                        role=role_val,
+                        speaker=speaker_val,
+                        raw_text=raw_text_val,
+                        excerpt=excerpt_val,
+                        proposed_attribution=ref.attribution if ref.attribution != "ambiguous_source" else None,
+                    )
+
+                    ref = EvidenceReference(
+                        history_message_id=ref.history_message_id,
+                        relation_type=ref.relation_type,
+                        excerpt=excerpt_val,
+                        role=role_val,
+                        speaker=speaker_val,
+                        attribution=classified_attr,
+                        source_timestamp=ts_val,
+                        source_pointer=ref.source_pointer,
+                        evidence_class=ref.evidence_class,
+                    )
                     enriched_refs.append(ref)
                 data["evidence_references"] = enriched_refs
 
@@ -1181,6 +1339,7 @@ def stage_candidate_claims(
                         "source_timestamp": src_ts,
                         "role": ev_role,
                         "speaker": ev_speaker,
+                        "attribution": ref.attribution,
                         "source_pointer": src_pointer,
                         "evidence_class": ref.evidence_class,
                         "excerpt_sha256": excerpt_sha,
@@ -1245,6 +1404,19 @@ def stage_candidate_claims(
                                 None,
                             ),
                         )
+                    else:
+                        conn.execute(
+                            "UPDATE memory_claims SET "
+                            "confidence = ?, confidence_basis = ?, evidence_class = ?, updated_at = ? "
+                            "WHERE claim_id = ? AND status = 'candidate' AND canonical_effect = 0",
+                            (
+                                rec.confidence,
+                                rec.confidence_basis,
+                                rec.evidence_class,
+                                now,
+                                rec.claim_id,
+                            ),
+                        )
 
                     ext_id = f"ext:{rec.claim_id}:{hashlib.sha256(now.encode('utf-8')).hexdigest()[:8]}"
                     conn.execute(
@@ -1271,9 +1443,9 @@ def stage_candidate_claims(
                         "INSERT INTO claim_evidence("
                         "claim_id, evidence_id, relation_type, source_type, source_platform, "
                         "conversation_id, history_message_id, source_message_id, source_timestamp, "
-                        "role, speaker, source_pointer, evidence_class, excerpt_sha256, created_at"
-                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-                        "ON CONFLICT(claim_id, evidence_id, relation_type) DO NOTHING",
+                        "role, speaker, attribution, source_pointer, evidence_class, excerpt_sha256, created_at"
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                        "ON CONFLICT(claim_id, evidence_id, relation_type) DO UPDATE SET attribution = excluded.attribution",
                         (
                             ev["claim_id"],
                             ev["evidence_id"],
@@ -1286,6 +1458,7 @@ def stage_candidate_claims(
                             ev["source_timestamp"],
                             ev["role"],
                             ev["speaker"],
+                            ev["attribution"],
                             ev["source_pointer"],
                             ev["evidence_class"],
                             ev["excerpt_sha256"],
@@ -1315,6 +1488,30 @@ def stage_candidate_claims(
         "staged_claims": [r.to_dict() for r in staged_claims],
         "evidence_links_count": len(evidence_rows_to_insert),
     }
+
+
+def clear_unadjudicated_candidate_claims(store: LocalStore) -> int:
+    """Safely clear unadjudicated candidate claims (canonical_effect=0, status='candidate').
+
+    Guarantees:
+      - Does NOT touch canonical claims (canonical_effect=1).
+      - Does NOT touch rejected or active claims.
+      - Removes candidate extractions and associated evidence for cleared claims.
+    """
+    with store._connect() as conn:
+        cand_ids = [
+            r[0]
+            for r in conn.execute(
+                "SELECT claim_id FROM memory_claims WHERE status = 'candidate' AND canonical_effect = 0"
+            ).fetchall()
+        ]
+        if not cand_ids:
+            return 0
+        placeholders = ",".join("?" for _ in cand_ids)
+        conn.execute(f"DELETE FROM candidate_extractions WHERE claim_id IN ({placeholders})", cand_ids)
+        conn.execute(f"DELETE FROM claim_evidence WHERE claim_id IN ({placeholders})", cand_ids)
+        conn.execute(f"DELETE FROM memory_claims WHERE claim_id IN ({placeholders})", cand_ids)
+        return len(cand_ids)
 
 
 def adjudicate_candidate_claim(
@@ -1618,7 +1815,7 @@ def list_candidate_claims(
             ).fetchone()
 
             user_ev = conn.execute(
-                "SELECT 1 FROM claim_evidence WHERE claim_id = ? AND (role = 'user' OR speaker IN ('Dustin', 'user'))",
+                "SELECT 1 FROM claim_evidence WHERE claim_id = ? AND attribution = 'direct_user_assertion'",
                 (c["claim_id"],),
             ).fetchone()
 
@@ -1665,7 +1862,7 @@ def get_candidate_claim_details(
         evidence_rows = conn.execute(
             "SELECT evidence_id, relation_type, source_type, source_platform, "
             "conversation_id, history_message_id, source_timestamp, role, speaker, "
-            "source_pointer, evidence_class, excerpt_sha256, created_at "
+            "attribution, source_pointer, evidence_class, excerpt_sha256, created_at "
             "FROM claim_evidence WHERE claim_id = ? "
             "ORDER BY source_timestamp ASC, evidence_id ASC",
             (claim_id,),
@@ -1691,6 +1888,7 @@ def get_candidate_claim_details(
                 "source_timestamp": ev["source_timestamp"],
                 "role": ev["role"],
                 "speaker": ev["speaker"],
+                "attribution": ev["attribution"],
                 "source_pointer": ev["source_pointer"],
                 "evidence_class": ev["evidence_class"],
                 "excerpt": excerpt,
@@ -1901,6 +2099,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     p_extract.add_argument("--model", default=None, help="Local model name for LocalModelClaimExtractor (e.g. 'qwen3:14b')")
     p_extract.add_argument("--ollama-url", default="http://127.0.0.1:11434", help="Ollama API base URL")
     p_extract.add_argument("--timeout", type=int, default=180, help="Extractor request timeout in seconds")
+    p_extract.add_argument("--clear-pending", action="store_true", default=False, help="Clear unadjudicated candidate claims before staging")
     p_extract.add_argument("--json", action="store_true", help="Output JSON")
 
     # approve
@@ -1979,7 +2178,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Approved By: {details['approved_by']}")
             print(f"Evidence References ({len(details['evidence_references'])}):")
             for ev in details["evidence_references"]:
-                print(f"  * [{ev['relation_type']}] Msg {ev['history_message_id']} ({ev['speaker']}/{ev['role']}): {ev['excerpt']}")
+                print(f"  * [{ev['relation_type']}] Msg {ev['history_message_id']} ({ev['speaker']}/{ev['role']} -> {ev.get('attribution', 'unknown')}): {ev['excerpt']}")
             if details["competing_claims"]:
                 print(f"Competing/Related Claims ({len(details['competing_claims'])}):")
                 for c in details["competing_claims"]:
@@ -1987,6 +2186,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     elif args.command == "extract":
+        if args.clear_pending:
+            cleared = clear_unadjudicated_candidate_claims(store)
+            if not args.json:
+                print(f"Cleared {cleared} unadjudicated candidate claims before extraction.")
+
         model_name = args.model
         if not model_name and args.local_model:
             model_name = "qwen3:14b"
@@ -2099,7 +2303,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(f"Provenance for {args.claim_id}:")
             for ev in details["evidence_references"]:
-                print(f" -> Msg ID {ev['history_message_id']} ({ev['source_platform']}, {ev['source_timestamp']}): {ev['excerpt']}")
+                print(f" -> Msg ID {ev['history_message_id']} ({ev['source_platform']}, {ev['source_timestamp']}, speaker={ev['speaker']}/{ev['role']}, attribution={ev.get('attribution', 'unknown')}): {ev['excerpt']}")
         return 0
 
     elif args.command == "verify-canonical":

@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from josie.candidate_claims import (
+    ALLOWED_ATTRIBUTIONS,
     ALLOWED_CLAIM_CATEGORIES,
     APPROVAL_CONFIRMATION,
     BoundedEvidenceBundle,
@@ -29,6 +30,8 @@ from josie.candidate_claims import (
     LocalModelClaimExtractor,
     StubClaimExtractor,
     adjudicate_candidate_claim,
+    classify_evidence_attribution,
+    clear_unadjudicated_candidate_claims,
     compute_candidate_claim_id,
     dry_run_extraction,
     evaluate_evidence_weight,
@@ -1607,6 +1610,308 @@ class CandidateClaimsTests(unittest.TestCase):
             manifest = PrimingManifest(task_id="check_hw", knowledge_categories=("hardware",))
             bundle = assemble_priming_from_knowledge(manifest, store=self.store)
             self.assertEqual(len(bundle.items), 0)
+
+
+class TestEvidenceAttribution(unittest.TestCase):
+    """Phase 3B.1 Tests: Evidence Attribution, Envelope Role Decoupling, and Identity Separation."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = Path(self.temp_dir) / "test_attr.db"
+        self.store = LocalStore(self.db_path)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_a_direct_user_assertion(self) -> None:
+        """Test A: Direct user statement ('Btw i dont own a 3090') receives primary authority."""
+        _seed_test_history_message(
+            self.store,
+            message_id=489,
+            raw_text="Btw i dont own a 3090",
+            role="user",
+            speaker="Dustin",
+        )
+        attr = classify_evidence_attribution(
+            role="user",
+            speaker="Dustin",
+            raw_text="Btw i dont own a 3090",
+            excerpt="Btw i dont own a 3090",
+        )
+        self.assertEqual(attr, "direct_user_assertion")
+
+        ref = EvidenceReference(
+            history_message_id=489,
+            relation_type="supports",
+            excerpt="Btw i dont own a 3090",
+            role="user",
+            speaker="Dustin",
+            attribution=attr,
+        )
+        conf, basis, e_class = evaluate_evidence_weight([ref], base_confidence=0.9)
+        self.assertGreaterEqual(conf, 0.85)
+        self.assertEqual(e_class, "RETRIEVED")
+        self.assertIn("Direct user statement", basis)
+
+    def test_b_user_message_containing_pasted_text(self) -> None:
+        """Test B: Pasted assistant content inside user envelope is classified as quoted/pasted, NOT direct user."""
+        raw_pasted = (
+            "Gpt response \n\n"
+            "Alright Soph, here's the real truth\n\n"
+            "Your parts on hand (2x 24TB Exos, 2x 4TB NVMe, RTX 3090)"
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=485,
+            raw_text=raw_pasted,
+            role="user",
+            speaker="google_account_owner",
+        )
+        attr = classify_evidence_attribution(
+            role="user",
+            speaker="google_account_owner",
+            raw_text=raw_pasted,
+            excerpt="Your parts on hand (2x 24TB Exos, 2x 4TB NVMe, RTX 3090)",
+            proposed_attribution="direct_user_assertion",  # Attempted false direct assertion
+        )
+        self.assertEqual(attr, "quoted_or_pasted_content")
+
+        ref = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt="Your parts on hand (RTX 3090)",
+            role="user",
+            speaker="google_account_owner",
+            attribution=attr,
+        )
+        conf, basis, e_class = evaluate_evidence_weight([ref], base_confidence=0.95)
+        self.assertLessEqual(conf, 0.60)
+        self.assertEqual(e_class, "INFERRED")
+        self.assertIn("Quoted or pasted external content", basis)
+
+    def test_c_gemini_assistant_output_identity_isolation(self) -> None:
+        """Test C: Gemini output maps to assistant:gemini (NOT system:josie) and assistant_assertion."""
+        _seed_test_history_message(
+            self.store,
+            message_id=478,
+            raw_text="The RTX 2080 Ti 22GB Modded Edition is unreliable for long-term AI work.",
+            role="assistant",
+            speaker="Gemini Apps",
+        )
+        attr = classify_evidence_attribution(
+            role="assistant",
+            speaker="Gemini Apps",
+            raw_text="The RTX 2080 Ti 22GB Modded Edition is unreliable for long-term AI work.",
+            excerpt="unreliable for long-term AI work",
+        )
+        self.assertEqual(attr, "assistant_assertion")
+
+        ref = EvidenceReference(
+            history_message_id=478,
+            relation_type="supports",
+            excerpt="unreliable for long-term AI work",
+            role="assistant",
+            speaker="Gemini Apps",
+            attribution=attr,
+        )
+        conf, basis, e_class = evaluate_evidence_weight([ref], base_confidence=0.9)
+        self.assertLessEqual(conf, 0.60)
+        self.assertEqual(e_class, "INFERRED")
+        self.assertIn("Assistant assertion", basis)
+
+        # Stage with assistant:gemini subject entity ID
+        proposal = CandidateClaimProposal(
+            subject_entity_id="assistant:gemini",
+            predicate="warns_against_hardware",
+            value_text="Modded RTX 2080 Ti is unreliable",
+            claim_category="hardware",
+            confidence=0.6,
+            confidence_basis=basis,
+            evidence_references=(ref,),
+        )
+        res = stage_candidate_claims(self.store, [proposal])
+        self.assertEqual(res["unique_candidate_claims_count"], 1)
+        staged = res["staged_claims"][0]
+        self.assertEqual(staged["subject_entity_id"], "assistant:gemini")
+        self.assertNotEqual(staged["subject_entity_id"], "system:josie")
+
+    def test_d_ambiguous_source_attribution(self) -> None:
+        """Test D: Ambiguous text without clear speaker/provenance receives ambiguous_source attribution."""
+        _seed_test_history_message(
+            self.store,
+            message_id=999,
+            raw_text="Unattributed notes without identified speaker.",
+            role="system",
+            speaker="unknown_source",
+        )
+        attr = classify_evidence_attribution(
+            role="system",
+            speaker="unknown_source",
+            raw_text="Unattributed notes without identified speaker.",
+            excerpt="Unattributed notes",
+        )
+        self.assertEqual(attr, "ambiguous_source")
+
+        ref = EvidenceReference(
+            history_message_id=999,
+            relation_type="supports",
+            excerpt="Unattributed notes",
+            role="system",
+            speaker="unknown_source",
+            attribution=attr,
+        )
+        conf, basis, e_class = evaluate_evidence_weight([ref], base_confidence=0.9)
+        self.assertLessEqual(conf, 0.50)
+        self.assertEqual(e_class, "INFERRED")
+        self.assertIn("Historical conversation context (ambiguous source)", basis)
+
+    def test_e_authority_hierarchy_ordering(self) -> None:
+        """Test E: Direct-user evidence receives greater authority than assistant, quoted, or ambiguous."""
+        ref_user = EvidenceReference(
+            history_message_id=1,
+            attribution="direct_user_assertion",
+            role="user",
+            speaker="Dustin",
+        )
+        ref_quoted = EvidenceReference(
+            history_message_id=2,
+            attribution="quoted_or_pasted_content",
+            role="user",
+            speaker="google_account_owner",
+        )
+        ref_assistant = EvidenceReference(
+            history_message_id=3,
+            attribution="assistant_assertion",
+            role="assistant",
+            speaker="Gemini Apps",
+        )
+        ref_ambiguous = EvidenceReference(
+            history_message_id=4,
+            attribution="ambiguous_source",
+            role="unknown",
+            speaker="unknown",
+        )
+
+        conf_user, _, class_user = evaluate_evidence_weight([ref_user], base_confidence=0.9)
+        conf_quoted, _, class_quoted = evaluate_evidence_weight([ref_quoted], base_confidence=0.9)
+        conf_asst, _, class_asst = evaluate_evidence_weight([ref_assistant], base_confidence=0.9)
+        conf_ambig, _, class_ambig = evaluate_evidence_weight([ref_ambiguous], base_confidence=0.9)
+
+        self.assertGreater(conf_user, conf_quoted)
+        self.assertGreater(conf_user, conf_asst)
+        self.assertGreater(conf_user, conf_ambig)
+        self.assertGreater(conf_quoted, conf_ambig)
+        self.assertEqual(class_user, "RETRIEVED")
+        self.assertEqual(class_quoted, "INFERRED")
+        self.assertEqual(class_asst, "INFERRED")
+        self.assertEqual(class_ambig, "INFERRED")
+
+    def test_f_attribution_cannot_bypass_adjudication_gate(self) -> None:
+        """Test F: Attribution change cannot bypass candidate status or human approval requirement."""
+        _seed_test_history_message(
+            self.store,
+            message_id=10,
+            raw_text="Direct statement from Dustin",
+            role="user",
+            speaker="Dustin",
+        )
+        ref = EvidenceReference(
+            history_message_id=10,
+            relation_type="supports",
+            excerpt="Direct statement from Dustin",
+            role="user",
+            speaker="Dustin",
+            attribution="direct_user_assertion",
+        )
+        proposal = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="direct_fact",
+            value_text="A fact stated directly by Dustin",
+            claim_category="profile",
+            confidence=0.95,
+            evidence_references=(ref,),
+        )
+        res = stage_candidate_claims(self.store, [proposal])
+        cid = res["staged_claims"][0]["claim_id"]
+
+        with self.store._connect() as conn:
+            claim = conn.execute("SELECT * FROM memory_claims WHERE claim_id = ?", (cid,)).fetchone()
+            self.assertEqual(claim["status"], "candidate")
+            self.assertEqual(claim["canonical_effect"], 0)
+            self.assertIsNone(claim["approved_by"])
+
+        # Attempted model approval fails closed
+        with self.assertRaises((PermissionError, ValueError)):
+            adjudicate_candidate_claim(
+                self.store,
+                claim_id=cid,
+                action="approve",
+                reviewer="model",
+                confirmation=APPROVAL_CONFIRMATION,
+            )
+
+        # Attempted human approval without confirmation token fails closed
+        with self.assertRaises((PermissionError, ValueError)):
+            adjudicate_candidate_claim(
+                self.store,
+                claim_id=cid,
+                action="approve",
+                reviewer="Dustin",
+                confirmation="unconfirmed",
+            )
+
+    def test_g_zero_candidate_priming_leakage(self) -> None:
+        """Test G: No candidate claim with any attribution leaks into priming bundles."""
+        _seed_test_history_message(
+            self.store,
+            message_id=20,
+            raw_text="User statement",
+            role="user",
+            speaker="Dustin",
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=21,
+            raw_text="Gpt response \n\nPasted info",
+            role="user",
+            speaker="Dustin",
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=22,
+            raw_text="Assistant opinion",
+            role="assistant",
+            speaker="Gemini Apps",
+        )
+
+        p1 = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="user_pref",
+            value_text="User preference value",
+            claim_category="preference",
+            evidence_references=(EvidenceReference(history_message_id=20, attribution="direct_user_assertion"),),
+        )
+        p2 = CandidateClaimProposal(
+            subject_entity_id="assistant:chatgpt",
+            predicate="quoted_statement",
+            value_text="Pasted third-party statement",
+            claim_category="general",
+            evidence_references=(EvidenceReference(history_message_id=21, attribution="quoted_or_pasted_content"),),
+        )
+        p3 = CandidateClaimProposal(
+            subject_entity_id="assistant:gemini",
+            predicate="assistant_opinion",
+            value_text="Gemini assistant opinion",
+            claim_category="hardware",
+            evidence_references=(EvidenceReference(history_message_id=22, attribution="assistant_assertion"),),
+        )
+
+        stage_candidate_claims(self.store, [p1, p2, p3])
+
+        for cat in ("preference", "general", "hardware"):
+            manifest = PrimingManifest(task_id="leak_test", knowledge_categories=(cat,))
+            bundle = assemble_priming_from_knowledge(manifest, store=self.store)
+            self.assertEqual(len(bundle.items), 0, f"Candidate in category '{cat}' leaked into priming bundle!")
 
 
 if __name__ == "__main__":
