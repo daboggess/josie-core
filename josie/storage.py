@@ -768,6 +768,8 @@ class LocalStore:
                             'quoted_or_pasted_content','ambiguous_source'
                         )
                     ),
+                    span_start INTEGER,
+                    span_end INTEGER,
                     source_pointer TEXT NOT NULL,
                     evidence_class TEXT NOT NULL,
                     excerpt_sha256 TEXT,
@@ -905,6 +907,14 @@ class LocalStore:
                 connection.execute(
                     "ALTER TABLE claim_evidence ADD COLUMN attribution "
                     "TEXT NOT NULL DEFAULT 'ambiguous_source'"
+                )
+            if "span_start" not in claim_evidence_columns:
+                connection.execute(
+                    "ALTER TABLE claim_evidence ADD COLUMN span_start INTEGER"
+                )
+            if "span_end" not in claim_evidence_columns:
+                connection.execute(
+                    "ALTER TABLE claim_evidence ADD COLUMN span_end INTEGER"
                 )
 
     @staticmethod

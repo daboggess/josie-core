@@ -83,6 +83,42 @@ Phase 3B.1 decouples provider envelope roles from semantic authority via a stric
 2. **Identity Separation**: Gemini output maps to `assistant:gemini`, ChatGPT output maps to `assistant:chatgpt`. Neither is ever assigned to `system:josie`.
 3. **Fail-Closed Weighting**: In `evaluate_evidence_weight()`, only verified `direct_user_assertion` references receive primary confidence (`RETRIEVED`). Quoted, pasted, or assistant assertions are strictly capped at `confidence <= 0.60` with `evidence_class = 'INFERRED'`.
 
+## Span-Level Evidence Attribution (Phase 3B.2)
+
+Phase 3B.1 operated at whole-message granularity. However, real historical transcripts frequently exhibit single-turn polysemy: a user turn may interleave direct human assertions with pasted external AI responses.
+
+For example, in Message 485:
+- Spans 15..85: `"Btw i am a+ certified with years of experience with commercial servers"` (Dustin's authentic voice and qualification).
+- Spans 87+: `"Alright Soph, here’s the real truth..."` followed by `"Your parts on hand (... RTX 3090 ...)"` (Pasted ChatGPT output hallucinating an RTX 3090).
+
+Whole-message attribution either stripped Dustin of primary credit for his genuine statements or falsely elevated pasted ChatGPT text to human authority. Phase 3B.2 introduces fine-grained, deterministic span attribution.
+
+### Span Data Model & Schema
+
+The `claim_evidence` table is extended with deterministic character offset bounds:
+```sql
+ALTER TABLE claim_evidence ADD COLUMN span_start INTEGER DEFAULT NULL;
+ALTER TABLE claim_evidence ADD COLUMN span_end INTEGER DEFAULT NULL;
+```
+Correspondingly, `EvidenceReference` supports `span_start: int | None = None` and `span_end: int | None = None`.
+
+### Bounded Deterministic Segmentation
+
+Without relying on nondeterministic LLMs or heavy NLP libraries, `get_pasted_regions(raw_text)` scans message text for:
+1. Markdown blockquotes (`> `)
+2. Fenced quote/code blocks (```` ``` ````)
+3. Assistant persona openings (e.g., `"Alright Soph"`, `"Sophie (me"`, `"I’m going to show you"`)
+4. Explicit AI tool headers (e.g., `"ChatGPT:"`, `"Claude:"`, `"Gpt response"`)
+
+Any span within these identified offset ranges is classified as `quoted_or_pasted_content` (or `assistant_assertion` if from an assistant). Spans outside these regions in user turns retain `direct_user_assertion`.
+
+### Fail-Closed Validation Invariants
+
+1. **Offset Invariants**: Offsets must satisfy `0 <= span_start <= span_end <= len(raw_text)`. Any invalid offset fails closed.
+2. **Verbatim Excerpt Matching**: The excerpt must exist verbatim in `raw_text`. When span offsets are provided, `raw_text[span_start:span_end]` must match the excerpt. Fabricated or loose excerpts are rejected.
+3. **Epistemic Authority Clamping**: `validate_proposal()` rejects or clamps any attempt by a model to attribute `direct_user_assertion` to a span overlapping a pasted/quoted region.
+4. **Distinct Multi-Span Evidence Keys**: Provenance IDs incorporate span offsets (`history:{mid}:{span_start}:{span_end}`), allowing multiple distinct spans from the same message to serve as independent evidence references.
+
 ## Adjudication & Promotion Gate
 
 Human review actions:

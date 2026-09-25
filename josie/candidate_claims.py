@@ -302,6 +302,8 @@ class EvidenceReference:
     role: str = ""
     speaker: str = ""
     attribution: str = "ambiguous_source"
+    span_start: int | None = None
+    span_end: int | None = None
     source_timestamp: str = ""
     source_pointer: str = ""
     evidence_class: str = "RETRIEVED"
@@ -321,6 +323,15 @@ class EvidenceReference:
             )
         if self.history_message_id is None and not self.source_pointer.strip():
             raise ValueError("EvidenceReference requires history_message_id or source_pointer")
+        if self.span_start is not None or self.span_end is not None:
+            if self.span_start is None or self.span_end is None:
+                raise ValueError("Both span_start and span_end must be specified when offsets are used")
+            if not isinstance(self.span_start, int) or not isinstance(self.span_end, int):
+                raise ValueError("span_start and span_end must be integers")
+            if self.span_start < 0:
+                raise ValueError(f"span_start ({self.span_start}) cannot be negative")
+            if self.span_end < self.span_start:
+                raise ValueError(f"span_end ({self.span_end}) cannot be less than span_start ({self.span_start})")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -330,6 +341,8 @@ class EvidenceReference:
             "role": self.role,
             "speaker": self.speaker,
             "attribution": self.attribution,
+            "span_start": self.span_start,
+            "span_end": self.span_end,
             "source_timestamp": self.source_timestamp,
             "source_pointer": self.source_pointer,
             "evidence_class": self.evidence_class,
@@ -341,6 +354,20 @@ class EvidenceReference:
         raw_attr = str(data.get("attribution") or "").strip().lower()
         if raw_attr not in ALLOWED_ATTRIBUTIONS:
             raw_attr = "ambiguous_source"
+        raw_start = data.get("span_start")
+        raw_end = data.get("span_end")
+        start_val: int | None = None
+        end_val: int | None = None
+        if raw_start is not None:
+            try:
+                start_val = int(raw_start)
+            except (ValueError, TypeError):
+                start_val = -1
+        if raw_end is not None:
+            try:
+                end_val = int(raw_end)
+            except (ValueError, TypeError):
+                end_val = -1
         return cls(
             history_message_id=int(hid) if hid is not None else None,
             relation_type=str(data.get("relation_type") or "supports").strip().lower(),
@@ -348,6 +375,8 @@ class EvidenceReference:
             role=str(data.get("role") or "").strip().lower(),
             speaker=str(data.get("speaker") or "").strip(),
             attribution=raw_attr,
+            span_start=start_val,
+            span_end=end_val,
             source_timestamp=str(data.get("source_timestamp") or "").strip(),
             source_pointer=str(data.get("source_pointer") or "").strip(),
             evidence_class=str(data.get("evidence_class") or "RETRIEVED").strip().upper(),
@@ -501,10 +530,248 @@ class CandidateClaimRecord:
         }
 
 
+def get_pasted_regions(raw_text: str) -> list[tuple[int, int]]:
+    """Return a list of [start, end) character spans within raw_text that are pasted/external content."""
+    if not raw_text:
+        return []
+
+    regions: list[tuple[int, int]] = []
+
+    # 1. Blockquotes (lines starting with '>')
+    offset = 0
+    for line in raw_text.splitlines(keepends=True):
+        line_len = len(line)
+        if line.strip().startswith(">"):
+            regions.append((offset, offset + line_len))
+        offset += line_len
+
+    # 2. Fenced code or quote blocks (```...```)
+    for m in re.finditer(r"```[\s\S]*?```", raw_text):
+        regions.append((m.start(), m.end()))
+
+    # 3. AI Persona / Greeting openings (e.g. "Alright Soph, here’s the real truth...")
+    ai_openings = (
+        r"(?im)\b(?:alright\s+soph|sophie\s*\(me\b|sophie's\s+official\s+pick|"
+        r"i\s+will\s+generate\s+for\s+you|pick,\s+and\s+i['’]ll\s+build|"
+        r"where\s+gemini\s+is\s+right|where\s+gemini\s+is\s+wrong|"
+        r"here['’]s\s+the\s+real\s+truth|here\s+is\s+the\s+real\s+truth)\b"
+    )
+    m_open = re.search(ai_openings, raw_text)
+    if m_open:
+        user_after = re.search(r"(?im)^\s*(?:user|dustin|me|my\s+take)\s*:", raw_text[m_open.end():])
+        end_idx = m_open.end() + user_after.start() if user_after else len(raw_text)
+        regions.append((m_open.start(), end_idx))
+
+    # 4. Section headers like ChatGPT:, Claude:, Gemini:, Assistant:
+    header_re = re.compile(r"(?im)^\s*(?:chatgpt|claude|gemini|assistant)\s*:", re.MULTILINE)
+    for hm in header_re.finditer(raw_text):
+        user_after = re.search(r"(?im)^\s*(?:user|dustin|me|my\s+take)\s*:", raw_text[hm.end():])
+        end_idx = hm.end() + user_after.start() if user_after else len(raw_text)
+        regions.append((hm.start(), end_idx))
+
+    # 5. Marker headers like "Gpt response", "ChatGPT response", "from gpt"
+    marker_re = re.compile(r"(?im)^\s*(?:gpt\s+response|chatgpt\s+response|chapgpt\s+response|from\s+gpt)\b", re.MULTILINE)
+    for mm in marker_re.finditer(raw_text):
+        if m_open and mm.start() < m_open.start():
+            # If an AI opening follows, the marker line itself is a header (non-user)
+            regions.append((mm.start(), mm.end()))
+        else:
+            user_after = re.search(r"(?im)^\s*(?:user|dustin|me|my\s+take|btw)\s*:", raw_text[mm.end():])
+            end_idx = mm.end() + user_after.start() if user_after else len(raw_text)
+            regions.append((mm.start(), end_idx))
+
+    if not regions:
+        return []
+
+    regions.sort(key=lambda r: (r[0], r[1]))
+    merged: list[tuple[int, int]] = [regions[0]]
+    for cur_start, cur_end in regions[1:]:
+        prev_start, prev_end = merged[-1]
+        if cur_start <= prev_end:
+            merged[-1] = (prev_start, max(prev_end, cur_end))
+        else:
+            merged.append((cur_start, cur_end))
+
+    return merged
+
+
+def classify_evidence_span(
+    *,
+    raw_text: str = "",
+    excerpt: str = "",
+    role: str = "",
+    speaker: str = "",
+    span_start: int | None = None,
+    span_end: int | None = None,
+    proposed_attribution: str | None = None,
+) -> tuple[str, int | None, int | None]:
+    """Classify provenance attribution of a specific supporting evidence span within a historical message.
+
+    Returns:
+      (attribution, resolved_span_start, resolved_span_end)
+
+    Attribution is one of:
+      - 'direct_user_assertion': statement spoken directly by Dustin within user span.
+      - 'assistant_assertion': assertion by conversational assistant (Gemini, Claude, etc.).
+      - 'quoted_or_pasted_content': third-party AI or external content pasted/quoted inside a turn.
+      - 'ambiguous_source': unclear speaker or unattributed context.
+
+    Guarantees:
+      - Assistant envelopes NEVER receive 'direct_user_assertion'.
+      - Pasted AI text inside a user envelope is demoted to 'quoted_or_pasted_content'.
+      - Direct user text outside pasted regions in a mixed message retains 'direct_user_assertion'.
+      - Ambiguous boundaries default conservatively to 'ambiguous_source'.
+      - Malformed or out-of-bounds offsets fail closed.
+    """
+    text = (raw_text or "").strip()
+    r = (role or "").lower().strip()
+    spk = (speaker or "").lower().strip()
+    ex = (excerpt or "").strip()
+
+    # Offset validation if specified
+    if span_start is not None or span_end is not None:
+        if span_start is None or span_end is None:
+            raise ValueError("Both span_start and span_end must be specified when offsets are used")
+        if not isinstance(span_start, int) or not isinstance(span_end, int):
+            raise ValueError("span_start and span_end must be integers")
+        if span_start < 0:
+            raise ValueError(f"span_start ({span_start}) cannot be negative")
+        if span_end < span_start:
+            raise ValueError(f"span_end ({span_end}) cannot be less than span_start ({span_start})")
+        if raw_text and span_end > len(raw_text):
+            raise ValueError(f"span_end ({span_end}) exceeds raw_text length ({len(raw_text)})")
+
+    # If offsets not provided, attempt to locate excerpt in raw_text
+    if span_start is None and span_end is None and ex and raw_text:
+        idx = raw_text.find(ex)
+        if idx == -1:
+            idx_cf = raw_text.casefold().find(ex.casefold())
+            if idx_cf != -1:
+                idx = idx_cf
+                ex = raw_text[idx : idx + len(ex)]
+        if idx != -1:
+            span_start = idx
+            span_end = idx + len(ex)
+
+    span_text = (
+        raw_text[span_start:span_end].strip()
+        if (span_start is not None and span_end is not None and raw_text)
+        else ex
+    )
+
+    # Rule 1: Assistant / Model turns cannot be direct user assertions.
+    if r in ("assistant", "model") or spk in (
+        "gemini apps", "gemini", "assistant", "model", "bernie", "sophie", "chatgpt"
+    ):
+        if proposed_attribution in ("assistant_assertion", "quoted_or_pasted_content"):
+            return proposed_attribution, span_start, span_end
+        return "assistant_assertion", span_start, span_end
+
+    # Rule 2: User turns (Dustin / google_account_owner)
+    if r == "user" or spk in ("dustin", "user", "google_account_owner"):
+        lower_span = span_text.lower()
+
+        # Indicators of quoted / pasted AI responses
+        ai_indicators = (
+            "gpt response", "chatgpt response", "chapgpt response",
+            "chatgpt:", "gpt:", "claude:", "gemini:",
+            "working on woth chatgpt", "working on with chatgpt",
+            "alright soph", "sophie (me", "sophie's official pick",
+            "where gemini is right", "where gemini is wrong",
+            "here's my take on gemini", "here’s my take on gemini",
+            "i will generate for you", "i’m going to show you", "i'm going to show you",
+            "pick, and i’ll build", "pick, and i'll build",
+            "forwarded message",
+        )
+
+        # If the span itself starts with blockquote '>'
+        if any(line.strip().startswith(">") for line in span_text.splitlines() if line.strip()):
+            return "quoted_or_pasted_content", span_start, span_end
+
+        # If the span itself contains an AI indicator
+        if any(ind in lower_span for ind in ai_indicators):
+            return "quoted_or_pasted_content", span_start, span_end
+
+        # Check if the overall message has indicators of mixed / pasted AI content
+        pasted_regions = get_pasted_regions(raw_text)
+
+        if not pasted_regions:
+            # Pure user message
+            if proposed_attribution in ("quoted_or_pasted_content", "ambiguous_source"):
+                return proposed_attribution, span_start, span_end
+            return "direct_user_assertion", span_start, span_end
+
+        # Message has mixed content! Check if this span is inside any pasted region
+        is_pasted = False
+        if span_start is not None and span_end is not None:
+            for p_start, p_end in pasted_regions:
+                if max(span_start, p_start) < min(span_end, p_end):
+                    is_pasted = True
+                    break
+        else:
+            for p_start, p_end in pasted_regions:
+                if ex and ex in raw_text[p_start:p_end]:
+                    is_pasted = True
+                    break
+
+        if is_pasted:
+            return "quoted_or_pasted_content", span_start, span_end
+
+        # Outside all pasted regions: check for direct user voice
+        user_voice_indicators = (
+            "i am", "i'm", "i have", "i don't", "i dont", "my", "me", "btw", "i love",
+            "i prefer", "we need", "i think", "i believe", "certified", "years of experience",
+            "i run", "i want", "i use", "i need", "i tested", "i verified",
+        )
+        if any(ind in lower_span for ind in user_voice_indicators):
+            if proposed_attribution in ("quoted_or_pasted_content", "ambiguous_source"):
+                return proposed_attribution, span_start, span_end
+            return "direct_user_assertion", span_start, span_end
+
+        if proposed_attribution == "direct_user_assertion":
+            return "direct_user_assertion", span_start, span_end
+
+        if proposed_attribution in ALLOWED_ATTRIBUTIONS:
+            return proposed_attribution, span_start, span_end
+
+        return "ambiguous_source", span_start, span_end
+
+    # Rule 3: Other envelopes
+    if proposed_attribution in ALLOWED_ATTRIBUTIONS and proposed_attribution != "direct_user_assertion":
+        return proposed_attribution, span_start, span_end
+
+    return "ambiguous_source", span_start, span_end
+
+
+def classify_evidence_attribution(
+    *,
+    role: str = "",
+    speaker: str = "",
+    raw_text: str = "",
+    excerpt: str = "",
+    span_start: int | None = None,
+    span_end: int | None = None,
+    proposed_attribution: str | None = None,
+) -> str:
+    """Classify provenance attribution of historical evidence or evidence span."""
+    attr, _, _ = classify_evidence_span(
+        raw_text=raw_text,
+        excerpt=excerpt,
+        role=role,
+        speaker=speaker,
+        span_start=span_start,
+        span_end=span_end,
+        proposed_attribution=proposed_attribution,
+    )
+    return attr
+
+
 def validate_proposal(
     proposal: CandidateClaimProposal | dict[str, Any],
     *,
     window_message_ids: set[int] | frozenset[int] | None = None,
+    messages_lookup: dict[int, dict[str, Any]] | None = None,
+    store: LocalStore | None = None,
 ) -> tuple[bool, str]:
     """Fail-closed validation layer between model/extractor output and candidate persistence.
     
@@ -516,6 +783,9 @@ def validate_proposal(
     - Non-empty evidence references.
     - All referenced history_message_ids exist in provided window.
     - Model/extractor cannot set canonical_effect=1 or claim self-approval.
+    - Offsets if provided must be non-negative, start <= end, and within message bounds.
+    - Supporting excerpt must actually exist in the referenced message text.
+    - Model proposed attribution cannot elevate authority beyond deterministic validation.
     """
     if isinstance(proposal, dict):
         raw_status = str(proposal.get("status", "candidate")).lower()
@@ -562,6 +832,20 @@ def validate_proposal(
     if not prop.evidence_references:
         return False, "Candidate claim proposal must include at least one evidence reference"
 
+    # Prepare lookup if store provided
+    lookup = dict(messages_lookup or {})
+    if store is not None and not lookup:
+        needed_mids = [r.history_message_id for r in prop.evidence_references if r.history_message_id is not None]
+        if needed_mids:
+            with store._connect() as conn:
+                placeholders = ",".join("?" for _ in needed_mids)
+                rows = conn.execute(
+                    f"SELECT message_id, role, speaker, timestamp, raw_text FROM history_messages WHERE message_id IN ({placeholders})",
+                    tuple(needed_mids),
+                ).fetchall()
+                for row in rows:
+                    lookup[row["message_id"]] = dict(row)
+
     for ref in prop.evidence_references:
         if ref.relation_type not in ALLOWED_RELATION_TYPES:
             return False, f"Unsupported relation_type: {ref.relation_type!r}"
@@ -574,87 +858,62 @@ def validate_proposal(
                     f"Evidence references history_message_id {ref.history_message_id} outside extraction window",
                 )
 
-    return True, ""
+        # Validate offsets internal validity
+        if ref.span_start is not None or ref.span_end is not None:
+            if ref.span_start is None or ref.span_end is None:
+                return False, "Malformed span offsets: both span_start and span_end must be provided"
+            if not isinstance(ref.span_start, int) or not isinstance(ref.span_end, int):
+                return False, "Malformed span offsets: span_start and span_end must be integers"
+            if ref.span_start < 0:
+                return False, f"Malformed span offsets: span_start ({ref.span_start}) cannot be negative"
+            if ref.span_end < ref.span_start:
+                return False, f"Malformed span offsets: span_end ({ref.span_end}) cannot be less than span_start ({ref.span_start})"
 
+        # If message data is available, validate against message raw_text
+        if ref.history_message_id is not None and ref.history_message_id in lookup:
+            m_info = lookup[ref.history_message_id]
+            m_text = str(m_info.get("raw_text") or "")
 
-def classify_evidence_attribution(
-    *,
-    role: str = "",
-    speaker: str = "",
-    raw_text: str = "",
-    excerpt: str = "",
-    proposed_attribution: str | None = None,
-) -> str:
-    """Classify provenance attribution of historical evidence.
+            if ref.span_start is not None and ref.span_end is not None:
+                if ref.span_end > len(m_text):
+                    return (
+                        False,
+                        f"Span offsets [{ref.span_start}:{ref.span_end}] out of bounds for message {ref.history_message_id} (length {len(m_text)})",
+                    )
+                if ref.excerpt and ref.excerpt.strip():
+                    span_slice = m_text[ref.span_start:ref.span_end]
+                    clean_ex = ref.excerpt.strip()
+                    if clean_ex not in span_slice and span_slice.strip() not in clean_ex:
+                        return (
+                            False,
+                            f"Span text [{ref.span_start}:{ref.span_end}] does not match excerpt {ref.excerpt!r}",
+                        )
 
-    Returns one of:
-      - 'direct_user_assertion': statement spoken directly by Dustin/user.
-      - 'assistant_assertion': assertion by conversational assistant (Gemini, Claude, etc.).
-      - 'quoted_or_pasted_content': third-party AI or external content pasted/quoted inside a turn.
-      - 'ambiguous_source': unclear speaker or unattributed context.
+            if ref.excerpt and ref.excerpt.strip():
+                if ref.excerpt.strip() not in m_text:
+                    if ref.excerpt.strip().casefold() not in m_text.casefold():
+                        return (
+                            False,
+                            f"Supporting excerpt does not exist in historical message {ref.history_message_id}: {ref.excerpt!r}",
+                        )
 
-    Guarantees:
-      - Assistant envelopes NEVER receive 'direct_user_assertion'.
-      - Pasted AI text inside a user envelope is demoted to 'quoted_or_pasted_content'.
-      - Unrecognized or ambiguous sources default conservatively to 'ambiguous_source'.
-    """
-    r = (role or "").lower().strip()
-    spk = (speaker or "").lower().strip()
-    text = (raw_text or "").strip()
-    ex = (excerpt or "").strip()
-
-    # Rule 1: Assistant / Model turns cannot be direct user assertions.
-    if r in ("assistant", "model") or spk in (
-        "gemini apps", "gemini", "assistant", "model", "bernie", "sophie", "chatgpt"
-    ):
-        if proposed_attribution in ("assistant_assertion", "quoted_or_pasted_content"):
-            return proposed_attribution
-        return "assistant_assertion"
-
-    # Rule 2: User turns (Dustin / google_account_owner)
-    if r == "user" or spk in ("dustin", "user", "google_account_owner"):
-        lower_text = text.lower()
-        lower_ex = ex.lower() if ex else lower_text
-
-        # Indicators of quoted / pasted AI responses
-        pasted_indicators = (
-            "gpt response", "chatgpt response", "chapgpt response",
-            "chatgpt:", "gpt:", "claude:", "gemini:",
-            "working on woth chatgpt", "working on with chatgpt",
-            "alright soph", "sophie (me", "sophie's official pick",
-            "where gemini is right", "where gemini is wrong",
-            "here's my take on gemini", "here’s my take on gemini",
-            "i will generate for you", "i’m going to show you",
-            "forwarded message",
-        )
-
-        has_blockquote = any(line.strip().startswith(">") for line in (ex or text).splitlines())
-        has_indicator = any(ind in lower_ex for ind in pasted_indicators)
-
-        # Check if the entire message was framed as a pasted response
-        first_lines = "\n".join(lower_text.splitlines()[:3])
-        message_is_pasted = any(
-            ind in first_lines
-            for ind in (
-                "gpt response", "chapgpt response", "chatgpt response",
-                "working on woth chatgpt", "working on with chatgpt",
-                "from gpt", "from chatgpt",
+            # Check proposed attribution cannot elevate authority beyond deterministic validation
+            val_attr, _, _ = classify_evidence_span(
+                raw_text=m_text,
+                excerpt=ref.excerpt,
+                role=str(m_info.get("role") or ""),
+                speaker=str(m_info.get("speaker") or ""),
+                span_start=ref.span_start,
+                span_end=ref.span_end,
+                proposed_attribution=ref.attribution,
             )
-        )
+            if ref.attribution == "direct_user_assertion" and val_attr != "direct_user_assertion":
+                return (
+                    False,
+                    f"Proposed attribution 'direct_user_assertion' not permitted by deterministic validation (classified as '{val_attr}')",
+                )
 
-        if has_indicator or has_blockquote or message_is_pasted:
-            return "quoted_or_pasted_content"
-
-        if proposed_attribution in ("quoted_or_pasted_content", "ambiguous_source"):
-            return proposed_attribution
-
-        return "direct_user_assertion"
-
-    # Rule 3: If proposed attribution is valid and speaker is not assistant, check it
-    if proposed_attribution in ALLOWED_ATTRIBUTIONS and proposed_attribution != "direct_user_assertion":
-        return proposed_attribution
-
-    return "ambiguous_source"
+    return True, ""
 
 
 def evaluate_evidence_weight(
@@ -978,11 +1237,13 @@ class LocalModelClaimExtractor:
             "Extract structured candidate claims from the following historical messages. "
             "Propose ONLY statements directly supported by evidence. "
             "Distinguish direct user statements from assistant assertions and quoted/pasted text. "
-            "Use subject_entity_id 'person:dustin' for Dustin/user, 'assistant:gemini' for Gemini Apps, "
-            "'assistant:chatgpt' for ChatGPT, and 'system:josie' ONLY for Josie system/architecture. "
-            "For each evidence reference, assign attribution: 'direct_user_assertion' (Dustin speaking directly), "
-            "'assistant_assertion' (Gemini/assistant speaking directly), "
-            "'quoted_or_pasted_content' (pasted AI output such as ChatGPT in a user turn), or 'ambiguous_source'. "
+            "Use subject_entity_id 'person:dustin' for Dustin's direct facts, preferences, and background, "
+            "'assistant:gemini' for Gemini Apps, 'assistant:chatgpt' for ChatGPT, and 'system:josie' ONLY for Josie architecture. "
+            "For each evidence reference, provide the exact verbatim excerpt/span supporting the claim: "
+            "- 'direct_user_assertion': Dustin speaking directly in first-person (e.g. 'Btw i am a+ certified...', 'Btw i dont own a 3090'). "
+            "- 'quoted_or_pasted_content': pasted AI output such as ChatGPT recommendations inside a user turn. "
+            "- 'assistant_assertion': conversational assistant output from Gemini Apps. "
+            "- 'ambiguous_source': unclear or unattributed source. "
             "Return 0 proposals if evidence is insufficient or purely conversational filler.\n\n"
             + "\n\n---\n\n".join(formatted_messages)
         )
@@ -996,10 +1257,10 @@ class LocalModelClaimExtractor:
             "use 'assistant:gemini' for assertions made by Gemini Apps; "
             "use 'assistant:chatgpt' for assertions made by or quoted from ChatGPT; "
             "use 'system:josie' ONLY for specifications of the Josie architecture. "
-            "CRITICAL: Historical messages may contain quoted or pasted text from other AIs (e.g. ChatGPT pasted into a user message). "
-            "Pasted assistant content inside a user message MUST be classified as attribution 'quoted_or_pasted_content' and MUST NOT be attributed as direct Dustin assertions. "
-            "Use attribution 'direct_user_assertion' ONLY for genuine direct Dustin statements. "
-            "For evidence_references, history_message_id MUST be the integer Message ID where the fact is stated. "
+            "CRITICAL: Historical messages may contain mixed sources (e.g. Dustin introducing his background before pasted ChatGPT output). "
+            "Excerpts within pasted AI blocks MUST be classified as 'quoted_or_pasted_content' and MUST NOT be attributed as direct Dustin assertions. "
+            "Excerpts spoken directly by Dustin outside pasted blocks are 'direct_user_assertion'. "
+            "For evidence_references, history_message_id MUST be the integer Message ID and excerpt MUST be verbatim text from that message. "
             "Return an empty proposals list if the evidence does not state clear persistent facts."
         )
 
@@ -1084,29 +1345,49 @@ class LocalModelClaimExtractor:
                 if pred:
                     raw_prop["predicate"] = pred
 
-                # Enrich and classify evidence references with actual metadata from inspected messages
+                # Enrich, validate and classify evidence references with actual metadata from inspected messages
                 refs = raw_prop.get("evidence_references") or []
+                valid_refs: list[dict[str, Any]] = []
                 if isinstance(refs, list):
                     for r in refs:
                         if isinstance(r, dict):
                             mid = r.get("history_message_id")
                             src_m = msg_lookup.get(mid, {})
+                            if not src_m:
+                                continue
                             r_role = r.get("role") or src_m.get("role") or ""
                             r_speaker = r.get("speaker") or src_m.get("speaker") or ""
                             r_ts = r.get("source_timestamp") or src_m.get("timestamp") or ""
                             r_text = src_m.get("raw_text") or ""
-                            r_excerpt = r.get("excerpt") or r_text[:200]
+                            r_excerpt = str(r.get("excerpt") or "").strip()
+                            if r_excerpt and r_excerpt not in r_text:
+                                clean_ex = r_excerpt.strip("\"' \t\r\n")
+                                if clean_ex and clean_ex in r_text:
+                                    r_excerpt = clean_ex
+                                else:
+                                    # Fabricated excerpt fails closed
+                                    continue
+                            attr, start_idx, end_idx = classify_evidence_span(
+                                raw_text=r_text,
+                                excerpt=r_excerpt,
+                                role=r_role,
+                                speaker=r_speaker,
+                                span_start=r.get("span_start"),
+                                span_end=r.get("span_end"),
+                                proposed_attribution=r.get("attribution"),
+                            )
                             r["role"] = r_role
                             r["speaker"] = r_speaker
                             r["source_timestamp"] = r_ts
                             r["excerpt"] = r_excerpt
-                            r["attribution"] = classify_evidence_attribution(
-                                role=r_role,
-                                speaker=r_speaker,
-                                raw_text=r_text,
-                                excerpt=r_excerpt,
-                                proposed_attribution=r.get("attribution"),
-                            )
+                            r["attribution"] = attr
+                            r["span_start"] = start_idx
+                            r["span_end"] = end_idx
+                            valid_refs.append(r)
+
+                raw_prop["evidence_references"] = valid_refs
+                if not valid_refs:
+                    continue
 
                 try:
                     p = CandidateClaimProposal.from_dict(raw_prop)
@@ -1154,11 +1435,47 @@ def stage_candidate_claims(
     - All evidence references are attached to claim_evidence without overwriting.
     - Newly created claims default strictly to status='candidate', canonical_effect=0.
     """
+    needed_mids: set[int] = set()
+    for item in proposals:
+        refs = (
+            item.evidence_references
+            if hasattr(item, "evidence_references")
+            else (item.get("evidence_references") or [])
+        )
+        for r in refs:
+            mid = (
+                r.history_message_id
+                if hasattr(r, "history_message_id")
+                else (r.get("history_message_id") if isinstance(r, dict) else None)
+            )
+            if mid is not None:
+                try:
+                    needed_mids.add(int(mid))
+                except (ValueError, TypeError):
+                    pass
+
+    messages_lookup: dict[int, dict[str, Any]] = {}
+    if needed_mids:
+        with store._connect() as conn:
+            placeholders = ",".join("?" for _ in needed_mids)
+            rows = conn.execute(
+                f"SELECT message_id, stable_id, source_platform, source_conversation_id, "
+                f"timestamp, speaker, role, raw_text, source_pointer FROM history_messages "
+                f"WHERE message_id IN ({placeholders})",
+                tuple(needed_mids),
+            ).fetchall()
+            for r in rows:
+                messages_lookup[r["message_id"]] = dict(r)
+
     valid_proposals: list[CandidateClaimProposal] = []
     invalid_proposals: list[dict[str, Any]] = []
 
     for item in proposals:
-        is_valid, reason = validate_proposal(item, window_message_ids=window_message_ids)
+        is_valid, reason = validate_proposal(
+            item,
+            window_message_ids=window_message_ids,
+            messages_lookup=messages_lookup,
+        )
         if is_valid:
             if isinstance(item, dict):
                 valid_proposals.append(CandidateClaimProposal.from_dict(item))
@@ -1223,12 +1540,21 @@ def stage_candidate_claims(
             for cid, data in grouped_claims.items():
                 enriched_refs = []
                 for ref in data["evidence_references"]:
-                    h_info = None
-                    if ref.history_message_id is not None:
-                        h_info = conn.execute(
-                            "SELECT role, speaker, timestamp, raw_text FROM history_messages WHERE message_id = ?",
+                    h_info = (
+                        messages_lookup.get(ref.history_message_id)
+                        if (ref.history_message_id is not None and messages_lookup)
+                        else None
+                    )
+                    if h_info is None and ref.history_message_id is not None:
+                        h_row = conn.execute(
+                            "SELECT message_id, stable_id, source_platform, source_conversation_id, "
+                            "role, speaker, timestamp, raw_text, source_pointer "
+                            "FROM history_messages WHERE message_id = ?",
                             (ref.history_message_id,),
                         ).fetchone()
+                        if h_row:
+                            h_info = dict(h_row)
+                            messages_lookup[ref.history_message_id] = h_info
 
                     role_val = ref.role or (h_info["role"] if h_info else "")
                     speaker_val = ref.speaker or (h_info["speaker"] if h_info else "")
@@ -1236,11 +1562,13 @@ def stage_candidate_claims(
                     excerpt_val = ref.excerpt or (raw_text_val[:300] if raw_text_val else "")
                     ts_val = ref.source_timestamp or (h_info["timestamp"] if h_info else "")
 
-                    classified_attr = classify_evidence_attribution(
-                        role=role_val,
-                        speaker=speaker_val,
+                    classified_attr, start_idx, end_idx = classify_evidence_span(
                         raw_text=raw_text_val,
                         excerpt=excerpt_val,
+                        role=role_val,
+                        speaker=speaker_val,
+                        span_start=ref.span_start,
+                        span_end=ref.span_end,
                         proposed_attribution=ref.attribution if ref.attribution != "ambiguous_source" else None,
                     )
 
@@ -1251,6 +1579,8 @@ def stage_candidate_claims(
                         role=role_val,
                         speaker=speaker_val,
                         attribution=classified_attr,
+                        span_start=start_idx,
+                        span_end=end_idx,
                         source_timestamp=ts_val,
                         source_pointer=ref.source_pointer,
                         evidence_class=ref.evidence_class,
@@ -1303,7 +1633,10 @@ def stage_candidate_claims(
                             raise ValueError(
                                 f"Historical evidence message_id {ref.history_message_id} does not exist in history_messages"
                             )
-                        ev_id = f"history:{h_row['stable_id']}"
+                        if ref.span_start is not None and ref.span_end is not None:
+                            ev_id = f"history:{h_row['stable_id']}:{ref.span_start}:{ref.span_end}"
+                        else:
+                            ev_id = f"history:{h_row['stable_id']}"
                         src_type = "imported_history_message"
                         src_platform = h_row["source_platform"]
                         conv_id = str(h_row["source_conversation_id"] or "")
@@ -1340,6 +1673,8 @@ def stage_candidate_claims(
                         "role": ev_role,
                         "speaker": ev_speaker,
                         "attribution": ref.attribution,
+                        "span_start": ref.span_start,
+                        "span_end": ref.span_end,
                         "source_pointer": src_pointer,
                         "evidence_class": ref.evidence_class,
                         "excerpt_sha256": excerpt_sha,
@@ -1443,9 +1778,12 @@ def stage_candidate_claims(
                         "INSERT INTO claim_evidence("
                         "claim_id, evidence_id, relation_type, source_type, source_platform, "
                         "conversation_id, history_message_id, source_message_id, source_timestamp, "
-                        "role, speaker, attribution, source_pointer, evidence_class, excerpt_sha256, created_at"
-                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-                        "ON CONFLICT(claim_id, evidence_id, relation_type) DO UPDATE SET attribution = excluded.attribution",
+                        "role, speaker, attribution, span_start, span_end, source_pointer, evidence_class, excerpt_sha256, created_at"
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                        "ON CONFLICT(claim_id, evidence_id, relation_type) DO UPDATE SET "
+                        "attribution = excluded.attribution, "
+                        "span_start = excluded.span_start, "
+                        "span_end = excluded.span_end",
                         (
                             ev["claim_id"],
                             ev["evidence_id"],
@@ -1459,6 +1797,8 @@ def stage_candidate_claims(
                             ev["role"],
                             ev["speaker"],
                             ev["attribution"],
+                            ev["span_start"],
+                            ev["span_end"],
                             ev["source_pointer"],
                             ev["evidence_class"],
                             ev["excerpt_sha256"],
@@ -1862,7 +2202,7 @@ def get_candidate_claim_details(
         evidence_rows = conn.execute(
             "SELECT evidence_id, relation_type, source_type, source_platform, "
             "conversation_id, history_message_id, source_timestamp, role, speaker, "
-            "attribution, source_pointer, evidence_class, excerpt_sha256, created_at "
+            "attribution, span_start, span_end, source_pointer, evidence_class, excerpt_sha256, created_at "
             "FROM claim_evidence WHERE claim_id = ? "
             "ORDER BY source_timestamp ASC, evidence_id ASC",
             (claim_id,),
@@ -1889,6 +2229,8 @@ def get_candidate_claim_details(
                 "role": ev["role"],
                 "speaker": ev["speaker"],
                 "attribution": ev["attribution"],
+                "span_start": ev["span_start"] if "span_start" in ev.keys() else None,
+                "span_end": ev["span_end"] if "span_end" in ev.keys() else None,
                 "source_pointer": ev["source_pointer"],
                 "evidence_class": ev["evidence_class"],
                 "excerpt": excerpt,
@@ -2178,7 +2520,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Approved By: {details['approved_by']}")
             print(f"Evidence References ({len(details['evidence_references'])}):")
             for ev in details["evidence_references"]:
-                print(f"  * [{ev['relation_type']}] Msg {ev['history_message_id']} ({ev['speaker']}/{ev['role']} -> {ev.get('attribution', 'unknown')}): {ev['excerpt']}")
+                span_str = f" span=[{ev['span_start']}..{ev['span_end']}]" if ev.get("span_start") is not None else ""
+                print(f"  * [{ev['relation_type']}] Msg {ev['history_message_id']} ({ev['speaker']}/{ev['role']} -> {ev.get('attribution', 'unknown')}{span_str}): {ev['excerpt']}")
             if details["competing_claims"]:
                 print(f"Competing/Related Claims ({len(details['competing_claims'])}):")
                 for c in details["competing_claims"]:
@@ -2204,7 +2547,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             extractor = StubClaimExtractor(rule_based=args.rule_based)
 
-        mids = [int(x.strip()) for x in args.message_ids.split(",")] if args.message_ids else None
+        mids: list[int] | None = None
+        if args.message_ids:
+            mids = []
+            for part in args.message_ids.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                if ".." in part:
+                    s_str, e_str = part.split("..", 1)
+                    mids.extend(range(int(s_str.strip()), int(e_str.strip()) + 1))
+                else:
+                    mids.append(int(part))
         res = extract_claims_pipeline(
             store,
             history_message_ids=mids,
@@ -2303,7 +2657,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(f"Provenance for {args.claim_id}:")
             for ev in details["evidence_references"]:
-                print(f" -> Msg ID {ev['history_message_id']} ({ev['source_platform']}, {ev['source_timestamp']}, speaker={ev['speaker']}/{ev['role']}, attribution={ev.get('attribution', 'unknown')}): {ev['excerpt']}")
+                span_str = f", span=[{ev['span_start']}..{ev['span_end']}]" if ev.get("span_start") is not None else ""
+                print(f" -> Msg ID {ev['history_message_id']} ({ev['source_platform']}, {ev['source_timestamp']}, speaker={ev['speaker']}/{ev['role']}, attribution={ev.get('attribution', 'unknown')}{span_str}): {ev['excerpt']}")
         return 0
 
     elif args.command == "verify-canonical":

@@ -31,12 +31,14 @@ from josie.candidate_claims import (
     StubClaimExtractor,
     adjudicate_candidate_claim,
     classify_evidence_attribution,
+    classify_evidence_span,
     clear_unadjudicated_candidate_claims,
     compute_candidate_claim_id,
     dry_run_extraction,
     evaluate_evidence_weight,
     extract_claims_pipeline,
     get_candidate_claim_details,
+    get_pasted_regions,
     list_candidate_claims,
     main,
     normalize_claim_value,
@@ -1912,6 +1914,596 @@ class TestEvidenceAttribution(unittest.TestCase):
             manifest = PrimingManifest(task_id="leak_test", knowledge_categories=(cat,))
             bundle = assemble_priming_from_knowledge(manifest, store=self.store)
             self.assertEqual(len(bundle.items), 0, f"Candidate in category '{cat}' leaked into priming bundle!")
+
+
+class TestSpanEvidenceAttribution(unittest.TestCase):
+    """Test suite for Phase 3B.2 Span-Level Evidence Attribution and Mixed-Message Handling."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp(prefix="josie-span-test-")
+        self.db_path = Path(self.temp_dir) / "test_span.db"
+        self.store = LocalStore(self.db_path)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_a_mixed_message_different_semantic_attributions(self) -> None:
+        """A. A single message may contain evidence spans with different semantic attribution."""
+        raw_msg_485 = (
+            "Gpt response \n\n"
+            "Btw i am a+ certified with years of experience with commercial servers\n\n"
+            "Alright Soph, here’s the real truth — cut through all the noise...\n"
+            "Your parts on hand (2× 24TB Exos, 2× 4TB NVMe, RTX 3090)"
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=485,
+            raw_text=raw_msg_485,
+            role="user",
+            speaker="google_account_owner",
+        )
+
+        span_a = "Btw i am a+ certified with years of experience with commercial servers"
+        span_b = "Your parts on hand (2× 24TB Exos, 2× 4TB NVMe, RTX 3090)"
+
+        attr_a, start_a, end_a = classify_evidence_span(
+            raw_text=raw_msg_485,
+            excerpt=span_a,
+            role="user",
+            speaker="google_account_owner",
+        )
+        attr_b, start_b, end_b = classify_evidence_span(
+            raw_text=raw_msg_485,
+            excerpt=span_b,
+            role="user",
+            speaker="google_account_owner",
+        )
+
+        self.assertEqual(attr_a, "direct_user_assertion")
+        self.assertIsNotNone(start_a)
+        self.assertIsNotNone(end_a)
+        self.assertEqual(raw_msg_485[start_a:end_a], span_a)
+
+        self.assertEqual(attr_b, "quoted_or_pasted_content")
+        self.assertIsNotNone(start_b)
+        self.assertIsNotNone(end_b)
+        self.assertEqual(raw_msg_485[start_b:end_b], span_b)
+
+        # Stage both claims referencing the SAME message ID 485
+        ref_a = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt=span_a,
+            role="user",
+            speaker="google_account_owner",
+            attribution=attr_a,
+            span_start=start_a,
+            span_end=end_a,
+        )
+        ref_b = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt=span_b,
+            role="user",
+            speaker="google_account_owner",
+            attribution=attr_b,
+            span_start=start_b,
+            span_end=end_b,
+        )
+
+        prop_a = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="has_professional_certification",
+            value_text="A+ certified with years of experience with commercial servers",
+            claim_category="profile",
+            evidence_references=(ref_a,),
+        )
+        prop_b = CandidateClaimProposal(
+            subject_entity_id="assistant:chatgpt",
+            predicate="lists_hardware_on_hand",
+            value_text="ChatGPT lists parts on hand including RTX 3090",
+            claim_category="hardware",
+            evidence_references=(ref_b,),
+        )
+
+        res = stage_candidate_claims(self.store, [prop_a, prop_b])
+        self.assertEqual(res["unique_candidate_claims_count"], 2)
+
+        # Inspect details of both staged claims
+        cid_a = res["staged_claims"][0]["claim_id"]
+        cid_b = res["staged_claims"][1]["claim_id"]
+        det_a = get_candidate_claim_details(self.store, cid_a)
+        det_b = get_candidate_claim_details(self.store, cid_b)
+
+        self.assertIsNotNone(det_a)
+        self.assertIsNotNone(det_b)
+        self.assertEqual(det_a["evidence_references"][0]["attribution"], "direct_user_assertion")
+        self.assertEqual(det_b["evidence_references"][0]["attribution"], "quoted_or_pasted_content")
+        self.assertEqual(det_a["evidence_references"][0]["history_message_id"], 485)
+        self.assertEqual(det_b["evidence_references"][0]["history_message_id"], 485)
+        self.assertNotEqual(det_a["evidence_references"][0]["evidence_id"], det_b["evidence_references"][0]["evidence_id"])
+
+    def test_b_role_user_does_not_force_direct_user_authority(self) -> None:
+        """B. Provider 'role=user' does not force all spans to direct-user authority."""
+        raw_text = (
+            "Gpt response \n\n"
+            "Alright Soph, here’s the real truth...\n"
+            "Your parts on hand include an RTX 3090"
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=501,
+            raw_text=raw_text,
+            role="user",
+            speaker="google_account_owner",
+        )
+
+        # Proposing direct_user_assertion for a span inside the pasted block must fail validation
+        prop_invalid = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="owns_hardware",
+            value_text="Dustin owns an RTX 3090",
+            claim_category="hardware",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=501,
+                    relation_type="supports",
+                    excerpt="Your parts on hand include an RTX 3090",
+                    attribution="direct_user_assertion",
+                ),
+            ),
+        )
+        valid, reason = validate_proposal(prop_invalid, store=self.store)
+        self.assertFalse(valid)
+        self.assertIn("Proposed attribution 'direct_user_assertion' not permitted", reason)
+
+        # Properly proposing quoted_or_pasted_content succeeds and caps confidence at <= 0.60
+        prop_valid = CandidateClaimProposal(
+            subject_entity_id="assistant:chatgpt",
+            predicate="claims_hardware",
+            value_text="Pasted ChatGPT text claims RTX 3090",
+            claim_category="hardware",
+            confidence=0.9,
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=501,
+                    relation_type="supports",
+                    excerpt="Your parts on hand include an RTX 3090",
+                    attribution="quoted_or_pasted_content",
+                ),
+            ),
+        )
+        res = stage_candidate_claims(self.store, [prop_valid])
+        self.assertEqual(res["unique_candidate_claims_count"], 1)
+        staged = res["staged_claims"][0]
+        self.assertLessEqual(staged["confidence"], 0.60)
+        self.assertEqual(staged["evidence_class"], "INFERRED")
+
+    def test_c_supporting_excerpt_must_exist_in_referenced_message(self) -> None:
+        """C. Supporting excerpt/span must actually exist in the referenced message."""
+        raw_text = "I am testing the new server chassis."
+        _seed_test_history_message(self.store, message_id=601, raw_text=raw_text)
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="hardware_action",
+            value_text="Dustin is testing the new server chassis",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=601,
+                    relation_type="supports",
+                    excerpt="testing the new server chassis",
+                ),
+            ),
+        )
+        valid, reason = validate_proposal(prop, store=self.store)
+        self.assertTrue(valid, f"Validation failed unexpectedly: {reason}")
+
+    def test_d_invalid_or_fabricated_excerpts_fail_closed(self) -> None:
+        """D. Invalid or fabricated excerpts fail closed."""
+        raw_text = "I have two Seagate Exos 24TB drives."
+        _seed_test_history_message(self.store, message_id=602, raw_text=raw_text)
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="owns_hardware",
+            value_text="Dustin owns four Western Digital drives",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=602,
+                    relation_type="supports",
+                    excerpt="four Western Digital drives",  # Fabricated, does not occur in message
+                ),
+            ),
+        )
+        valid, reason = validate_proposal(prop, store=self.store)
+        self.assertFalse(valid)
+        self.assertIn("Supporting excerpt does not exist in historical message", reason)
+
+        # stage_candidate_claims should fail closed and not persist fabricated claims
+        res = stage_candidate_claims(self.store, [prop])
+        self.assertEqual(res["unique_candidate_claims_count"], 0)
+        self.assertEqual(len(res["invalid_proposals"]), 1)
+
+    def test_e_invalid_offsets_fail_closed(self) -> None:
+        """E. Invalid offsets fail closed."""
+        # 1. Constructor checks
+        with self.assertRaises(ValueError):
+            EvidenceReference(history_message_id=1, span_start=-1, span_end=10)
+
+        with self.assertRaises(ValueError):
+            EvidenceReference(history_message_id=1, span_start=20, span_end=10)
+
+        with self.assertRaises(ValueError):
+            EvidenceReference(history_message_id=1, span_start=10, span_end=None)
+
+        # 2. Out-of-bounds offset check against message text
+        raw_text = "Short text."  # length 11
+        _seed_test_history_message(self.store, message_id=603, raw_text=raw_text)
+
+        prop_oob = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="text_check",
+            value_text="Short text check",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=603,
+                    relation_type="supports",
+                    excerpt="Short text.",
+                    span_start=0,
+                    span_end=50,  # exceeds len(raw_text) == 11
+                ),
+            ),
+        )
+        valid, reason = validate_proposal(prop_oob, store=self.store)
+        self.assertFalse(valid)
+        self.assertIn("out of bounds for message 603", reason)
+
+        # 3. Mismatch between span slice and excerpt
+        prop_mismatch = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="text_check",
+            value_text="Short text check",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=603,
+                    relation_type="supports",
+                    excerpt="Completely different text",
+                    span_start=0,
+                    span_end=5,
+                ),
+            ),
+        )
+        valid_m, reason_m = validate_proposal(prop_mismatch, store=self.store)
+        self.assertFalse(valid_m)
+        self.assertIn("does not match excerpt", reason_m)
+
+    def test_f_direct_dustin_span_higher_weight_than_pasted_span(self) -> None:
+        """F. Direct Dustin span can receive higher evidence weight than pasted span in the same provider message."""
+        raw_msg = (
+            "Gpt response \n\n"
+            "Btw i am a+ certified with years of experience with commercial servers\n\n"
+            "Alright Soph, here’s the real truth...\n"
+            "Your parts on hand include an RTX 3090"
+        )
+        _seed_test_history_message(self.store, message_id=701, raw_text=raw_msg, role="user", speaker="Dustin")
+
+        span_user = "Btw i am a+ certified with years of experience with commercial servers"
+        span_ai = "Your parts on hand include an RTX 3090"
+
+        attr_user, s1, e1 = classify_evidence_span(raw_text=raw_msg, excerpt=span_user, role="user", speaker="Dustin")
+        attr_ai, s2, e2 = classify_evidence_span(raw_text=raw_msg, excerpt=span_ai, role="user", speaker="Dustin")
+
+        ref_user = EvidenceReference(
+            history_message_id=701,
+            excerpt=span_user,
+            attribution=attr_user,
+            span_start=s1,
+            span_end=e1,
+            role="user",
+            speaker="Dustin",
+        )
+        ref_ai = EvidenceReference(
+            history_message_id=701,
+            excerpt=span_ai,
+            attribution=attr_ai,
+            span_start=s2,
+            span_end=e2,
+            role="user",
+            speaker="Dustin",
+        )
+
+        conf_user, basis_user, class_user = evaluate_evidence_weight([ref_user], base_confidence=0.95)
+        conf_ai, basis_ai, class_ai = evaluate_evidence_weight([ref_ai], base_confidence=0.95)
+
+        self.assertGreater(conf_user, conf_ai)
+        self.assertGreaterEqual(conf_user, 0.85)
+        self.assertLessEqual(conf_ai, 0.60)
+        self.assertEqual(class_user, "RETRIEVED")
+        self.assertEqual(class_ai, "INFERRED")
+
+    def test_g_gemini_remains_assistant_gemini(self) -> None:
+        """G. Gemini remains 'assistant:gemini' and is never elevated to 'system:josie'."""
+        raw_gemini = "Z690 motherboard with i7-12700K is the lowest-friction setup."
+        _seed_test_history_message(
+            self.store,
+            message_id=801,
+            raw_text=raw_gemini,
+            role="assistant",
+            speaker="Gemini Apps",
+        )
+        attr, start, end = classify_evidence_span(
+            raw_text=raw_gemini,
+            excerpt="lowest-friction setup",
+            role="assistant",
+            speaker="Gemini Apps",
+        )
+        self.assertEqual(attr, "assistant_assertion")
+
+        ref = EvidenceReference(
+            history_message_id=801,
+            excerpt="lowest-friction setup",
+            attribution=attr,
+            span_start=start,
+            span_end=end,
+            role="assistant",
+            speaker="Gemini Apps",
+        )
+        prop = CandidateClaimProposal(
+            subject_entity_id="assistant:gemini",
+            predicate="recommends_build",
+            value_text="Z690 is lowest friction",
+            claim_category="hardware",
+            evidence_references=(ref,),
+        )
+        res = stage_candidate_claims(self.store, [prop])
+        self.assertEqual(res["unique_candidate_claims_count"], 1)
+        staged = res["staged_claims"][0]
+        self.assertEqual(staged["subject_entity_id"], "assistant:gemini")
+        self.assertNotEqual(staged["subject_entity_id"], "system:josie")
+        self.assertLessEqual(staged["confidence"], 0.60)
+
+    def test_h_no_span_attribution_bypasses_human_adjudication(self) -> None:
+        """H. No span-attribution path bypasses human adjudication."""
+        raw_text = "I built the entire server cluster myself."
+        _seed_test_history_message(self.store, message_id=901, raw_text=raw_text, role="user", speaker="Dustin")
+
+        ref = EvidenceReference(
+            history_message_id=901,
+            excerpt="built the entire server cluster myself",
+            attribution="direct_user_assertion",
+        )
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="built_cluster",
+            value_text="Dustin built server cluster",
+            claim_category="profile",
+            evidence_references=(ref,),
+        )
+        res = stage_candidate_claims(self.store, [prop])
+        cid = res["staged_claims"][0]["claim_id"]
+
+        with self.store._connect() as conn:
+            row = conn.execute("SELECT status, canonical_effect, approved_by FROM memory_claims WHERE claim_id = ?", (cid,)).fetchone()
+            self.assertEqual(row["status"], "candidate")
+            self.assertEqual(row["canonical_effect"], 0)
+            self.assertIsNone(row["approved_by"])
+
+        # Model approval fails
+        with self.assertRaises((PermissionError, ValueError)):
+            adjudicate_candidate_claim(self.store, claim_id=cid, action="approve", reviewer="model", confirmation=APPROVAL_CONFIRMATION)
+
+        # Unconfirmed approval fails
+        with self.assertRaises((PermissionError, ValueError)):
+            adjudicate_candidate_claim(self.store, claim_id=cid, action="approve", reviewer="Dustin", confirmation="")
+
+    def test_i_no_candidate_leaks_into_priming(self) -> None:
+        """I. No candidate claim with span attribution leaks into priming bundles."""
+        raw_text = "Important fact from user span."
+        _seed_test_history_message(self.store, message_id=1001, raw_text=raw_text, role="user", speaker="Dustin")
+
+        ref = EvidenceReference(
+            history_message_id=1001,
+            excerpt=raw_text,
+            attribution="direct_user_assertion",
+        )
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="span_fact",
+            value_text="Important fact from user span",
+            claim_category="architecture",
+            evidence_references=(ref,),
+        )
+        stage_candidate_claims(self.store, [prop])
+
+        manifest = PrimingManifest(task_id="priming_test", knowledge_categories=("architecture",))
+        bundle = assemble_priming_from_knowledge(manifest, store=self.store)
+        self.assertEqual(len(bundle.items), 0)
+
+    def test_critical_fixture_message_485_pattern(self) -> None:
+        """Critical Fixture (Requirement 6): Synthetic message matching Message 485 structure.
+
+        Proves:
+        Claim A: 'Dustin has A+ certification with commercial server experience' receives direct_user_assertion.
+        Claim B: 'Dustin owns RTX 3090' must NOT receive direct Dustin authority merely because it appears in the same message.
+        Claim A and Claim B are NOT forced to share one attribution solely because they occur in one message.
+        """
+        raw_msg_485 = (
+            "Gpt response \n\n"
+            "Btw i am a+ certified with years of experience with commercial servers\n\n"
+            "Alright Soph, here’s the real truth – cut through all the noise...\n"
+            "Your parts on hand include an RTX 3090..."
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=485,
+            raw_text=raw_msg_485,
+            role="user",
+            speaker="google_account_owner",
+        )
+
+        span_a = "Btw i am a+ certified with years of experience with commercial servers"
+        span_b = "Your parts on hand include an RTX 3090..."
+
+        attr_a, s_a, e_a = classify_evidence_span(raw_text=raw_msg_485, excerpt=span_a, role="user", speaker="google_account_owner")
+        attr_b, s_b, e_b = classify_evidence_span(raw_text=raw_msg_485, excerpt=span_b, role="user", speaker="google_account_owner")
+
+        # Claim A: Dustin-authored credential
+        self.assertEqual(attr_a, "direct_user_assertion")
+        ref_a = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt=span_a,
+            attribution=attr_a,
+            span_start=s_a,
+            span_end=e_a,
+        )
+
+        # Claim B: Pasted assistant assertion
+        self.assertEqual(attr_b, "quoted_or_pasted_content")
+        ref_b = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt=span_b,
+            attribution=attr_b,
+            span_start=s_b,
+            span_end=e_b,
+        )
+
+        prop_a = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="has_professional_certification",
+            value_text="Dustin has A+ certification with commercial server experience",
+            claim_category="profile",
+            evidence_references=(ref_a,),
+        )
+        prop_b = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="owns_hardware",
+            value_text="Dustin owns an RTX 3090",
+            claim_category="hardware",
+            confidence=0.9,  # Proposed 0.9, but must be demoted
+            evidence_references=(ref_b,),
+        )
+
+        res = stage_candidate_claims(self.store, [prop_a, prop_b])
+        self.assertEqual(res["unique_candidate_claims_count"], 2)
+
+        staged_a = res["staged_claims"][0]
+        staged_b = res["staged_claims"][1]
+
+        # Claim A achieves primary authority
+        self.assertEqual(staged_a["evidence_class"], "RETRIEVED")
+        self.assertGreaterEqual(staged_a["confidence"], 0.85)
+
+        # Claim B is demoted to secondary authority (capped at <= 0.60)
+        self.assertEqual(staged_b["evidence_class"], "INFERRED")
+        self.assertLessEqual(staged_b["confidence"], 0.60)
+        self.assertIn("Quoted or pasted external content", staged_b["confidence_basis"])
+
+    def test_direct_correction_fixture_message_485_vs_489(self) -> None:
+        """Direct Correction Fixture (Requirement 7):
+        Message 485 mixed-source statement: '... RTX 3090 ...'
+        Later Message 489 direct Dustin statement: 'Btw i dont own a 3090'
+
+        Verify:
+        - Msg 489 remains 'direct_user_assertion'
+        - High-confidence direct-user evidence outranks the pasted older statement
+        - Neither is automatically canonical
+        - Chronology and contradiction remain visible for later adjudication
+        """
+        raw_485 = (
+            "Gpt response \n\n"
+            "Btw i am a+ certified with years of experience with commercial servers\n\n"
+            "Alright Soph, here’s the real truth...\n"
+            "Your parts on hand (2× 24TB Exos, 2× 4TB NVMe, RTX 3090)"
+        )
+        raw_489 = "Btw i dont own a 3090"
+
+        _seed_test_history_message(
+            self.store,
+            message_id=485,
+            raw_text=raw_485,
+            role="user",
+            speaker="google_account_owner",
+            timestamp="2025-11-27T21:05:00Z",
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=489,
+            raw_text=raw_489,
+            role="user",
+            speaker="google_account_owner",
+            timestamp="2025-11-27T21:09:00Z",
+        )
+
+        span_485 = "Your parts on hand (2× 24TB Exos, 2× 4TB NVMe, RTX 3090)"
+        span_489 = "Btw i dont own a 3090"
+
+        attr_485, s1, e1 = classify_evidence_span(raw_text=raw_485, excerpt=span_485, role="user")
+        attr_489, s2, e2 = classify_evidence_span(raw_text=raw_489, excerpt=span_489, role="user")
+
+        self.assertEqual(attr_485, "quoted_or_pasted_content")
+        self.assertEqual(attr_489, "direct_user_assertion")
+
+        ref_485 = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt=span_485,
+            attribution=attr_485,
+            span_start=s1,
+            span_end=e1,
+            source_timestamp="2025-11-27T21:05:00Z",
+        )
+        ref_489 = EvidenceReference(
+            history_message_id=489,
+            relation_type="supports",
+            excerpt=span_489,
+            attribution=attr_489,
+            span_start=s2,
+            span_end=e2,
+            source_timestamp="2025-11-27T21:09:00Z",
+        )
+
+        prop_old = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="hardware_inventory",
+            value_text="Dustin parts on hand include RTX 3090",
+            claim_category="hardware",
+            confidence=0.8,
+            evidence_references=(ref_485,),
+        )
+        prop_corr = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="does_not_own_hardware",
+            value_text="does not own an RTX 3090",
+            claim_category="hardware",
+            confidence=0.95,
+            evidence_references=(ref_489,),
+        )
+
+        res = stage_candidate_claims(self.store, [prop_old, prop_corr])
+        self.assertEqual(res["unique_candidate_claims_count"], 2)
+
+        staged_old = res["staged_claims"][0]
+        staged_corr = res["staged_claims"][1]
+
+        # Msg 489 direct assertion achieves primary weight (0.95, RETRIEVED)
+        self.assertEqual(staged_corr["evidence_class"], "RETRIEVED")
+        self.assertEqual(staged_corr["confidence"], 0.95)
+
+        # Msg 485 pasted assertion remains secondary (<= 0.60, INFERRED)
+        self.assertEqual(staged_old["evidence_class"], "INFERRED")
+        self.assertLessEqual(staged_old["confidence"], 0.60)
+
+        # Direct user evidence outranks older pasted assertion
+        self.assertGreater(staged_corr["confidence"], staged_old["confidence"])
+
+        # Neither is automatically canonical
+        self.assertEqual(staged_old["canonical_effect"], 0)
+        self.assertEqual(staged_corr["canonical_effect"], 0)
+        self.assertEqual(staged_old["status"], "candidate")
+        self.assertEqual(staged_corr["status"], "candidate")
 
 
 if __name__ == "__main__":
