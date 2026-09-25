@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from josie.candidate_claims import (
     ALLOWED_ATTRIBUTIONS,
     ALLOWED_CLAIM_CATEGORIES,
+    ALLOWED_DURABILITIES,
     APPROVAL_CONFIRMATION,
     BoundedEvidenceBundle,
     CATEGORY_TO_MEMORY_LAYER,
@@ -39,6 +40,7 @@ from josie.candidate_claims import (
     extract_claims_pipeline,
     get_candidate_claim_details,
     get_pasted_regions,
+    infer_durability,
     list_candidate_claims,
     main,
     normalize_claim_value,
@@ -2504,6 +2506,403 @@ class TestSpanEvidenceAttribution(unittest.TestCase):
         self.assertEqual(staged_corr["canonical_effect"], 0)
         self.assertEqual(staged_old["status"], "candidate")
         self.assertEqual(staged_corr["status"], "candidate")
+
+
+class TestTemporalDurabilitySemantics(unittest.TestCase):
+    """Phase 3B.3 Tests: Temporal and Durability Semantics."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = Path(self.temp_dir) / "test_durability.db"
+        self.store = LocalStore(self.db_path)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_a_valid_durability_values_persist_and_reload(self) -> None:
+        """Test A: Valid durability values ('durable', 'current_state', 'preference', 'transient') persist and reload."""
+        raw_evidence = (
+            "Evidence snippet durable fact. "
+            "Evidence snippet current_state fact. "
+            "Evidence snippet preference fact. "
+            "Evidence snippet transient fact."
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=101,
+            raw_text=raw_evidence,
+            role="user",
+            speaker="Dustin",
+            timestamp="2025-11-27T12:00:00Z",
+        )
+        durabilities = ["durable", "current_state", "preference", "transient"]
+        proposals = []
+        for idx, dur in enumerate(durabilities):
+            ref = EvidenceReference(
+                history_message_id=101,
+                relation_type="supports",
+                excerpt=f"Evidence snippet {dur} fact.",
+                role="user",
+                speaker="Dustin",
+                source_timestamp="2025-11-27T12:00:00Z",
+            )
+            prop = CandidateClaimProposal(
+                subject_entity_id="person:dustin",
+                predicate=f"test_pred_{idx}",
+                value_text=f"Value for {dur}",
+                durability=dur,
+                evidence_references=(ref,),
+            )
+            proposals.append(prop)
+
+        res = stage_candidate_claims(self.store, proposals)
+        self.assertEqual(res["unique_candidate_claims_count"], 4)
+
+        listed = list_candidate_claims(self.store)
+        self.assertEqual(len(listed), 4)
+        dur_by_pred = {c["predicate"]: c["durability"] for c in listed}
+
+        for idx, dur in enumerate(durabilities):
+            pred = f"test_pred_{idx}"
+            self.assertEqual(dur_by_pred[pred], dur)
+            cid = compute_candidate_claim_id("person:dustin", pred, f"Value for {dur}")
+            details = get_candidate_claim_details(self.store, cid)
+            self.assertIsNotNone(details)
+            self.assertEqual(details["durability"], dur)
+            self.assertEqual(details["valid_from"], "2025-11-27T12:00:00Z")
+
+    def test_b_invalid_durability_fails_closed(self) -> None:
+        """Test B: Invalid durability values fail closed at proposal and storage levels."""
+        ref = EvidenceReference(
+            history_message_id=101,
+            relation_type="supports",
+            excerpt="some evidence",
+            source_pointer="test_ptr",
+        )
+        invalid_values = ["eternal", "permanent", "temporary_state", "invalid", ""]
+        for bad_dur in invalid_values:
+            with self.assertRaises(ValueError):
+                CandidateClaimProposal(
+                    subject_entity_id="person:dustin",
+                    predicate="test_invalid",
+                    value_text="Some value",
+                    durability=bad_dur,
+                    evidence_references=(ref,),
+                )
+
+            with self.assertRaises(ValueError):
+                CandidateClaimProposal.from_dict({
+                    "subject_entity_id": "person:dustin",
+                    "predicate": "test_invalid",
+                    "value_text": "Some value",
+                    "durability": bad_dur,
+                    "evidence_references": [ref.to_dict()],
+                })
+
+            valid, err = validate_proposal({
+                "subject_entity_id": "person:dustin",
+                "predicate": "test_invalid",
+                "value_text": "Some value",
+                "durability": bad_dur,
+                "evidence_references": [ref.to_dict()],
+            })
+            self.assertFalse(valid)
+
+        # Database CHECK constraint also fails closed
+        with self.store._connect() as conn:
+            with self.assertRaises(sqlite3.IntegrityError):
+                conn.execute(
+                    "INSERT INTO memory_claims("
+                    "claim_id, subject_entity_id, predicate, value_text, memory_layer, "
+                    "status, evidence_class, authority_scope, confidence, confidence_basis, "
+                    "created_at, updated_at, canonical_effect, version, durability"
+                    ") VALUES ('c:bad_dur', 'person:dustin', 'pred', 'val', 'semantic', "
+                    "'candidate', 'RETRIEVED', 'candidate:general', 0.8, 'test', '2026-01-01', '2026-01-01', 0, 1, 'eternal')"
+                )
+
+    def test_c_source_timestamp_populates_valid_from(self) -> None:
+        """Test C: Source timestamps automatically populate valid_from when omitted."""
+        ts = "2025-11-27T19:27:57Z"
+        _seed_test_history_message(
+            self.store,
+            message_id=485,
+            raw_text="Btw i am a+ certified with years of experience with commercial servers",
+            role="user",
+            speaker="Dustin",
+            timestamp=ts,
+        )
+        ref = EvidenceReference(
+            history_message_id=485,
+            relation_type="supports",
+            excerpt="Btw i am a+ certified",
+            role="user",
+            speaker="Dustin",
+            source_timestamp=ts,
+        )
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="certifications",
+            value_text="A+ certified",
+            durability="durable",
+            evidence_references=(ref,),
+        )
+        self.assertEqual(prop.valid_from, ts)
+
+        res = stage_candidate_claims(self.store, [prop])
+        staged = res["staged_claims"][0]
+        self.assertEqual(staged["valid_from"], ts)
+
+        details = get_candidate_claim_details(self.store, staged["claim_id"])
+        self.assertEqual(details["valid_from"], ts)
+
+    def test_d_durable_a_plus_fixture_classifies_durable(self) -> None:
+        """Test D: Professional credential fixture classifies durable."""
+        dur = infer_durability(
+            subject_entity_id="person:dustin",
+            predicate="technical_certifications",
+            value_text="Dustin is A+ certified with years of experience with commercial servers",
+            claim_category="profile",
+        )
+        self.assertEqual(dur, "durable")
+
+    def test_e_hardware_inventory_fixture_classifies_current_state(self) -> None:
+        """Test E: Hardware inventory fixture classifies current_state."""
+        dur = infer_durability(
+            subject_entity_id="person:dustin",
+            predicate="hardware_inventory",
+            value_text="Dustin parts on hand include 2x 24TB Exos HDDs and 2x 4TB NVMe SSDs",
+            claim_category="hardware",
+        )
+        self.assertEqual(dur, "current_state")
+
+    def test_f_rtx_3090_negative_fixture_classifies_current_state(self) -> None:
+        """Test F: RTX 3090 negative ownership fixture classifies current_state, NOT durable."""
+        dur = infer_durability(
+            subject_entity_id="person:dustin",
+            predicate="does_not_own_hardware",
+            value_text="Dustin does not own an NVIDIA RTX 3090 GPU",
+            claim_category="hardware",
+        )
+        self.assertEqual(dur, "current_state")
+        self.assertNotEqual(dur, "durable")
+
+    def test_g_cheapest_hardware_goal_fixture_classifies_preference(self) -> None:
+        """Test G: Cheapest-hardware goal fixture classifies preference."""
+        dur = infer_durability(
+            subject_entity_id="person:dustin",
+            predicate="hardware_strategy_goal",
+            value_text="Dustin seeks cheapest hardware setup capable of achieving his AI goals",
+            claim_category="preference",
+        )
+        self.assertEqual(dur, "preference")
+
+    def test_h_candidate_claims_cannot_enter_priming_across_all_durabilities(self) -> None:
+        """Test H: Candidate claims across all durabilities cannot enter priming."""
+        raw_evidence = (
+            "Evidence snippet durable fact. "
+            "Evidence snippet current_state fact. "
+            "Evidence snippet preference fact. "
+            "Evidence snippet transient fact."
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=200,
+            raw_text=raw_evidence,
+            role="user",
+            speaker="Dustin",
+            timestamp="2025-11-27T10:00:00Z",
+        )
+        props = []
+        for dur in ("durable", "current_state", "preference", "transient"):
+            ref = EvidenceReference(
+                history_message_id=200,
+                relation_type="supports",
+                excerpt=f"Evidence snippet {dur} fact.",
+                source_timestamp="2025-11-27T10:00:00Z",
+            )
+            props.append(
+                CandidateClaimProposal(
+                    subject_entity_id="person:dustin",
+                    predicate=f"pred_{dur}",
+                    value_text=f"Value for {dur}",
+                    claim_category="general",
+                    durability=dur,
+                    evidence_references=(ref,),
+                )
+            )
+        res = stage_candidate_claims(self.store, props)
+        self.assertEqual(res["unique_candidate_claims_count"], 4)
+
+        manifest = PrimingManifest(task_id="test_priming_gate", knowledge_categories=("general", "hardware", "profile", "identity"))
+        bundle = assemble_priming_from_knowledge(manifest, store=self.store)
+        self.assertEqual(len(bundle.items), 0)
+
+    def test_i_durability_cannot_bypass_human_approval_gate(self) -> None:
+        """Test I: Claim marked durable cannot bypass human approval gate."""
+        _seed_test_history_message(
+            self.store,
+            message_id=300,
+            raw_text="Durable fact evidence",
+            role="user",
+            speaker="Dustin",
+        )
+        ref = EvidenceReference(
+            history_message_id=300,
+            relation_type="supports",
+            excerpt="Durable fact evidence",
+            role="user",
+            speaker="Dustin",
+        )
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="durable_credential",
+            value_text="Dustin is A+ certified",
+            durability="durable",
+            evidence_references=(ref,),
+        )
+        res = stage_candidate_claims(self.store, [prop])
+        cid = res["staged_claims"][0]["claim_id"]
+
+        # Worker cannot approve
+        with self.assertRaises(PermissionError):
+            adjudicate_candidate_claim(
+                self.store,
+                claim_id=cid,
+                action="approve",
+                reviewer="worker",
+                confirmation=APPROVAL_CONFIRMATION,
+            )
+
+        # Missing confirmation token fails
+        with self.assertRaises(PermissionError):
+            adjudicate_candidate_claim(
+                self.store,
+                claim_id=cid,
+                action="approve",
+                reviewer="Dustin",
+                confirmation=None,
+            )
+
+        # Wrong confirmation token fails
+        with self.assertRaises(PermissionError):
+            adjudicate_candidate_claim(
+                self.store,
+                claim_id=cid,
+                action="approve",
+                reviewer="Dustin",
+                confirmation="CONFIRM",
+            )
+
+        # Valid approval by Dustin succeeds
+        adj = adjudicate_candidate_claim(
+            self.store,
+            claim_id=cid,
+            action="approve",
+            reviewer="Dustin",
+            confirmation=APPROVAL_CONFIRMATION,
+        )
+        self.assertEqual(adj["resulting_status"], "active")
+        self.assertEqual(adj["canonical_effect"], 1)
+
+    def test_j_existing_span_evidence_behavior_unchanged(self) -> None:
+        """Test J: Existing span-level attribution behavior remains intact alongside durability."""
+        raw_text = (
+            "Gpt response \n\n"
+            "Btw i am a+ certified with years of experience with commercial servers\n\n"
+            "Alright Soph, here’s the real truth...\n"
+            "Recommended: RTX 3090"
+        )
+        attr1, s1, e1 = classify_evidence_span(raw_text=raw_text, excerpt="Btw i am a+ certified", role="user")
+        attr2, s2, e2 = classify_evidence_span(raw_text=raw_text, excerpt="Recommended: RTX 3090", role="user")
+
+        self.assertEqual(attr1, "direct_user_assertion")
+        self.assertEqual(attr2, "quoted_or_pasted_content")
+
+        ref1 = EvidenceReference(
+            history_message_id=400,
+            relation_type="supports",
+            excerpt="Btw i am a+ certified",
+            attribution=attr1,
+            span_start=s1,
+            span_end=e1,
+            source_timestamp="2025-11-27T10:00:00Z",
+        )
+        prop1 = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="a_plus_certified",
+            value_text="Dustin is A+ certified",
+            durability="durable",
+            evidence_references=(ref1,),
+        )
+        self.assertEqual(prop1.evidence_references[0].attribution, "direct_user_assertion")
+        self.assertEqual(prop1.durability, "durable")
+
+    def test_k_existing_canonical_claims_migrate_and_read(self) -> None:
+        """Test K: Existing canonical claims migrate cleanly and load_knowledge_from_store preserves durability."""
+        seed_canonical_knowledge(self.store)
+        records = load_knowledge_from_store(self.store)
+        self.assertGreater(len(records), 0)
+        for r in records:
+            self.assertIn("durability", r.metadata)
+            self.assertEqual(r.metadata["durability"], "durable")
+
+    def test_l_no_automatic_conflict_resolution(self) -> None:
+        """Test L: Conflicting claims coexist without autonomous deletion or overwrite."""
+        _seed_test_history_message(
+            self.store,
+            message_id=501,
+            raw_text="Earlier: owns RTX 3090",
+            role="user",
+            speaker="Dustin",
+            timestamp="2025-11-27T18:00:00Z",
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=502,
+            raw_text="Later: does not own RTX 3090",
+            role="user",
+            speaker="Dustin",
+            timestamp="2025-11-27T19:00:00Z",
+        )
+        ref1 = EvidenceReference(
+            history_message_id=501,
+            relation_type="supports",
+            excerpt="Earlier: owns RTX 3090",
+            source_timestamp="2025-11-27T18:00:00Z",
+        )
+        ref2 = EvidenceReference(
+            history_message_id=502,
+            relation_type="supports",
+            excerpt="Later: does not own RTX 3090",
+            source_timestamp="2025-11-27T19:00:00Z",
+        )
+        prop_pos = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="rtx_3090_ownership",
+            value_text="Dustin owns an RTX 3090",
+            durability="current_state",
+            evidence_references=(ref1,),
+        )
+        prop_neg = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="rtx_3090_ownership",
+            value_text="Dustin does not own an RTX 3090",
+            durability="current_state",
+            evidence_references=(ref2,),
+        )
+        res = stage_candidate_claims(self.store, [prop_pos, prop_neg])
+        self.assertEqual(res["unique_candidate_claims_count"], 2)
+
+        # Both exist simultaneously as candidates
+        with self.store._connect() as conn:
+            rows = conn.execute(
+                "SELECT claim_id, value_text, status, canonical_effect FROM memory_claims WHERE predicate = 'rtx_3090_ownership'"
+            ).fetchall()
+            self.assertEqual(len(rows), 2)
+            self.assertEqual({r["value_text"] for r in rows}, {"Dustin owns an RTX 3090", "Dustin does not own an RTX 3090"})
+            for r in rows:
+                self.assertEqual(r["status"], "candidate")
+                self.assertEqual(r["canonical_effect"], 0)
 
 
 if __name__ == "__main__":

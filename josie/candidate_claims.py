@@ -101,6 +101,63 @@ ALLOWED_CLAIM_CATEGORIES = frozenset({
     "general",
 })
 
+# Allowed temporal durabilities per Phase 3B.3 specification
+ALLOWED_DURABILITIES = frozenset({
+    "durable",
+    "current_state",
+    "preference",
+    "transient",
+})
+
+
+def infer_durability(
+    subject_entity_id: str = "",
+    predicate: str = "",
+    value_text: str = "",
+    claim_category: str = "general",
+) -> str:
+    """Infer candidate claim durability based on semantic predicate, category, and content.
+
+    Returns one of:
+      - 'durable': Permanent/long-lived identity, credentials, background.
+      - 'current_state': Point-in-time state (hardware inventory, lack of hardware, current config).
+      - 'preference': Evolving goals, preferences, hardware strategies, budgets.
+      - 'transient': Ephemeral session state, temporary availability.
+    """
+    pred = (predicate or "").lower().strip()
+    cat = (claim_category or "").lower().strip()
+    val = (value_text or "").lower().strip()
+
+    # 1. Check transient markers first
+    if any(k in pred for k in ("transient", "temporary", "temp_", "session", "short_lived", "availability")):
+        return "transient"
+    if cat in ("transient", "context"):
+        return "transient"
+
+    # 2. Check durable profile/identity markers (certifications, experience, identity)
+    if any(k in pred for k in ("certif", "qualification", "credential", "experience", "degree", "license")):
+        return "durable"
+    if cat == "profile" or pred in ("has_background", "identity"):
+        return "durable"
+
+    # 3. Check preferences and evolving goals/strategies
+    if any(k in pred for k in ("seek", "prefer", "goal", "strategy", "want", "desire", "budget", "target")):
+        return "preference"
+    if cat == "preference":
+        return "preference"
+
+    # 4. Check current-state markers (hardware ownership, lack of hardware, inventory)
+    if any(k in pred for k in ("own", "lack", "inventory", "hardware", "device", "part", "config", "setup", "using", "work_on", "works_on", "run_on", "runs_on")):
+        return "current_state"
+    if cat == "hardware":
+        return "current_state"
+
+    # Default to current_state if stateful, otherwise durable for architectural rules
+    if cat in ("architecture", "procedure", "constraint"):
+        return "durable"
+    return "current_state"
+
+
 # Deterministic mapping from claim category to underlying SQLite memory layer
 CATEGORY_TO_MEMORY_LAYER = {
     "profile": "identity",
@@ -396,7 +453,9 @@ class CandidateClaimProposal:
     confidence_basis: str = ""
     extractor_id: str = ""
     evidence_references: tuple[EvidenceReference, ...] = ()
+    durability: str = "current_state"
     valid_from: str | None = None
+    valid_until: str | None = None
     valid_to: str | None = None
     supersedes_claim_id: str | None = None
     notes: str = ""
@@ -419,6 +478,26 @@ class CandidateClaimProposal:
         if not (0.0 <= float(self.confidence) <= 1.0):
             raise ValueError(f"CandidateClaimProposal.confidence must be between 0.0 and 1.0, got {self.confidence!r}")
 
+        clean_dur = str(self.durability or "").strip().lower()
+        if clean_dur not in ALLOWED_DURABILITIES:
+            raise ValueError(
+                f"CandidateClaimProposal.durability must be one of {sorted(ALLOWED_DURABILITIES)}, got {self.durability!r}"
+            )
+        object.__setattr__(self, "durability", clean_dur)
+
+        v_until = self.valid_until
+        v_to = self.valid_to
+        if v_until is not None and v_to is None:
+            object.__setattr__(self, "valid_to", v_until)
+        elif v_to is not None and v_until is None:
+            object.__setattr__(self, "valid_until", v_to)
+
+        if self.valid_from is None and self.evidence_references:
+            for ref in self.evidence_references:
+                if ref.source_timestamp:
+                    object.__setattr__(self, "valid_from", ref.source_timestamp)
+                    break
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "subject_entity_id": self.subject_entity_id,
@@ -430,7 +509,9 @@ class CandidateClaimProposal:
             "confidence_basis": self.confidence_basis,
             "extractor_id": self.extractor_id,
             "evidence_references": [ref.to_dict() for ref in self.evidence_references],
+            "durability": self.durability,
             "valid_from": self.valid_from,
+            "valid_until": self.valid_until,
             "valid_to": self.valid_to,
             "supersedes_claim_id": self.supersedes_claim_id,
             "notes": self.notes,
@@ -457,6 +538,35 @@ class CandidateClaimProposal:
         if raw_layer not in ALLOWED_MEMORY_LAYERS:
             raw_layer = "semantic"
 
+        raw_dur = data.get("durability")
+        if raw_dur is not None:
+            clean_dur = str(raw_dur).strip().lower()
+            if clean_dur not in ALLOWED_DURABILITIES:
+                raise ValueError(
+                    f"CandidateClaimProposal.durability must be one of {sorted(ALLOWED_DURABILITIES)}, got {raw_dur!r}"
+                )
+        else:
+            clean_dur = infer_durability(
+                subject_entity_id=str(data.get("subject_entity_id") or ""),
+                predicate=str(data.get("predicate") or ""),
+                value_text=str(data.get("value_text") or ""),
+                claim_category=raw_cat,
+            )
+
+        v_from = str(data.get("valid_from")).strip() if data.get("valid_from") else None
+        if not v_from and refs:
+            for r in refs:
+                if r.source_timestamp:
+                    v_from = r.source_timestamp
+                    break
+
+        v_until = str(data.get("valid_until")).strip() if data.get("valid_until") else None
+        v_to = str(data.get("valid_to")).strip() if data.get("valid_to") else None
+        if v_until and not v_to:
+            v_to = v_until
+        elif v_to and not v_until:
+            v_until = v_to
+
         return cls(
             subject_entity_id=str(data.get("subject_entity_id") or "").strip(),
             predicate=str(data.get("predicate") or "").strip(),
@@ -467,8 +577,10 @@ class CandidateClaimProposal:
             confidence_basis=str(data.get("confidence_basis") or "").strip(),
             extractor_id=str(data.get("extractor_id") or "").strip(),
             evidence_references=refs,
-            valid_from=str(data.get("valid_from")).strip() if data.get("valid_from") else None,
-            valid_to=str(data.get("valid_to")).strip() if data.get("valid_to") else None,
+            durability=clean_dur,
+            valid_from=v_from,
+            valid_until=v_until,
+            valid_to=v_to,
             supersedes_claim_id=str(data.get("supersedes_claim_id")).strip() if data.get("supersedes_claim_id") else None,
             notes=str(data.get("notes") or "").strip(),
         )
@@ -488,7 +600,9 @@ class CandidateClaimRecord:
     authority_scope: str = ""
     confidence: float = 0.8
     confidence_basis: str = ""
+    durability: str = "durable"
     valid_from: str | None = None
+    valid_until: str | None = None
     valid_to: str | None = None
     created_at: str = ""
     updated_at: str = ""
@@ -496,11 +610,20 @@ class CandidateClaimRecord:
     reviewed_at: str | None = None
     canonical_effect: int = 0
     superseded_by_claim_id: str | None = None
+    supersedes_claim_id: str | None = None
     version: int = 1
     evidence_references: tuple[EvidenceReference, ...] = ()
     extractor_id: str = ""
     claim_category: str = "general"
     notes: str = ""
+
+    def __post_init__(self) -> None:
+        v_until = self.valid_until
+        v_to = self.valid_to
+        if v_until is not None and v_to is None:
+            object.__setattr__(self, "valid_to", v_until)
+        elif v_to is not None and v_until is None:
+            object.__setattr__(self, "valid_until", v_to)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -514,7 +637,9 @@ class CandidateClaimRecord:
             "authority_scope": self.authority_scope,
             "confidence": self.confidence,
             "confidence_basis": self.confidence_basis,
+            "durability": self.durability,
             "valid_from": self.valid_from,
+            "valid_until": self.valid_until,
             "valid_to": self.valid_to,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -522,6 +647,7 @@ class CandidateClaimRecord:
             "reviewed_at": self.reviewed_at,
             "canonical_effect": self.canonical_effect,
             "superseded_by_claim_id": self.superseded_by_claim_id,
+            "supersedes_claim_id": self.supersedes_claim_id,
             "version": self.version,
             "evidence_references": [ref.to_dict() for ref in self.evidence_references],
             "extractor_id": self.extractor_id,
@@ -829,6 +955,9 @@ def validate_proposal(
     if clean_cat not in ALLOWED_CLAIM_CATEGORIES:
         return False, f"Unsupported claim_category: {prop.claim_category!r}"
 
+    if prop.durability not in ALLOWED_DURABILITIES:
+        return False, f"Unsupported durability: {prop.durability!r}; must be one of {sorted(ALLOWED_DURABILITIES)}"
+
     if not prop.evidence_references:
         return False, "Candidate claim proposal must include at least one evidence reference"
 
@@ -1003,6 +1132,8 @@ class StubClaimExtractor:
                         confidence=0.9 if role == "user" else 0.6,
                         confidence_basis="Rule extractor matched RTX 3060 mention",
                         extractor_id="stub_extractor:rule_v1",
+                        durability="current_state",
+                        valid_from=ts or None,
                         evidence_references=(
                             EvidenceReference(
                                 history_message_id=mid,
@@ -1026,6 +1157,8 @@ class StubClaimExtractor:
                         confidence=0.85 if role == "user" else 0.5,
                         confidence_basis="Rule extractor matched no GPU mention",
                         extractor_id="stub_extractor:rule_v1",
+                        durability="current_state",
+                        valid_from=ts or None,
                         evidence_references=(
                             EvidenceReference(
                                 history_message_id=mid,
@@ -1049,6 +1182,8 @@ class StubClaimExtractor:
                         confidence=0.95 if role == "user" else 0.6,
                         confidence_basis="Rule extractor matched Westworld/Bernard naming statement",
                         extractor_id="stub_extractor:rule_v1",
+                        durability="durable",
+                        valid_from=ts or None,
                         evidence_references=(
                             EvidenceReference(
                                 history_message_id=mid,
@@ -1072,6 +1207,8 @@ class StubClaimExtractor:
                         confidence=0.9 if role == "user" else 0.6,
                         confidence_basis="Rule extractor matched OpenCode primary coding worker statement",
                         extractor_id="stub_extractor:rule_v1",
+                        durability="current_state",
+                        valid_from=ts or None,
                         evidence_references=(
                             EvidenceReference(
                                 history_message_id=mid,
@@ -1095,6 +1232,8 @@ class StubClaimExtractor:
                         confidence=0.95 if role == "user" else 0.6,
                         confidence_basis="Rule extractor matched Goose primary/fallback statement",
                         extractor_id="stub_extractor:rule_v1",
+                        durability="current_state",
+                        valid_from=ts or None,
                         evidence_references=(
                             EvidenceReference(
                                 history_message_id=mid,
@@ -1118,6 +1257,8 @@ class StubClaimExtractor:
                         confidence=0.95 if role == "user" else 0.6,
                         confidence_basis="Rule extractor matched NOT_RUN gate policy",
                         extractor_id="stub_extractor:rule_v1",
+                        durability="durable",
+                        valid_from=ts or None,
                         evidence_references=(
                             EvidenceReference(
                                 history_message_id=mid,
@@ -1170,6 +1311,7 @@ class LocalModelClaimExtractor:
                             "claim_category",
                             "confidence",
                             "confidence_basis",
+                            "durability",
                             "evidence_references",
                         ],
                         "additionalProperties": False,
@@ -1183,6 +1325,10 @@ class LocalModelClaimExtractor:
                             },
                             "confidence": {"type": "number"},
                             "confidence_basis": {"type": "string"},
+                            "durability": {
+                                "type": "string",
+                                "enum": sorted(list(ALLOWED_DURABILITIES)),
+                            },
                             "evidence_references": {
                                 "type": "array",
                                 "items": {
@@ -1239,6 +1385,11 @@ class LocalModelClaimExtractor:
             "Distinguish direct user statements from assistant assertions and quoted/pasted text. "
             "Use subject_entity_id 'person:dustin' for Dustin's direct facts, preferences, and background, "
             "'assistant:gemini' for Gemini Apps, 'assistant:chatgpt' for ChatGPT, and 'system:josie' ONLY for Josie architecture. "
+            "Classify durability into exactly one of: "
+            "- 'durable': professional certification, long-term experience/background, permanent identity (e.g. A+ certified with commercial server experience). "
+            "- 'current_state': hardware inventory, point-in-time hardware ownership, current parts on hand, or lack of hardware (e.g. owns 4TB NVMes and 24TB HDDs, does not own RTX 3090). Do NOT classify hardware ownership or lack of hardware as durable. "
+            "- 'preference': preferences, goals, strategies, or desired outcomes that may evolve (e.g. seeks cheapest hardware setups to achieve AI goals). "
+            "- 'transient': situational, temporary task state, or short-lived intent. "
             "For each evidence reference, provide the exact verbatim excerpt/span supporting the claim: "
             "- 'direct_user_assertion': Dustin speaking directly in first-person (e.g. 'Btw i am a+ certified...', 'Btw i dont own a 3090'). "
             "- 'quoted_or_pasted_content': pasted AI output such as ChatGPT recommendations inside a user turn. "
@@ -1257,7 +1408,10 @@ class LocalModelClaimExtractor:
             "use 'assistant:gemini' for assertions made by Gemini Apps; "
             "use 'assistant:chatgpt' for assertions made by or quoted from ChatGPT; "
             "use 'system:josie' ONLY for specifications of the Josie architecture. "
-            "CRITICAL: Historical messages may contain mixed sources (e.g. Dustin introducing his background before pasted ChatGPT output). "
+            "CRITICAL TEMPORAL / DURABILITY RULES: "
+            "Distinguish durable credentials/identity ('durable') from point-in-time hardware states ('current_state') and evolving goals/strategies ('preference'). "
+            "Hardware ownership or lack of hardware (e.g. does not own RTX 3090) MUST be classified as 'current_state', NEVER as 'durable'. "
+            "CRITICAL ATTRIBUTION RULES: Historical messages may contain mixed sources (e.g. Dustin introducing his background before pasted ChatGPT output). "
             "Excerpts within pasted AI blocks MUST be classified as 'quoted_or_pasted_content' and MUST NOT be attributed as direct Dustin assertions. "
             "Excerpts spoken directly by Dustin outside pasted blocks are 'direct_user_assertion'. "
             "For evidence_references, history_message_id MUST be the integer Message ID and excerpt MUST be verbatim text from that message. "
@@ -1389,6 +1543,32 @@ class LocalModelClaimExtractor:
                 if not valid_refs:
                     continue
 
+                prop_dur = str(raw_prop.get("durability") or "").strip().lower()
+                if prop_dur not in ALLOWED_DURABILITIES:
+                    prop_dur = infer_durability(
+                        subject_entity_id=str(raw_prop.get("subject_entity_id") or ""),
+                        predicate=str(raw_prop.get("predicate") or ""),
+                        value_text=str(raw_prop.get("value_text") or ""),
+                        claim_category=str(raw_prop.get("claim_category") or "general"),
+                    )
+                # Hardware state is never durable - enforce current_state for hardware/gpu/inventory mentions
+                if prop_dur == "durable":
+                    pred_str = str(raw_prop.get("predicate") or "").lower()
+                    cat_str = str(raw_prop.get("claim_category") or "").lower()
+                    val_str = str(raw_prop.get("value_text") or "").lower()
+                    if cat_str == "hardware" or any(k in pred_str for k in ("hardware", "gpu", "inventory", "own", "part", "hdd", "ssd", "nvme", "3090", "4090")):
+                        prop_dur = "current_state"
+                    elif any(k in val_str for k in ("own", "rtx", "gpu", "drive", "hdd", "nvme", "ram", "server part", "parts on hand")):
+                        if not any(k in val_str for k in ("certified", "experience", "degree")):
+                            prop_dur = "current_state"
+                raw_prop["durability"] = prop_dur
+
+                if not raw_prop.get("valid_from") and valid_refs:
+                    for vr in valid_refs:
+                        if vr.get("source_timestamp"):
+                            raw_prop["valid_from"] = vr["source_timestamp"]
+                            break
+
                 try:
                     p = CandidateClaimProposal.from_dict(raw_prop)
                     proposals.append(p)
@@ -1499,9 +1679,11 @@ def stage_candidate_claims(
                 "memory_layer": p.memory_layer,
                 "claim_category": p.claim_category,
                 "base_confidence": p.confidence,
+                "durability": p.durability,
                 "evidence_references": list(p.evidence_references),
                 "extractor_ids": {p.extractor_id} if p.extractor_id else set(),
                 "valid_from": p.valid_from,
+                "valid_until": p.valid_until or p.valid_to,
                 "valid_to": p.valid_to,
                 "notes": p.notes,
                 "supersedes_claim_id": p.supersedes_claim_id,
@@ -1512,6 +1694,8 @@ def stage_candidate_claims(
                 grouped_claims[cid]["extractor_ids"].add(p.extractor_id)
             if p.supersedes_claim_id and not grouped_claims[cid]["supersedes_claim_id"]:
                 grouped_claims[cid]["supersedes_claim_id"] = p.supersedes_claim_id
+            if p.valid_from and not grouped_claims[cid]["valid_from"]:
+                grouped_claims[cid]["valid_from"] = p.valid_from
 
     staged_claims: list[CandidateClaimRecord] = []
     evidence_rows_to_insert: list[dict[str, Any]] = []
@@ -1594,6 +1778,14 @@ def stage_candidate_claims(
                 )
 
                 extractor_str = ", ".join(sorted(data["extractor_ids"])) if data["extractor_ids"] else "unknown"
+                v_from = data.get("valid_from")
+                if not v_from and data["evidence_references"]:
+                    for ref in data["evidence_references"]:
+                        if ref.source_timestamp:
+                            v_from = ref.source_timestamp
+                            break
+                v_until = data.get("valid_until") or data.get("valid_to")
+
                 record = CandidateClaimRecord(
                     claim_id=cid,
                     subject_entity_id=data["subject_entity_id"],
@@ -1605,14 +1797,17 @@ def stage_candidate_claims(
                     authority_scope=f"candidate:{data['claim_category']}",
                     confidence=conf,
                     confidence_basis=conf_basis,
-                    valid_from=data["valid_from"],
-                    valid_to=data["valid_to"],
+                    durability=data.get("durability", "durable"),
+                    valid_from=v_from,
+                    valid_until=v_until,
+                    valid_to=data.get("valid_to") or v_until,
                     created_at=now,
                     updated_at=now,
                     approved_by=None,
                     reviewed_at=None,
                     canonical_effect=0,
                     superseded_by_claim_id=None,
+                    supersedes_claim_id=data.get("supersedes_claim_id"),
                     version=1,
                     evidence_references=tuple(data["evidence_references"]),
                     extractor_id=extractor_str,
@@ -1715,9 +1910,9 @@ def stage_candidate_claims(
                             "INSERT INTO memory_claims("
                             "claim_id, subject_entity_id, predicate, value_text, memory_layer, "
                             "status, evidence_class, authority_scope, confidence, confidence_basis, "
-                            "valid_from, valid_to, created_at, updated_at, approved_by, reviewed_at, "
-                            "canonical_effect, superseded_by_claim_id, version"
-                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+                            "valid_from, valid_to, valid_until, created_at, updated_at, approved_by, reviewed_at, "
+                            "canonical_effect, superseded_by_claim_id, supersedes_claim_id, version, durability"
+                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
                             (
                                 rec.claim_id,
                                 rec.subject_entity_id,
@@ -1731,24 +1926,34 @@ def stage_candidate_claims(
                                 rec.confidence_basis,
                                 rec.valid_from,
                                 rec.valid_to,
+                                rec.valid_until,
                                 rec.created_at,
                                 rec.updated_at,
                                 None,
                                 None,
                                 0,
                                 None,
+                                rec.supersedes_claim_id,
+                                rec.durability,
                             ),
                         )
                     else:
                         conn.execute(
                             "UPDATE memory_claims SET "
-                            "confidence = ?, confidence_basis = ?, evidence_class = ?, updated_at = ? "
+                            "confidence = ?, confidence_basis = ?, evidence_class = ?, updated_at = ?, "
+                            "durability = ?, valid_from = COALESCE(?, valid_from), valid_to = COALESCE(?, valid_to), "
+                            "valid_until = COALESCE(?, valid_until), supersedes_claim_id = COALESCE(?, supersedes_claim_id) "
                             "WHERE claim_id = ? AND status = 'candidate' AND canonical_effect = 0",
                             (
                                 rec.confidence,
                                 rec.confidence_basis,
                                 rec.evidence_class,
                                 now,
+                                rec.durability,
+                                rec.valid_from,
+                                rec.valid_to,
+                                rec.valid_until,
+                                rec.supersedes_claim_id,
                                 rec.claim_id,
                             ),
                         )
@@ -1972,9 +2177,10 @@ def adjudicate_candidate_claim(
                     "canonical_effect = 1, "
                     "approved_by = ?, "
                     "reviewed_at = ?, "
-                    "updated_at = ? "
+                    "updated_at = ?, "
+                    "supersedes_claim_id = COALESCE(?, supersedes_claim_id) "
                     "WHERE claim_id = ?",
-                    (new_auth, clean_reviewer, now, now, claim_id),
+                    (new_auth, clean_reviewer, now, now, supersedes_claim_id, claim_id),
                 )
 
                 adj_id = f"adj:{claim_id}:{hashlib.sha256((now + clean_reviewer).encode('utf-8')).hexdigest()[:12]}"
@@ -2138,6 +2344,7 @@ def list_candidate_claims(
         claims = conn.execute(
             "SELECT c.claim_id, c.subject_entity_id, c.predicate, c.value_text, "
             "c.memory_layer, c.status, c.confidence, c.confidence_basis, c.authority_scope, c.created_at, "
+            "c.durability, c.valid_from, c.valid_until, c.valid_to, "
             "COUNT(e.evidence_id) as evidence_count "
             "FROM memory_claims c LEFT JOIN claim_evidence e ON e.claim_id = c.claim_id "
             "WHERE c.status = ? "
@@ -2169,6 +2376,10 @@ def list_candidate_claims(
                 "value_text": c["value_text"],
                 "memory_layer": c["memory_layer"],
                 "claim_category": cat,
+                "durability": c["durability"] if "durability" in c.keys() else "durable",
+                "valid_from": c["valid_from"] if "valid_from" in c.keys() else None,
+                "valid_until": c["valid_until"] if "valid_until" in c.keys() else (c["valid_to"] if "valid_to" in c.keys() else None),
+                "valid_to": c["valid_to"] if "valid_to" in c.keys() else None,
                 "status": c["status"],
                 "lifecycle_stage": "pending" if c["status"] == "candidate" else ("approved" if c["status"] == "active" else ("needs_review" if c["status"] == "disputed" else c["status"])),
                 "confidence": float(c["confidence"]),
@@ -2266,12 +2477,17 @@ def get_candidate_claim_details(
             "authority_scope": claim["authority_scope"],
             "confidence": float(claim["confidence"]),
             "confidence_basis": claim["confidence_basis"],
+            "durability": claim["durability"] if "durability" in claim.keys() else "durable",
+            "valid_from": claim["valid_from"] if "valid_from" in claim.keys() else None,
+            "valid_until": claim["valid_until"] if "valid_until" in claim.keys() else (claim["valid_to"] if "valid_to" in claim.keys() else None),
+            "valid_to": claim["valid_to"] if "valid_to" in claim.keys() else None,
             "created_at": claim["created_at"],
             "updated_at": claim["updated_at"],
             "approved_by": claim["approved_by"],
             "reviewed_at": claim["reviewed_at"],
             "canonical_effect": int(claim["canonical_effect"]),
             "superseded_by_claim_id": claim["superseded_by_claim_id"],
+            "supersedes_claim_id": claim["supersedes_claim_id"] if "supersedes_claim_id" in claim.keys() else None,
             "extractor_id": ext_row["extractor_id"] if ext_row else "unknown",
             "extractor_version": ext_row["extractor_version"] if ext_row else None,
             "extracted_at": ext_row["extracted_at"] if ext_row else claim["created_at"],
@@ -2500,7 +2716,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(f"Candidate Claims ({len(results)} records, status={args.status}):")
             for r in results:
-                print(f" - [{r['lifecycle_stage'].upper()}] {r['claim_id']}: {r['value_text']} ({r['evidence_count']} evidence links)")
+                dur_str = f" [{r.get('durability', 'durable')}]"
+                print(f" - [{r['lifecycle_stage'].upper()}]{dur_str} {r['claim_id']}: {r['value_text']} ({r['evidence_count']} evidence links)")
         return 0
 
     elif args.command == "inspect":
@@ -2514,6 +2731,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Claim ID: {details['claim_id']}")
             print(f"Lifecycle: {details['lifecycle_stage']} (DB status: {details['status']})")
             print(f"Category: {details['claim_category']}")
+            print(f"Durability: {details.get('durability', 'durable')}")
+            if details.get("valid_from"):
+                print(f"Valid From: {details['valid_from']}")
+            if details.get("valid_until"):
+                print(f"Valid Until: {details['valid_until']}")
+            if details.get("supersedes_claim_id"):
+                print(f"Supersedes: {details['supersedes_claim_id']}")
             print(f"Value: {details['value_text']}")
             print(f"Confidence: {details['confidence']} ({details['confidence_basis']})")
             print(f"Canonical Effect: {details['canonical_effect']}")

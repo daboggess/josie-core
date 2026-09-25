@@ -790,7 +790,8 @@ def load_knowledge_from_store(store: LocalStore) -> list[KnowledgeRecord]:
         claims = conn.execute(
             "SELECT claim_id, subject_entity_id, predicate, value_text, memory_layer, "
             "status, evidence_class, authority_scope, confidence, created_at, "
-            "superseded_by_claim_id, approved_by, reviewed_at, canonical_effect "
+            "superseded_by_claim_id, supersedes_claim_id, approved_by, reviewed_at, canonical_effect, "
+            "durability, valid_from, valid_until, valid_to "
             "FROM memory_claims "
             "ORDER BY claim_id"
         ).fetchall()
@@ -864,6 +865,11 @@ def load_knowledge_from_store(store: LocalStore) -> list[KnowledgeRecord]:
                 "canonical_effect": int(row["canonical_effect"] or 0),
                 "approved_by": row["approved_by"],
                 "reviewed_at": row["reviewed_at"],
+                "durability": row["durability"] if "durability" in row.keys() else "durable",
+                "valid_from": row["valid_from"] if "valid_from" in row.keys() else None,
+                "valid_until": row["valid_until"] if "valid_until" in row.keys() else (row["valid_to"] if "valid_to" in row.keys() else None),
+                "valid_to": row["valid_to"] if "valid_to" in row.keys() else None,
+                "supersedes_claim_id": row["supersedes_claim_id"] if "supersedes_claim_id" in row.keys() else None,
                 "evidence_references": evidence_list,
             }
 

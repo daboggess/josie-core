@@ -217,3 +217,32 @@ The test suite includes a comprehensive lifecycle and temporal evolution fixture
 4. **Approval & Priming**: Approving `Msg 1` claim promotes it to `canonical_effect=1`; enters architecture priming.
 5. **Temporal Supersession**: Approving `Msg 2` claim with `supersedes_claim_id=claim_1` sets `Msg 2` active (`canonical_effect=1`) and transitions `Msg 1` to `superseded` (`canonical_effect=0`). Architecture priming delivers `Msg 2` and strictly excludes `Msg 1`. Evidence rows for `Msg 1` remain 100% intact.
 6. **Procedure Promotion**: Approving `Msg 3` claim promotes it to `canonical_effect=1`, primed under procedure.
+
+## Phase 3B.3 Temporal and Durability Semantics
+
+Phase 3B.3 establishes the distinction between permanent identity/profile facts, point-in-time states, and evolving goals or preferences.
+
+### Durability Taxonomy
+Every candidate claim proposal, staged candidate record, and canonical memory claim specifies a `durability`:
+1. `durable`:
+   - Facts expected to remain true indefinitely unless explicitly updated or superseded.
+   - Examples: technical certifications (CompTIA A+), multi-year commercial server experience, identity traits.
+2. `current_state`:
+   - Point-in-time assertions describing transient or evolving empirical conditions.
+   - Examples: physical hardware inventory ("owns two 4TB NVMe drives"), negative hardware status ("does not own an RTX 3090"), current machine configuration.
+   - **Key Invariant**: Hardware ownership and lack of hardware are empirical point-in-time states; they MUST NEVER be treated as timeless `durable` identity.
+3. `preference`:
+   - Goals, strategies, preferences, or target outcomes that may evolve over time.
+   - Examples: "seeks cheapest hardware setups to accomplish AI goals", preferred worker choices.
+4. `transient`:
+   - Ephemeral task, session, or momentary situational states that should generally not become long-lived canonical knowledge.
+
+### Temporal Bounds
+- `valid_from`: Point-in-time timestamp (ISO 8601 UTC) from which the assertion is known to be valid. Automatically grounded in the supporting evidence's `source_timestamp` when not explicitly overridden.
+- `valid_until` / `valid_to`: Upper temporal bound after which the assertion is no longer assumed to hold.
+- `supersedes_claim_id` / `superseded_by_claim_id`: Explicit pointers tracking claim lineage upon human adjudication.
+
+### Invariants Maintained
+- **Human Authority**: Models may infer or propose durability and temporal bounds, but cannot promote any claim to canonical truth. Dustin remains the sole approval authority.
+- **Priming Isolation**: Regardless of durability classification (`durable`, `current_state`, etc.), unadjudicated candidate claims have `canonical_effect=0` and are strictly excluded from priming bundles.
+- **No Autonomous Conflict Resolution**: Contradictory claims (e.g. past hardware presence vs later hardware absence) remain staged as distinct candidates for explicit human review. No autonomous model resolution is permitted.

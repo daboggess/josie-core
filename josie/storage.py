@@ -724,6 +724,7 @@ class LocalStore:
                     confidence_basis TEXT NOT NULL,
                     valid_from TEXT,
                     valid_to TEXT,
+                    valid_until TEXT,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
                     approved_by TEXT,
@@ -732,7 +733,11 @@ class LocalStore:
                         canonical_effect IN (0,1)
                     ),
                     superseded_by_claim_id TEXT,
+                    supersedes_claim_id TEXT,
                     version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
+                    durability TEXT NOT NULL DEFAULT 'durable' CHECK (
+                        durability IN ('durable','current_state','preference','transient')
+                    ),
                     CHECK ((object_entity_id IS NULL) != (value_text IS NULL)),
                     CHECK (
                         canonical_effect = 0 OR (
@@ -915,6 +920,28 @@ class LocalStore:
             if "span_end" not in claim_evidence_columns:
                 connection.execute(
                     "ALTER TABLE claim_evidence ADD COLUMN span_end INTEGER"
+                )
+            memory_claim_columns = {
+                str(row[1])
+                for row in connection.execute(
+                    "PRAGMA table_info(memory_claims)"
+                ).fetchall()
+            }
+            if "durability" not in memory_claim_columns:
+                connection.execute(
+                    "ALTER TABLE memory_claims ADD COLUMN durability TEXT NOT NULL DEFAULT 'durable' "
+                    "CHECK (durability IN ('durable','current_state','preference','transient'))"
+                )
+            if "valid_until" not in memory_claim_columns:
+                connection.execute(
+                    "ALTER TABLE memory_claims ADD COLUMN valid_until TEXT"
+                )
+                connection.execute(
+                    "UPDATE memory_claims SET valid_until = valid_to WHERE valid_until IS NULL AND valid_to IS NOT NULL"
+                )
+            if "supersedes_claim_id" not in memory_claim_columns:
+                connection.execute(
+                    "ALTER TABLE memory_claims ADD COLUMN supersedes_claim_id TEXT"
                 )
 
     @staticmethod
