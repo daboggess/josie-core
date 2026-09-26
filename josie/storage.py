@@ -724,7 +724,6 @@ class LocalStore:
                     confidence_basis TEXT NOT NULL,
                     valid_from TEXT,
                     valid_to TEXT,
-                    valid_until TEXT,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
                     approved_by TEXT,
@@ -733,7 +732,6 @@ class LocalStore:
                         canonical_effect IN (0,1)
                     ),
                     superseded_by_claim_id TEXT,
-                    supersedes_claim_id TEXT,
                     version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
                     durability TEXT NOT NULL DEFAULT 'durable' CHECK (
                         durability IN ('durable','current_state','preference','transient')
@@ -932,17 +930,12 @@ class LocalStore:
                     "ALTER TABLE memory_claims ADD COLUMN durability TEXT NOT NULL DEFAULT 'durable' "
                     "CHECK (durability IN ('durable','current_state','preference','transient'))"
                 )
-            if "valid_until" not in memory_claim_columns:
-                connection.execute(
-                    "ALTER TABLE memory_claims ADD COLUMN valid_until TEXT"
-                )
-                connection.execute(
-                    "UPDATE memory_claims SET valid_until = valid_to WHERE valid_until IS NULL AND valid_to IS NOT NULL"
-                )
-            if "supersedes_claim_id" not in memory_claim_columns:
-                connection.execute(
-                    "ALTER TABLE memory_claims ADD COLUMN supersedes_claim_id TEXT"
-                )
+            for redundant_col in ("valid_until", "supersedes_claim_id"):
+                if redundant_col in memory_claim_columns:
+                    try:
+                        connection.execute(f"ALTER TABLE memory_claims DROP COLUMN {redundant_col}")
+                    except Exception:
+                        pass
 
     @staticmethod
     def _now() -> str:

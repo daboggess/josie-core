@@ -1910,9 +1910,9 @@ def stage_candidate_claims(
                             "INSERT INTO memory_claims("
                             "claim_id, subject_entity_id, predicate, value_text, memory_layer, "
                             "status, evidence_class, authority_scope, confidence, confidence_basis, "
-                            "valid_from, valid_to, valid_until, created_at, updated_at, approved_by, reviewed_at, "
-                            "canonical_effect, superseded_by_claim_id, supersedes_claim_id, version, durability"
-                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                            "valid_from, valid_to, created_at, updated_at, approved_by, reviewed_at, "
+                            "canonical_effect, superseded_by_claim_id, version, durability"
+                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)",
                             (
                                 rec.claim_id,
                                 rec.subject_entity_id,
@@ -1926,14 +1926,11 @@ def stage_candidate_claims(
                                 rec.confidence_basis,
                                 rec.valid_from,
                                 rec.valid_to,
-                                rec.valid_until,
                                 rec.created_at,
                                 rec.updated_at,
                                 None,
                                 None,
-                                0,
                                 None,
-                                rec.supersedes_claim_id,
                                 rec.durability,
                             ),
                         )
@@ -1941,8 +1938,7 @@ def stage_candidate_claims(
                         conn.execute(
                             "UPDATE memory_claims SET "
                             "confidence = ?, confidence_basis = ?, evidence_class = ?, updated_at = ?, "
-                            "durability = ?, valid_from = COALESCE(?, valid_from), valid_to = COALESCE(?, valid_to), "
-                            "valid_until = COALESCE(?, valid_until), supersedes_claim_id = COALESCE(?, supersedes_claim_id) "
+                            "durability = ?, valid_from = COALESCE(?, valid_from), valid_to = COALESCE(?, valid_to) "
                             "WHERE claim_id = ? AND status = 'candidate' AND canonical_effect = 0",
                             (
                                 rec.confidence,
@@ -1952,8 +1948,6 @@ def stage_candidate_claims(
                                 rec.durability,
                                 rec.valid_from,
                                 rec.valid_to,
-                                rec.valid_until,
-                                rec.supersedes_claim_id,
                                 rec.claim_id,
                             ),
                         )
@@ -2177,10 +2171,9 @@ def adjudicate_candidate_claim(
                     "canonical_effect = 1, "
                     "approved_by = ?, "
                     "reviewed_at = ?, "
-                    "updated_at = ?, "
-                    "supersedes_claim_id = COALESCE(?, supersedes_claim_id) "
+                    "updated_at = ? "
                     "WHERE claim_id = ?",
-                    (new_auth, clean_reviewer, now, now, supersedes_claim_id, claim_id),
+                    (new_auth, clean_reviewer, now, now, claim_id),
                 )
 
                 adj_id = f"adj:{claim_id}:{hashlib.sha256((now + clean_reviewer).encode('utf-8')).hexdigest()[:12]}"
@@ -2344,7 +2337,7 @@ def list_candidate_claims(
         claims = conn.execute(
             "SELECT c.claim_id, c.subject_entity_id, c.predicate, c.value_text, "
             "c.memory_layer, c.status, c.confidence, c.confidence_basis, c.authority_scope, c.created_at, "
-            "c.durability, c.valid_from, c.valid_until, c.valid_to, "
+            "c.durability, c.valid_from, c.valid_to, "
             "COUNT(e.evidence_id) as evidence_count "
             "FROM memory_claims c LEFT JOIN claim_evidence e ON e.claim_id = c.claim_id "
             "WHERE c.status = ? "
@@ -2378,8 +2371,8 @@ def list_candidate_claims(
                 "claim_category": cat,
                 "durability": c["durability"] if "durability" in c.keys() else "durable",
                 "valid_from": c["valid_from"] if "valid_from" in c.keys() else None,
-                "valid_until": c["valid_until"] if "valid_until" in c.keys() else (c["valid_to"] if "valid_to" in c.keys() else None),
                 "valid_to": c["valid_to"] if "valid_to" in c.keys() else None,
+                "valid_until": c["valid_to"] if "valid_to" in c.keys() else None,
                 "status": c["status"],
                 "lifecycle_stage": "pending" if c["status"] == "candidate" else ("approved" if c["status"] == "active" else ("needs_review" if c["status"] == "disputed" else c["status"])),
                 "confidence": float(c["confidence"]),
@@ -2464,6 +2457,11 @@ def get_candidate_claim_details(
             (claim["subject_entity_id"], claim["predicate"], claim_id),
         ).fetchall()
 
+        superseded_claim = conn.execute(
+            "SELECT claim_id FROM memory_claims WHERE superseded_by_claim_id = ? LIMIT 1",
+            (claim_id,),
+        ).fetchone()
+
         return {
             "claim_id": claim["claim_id"],
             "subject_entity_id": claim["subject_entity_id"],
@@ -2479,15 +2477,15 @@ def get_candidate_claim_details(
             "confidence_basis": claim["confidence_basis"],
             "durability": claim["durability"] if "durability" in claim.keys() else "durable",
             "valid_from": claim["valid_from"] if "valid_from" in claim.keys() else None,
-            "valid_until": claim["valid_until"] if "valid_until" in claim.keys() else (claim["valid_to"] if "valid_to" in claim.keys() else None),
             "valid_to": claim["valid_to"] if "valid_to" in claim.keys() else None,
+            "valid_until": claim["valid_to"] if "valid_to" in claim.keys() else None,
             "created_at": claim["created_at"],
             "updated_at": claim["updated_at"],
             "approved_by": claim["approved_by"],
             "reviewed_at": claim["reviewed_at"],
             "canonical_effect": int(claim["canonical_effect"]),
             "superseded_by_claim_id": claim["superseded_by_claim_id"],
-            "supersedes_claim_id": claim["supersedes_claim_id"] if "supersedes_claim_id" in claim.keys() else None,
+            "supersedes_claim_id": superseded_claim["claim_id"] if superseded_claim else None,
             "extractor_id": ext_row["extractor_id"] if ext_row else "unknown",
             "extractor_version": ext_row["extractor_version"] if ext_row else None,
             "extracted_at": ext_row["extracted_at"] if ext_row else claim["created_at"],

@@ -2904,6 +2904,68 @@ class TestTemporalDurabilitySemantics(unittest.TestCase):
                 self.assertEqual(r["status"], "candidate")
                 self.assertEqual(r["canonical_effect"], 0)
 
+    def test_m_fixture_authority_guard_durability_does_not_override_attribution(self) -> None:
+        """Fixture Authority Guard: Durability classification does NOT manufacture direct Dustin authority.
+
+        If 'Dustin is A+ certified with years of commercial server experience' is extracted
+        from inside a quoted/pasted AI block, its attribution remains 'quoted_or_pasted_content'
+        and evidence_class remains 'INFERRED' (confidence <= 0.60).
+        Durability answers 'How long/type of truth is this?', NOT 'Who said this?'.
+        """
+        raw_text = (
+            "Gpt response \n\n"
+            "Here is the plan for your architecture...\n"
+            "ChatGPT note: Dustin is A+ certified with years of experience with commercial servers"
+        )
+        _seed_test_history_message(
+            self.store,
+            message_id=601,
+            raw_text=raw_text,
+            role="user",
+            speaker="google_account_owner",
+            timestamp="2025-11-27T19:30:00Z",
+        )
+        excerpt = "Dustin is A+ certified with years of experience with commercial servers"
+        attr, s_start, s_end = classify_evidence_span(
+            raw_text=raw_text,
+            excerpt=excerpt,
+            role="user",
+            speaker="google_account_owner",
+        )
+        # Sourced within ChatGPT block -> MUST be quoted_or_pasted_content, NOT direct_user_assertion
+        self.assertEqual(attr, "quoted_or_pasted_content")
+
+        ref = EvidenceReference(
+            history_message_id=601,
+            relation_type="supports",
+            excerpt=excerpt,
+            role="user",
+            speaker="google_account_owner",
+            attribution=attr,
+            span_start=s_start,
+            span_end=s_end,
+            source_timestamp="2025-11-27T19:30:00Z",
+        )
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="has_credential",
+            value_text="Dustin is A+ certified with years of experience with commercial servers",
+            claim_category="profile",
+            durability="durable",
+            evidence_references=(ref,),
+        )
+        # Durability is durable
+        self.assertEqual(prop.durability, "durable")
+
+        res = stage_candidate_claims(self.store, [prop])
+        staged = res["staged_claims"][0]
+
+        # Authority guard: evidence_class must NOT be elevated to RETRIEVED or direct user authority
+        self.assertEqual(staged["evidence_class"], "INFERRED")
+        self.assertLessEqual(staged["confidence"], 0.60)
+        self.assertEqual(staged["evidence_references"][0]["attribution"], "quoted_or_pasted_content")
+        self.assertEqual(staged["canonical_effect"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

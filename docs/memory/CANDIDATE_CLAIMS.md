@@ -237,12 +237,14 @@ Every candidate claim proposal, staged candidate record, and canonical memory cl
 4. `transient`:
    - Ephemeral task, session, or momentary situational states that should generally not become long-lived canonical knowledge.
 
-### Temporal Bounds
-- `valid_from`: Point-in-time timestamp (ISO 8601 UTC) from which the assertion is known to be valid. Automatically grounded in the supporting evidence's `source_timestamp` when not explicitly overridden.
-- `valid_until` / `valid_to`: Upper temporal bound after which the assertion is no longer assumed to hold.
-- `supersedes_claim_id` / `superseded_by_claim_id`: Explicit pointers tracking claim lineage upon human adjudication.
+### Temporal Bounds & Schema Compatibility
+- `valid_from`: Existing timestamp column (ISO 8601 UTC) from which the assertion is known to be valid. Automatically grounded in the supporting evidence's `source_timestamp` when not explicitly overridden.
+- `valid_to`: Existing upper temporal bound column after which the assertion is no longer assumed to hold. Treated as the equivalent of `valid_until` (no duplicate `valid_until` column is added to the SQLite database).
+- `superseded_by_claim_id`: Existing supersession pointer column on `memory_claims`. Identifies which approved claim superseded this record without requiring a redundant parallel column.
+- `durability`: The single new checked column on `memory_claims` (`CHECK (durability IN ('durable','current_state','preference','transient'))`).
 
 ### Invariants Maintained
 - **Human Authority**: Models may infer or propose durability and temporal bounds, but cannot promote any claim to canonical truth. Dustin remains the sole approval authority.
+- **Fixture Authority Guard**: Durability answers *"How long/type of truth is this?"*, NOT *"Who said this?"* or *"Is this claim true?"*. Durability classification must NEVER manufacture direct Dustin authority or override evidence attribution. A proposition qualifies for `durable` status with primary weight only if the Phase 3B.2 evidence-span pipeline independently validates the supporting proposition and attribution.
 - **Priming Isolation**: Regardless of durability classification (`durable`, `current_state`, etc.), unadjudicated candidate claims have `canonical_effect=0` and are strictly excluded from priming bundles.
 - **No Autonomous Conflict Resolution**: Contradictory claims (e.g. past hardware presence vs later hardware absence) remain staged as distinct candidates for explicit human review. No autonomous model resolution is permitted.
