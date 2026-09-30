@@ -148,7 +148,7 @@ def _route_deterministic(task: str) -> MemoryRelevance | None:
     # Category: profile
     # Matches technical credentials, certifications, qualifications, background, server experience
     has_cert = bool(re.search(r"\b(?:certif(?:ication|ications|ied)?|credential(?:s)?|qualification(?:s)?)\b", text_no_quotes))
-    has_server_exp = bool(re.search(r"\b(?:server|commercial\s+server|technical)\s+experience\b", text_no_quotes))
+    has_server_exp = bool(re.search(r"\b(?:server|commercial\s+server|technical)\s+(?:experience|background)\b", text_no_quotes))
     has_personal_bg = bool(re.search(r"\b(?:my|do\s+i\s+have\s+(?:any)?)\s+(?:background|experience|credentials|qualifications|certifications)\b", text_no_quotes))
     has_suitability = bool(re.search(r"\b(?:suited|better\s+suited)\s+(?:to|for)\s+(?:work|working|run|operate|manage)\b", text_no_quotes))
     is_cert_inquiry = has_cert and any(kw in text_no_quotes for kw in ("do i", "i have", "my", "who is", "dustin", "what", "which", "server", "experience", "technical", "relevant", "josie"))
