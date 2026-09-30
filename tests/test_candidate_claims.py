@@ -40,6 +40,7 @@ from josie.candidate_claims import (
     extract_claims_pipeline,
     get_candidate_claim_details,
     get_pasted_regions,
+    infer_claim_category,
     infer_durability,
     list_candidate_claims,
     main,
@@ -2965,6 +2966,167 @@ class TestTemporalDurabilitySemantics(unittest.TestCase):
         self.assertLessEqual(staged["confidence"], 0.60)
         self.assertEqual(staged["evidence_references"][0]["attribution"], "quoted_or_pasted_content")
         self.assertEqual(staged["canonical_effect"], 0)
+
+    def test_n_category_closure_regression_suite(self) -> None:
+        """Memory Retrieval Category Closure Regression Suite (Points 1 through 9)."""
+        ts = "2025-11-27T19:27:57Z"
+        _seed_test_history_message(
+            self.store,
+            message_id=701,
+            raw_text="Btw i am a+ certified with years of experience with commercial servers",
+            role="user",
+            speaker="Dustin",
+            timestamp=ts,
+        )
+        ref = EvidenceReference(
+            history_message_id=701,
+            relation_type="supports",
+            excerpt="Btw i am a+ certified with years of experience with commercial servers",
+            role="user",
+            speaker="Dustin",
+            attribution="direct_user_assertion",
+            span_start=0,
+            span_end=70,
+            source_timestamp=ts,
+        )
+
+        # 1. Professional credential claim maps to profile/background semantics
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="has_durable_credential",
+            value_text="A+ certified with years of experience with commercial servers",
+            claim_category="decision",  # deliberately pass 'decision' to test inference normalization
+            durability="durable",
+            evidence_references=(ref,),
+        )
+        self.assertEqual(prop.claim_category, "profile")
+        self.assertEqual(prop.memory_layer, "identity")
+        self.assertEqual(
+            infer_claim_category(
+                predicate="has_durable_credential",
+                value_text="A+ certified with years of experience with commercial servers",
+                subject_entity_id="person:dustin",
+                proposed_category="decision",
+            ),
+            "profile",
+        )
+
+        # 7. Evidence attribution remains unchanged
+        self.assertEqual(prop.evidence_references[0].attribution, "direct_user_assertion")
+
+        # 8. Durability remains unchanged
+        self.assertEqual(prop.durability, "durable")
+
+        stage_res = stage_candidate_claims(self.store, [prop])
+        cid = stage_res["staged_claims"][0]["claim_id"]
+
+        with self.store._connect() as conn:
+            c_row = conn.execute("SELECT * FROM memory_claims WHERE claim_id = ?", (cid,)).fetchone()
+            self.assertEqual(c_row["claim_category"], "profile")
+            self.assertEqual(c_row["authority_scope"], "candidate")
+            self.assertEqual(c_row["status"], "candidate")
+            self.assertEqual(c_row["canonical_effect"], 0)
+            self.assertEqual(c_row["durability"], "durable")
+
+        # 2. Canonical promotion preserves semantic category
+        # 3. Authority scope does not silently replace semantic category
+        adj_res = adjudicate_candidate_claim(
+            self.store,
+            claim_id=cid,
+            action="approve",
+            reviewer="Dustin",
+            confirmation=APPROVAL_CONFIRMATION,
+            reason="Approved A+ certification credential claim",
+        )
+        self.assertEqual(adj_res["status"], "approved")
+
+        with self.store._connect() as conn:
+            promoted_row = conn.execute("SELECT * FROM memory_claims WHERE claim_id = ?", (cid,)).fetchone()
+            self.assertEqual(promoted_row["status"], "active")
+            self.assertEqual(promoted_row["canonical_effect"], 1)
+            # Authority scope is governing authority ('canonical')
+            self.assertEqual(promoted_row["authority_scope"], "canonical")
+            # Semantic retrieval category is preserved ('profile')
+            self.assertEqual(promoted_row["claim_category"], "profile")
+            # Durability is preserved ('durable')
+            self.assertEqual(promoted_row["durability"], "durable")
+
+            # Check canonical_adjudications record
+            adj_row = conn.execute("SELECT * FROM canonical_adjudications WHERE source_pointer = ?", (f"claim:{cid}",)).fetchone()
+            self.assertEqual(adj_row["authority_scope"], "canonical")
+
+            # Check evidence attribution preserved in claim_evidence
+            ev_row = conn.execute("SELECT * FROM claim_evidence WHERE claim_id = ?", (cid,)).fetchone()
+            self.assertEqual(ev_row["attribution"], "direct_user_assertion")
+
+        # 4. Profile query retrieves approved credential
+        manifest_profile = PrimingManifest(task_id="test-profile", knowledge_categories=("profile",))
+        bundle_profile = assemble_priming_from_knowledge(manifest_profile, store=self.store)
+        profile_cids = [item.item_id for item in bundle_profile.items]
+        self.assertIn(cid, profile_cids)
+
+        # 5. Decision-only query does not incorrectly retrieve it
+        manifest_decision = PrimingManifest(task_id="test-decision", knowledge_categories=("decision",))
+        bundle_decision = assemble_priming_from_knowledge(manifest_decision, store=self.store)
+        decision_cids = [item.item_id for item in bundle_decision.items]
+        self.assertNotIn(cid, decision_cids)
+
+        # 6. Candidate claims remain excluded
+        _seed_test_history_message(self.store, 702, raw_text="Pending candidate claim message")
+        ref_cand = EvidenceReference(
+            history_message_id=702,
+            relation_type="supports",
+            excerpt="Pending candidate",
+            role="user",
+            speaker="Dustin",
+            attribution="direct_user_assertion",
+        )
+        prop_cand = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="has_unapproved_skill",
+            value_text="Pending candidate profile fact",
+            claim_category="profile",
+            evidence_references=(ref_cand,),
+        )
+        stage_res_cand = stage_candidate_claims(self.store, [prop_cand])
+        cand_id = stage_res_cand["staged_claims"][0]["claim_id"]
+
+        # Run profile query again
+        bundle_profile_after = assemble_priming_from_knowledge(manifest_profile, store=self.store)
+        profile_after_cids = [item.item_id for item in bundle_profile_after.items]
+        self.assertIn(cid, profile_after_cids)
+        self.assertNotIn(cand_id, profile_after_cids)
+
+        # 9. Existing canonical claims remain backward-compatible
+        seed_res = seed_canonical_knowledge(self.store)
+        records = load_knowledge_from_store(self.store)
+        rec_map = {r.record_id: r for r in records}
+        self.assertIn("identity:dustin-authority", rec_map)
+        self.assertEqual(rec_map["identity:dustin-authority"].category, "identity")
+        self.assertIn("arch:supervisor-worker-separation", rec_map)
+        self.assertEqual(rec_map["arch:supervisor-worker-separation"].category, "architecture")
+
+        # Priming query for bootstrap categories retrieves all of them
+        manifest_boot = PrimingManifest(task_id="test-boot", knowledge_categories=("architecture", "procedure", "identity"))
+        bundle_boot = assemble_priming_from_knowledge(manifest_boot, store=self.store)
+        boot_cids = {item.item_id for item in bundle_boot.items}
+        self.assertTrue({"identity:dustin-authority", "arch:supervisor-worker-separation", "arch:identity-above-models", "procedure:destructive-action-gate"}.issubset(boot_cids))
+
+        # Legacy backward-compatibility: simulate legacy row where claim_category is NULL and authority_scope is 'canonical_versioned:architecture'
+        with self.store._connect() as conn:
+            conn.execute(
+                "INSERT INTO memory_claims("
+                "claim_id, subject_entity_id, predicate, value_text, memory_layer, "
+                "status, evidence_class, authority_scope, confidence, confidence_basis, "
+                "created_at, updated_at, approved_by, reviewed_at, canonical_effect, "
+                "version, durability, claim_category"
+                ") VALUES ('legacy:arch-rule', 'system:josie', 'arch_rule', 'Legacy rule', 'procedural', "
+                "'active', 'CANONICAL', 'canonical_versioned:architecture', 1.0, 'legacy test', "
+                "'2026-01-01', '2026-01-01', 'Dustin', '2026-01-01', 1, 1, 'durable', NULL)"
+            )
+        legacy_records = load_knowledge_from_store(self.store)
+        legacy_rec = next(r for r in legacy_records if r.record_id == "legacy:arch-rule")
+        self.assertEqual(legacy_rec.category, "architecture")
 
 
 if __name__ == "__main__":

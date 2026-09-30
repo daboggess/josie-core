@@ -158,6 +158,62 @@ def infer_durability(
     return "current_state"
 
 
+def infer_claim_category(
+    predicate: str = "",
+    value_text: str = "",
+    subject_entity_id: str = "",
+    proposed_category: str = "",
+) -> str:
+    """Infer or normalize candidate claim category based on semantic predicate, entity, and content."""
+    pred = (predicate or "").lower().strip()
+    subj = (subject_entity_id or "").lower().strip()
+    val = (value_text or "").lower().strip()
+    proposed = (proposed_category or "").lower().strip()
+
+    # 1. Profile / background / credential facts
+    is_credential_or_background = (
+        any(k in pred for k in ("certif", "qualification", "credential", "degree", "license", "background"))
+        or (pred.startswith("has_") and any(k in pred for k in ("experience", "skill", "role", "title", "career")))
+        or ("certified" in val and "a+" in val)
+        or (subj.startswith("person:") and any(k in pred for k in ("credential", "experience", "background")))
+    )
+    if is_credential_or_background:
+        return "profile"
+
+    # If proposed is a valid specific category other than 'decision' and 'general', respect it
+    if proposed in ALLOWED_CLAIM_CATEGORIES and proposed not in ("general", "decision"):
+        return proposed
+
+    # 2. Hardware facts
+    if any(k in pred for k in ("hardware", "device", "gpu", "cpu", "ram", "server", "part", "inventory", "lack_hardware", "has_hardware", "owns_hardware")):
+        return "hardware"
+
+    # 3. Preference facts
+    if any(k in pred for k in ("prefer", "desire", "seek", "strategy", "goal", "budget")):
+        return "preference"
+
+    # 4. Identity facts
+    if pred in ("is_a", "identity", "name", "callsign") or (subj == "system:josie" and pred == "identity"):
+        return "identity"
+
+    # 5. Architectural facts
+    if any(k in pred for k in ("architecture", "design", "invariant", "rule")):
+        return "architecture"
+
+    # 6. Procedural facts
+    if any(k in pred for k in ("procedure", "workflow", "step", "instruction", "method")):
+        return "procedure"
+
+    if proposed == "decision":
+        if any(k in pred for k in ("decid", "decision", "choice", "approved", "agreed")):
+            return "decision"
+
+    if proposed in ALLOWED_CLAIM_CATEGORIES:
+        return proposed
+
+    return "general"
+
+
 # Deterministic mapping from claim category to underlying SQLite memory layer
 CATEGORY_TO_MEMORY_LAYER = {
     "profile": "identity",
@@ -472,7 +528,18 @@ class CandidateClaimProposal:
             raise ValueError(
                 f"CandidateClaimProposal.claim_category must be one of {sorted(ALLOWED_CLAIM_CATEGORIES)}, got {self.claim_category!r}"
             )
-        if self.memory_layer not in ALLOWED_MEMORY_LAYERS:
+        norm_cat = infer_claim_category(
+            predicate=self.predicate,
+            value_text=self.value_text,
+            subject_entity_id=self.subject_entity_id,
+            proposed_category=clean_cat,
+        )
+        if norm_cat != clean_cat:
+            clean_cat = norm_cat
+            object.__setattr__(self, "claim_category", clean_cat)
+            if self.memory_layer not in ALLOWED_MEMORY_LAYERS or self.memory_layer == "semantic":
+                object.__setattr__(self, "memory_layer", CATEGORY_TO_MEMORY_LAYER.get(clean_cat, "semantic"))
+        elif self.memory_layer not in ALLOWED_MEMORY_LAYERS:
             layer = CATEGORY_TO_MEMORY_LAYER.get(clean_cat, "semantic")
             object.__setattr__(self, "memory_layer", layer)
         if not (0.0 <= float(self.confidence) <= 1.0):
@@ -533,10 +600,16 @@ class CandidateClaimProposal:
         raw_cat = str(data.get("claim_category") or "general").strip().lower()
         if raw_cat not in ALLOWED_CLAIM_CATEGORIES:
             raw_cat = "general"
+        clean_cat = infer_claim_category(
+            predicate=str(data.get("predicate") or ""),
+            value_text=str(data.get("value_text") or ""),
+            subject_entity_id=str(data.get("subject_entity_id") or ""),
+            proposed_category=raw_cat,
+        )
 
-        raw_layer = str(data.get("memory_layer") or CATEGORY_TO_MEMORY_LAYER.get(raw_cat, "semantic")).strip().lower()
+        raw_layer = str(data.get("memory_layer") or CATEGORY_TO_MEMORY_LAYER.get(clean_cat, "semantic")).strip().lower()
         if raw_layer not in ALLOWED_MEMORY_LAYERS:
-            raw_layer = "semantic"
+            raw_layer = CATEGORY_TO_MEMORY_LAYER.get(clean_cat, "semantic")
 
         raw_dur = data.get("durability")
         if raw_dur is not None:
@@ -550,7 +623,7 @@ class CandidateClaimProposal:
                 subject_entity_id=str(data.get("subject_entity_id") or ""),
                 predicate=str(data.get("predicate") or ""),
                 value_text=str(data.get("value_text") or ""),
-                claim_category=raw_cat,
+                claim_category=clean_cat,
             )
 
         v_from = str(data.get("valid_from")).strip() if data.get("valid_from") else None
@@ -572,7 +645,7 @@ class CandidateClaimProposal:
             predicate=str(data.get("predicate") or "").strip(),
             value_text=str(data.get("value_text") or "").strip(),
             memory_layer=raw_layer,
-            claim_category=raw_cat,
+            claim_category=clean_cat,
             confidence=conf_val,
             confidence_basis=str(data.get("confidence_basis") or "").strip(),
             extractor_id=str(data.get("extractor_id") or "").strip(),
@@ -1390,6 +1463,14 @@ class LocalModelClaimExtractor:
             "- 'current_state': hardware inventory, point-in-time hardware ownership, current parts on hand, or lack of hardware (e.g. owns 4TB NVMes and 24TB HDDs, does not own RTX 3090). Do NOT classify hardware ownership or lack of hardware as durable. "
             "- 'preference': preferences, goals, strategies, or desired outcomes that may evolve (e.g. seeks cheapest hardware setups to achieve AI goals). "
             "- 'transient': situational, temporary task state, or short-lived intent. "
+            "Classify claim_category into exactly one of: "
+            "- 'profile': human credentials, qualifications, certifications, professional experience, career background (e.g. A+ certified with commercial server experience). "
+            "- 'hardware': physical hardware components, servers, GPUs, storage, specs, ownership or lack of equipment. "
+            "- 'preference': user preferences, goals, strategies, constraints, budgets. "
+            "- 'identity': identity, name, callsign, roles. "
+            "- 'architecture': software system design, components, architecture invariants. "
+            "- 'procedure': workflows, operational procedures, runbooks. "
+            "- 'decision': architectural or design decisions explicitly agreed upon. Do NOT use 'decision' for personal credentials, background, or hardware inventory. "
             "For each evidence reference, provide the exact verbatim excerpt/span supporting the claim: "
             "- 'direct_user_assertion': Dustin speaking directly in first-person (e.g. 'Btw i am a+ certified...', 'Btw i dont own a 3090'). "
             "- 'quoted_or_pasted_content': pasted AI output such as ChatGPT recommendations inside a user turn. "
@@ -1408,6 +1489,9 @@ class LocalModelClaimExtractor:
             "use 'assistant:gemini' for assertions made by Gemini Apps; "
             "use 'assistant:chatgpt' for assertions made by or quoted from ChatGPT; "
             "use 'system:josie' ONLY for specifications of the Josie architecture. "
+            "CRITICAL CLAIM CATEGORY RULES: "
+            "Classify human credentials, certifications, qualifications, and server background as 'profile', NEVER as 'decision'. "
+            "Classify hardware inventory or equipment states as 'hardware'. "
             "CRITICAL TEMPORAL / DURABILITY RULES: "
             "Distinguish durable credentials/identity ('durable') from point-in-time hardware states ('current_state') and evolving goals/strategies ('preference'). "
             "Hardware ownership or lack of hardware (e.g. does not own RTX 3090) MUST be classified as 'current_state', NEVER as 'durable'. "
@@ -1562,6 +1646,14 @@ class LocalModelClaimExtractor:
                         if not any(k in val_str for k in ("certified", "experience", "degree")):
                             prop_dur = "current_state"
                 raw_prop["durability"] = prop_dur
+
+                prop_cat = infer_claim_category(
+                    predicate=str(raw_prop.get("predicate") or ""),
+                    value_text=str(raw_prop.get("value_text") or ""),
+                    subject_entity_id=str(raw_prop.get("subject_entity_id") or ""),
+                    proposed_category=str(raw_prop.get("claim_category") or "general"),
+                )
+                raw_prop["claim_category"] = prop_cat
 
                 if not raw_prop.get("valid_from") and valid_refs:
                     for vr in valid_refs:
@@ -1794,7 +1886,7 @@ def stage_candidate_claims(
                     memory_layer=data["memory_layer"],
                     status="candidate",
                     evidence_class=evidence_class,
-                    authority_scope=f"candidate:{data['claim_category']}",
+                    authority_scope="candidate",
                     confidence=conf,
                     confidence_basis=conf_basis,
                     durability=data.get("durability", "durable"),
@@ -1911,8 +2003,8 @@ def stage_candidate_claims(
                             "claim_id, subject_entity_id, predicate, value_text, memory_layer, "
                             "status, evidence_class, authority_scope, confidence, confidence_basis, "
                             "valid_from, valid_to, created_at, updated_at, approved_by, reviewed_at, "
-                            "canonical_effect, superseded_by_claim_id, version, durability"
-                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)",
+                            "canonical_effect, superseded_by_claim_id, version, durability, claim_category"
+                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?, ?)",
                             (
                                 rec.claim_id,
                                 rec.subject_entity_id,
@@ -1932,13 +2024,15 @@ def stage_candidate_claims(
                                 None,
                                 None,
                                 rec.durability,
+                                rec.claim_category,
                             ),
                         )
                     else:
                         conn.execute(
                             "UPDATE memory_claims SET "
                             "confidence = ?, confidence_basis = ?, evidence_class = ?, updated_at = ?, "
-                            "durability = ?, valid_from = COALESCE(?, valid_from), valid_to = COALESCE(?, valid_to) "
+                            "durability = ?, valid_from = COALESCE(?, valid_from), valid_to = COALESCE(?, valid_to), "
+                            "claim_category = COALESCE(?, claim_category) "
                             "WHERE claim_id = ? AND status = 'candidate' AND canonical_effect = 0",
                             (
                                 rec.confidence,
@@ -1948,6 +2042,7 @@ def stage_candidate_claims(
                                 rec.durability,
                                 rec.valid_from,
                                 rec.valid_to,
+                                rec.claim_category,
                                 rec.claim_id,
                             ),
                         )
@@ -2097,7 +2192,8 @@ def adjudicate_candidate_claim(
         try:
             existing = conn.execute(
                 "SELECT claim_id, subject_entity_id, predicate, value_text, status, "
-                "evidence_class, authority_scope, canonical_effect, superseded_by_claim_id "
+                "evidence_class, authority_scope, canonical_effect, superseded_by_claim_id, "
+                "durability, claim_category, memory_layer "
                 "FROM memory_claims WHERE claim_id = ?",
                 (claim_id,),
             ).fetchone()
@@ -2157,23 +2253,26 @@ def adjudicate_candidate_claim(
                     }
 
                 old_auth = str(existing["authority_scope"] or "")
-                new_auth = (
-                    f"canonical:{old_auth.split(':', 1)[1]}"
-                    if old_auth.startswith("candidate:")
-                    else (old_auth or "canonical:general")
-                )
+                new_auth = "canonical"
+                existing_cat = existing["claim_category"] if "claim_category" in existing.keys() else None
+                if not existing_cat:
+                    if ":" in old_auth:
+                        existing_cat = old_auth.split(":", 1)[1]
+                    else:
+                        existing_cat = str(existing["memory_layer"])
 
                 conn.execute(
                     "UPDATE memory_claims SET "
                     "status = 'active', "
                     "evidence_class = 'CANONICAL', "
                     "authority_scope = ?, "
+                    "claim_category = COALESCE(claim_category, ?), "
                     "canonical_effect = 1, "
                     "approved_by = ?, "
                     "reviewed_at = ?, "
                     "updated_at = ? "
                     "WHERE claim_id = ?",
-                    (new_auth, clean_reviewer, now, now, claim_id),
+                    (new_auth, existing_cat, clean_reviewer, now, now, claim_id),
                 )
 
                 adj_id = f"adj:{claim_id}:{hashlib.sha256((now + clean_reviewer).encode('utf-8')).hexdigest()[:12]}"
@@ -2337,7 +2436,7 @@ def list_candidate_claims(
         claims = conn.execute(
             "SELECT c.claim_id, c.subject_entity_id, c.predicate, c.value_text, "
             "c.memory_layer, c.status, c.confidence, c.confidence_basis, c.authority_scope, c.created_at, "
-            "c.durability, c.valid_from, c.valid_to, "
+            "c.durability, c.valid_from, c.valid_to, c.claim_category, "
             "COUNT(e.evidence_id) as evidence_count "
             "FROM memory_claims c LEFT JOIN claim_evidence e ON e.claim_id = c.claim_id "
             "WHERE c.status = ? "
@@ -2360,7 +2459,11 @@ def list_candidate_claims(
             ).fetchone()
 
             auth_scope = str(c["authority_scope"] or "")
-            cat = auth_scope.split(":", 1)[1] if ":" in auth_scope else str(c["memory_layer"])
+            cat = (
+                c["claim_category"]
+                if ("claim_category" in c.keys() and c["claim_category"])
+                else (auth_scope.split(":", 1)[1] if ":" in auth_scope else str(c["memory_layer"]))
+            )
 
             results.append({
                 "claim_id": c["claim_id"],
@@ -2447,7 +2550,15 @@ def get_candidate_claim_details(
         ).fetchone() if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='candidate_extractions'").fetchone() else None
 
         auth_scope = str(claim["authority_scope"] or "")
-        cat = ext_row["claim_category"] if ext_row else (auth_scope.split(":", 1)[1] if ":" in auth_scope else str(claim["memory_layer"]))
+        cat = (
+            claim["claim_category"]
+            if ("claim_category" in claim.keys() and claim["claim_category"])
+            else (
+                ext_row["claim_category"]
+                if ext_row
+                else (auth_scope.split(":", 1)[1] if ":" in auth_scope else str(claim["memory_layer"]))
+            )
+        )
 
         competing = conn.execute(
             "SELECT claim_id, value_text, status, confidence, approved_by, reviewed_at, created_at, superseded_by_claim_id "

@@ -736,6 +736,7 @@ class LocalStore:
                     durability TEXT NOT NULL DEFAULT 'durable' CHECK (
                         durability IN ('durable','current_state','preference','transient')
                     ),
+                    claim_category TEXT,
                     CHECK ((object_entity_id IS NULL) != (value_text IS NULL)),
                     CHECK (
                         canonical_effect = 0 OR (
@@ -930,6 +931,29 @@ class LocalStore:
                     "ALTER TABLE memory_claims ADD COLUMN durability TEXT NOT NULL DEFAULT 'durable' "
                     "CHECK (durability IN ('durable','current_state','preference','transient'))"
                 )
+            if "claim_category" not in memory_claim_columns:
+                connection.execute(
+                    "ALTER TABLE memory_claims ADD COLUMN claim_category TEXT"
+                )
+            # Ensure claim_category is populated from candidate_extractions or authority_scope if null
+            try:
+                connection.execute(
+                    "UPDATE memory_claims SET claim_category = ("
+                    "  SELECT e.claim_category FROM candidate_extractions e "
+                    "  WHERE e.claim_id = memory_claims.claim_id ORDER BY e.created_at DESC LIMIT 1"
+                    ") WHERE claim_category IS NULL AND EXISTS ("
+                    "  SELECT 1 FROM candidate_extractions e WHERE e.claim_id = memory_claims.claim_id"
+                    ")"
+                )
+                connection.execute(
+                    "UPDATE memory_claims SET claim_category = substr(authority_scope, instr(authority_scope, ':') + 1) "
+                    "WHERE claim_category IS NULL AND instr(authority_scope, ':') > 0"
+                )
+                connection.execute(
+                    "UPDATE memory_claims SET claim_category = memory_layer WHERE claim_category IS NULL"
+                )
+            except Exception:
+                pass
             for redundant_col in ("valid_until", "supersedes_claim_id"):
                 if redundant_col in memory_claim_columns:
                     try:

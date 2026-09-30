@@ -568,31 +568,60 @@ def seed_canonical_knowledge(
                     memory_layer = layer_map.get(r.category, "semantic")
                     conf_val = 1.0 if r.confidence == "high" else (0.7 if r.confidence == "medium" else 0.3)
 
-                    conn.execute(
-                        "INSERT INTO memory_claims("
-                        "claim_id, subject_entity_id, predicate, value_text, memory_layer, status, evidence_class, "
-                        "authority_scope, confidence, confidence_basis, created_at, updated_at, approved_by, reviewed_at, "
-                        "canonical_effect, superseded_by_claim_id, version"
-                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
-                        (
-                            r.record_id,
-                            subject_id,
-                            predicate,
-                            r.content,
-                            memory_layer,
-                            r.status,
-                            r.evidence_class,
-                            f"{r.source_kind}:{r.category}",
-                            conf_val,
-                            f"Canonical record from {r.source_reference}",
-                            now,
-                            now,
-                            approved_by,
-                            reviewed_at,
-                            canonical_effect,
-                            r.superseded_by,
-                        ),
-                    )
+                    claim_cols = [c[1] for c in conn.execute("PRAGMA table_info(memory_claims)").fetchall()]
+                    if "claim_category" in claim_cols:
+                        conn.execute(
+                            "INSERT INTO memory_claims("
+                            "claim_id, subject_entity_id, predicate, value_text, memory_layer, status, evidence_class, "
+                            "authority_scope, confidence, confidence_basis, created_at, updated_at, approved_by, reviewed_at, "
+                            "canonical_effect, superseded_by_claim_id, version, durability, claim_category"
+                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'durable', ?)",
+                            (
+                                r.record_id,
+                                subject_id,
+                                predicate,
+                                r.content,
+                                memory_layer,
+                                r.status,
+                                r.evidence_class,
+                                r.source_kind,
+                                conf_val,
+                                f"Canonical record from {r.source_reference}",
+                                now,
+                                now,
+                                approved_by,
+                                reviewed_at,
+                                canonical_effect,
+                                r.superseded_by,
+                                r.category,
+                            ),
+                        )
+                    else:
+                        conn.execute(
+                            "INSERT INTO memory_claims("
+                            "claim_id, subject_entity_id, predicate, value_text, memory_layer, status, evidence_class, "
+                            "authority_scope, confidence, confidence_basis, created_at, updated_at, approved_by, reviewed_at, "
+                            "canonical_effect, superseded_by_claim_id, version"
+                            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+                            (
+                                r.record_id,
+                                subject_id,
+                                predicate,
+                                r.content,
+                                memory_layer,
+                                r.status,
+                                r.evidence_class,
+                                f"{r.source_kind}:{r.category}",
+                                conf_val,
+                                f"Canonical record from {r.source_reference}",
+                                now,
+                                now,
+                                approved_by,
+                                reviewed_at,
+                                canonical_effect,
+                                r.superseded_by,
+                            ),
+                        )
 
                     evidence_id = f"ev:{r.record_id}"
                     relation_type = "supersedes" if r.superseded_by else "supports"
@@ -787,13 +816,16 @@ def load_knowledge_from_store(store: LocalStore) -> list[KnowledgeRecord]:
     """
     records: list[KnowledgeRecord] = []
     with store._connect() as conn:
+        claim_cols = [c[1] for c in conn.execute("PRAGMA table_info(memory_claims)").fetchall()]
+        has_cat_col = "claim_category" in claim_cols
+        cat_select = ", claim_category" if has_cat_col else ""
         claims = conn.execute(
-            "SELECT claim_id, subject_entity_id, predicate, value_text, memory_layer, "
-            "status, evidence_class, authority_scope, confidence, created_at, "
-            "superseded_by_claim_id, approved_by, reviewed_at, canonical_effect, "
-            "durability, valid_from, valid_to "
-            "FROM memory_claims "
-            "ORDER BY claim_id"
+            f"SELECT claim_id, subject_entity_id, predicate, value_text, memory_layer, "
+            f"status, evidence_class, authority_scope, confidence, created_at, "
+            f"superseded_by_claim_id, approved_by, reviewed_at, canonical_effect, "
+            f"durability, valid_from, valid_to{cat_select} "
+            f"FROM memory_claims "
+            f"ORDER BY claim_id"
         ).fetchall()
 
         if not claims:
@@ -843,7 +875,9 @@ def load_knowledge_from_store(store: LocalStore) -> list[KnowledgeRecord]:
             )
 
             auth_scope = str(row["authority_scope"] or "")
-            if ":" in auth_scope:
+            if has_cat_col and "claim_category" in row.keys() and row["claim_category"]:
+                category = str(row["claim_category"])
+            elif ":" in auth_scope:
                 category = auth_scope.split(":", 1)[1]
             else:
                 category = str(row["memory_layer"])
@@ -871,6 +905,8 @@ def load_knowledge_from_store(store: LocalStore) -> list[KnowledgeRecord]:
                 "valid_until": row["valid_to"] if "valid_to" in row.keys() else None,
                 "superseded_by_claim_id": row["superseded_by_claim_id"],
                 "evidence_references": evidence_list,
+                "claim_category": category,
+                "authority_scope": auth_scope,
             }
 
             records.append(
