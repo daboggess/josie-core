@@ -35,11 +35,12 @@ def now() -> str:
 
 
 def _priming_summary(order: WorkOrder) -> dict[str, Any]:
+    router_data = order.raw.get("memory_router")
     ctx = order.raw.get("priming_context")
     if not ctx:
         bundle_hash = order.raw.get("priming_bundle_hash")
         if bundle_hash:
-            return {
+            res = {
                 "used": True,
                 "bundle_hash": bundle_hash,
                 "manifest_hash": None,
@@ -48,33 +49,38 @@ def _priming_summary(order: WorkOrder) -> dict[str, Any]:
                 "schema_version": "1.0",
                 "sources": [],
             }
-        return {
-            "used": False,
-            "bundle_hash": None,
-            "manifest_hash": None,
-            "is_empty": True,
-            "source_ids": [],
-            "schema_version": None,
-            "sources": [],
-        }
-    return {
-        "used": True,
-        "bundle_hash": ctx.get("bundle_hash"),
-        "manifest_hash": ctx.get("manifest_hash"),
-        "is_empty": bool(ctx.get("is_empty")),
-        "source_ids": list(ctx.get("source_ids", [])),
-        "schema_version": ctx.get("schema_version", "1.0"),
-        "sources": [
-            {
-                "item_id": s.get("item_id"),
-                "category": s.get("category"),
-                "source_kind": s.get("source_kind"),
-                "source_reference": s.get("source_reference"),
-                "item_hash": s.get("item_hash"),
+        else:
+            res = {
+                "used": False,
+                "bundle_hash": None,
+                "manifest_hash": None,
+                "is_empty": True,
+                "source_ids": [],
+                "schema_version": None,
+                "sources": [],
             }
-            for s in ctx.get("sources", [])
-        ],
-    }
+    else:
+        res = {
+            "used": True,
+            "bundle_hash": ctx.get("bundle_hash"),
+            "manifest_hash": ctx.get("manifest_hash"),
+            "is_empty": bool(ctx.get("is_empty")),
+            "source_ids": list(ctx.get("source_ids", [])),
+            "schema_version": ctx.get("schema_version", "1.0"),
+            "sources": [
+                {
+                    "item_id": s.get("item_id"),
+                    "category": s.get("category"),
+                    "source_kind": s.get("source_kind"),
+                    "source_reference": s.get("source_reference"),
+                    "item_hash": s.get("item_hash"),
+                }
+                for s in ctx.get("sources", [])
+            ],
+        }
+    if router_data:
+        res["router"] = router_data
+    return res
 
 
 def resource_check(order: WorkOrder) -> dict:
@@ -393,7 +399,7 @@ def _execute_one(path: Path, raw_override: dict | None = None) -> tuple[dict, Pa
                 denied_actions=side_effect_policy["denied_actions"]):
             reason = "PREMATURE_STOP"
         attempt_transitions.append({"state": status, "at": now()})
-        receipt = {"schema_version": "1", "supervisor_version": VERSION, "job_id": order.raw["job_id"], "attempt": attempt, "max_attempts": order.raw["max_attempts"], "previous_receipt": str(previous_receipt) if previous_receipt else None, "harness": order.raw["harness"], "harness_executable": worker["argv"][0], "harness_version": worker["version"], "requested_model": order.raw["model"], "discovered_model": pf.get("discovered_model"), "workspace": str(order.workspace), "argv": worker["argv"], "environment_evidence": worker.get("environment_evidence", {}), "started_at": started, "ended_at": ended, "elapsed_seconds": worker["elapsed_seconds"], "pid": worker["pid"], "liveness": worker.get("liveness", {}), "state_transitions": attempt_transitions, "timed_out": worker["timed_out"], "stalled": worker.get("stalled", False), "cleanup": worker["cleanup"], "exit_code": worker["exit_code"], "stdout_path": str(stdout_path), "stderr_path": str(stderr_path), "before_state": before, "observed_changed_paths": observed_changes, "worker_changed_paths": changes, "supervisor_owned_artifacts": [str(path) for path in supervisor_artifacts], "supervisor_owned_workspace_paths": owned_relative, "changed_files": changes, "scope_violations": violations, "acceptance_results": acceptance, "preflight": pf, "resource_preflight": resources, "resource_postflight": resource_check(order), "priming": _priming_summary(order), "side_effect_policy": side_effect_policy, "tool_activity": tool_names, "tool_events": tool_events[-40:], "blocker_reported": blocker_reported, "worker_launched": True, "final_status": status, "reason": reason}
+        receipt = {"schema_version": "1", "supervisor_version": VERSION, "job_id": order.raw["job_id"], "attempt": attempt, "max_attempts": order.raw["max_attempts"], "previous_receipt": str(previous_receipt) if previous_receipt else None, "harness": order.raw["harness"], "harness_executable": worker["argv"][0], "harness_version": worker["version"], "requested_model": order.raw["model"], "discovered_model": pf.get("discovered_model"), "workspace": str(order.workspace), "argv": worker["argv"], "environment_evidence": worker.get("environment_evidence", {}), "started_at": started, "ended_at": ended, "elapsed_seconds": worker["elapsed_seconds"], "pid": worker["pid"], "liveness": worker.get("liveness", {}), "state_transitions": attempt_transitions, "timed_out": worker["timed_out"], "stalled": worker.get("stalled", False), "cleanup": worker["cleanup"], "exit_code": worker["exit_code"], "stdout_path": str(stdout_path), "stderr_path": str(stderr_path), "before_state": before, "observed_changed_paths": observed_changes, "worker_changed_paths": changes, "supervisor_owned_artifacts": [str(path) for path in supervisor_artifacts], "supervisor_owned_workspace_paths": owned_relative, "changed_files": changes, "scope_violations": violations, "acceptance_results": acceptance, "preflight": pf, "resource_preflight": resources, "resource_postflight": resource_check(order), "priming": _priming_summary(order), "memory_router": order.raw.get("memory_router"), "side_effect_policy": side_effect_policy, "tool_activity": tool_names, "tool_events": tool_events[-40:], "blocker_reported": blocker_reported, "worker_launched": True, "final_status": status, "reason": reason}
         receipt_path = write_receipt(receipt_dir, receipt, receipt_id)
         if not should_retry(reason, attempt, order.raw["max_attempts"]):
             return receipt, receipt_path

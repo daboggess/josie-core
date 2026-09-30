@@ -12,7 +12,10 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from playwright.sync_api import BrowserContext, Page, Playwright, sync_playwright
+try:
+    from playwright.sync_api import BrowserContext, Page, Playwright, sync_playwright
+except ImportError:
+    BrowserContext = Page = Playwright = sync_playwright = None  # type: ignore
 
 from josie.summit_relay import AcceptanceRelay, ReceiptLog, load_relay_config
 

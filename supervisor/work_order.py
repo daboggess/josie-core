@@ -25,7 +25,7 @@ KNOWN_FIELDS = {
     "goose_config", "context_limit", "max_tool_repetitions",
     "reporting_instructions", "edit_format", "aider_config", "read_only_paths",
     "prompt_contract_version", "worker_failure_modes", "resource_rules", "receipt_instructions",
-    "priming_context", "priming_bundle_hash",
+    "priming_context", "priming_bundle_hash", "memory_router",
 }
 KNOWN_ACCEPTANCE = {"file_exists", "file_exact", "command", "changed_paths", "no_unexpected_files"}
 
@@ -201,4 +201,8 @@ class WorkOrder:
                 raise ValidationError("priming_bundle_hash must be a valid SHA-256 hex string")
             if "priming_context" in data and data["priming_context"].get("bundle_hash") != pbh:
                 raise ValidationError("priming_bundle_hash does not match priming_context.bundle_hash")
+        if "memory_router" in data:
+            mr = data["memory_router"]
+            if not isinstance(mr, dict):
+                raise ValidationError("memory_router must be an object")
         return cls(data, workspace, allowed_rules, forbidden)

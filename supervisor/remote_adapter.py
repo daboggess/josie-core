@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -7,6 +8,8 @@ import shlex
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
+
+from josie.memory_router import ROUTER_VERSION, MemoryRelevance, route_memory_relevance
 
 from . import VERSION
 from .authority import authorize_command
@@ -51,22 +54,21 @@ CONFIG = Path(r"D:\Josie\config\opencode-local.json")
 AGENT_PROFILE = Path(r"D:\Josie\.opencode\agents\josie-coder.md")
 
 
-def resolve_task_categories(
+def evaluate_task_memory_relevance(
     task: str = "",
     *,
     prompt_profile: str = "josie-coder-v1",
     allowed_changes: list[str] | None = None,
     retrieval_context: dict | None = None,
-) -> tuple[str, ...]:
+) -> MemoryRelevance:
     """Deterministically resolve relevant canonical knowledge categories for a task.
 
     Precedence:
     1. Explicit structured "priming_categories" metadata, when valid.
     2. Known route / operation / prompt_profile / task class metadata.
     3. Authorized or allowed changed-path prefixes that deterministically identify a known project area.
-    4. Otherwise EMPTY categories.
-
-    Arbitrary conversational wording in `task` alone does NOT trigger categories.
+    4. Automatic Memory Relevance Router (deterministic rules + model fallback).
+    5. Otherwise EMPTY categories (fail-closed).
     """
     retrieval = retrieval_context or {}
 
@@ -75,14 +77,32 @@ def resolve_task_categories(
     if isinstance(explicit, (list, tuple)):
         valid = tuple(c.strip().lower() for c in explicit if isinstance(c, str) and c.strip())
         if valid:
-            return valid
+            return MemoryRelevance(
+                memory_needed=True,
+                categories=valid,
+                confidence=1.0,
+                reason="explicit caller priming_categories in retrieval_context",
+                router_version=ROUTER_VERSION,
+            )
 
     # 2. Known route / operation / prompt_profile / task class metadata
     task_class = str(retrieval.get("task_class") or retrieval.get("operation") or "").strip().lower()
     if task_class in {"architecture", "supervisor", "supervisor_core"}:
-        return ("architecture", "procedure")
+        return MemoryRelevance(
+            memory_needed=True,
+            categories=("architecture", "procedure"),
+            confidence=1.0,
+            reason=f"task class/operation '{task_class}' matched architecture",
+            router_version=ROUTER_VERSION,
+        )
     if task_class in {"identity", "governance", "authority"}:
-        return ("identity", "procedure")
+        return MemoryRelevance(
+            memory_needed=True,
+            categories=("identity", "procedure"),
+            confidence=1.0,
+            reason=f"task class/operation '{task_class}' matched authority",
+            router_version=ROUTER_VERSION,
+        )
 
     # 3. Authorized or allowed changed-path prefixes
     allowed = [p.replace("\\", "/").strip().lstrip("/") for p in (allowed_changes or [])]
@@ -111,10 +131,33 @@ def resolve_task_categories(
             if c not in seen:
                 seen.add(c)
                 result.append(c)
-        return tuple(result)
+        return MemoryRelevance(
+            memory_needed=True,
+            categories=tuple(result),
+            confidence=1.0,
+            reason="allowed changed-path prefix matched known subsystem",
+            router_version=ROUTER_VERSION,
+        )
 
-    # 4. Otherwise EMPTY categories
-    return ()
+    # 4. Automatic Memory Relevance Router
+    return route_memory_relevance(task)
+
+
+def resolve_task_categories(
+    task: str = "",
+    *,
+    prompt_profile: str = "josie-coder-v1",
+    allowed_changes: list[str] | None = None,
+    retrieval_context: dict | None = None,
+) -> tuple[str, ...]:
+    """Deterministically resolve relevant canonical knowledge categories for a task."""
+    relevance = evaluate_task_memory_relevance(
+        task=task,
+        prompt_profile=prompt_profile,
+        allowed_changes=allowed_changes,
+        retrieval_context=retrieval_context,
+    )
+    return relevance.categories if relevance.memory_needed else ()
 
 
 class NeedsJobDetails(ValueError):
@@ -261,12 +304,13 @@ def parse_remote_job(text: str, *, request_id: str, project_root: Path,
 
     # Deterministic Priming Integration:
     # Supplements existing retrieval with bounded canonical knowledge excerpts
-    categories = resolve_task_categories(
+    relevance = evaluate_task_memory_relevance(
         sections["task"],
         prompt_profile="josie-coder-v1",
         allowed_changes=order["allowed_changed_paths"],
         retrieval_context=retrieval,
     )
+    categories = relevance.categories if relevance.memory_needed else ()
 
     try:
         if categories:
@@ -289,6 +333,19 @@ def parse_remote_job(text: str, *, request_id: str, project_root: Path,
         bundle = assemble_priming_bundle(manifest, [])
 
     apply_priming_to_work_order(order, bundle)
+
+    task_hash = hashlib.sha256(sections["task"].strip().encode("utf-8")).hexdigest()
+    order["memory_router"] = {
+        "router_version": relevance.router_version,
+        "task_hash": task_hash,
+        "memory_needed": relevance.memory_needed,
+        "confidence": round(relevance.confidence, 4),
+        "selected_categories": list(relevance.categories),
+        "reason": relevance.reason,
+        "priming_manifest_hash": manifest.manifest_hash if relevance.memory_needed else None,
+        "priming_bundle_hash": bundle.bundle_hash if relevance.memory_needed else None,
+        "canonical_item_ids": [item.item_id for item in bundle.items] if relevance.memory_needed else [],
+    }
     WorkOrder.validate(order)
     order_dir = private / "supervisor-work-orders"
     order_dir.mkdir(parents=True, exist_ok=True)
