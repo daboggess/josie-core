@@ -111,6 +111,7 @@ working:
   - "Cross-source corroboration and consolidation: 726 noncanonical candidates, 777 evidence rows, zero automatic promotions, canonical count strictly 10"
   - "Consolidated human decision queue assembled: 35 items in docs/memory/cross_source_inheritance/DUSTIN_FINAL_DECISION_QUEUE.md"
   - "Canonical forward direction ratified: docs/JOSIE_CONTINUITY_AND_INTERFACE_DIRECTION_2026-10-05.md"
+  - "Josie project-team Slack relay operational: narrow local client in josie/slack_relay.py using Slack Web API and Socket Mode (zero public ports), strict message envelopes, mission correlation, replay prevention, Dustin manual wake-up mention, and verified pilot slack-relay-pilot-001 with Sophie MISSION_COMPLETE receipt; zero OpenAI API/Work invocations"
 
 next:
   - id: inheritance_closeout_and_adjudication

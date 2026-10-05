@@ -121,6 +121,7 @@ The checked entries below preserve the 2026-08-13 record; they are not renewed v
 - [x] Keep model blobs on D:, OpenAI disabled, and native Ollama inaccessible from LAN/Tailscale clients.
 - [x] Qwen 2.5 passed benign and adversarial structured-proposal evaluation; the conditional Qwen3 A/B test was not triggered.
 - [x] Preserve a provider-neutral optional editor/checker role; no Claude dependency or subscription is selected.
+- [x] Implement operational Josie project-team Slack relay (`josie/slack_relay.py`) for visible collaboration in `#josie` (`C0C6QGLK1EZ`) using Web API and Socket Mode (0 public ports), removing Dustin from copy/paste transport while preserving zero OpenAI API/Work spend and using Dustin solely as a manual one-word wake-up switch (`relay`). Pilot `slack-relay-pilot-001` passed with verified Sophie `MISSION_COMPLETE` live receipt.
 
 ## Persistent memory and continuity
 
