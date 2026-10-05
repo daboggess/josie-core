@@ -1,0 +1,172 @@
+{
+  "unit_id": "BULK_UNIT_07",
+  "unit_index": 7,
+  "manifest_sha256": "ebab01dad41bd4dc24b69249c689ced751e1c96faa1f8a1f86394b0e80a32788",
+  "conversations_processed": 24,
+  "textual_messages_processed": 191,
+  "user_messages_processed": 94,
+  "chunks_processed": 25,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 24,
+    "textual_messages_processed": 191,
+    "user_messages_processed": 94,
+    "raw_model_proposals": 6,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 4,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 4,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 6,
+  "evidence_links_count": 6,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 196,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:is_the_head_of_his_household:c51bf2d73461e0d3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_the_head_of_his_household",
+      "value_text": "head of his household",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16183,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "my place as a Christian, my place as the head of my household",
+          "source_timestamp": "2026-05-18T15:24:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_delve_into:82ae742b7e0819b2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_delve_into",
+      "value_text": "the connection between D.L. Moody and Horatio Spafford regarding the writing of 'It Is Well with My Soul'",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16174,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "All I wanted to share was, last night, Rod brought up the apostolic succession of D.L. Moody all the way to Billy Graham, and they were mentioning the Sunday school teacher that kind of kicked it all off. And I was going to delve into D.L. Moody and Horatio Spafford and the writing of It Is Well with My S",
+          "source_timestamp": "2026-05-18T13:58:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_business_license:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_business_license",
+      "value_text": "yes",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16150,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "as somebody who has a EIN and a business license and access to commercial products generally, and who uses tunnel washes, whose wife uses tunnel washes for our personal vehicles",
+          "source_timestamp": "2026-05-12T16:26:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_physical_attributes:0f44bdda3e10ce19",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_physical_attributes",
+      "value_text": "6'4\", 260 lbs, mostly belly",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16085,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I am 6'4\", 260, and mostly, almost all belly, so anything I appendix carry is gonna have to sit below my waistline.",
+          "source_timestamp": "2026-05-10T21:14:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:evaluates_holster_suitability:11a5b982fc26df1a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "evaluates_holster_suitability",
+      "value_text": "Safari Land Intog and Fat Tech holsters are insufficiently deep for his needs",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 16087,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "recommendations, because the only thing I've looked at I even partially liked was the Safari Land Intog, and it still didn't seem deep enough. People mentioned Fat Tech, but it doesn't look deep enough either.",
+          "source_timestamp": "2026-05-10T21:16:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:fb22e2826c5212b7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "considering Newegg E-ATX case (N82E16811353280) for dual X99 build",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16078,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "https://www.newegg.com/diypc-e-atx-atx-case-steel-tempered-glass-cases-white-argb-n3-w/p/N82E16811353280",
+          "source_timestamp": "2026-05-10T20:44:10Z"
+        }
+      ]
+    }
+  ]
+}

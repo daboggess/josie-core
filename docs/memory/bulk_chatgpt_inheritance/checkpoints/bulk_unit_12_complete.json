@@ -1,0 +1,391 @@
+{
+  "unit_id": "BULK_UNIT_12",
+  "unit_index": 12,
+  "manifest_sha256": "8fad81f46504279ad6ae12f8bac93a423e91e1f273989be39aacedb79a127e37",
+  "conversations_processed": 21,
+  "textual_messages_processed": 372,
+  "user_messages_processed": 175,
+  "chunks_processed": 37,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 372,
+    "user_messages_processed": 175,
+    "raw_model_proposals": 21,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 3,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 8,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 1,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 8,
+    "runbook_procedure": 0,
+    "sensitive_review": 1,
+    "transient_noise": 0,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 16,
+  "evidence_links_count": 17,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 264,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:179c0594cf4e972c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Beelink S12 with Intel N100 processor",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14585,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have a Beelink S12, it's got the N100.",
+          "source_timestamp": "2026-04-02T22:15:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:integrates:9c45bad210c61f1a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "integrates",
+      "value_text": "Lightspeed POS through browser interface",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14635,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "we can open my Lightspeed POS and look at my current inventory and look at my sales data, look at customer information. Like all of that is capable through my browser.",
+          "source_timestamp": "2026-04-02T23:45:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:f00d2cd6b90cbe27",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Claude Compute for local execution",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14628,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Claude Compute runs on the local box and can click whatever I have access to on the locked box.",
+          "source_timestamp": "2026-04-02T23:31:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_have_container:7f331a0764ad607c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_have_container",
+      "value_text": "portainer",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9225,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no such container",
+          "source_timestamp": "2025-11-21T19:08:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own:bf597040a5405faf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own",
+      "value_text": "another PC or TD350",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9358,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "dont have another pc no td350",
+          "source_timestamp": "2025-12-08T17:32:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:629a9eae49a44440",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "does not own better hardware than current setup",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9367,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No ill scrap this till i buy better hardware.",
+          "source_timestamp": "2025-12-08T18:10:38Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:a76ce0b93f4bb381",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "seeks cheapest hosting option for Open WebUI deployment",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9373,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Cheapest host",
+          "source_timestamp": "2026-01-26T02:16:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires_non_diy_easy_to_use_morning_solutions:3bcf68ff47f613f9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires_non_diy_easy_to_use_morning_solutions",
+      "value_text": "no DIY, need easy, mornings too chaotic",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14556,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No diy, need easy, mornings too chaotic",
+          "source_timestamp": "2026-04-02T18:01:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_sensitivity_to_red_dye:3ca8182f2731917e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_sensitivity_to_red_dye",
+      "value_text": "experiences irritability",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14457,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I've also noticed red dye definitely makes me extremely irritable.",
+          "source_timestamp": "2026-03-27T22:52:09Z"
+        },
+        {
+          "history_message_id": 14459,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'll cheat and have one or two, or even a bag of Cool Ranch Doritos, seems to have enough that I notice it for about a 24-hour period.",
+          "source_timestamp": "2026-03-27T22:53:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_addictive_behavior_history:8a61e3123b4a836b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_addictive_behavior_history",
+      "value_text": "deep search hobbies, death scrolling, alcoholism, sex addiction, pornography, research/hobbies spending",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "sensitive_review",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 14461,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I've got a long documented history of addictive behavior, personality disorder, whichever you wanna call it, from deep search hobbies, death scrolling, alcoholism, maybe sex addiction, pornography, all the usual dopamine generating kicks, really deep, deep focus into research or hobbies and possibly spending too much money on them and then all of a sudden losing interest.",
+          "source_timestamp": "2026-03-27T22:56:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:859edf78a7a4ff25",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "aluminum-free deodorant usage",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14468,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Ok. I went aluminum free",
+          "source_timestamp": "2026-03-28T01:03:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:62bf2200cf8dc80b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Mando deodorant with Mando soap as effective odor solution",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14470,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Mando w mando soap has been 100% effective for me",
+          "source_timestamp": "2026-03-28T01:04:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_professional_background:ea6543ba240540f9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_professional_background",
+      "value_text": "field service engineer with moderate network, low coding, moderate software skills, primarily a hardware-focused professional with networking and software intelligence",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14434,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm a field service engineer. I work on Salesforce. I have moderate network, low coding, moderate software. I'm mostly a hardware monkey with intelligence for networking and software.",
+          "source_timestamp": "2026-03-27T17:03:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:1d422a88b941536c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Frigidaire fridge model LFSS2312TF0",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14411,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "LFSS2312TFO",
+          "source_timestamp": "2026-03-25T15:07:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:previously_used:d30cf5e257577ff3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "previously_used",
+      "value_text": "Frigidaire UltraWF water filter",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14417,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I looked at my car history and I have bought the WF before and it has worked.",
+          "source_timestamp": "2026-03-25T15:10:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:ed661764f0f5af2f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "Frigidaire UltraWF water filter over WF3CB due to longer lifespan and larger size",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14417,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I see that it's a bigger, longer filter, and I believe it lasts longer, so I'm probably gonna go for it.",
+          "source_timestamp": "2026-03-25T15:10:29Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,643 @@
+{
+  "unit_id": "BULK_UNIT_17",
+  "unit_index": 17,
+  "manifest_sha256": "7548d1e785b1e196b40dbd42fd0b30ff919f3b1ce9017e4ff1838634d822f634",
+  "conversations_processed": 21,
+  "textual_messages_processed": 420,
+  "user_messages_processed": 191,
+  "chunks_processed": 38,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 420,
+    "user_messages_processed": 191,
+    "raw_model_proposals": 28,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 4,
+    "historical_only_routing": 4,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 10,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 11,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 10,
+    "project_architecture": 0,
+    "hardware_state": 11,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 3,
+    "historical_only": 4,
+    "context_archive": 0
+  },
+  "staged_claims_count": 28,
+  "evidence_links_count": 29,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 363,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:is_better_for:c02fc7aee05b0b1d",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "is_better_for",
+      "value_text": "training large language models, handling multiple GPU-heavy tasks in parallel, or doing serious data science crunching",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12521,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Gideon is all about raw muscle for the big AI lifts\u2014like training large language models locally, handling multiple GPU-heavy tasks in parallel, or doing serious data science crunching.",
+          "source_timestamp": "2026-01-28T16:24:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:1ec87e00b7ef7aa9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "concerned about Gideon's power draw requiring a 900-1000W PSU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12536,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "My only concern with Gideon is the power draw, because if I'm going to have to have, you know, a 900-1000W PSU in there, that's going to get hefty.",
+          "source_timestamp": "2026-01-28T16:28:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:551893a3c7208503",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers Gideon's cost-effectiveness for processors and DDR4 memory over Minusforum AI X1 Pro with 64GB",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12536,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "But at the same point in time, right now, Gideon would be cheap for processors, it would be cheap for DDR4 memory, and a lot cheaper than buying a Minusforum AI X1 Pro with at least 64GB in it.",
+          "source_timestamp": "2026-01-28T16:28:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:e6f9df8e01e0da6b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "current goals do not require heavy AI training or parallel workloads",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12534,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Right. Those were things that we had discussed hardware-wise, but I didn't know if there was anything I had asked for actually software-wise or execution-wise that would merit the expense of that hardware.",
+          "source_timestamp": "2026-01-28T16:27:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_smaller_form_factor_systems:d675ba38b3f7cbf8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_smaller_form_factor_systems",
+      "value_text": "prefers smaller form factor systems",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12540,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Right, but I also want something smaller form factor. Don't get me wrong, we've played out the Gideon aesthetic and it would look awesome sitting underneath my desk, but having something smaller consuming less power, but I think my power consumption worries go out the window as soon as we add the dock with the eGPU because we're going to need substantial power to run it.",
+          "source_timestamp": "2026-01-28T16:30:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:acknowledges_need_for_substantial_power_with_egpu:d2472a5fc7d89e30",
+      "subject_entity_id": "person:dustin",
+      "predicate": "acknowledges_need_for_substantial_power_with_egpu",
+      "value_text": "acknowledges need for substantial power with eGPU",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12540,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Right, but I also want something smaller form factor. Don't get me wrong, we've played out the Gideon aesthetic and it would look awesome sitting underneath my desk, but having something smaller consuming less power, but I think my power consumption worries go out the window as soon as we add the dock with the eGPU because we're going to need substantial power to run it.",
+          "source_timestamp": "2026-01-28T16:30:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:teaches_reactively_in_response_to_abby_s_mistakes:5ea5c789b9097309",
+      "subject_entity_id": "person:dustin",
+      "predicate": "teaches_reactively_in_response_to_abby_s_mistakes",
+      "value_text": "often only teach as a response of Abby doing something wrong",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12478,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "As part of my learning to grow in God's provision ive realized i as a parent often only teach as a responce of abby doing something wrong",
+          "source_timestamp": "2026-01-27T16:48:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns_child_s_tool_set:fbdb700d5790e6e1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns_child_s_tool_set",
+      "value_text": "bought her her own tool set, real metal tools small and pink",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12480,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "i bought her her own tool set, real metal tools small and pink",
+          "source_timestamp": "2026-01-27T16:55:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:stores_tools_in_office:d23963f07fb84f57",
+      "subject_entity_id": "person:dustin",
+      "predicate": "stores_tools_in_office",
+      "value_text": "they stay in daddys office because there not toys, their tool we use to fix things",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12480,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "they stay in daddys office because there not toys, their tool we use to fix things",
+          "source_timestamp": "2026-01-27T16:55:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_using:93780a3896282619",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_using",
+      "value_text": "Best Virginia and Ashworth for HVAC services",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12476,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We like Best Virginia, they did our rental trailers, her moms trailer, we used ashworth for our big one 8 years ago and its still got parts and labor coverage on it.",
+          "source_timestamp": "2026-01-26T23:45:34Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans_to_delay:4840b4773cf7380a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans_to_delay",
+      "value_text": "HVAC repair/replacement until March when prices drop",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12474,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Local company prices tank in march (her idea actually)",
+          "source_timestamp": "2026-01-26T23:43:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_team:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_team",
+      "value_text": "yes",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12400,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have a team now.",
+          "source_timestamp": "2026-01-26T21:56:13Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:team_composition:d70db709b349584f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "team_composition",
+      "value_text": "Sophie (Consigliere), Bernie (Ops Manager)",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12406,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Sophie owns the Blueprint; Bernie owns the Tools.",
+          "source_timestamp": "2026-01-26T22:01:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:12370:has_completed_reading:f186163bd27f17c5",
+      "subject_entity_id": "12370",
+      "predicate": "has_completed_reading",
+      "value_text": "the 2023 revised intro of 'Desiring God'",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12370,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Just finished the 2023 revised intro",
+          "source_timestamp": "2026-01-26T19:06:38Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:929274074b82c66b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "Contacts at top of switch 1 2 3 show power. Contacts at bottom do not",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12418,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Contacts at top of switch 1 2 3 show power. Contacts at bottom do not",
+          "source_timestamp": "2026-01-26T16:59:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:bed384aef1c7f29a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "Local Breakers off",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12420,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Local Breakers off",
+          "source_timestamp": "2026-01-26T17:00:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:c96d14643c236abf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "Breakers are on, hence power it",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12424,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Breakers are on, hence power it",
+          "source_timestamp": "2026-01-26T17:05:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:307440112f28408c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "No power to thermostat",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12426,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No power to thermostat",
+          "source_timestamp": "2026-01-26T17:05:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks:0dd0aa403b55f529",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks",
+      "value_text": "AI with least outside influence or agenda",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12411,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Trying to find the ai with the least outside influence or agenda",
+          "source_timestamp": "2026-01-26T02:31:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:dell_t7820_10zg613:has_service_tag:74b9f01af14a705e",
+      "subject_entity_id": "hardware:dell_t7820_10zg613",
+      "predicate": "has_service_tag",
+      "value_text": "10ZG613",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10598,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "The sticker you sent is from the DELL machine (Service Tag: 10ZG613)",
+          "source_timestamp": "2025-12-11T15:36:15Z"
+        },
+        {
+          "history_message_id": 10601,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Service Tag 10ZG613",
+          "source_timestamp": "2025-12-11T15:40:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:dell_t7820_10zg613:manufactured_date:3204a719bb45721b",
+      "subject_entity_id": "hardware:dell_t7820_10zg613",
+      "predicate": "manufactured_date",
+      "value_text": "December 12, 2019",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10601,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Birth Date: December 12, 2019 (Visible o",
+          "source_timestamp": "2025-12-11T15:40:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:1859be6f6eace7f9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Dell T7820 with 685W PSU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10607,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The Dell T7820 with a 685W PSU is a dead end for you.",
+          "source_timestamp": "2025-12-11T15:57:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans:42a36d1b58f4b10c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans",
+      "value_text": "delay GPU purchase for 6-12 months",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10613,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Re-compare the HP and the Dell if I'm not going to be able to buy a GPU for another six months to a year.",
+          "source_timestamp": "2025-12-11T16:06:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:e8a4e31e51bd92e2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "dual-CPU configurations for the Dell Precision T7820",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 10630,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Were going for dual",
+          "source_timestamp": "2025-12-11T16:45:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has:c1340832317acaef",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has",
+      "value_text": "VHB",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10698,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have vhb",
+          "source_timestamp": "2025-12-15T15:21:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_decided_to_use:80725e029e6b21cf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_decided_to_use",
+      "value_text": "128 GB DDR4 ECC RDIMM",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10702,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Lock in 128GB of RAM. We'll find the kit for it later.",
+          "source_timestamp": "2025-12-16T00:30:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_dietary_constraint:4577faf7b45a5d2b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_dietary_constraint",
+      "value_text": "avoids sugar due to intestinal discomfort on Manjaro.glp1",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10308,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Just some general good advice. I really don't eat much sugar. Where I'm on manjaro.glp1, if I eat sugar, I have intestinal discomfort.",
+          "source_timestamp": "2025-12-09T17:44:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_supplier:88c41baef795f4e5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_supplier",
+      "value_text": "FAIR (F-A-I-R-E) for supplement pricing",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10312,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, and remember I have FAIR, F-A-I-R-E, which has been decent on pricing for some of those things.",
+          "source_timestamp": "2025-12-09T17:49:33Z"
+        }
+      ]
+    }
+  ]
+}

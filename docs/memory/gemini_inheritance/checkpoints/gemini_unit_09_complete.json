@@ -1,0 +1,220 @@
+{
+  "unit_id": "GEMINI_UNIT_09",
+  "unit_index": 9,
+  "manifest_sha256": "9c011173e48d18ba297e2ee8038b91ba95d3254938b2f64b6ba8cc11bbe275dc",
+  "conversations_processed": 50,
+  "textual_messages_processed": 175,
+  "user_messages_processed": 91,
+  "chunks_processed": 13,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 175,
+    "user_messages_processed": 91,
+    "raw_model_proposals": 7,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 2,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 5,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 5,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 2,
+    "context_archive": 0
+  },
+  "staged_claims_count": 7,
+  "evidence_links_count": 10,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 627,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_no_artificial_sweeteners:2df4c354ec4d5996",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_no_artificial_sweeteners",
+      "value_text": "avoids sucralose, ace-K, and other artificial sweeteners",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2249,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "there's not artificial sweeteners super loose Ace cave potassium whatever it is all the other artificial sweeteners it's got a little bit of you know cane sugar but it's still low enough on the glass and it's not going to kick me out of my morning fast",
+          "source_timestamp": "2026-04-02T14:58:55Z"
+        },
+        {
+          "history_message_id": 2253,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I really don't like cranberry like the fruit punch was the only one I found out of that line I like it if they don't have it then",
+          "source_timestamp": "2026-04-02T15:01:47Z"
+        },
+        {
+          "history_message_id": 2259,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "will the liquid IV energy pack break my fast",
+          "source_timestamp": "2026-04-02T15:04:56Z"
+        },
+        {
+          "history_message_id": 2261,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm trying to keep my insulin low I was insulin resistant I'm on Majuro gop1 and since cutting out sucralose my insulin is gone back to normal",
+          "source_timestamp": "2026-04-02T15:05:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:fasting_schedule:e2b5cbe47d3dc75f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "fasting_schedule",
+      "value_text": "fasts from 9:10 PM until 3:00 PM",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2261,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I listen to my body I don't push it too far when I'm getting you know hangry and starting to get angry with people but I've also been",
+          "source_timestamp": "2026-04-02T15:05:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:recommends_true_lemong_energy_tropical_punch:086e3b3bb05d29d7",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "recommends_true_lemong_energy_tropical_punch",
+      "value_text": "True Lemon Energy Tropical Punch as a suitable alternative",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 2256,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Your best bet in South Point is the Walmart. They have the True Lemon Energy in Tropical Punch, which is that fruit punch profile you\u2019re looking for without the cranberry.",
+          "source_timestamp": "2026-04-02T15:02:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:notes_liquid_iv_energy_may_break_fast:94978b13ca11c458",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "notes_liquid_iv_energy_may_break_fast",
+      "value_text": "Liquid I.V. Energy Multiplier Sugar-Free may trigger insulin response",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 2260,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "the Sugar-Free Liquid I.V. is a bit of a \"maybe.\" Even though it has zero grams of actual sugar, it uses Allulose and amino acids like L-Glutamine and L-Alanine. For some people, that combo can still trigger a small insulin response, which technically breaks a strict fast.",
+          "source_timestamp": "2026-04-02T15:04:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_dea_number:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_dea_number",
+      "value_text": "yes",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2285,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no I have a DEA number I'm registered with the FDA already they know me I'd go to get a background check to purchase a firearm and it comes back instantaneously trust me I'm clear",
+          "source_timestamp": "2026-04-02T20:54:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_registered_with_fda:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_registered_with_fda",
+      "value_text": "yes",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2285,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no I have a DEA number I'm registered with the FDA already they know me I'd go to get a background check to purchase a firearm and it comes back instantaneously trust me I'm clear",
+          "source_timestamp": "2026-04-02T20:54:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_clear_background_check:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_clear_background_check",
+      "value_text": "yes",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2285,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no I have a DEA number I'm registered with the FDA already they know me I'd go to get a background check to purchase a firearm and it comes back instantaneously trust me I'm clear",
+          "source_timestamp": "2026-04-02T20:54:01Z"
+        }
+      ]
+    }
+  ]
+}

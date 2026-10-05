@@ -1,0 +1,433 @@
+{
+  "unit_id": "BULK_UNIT_09",
+  "unit_index": 9,
+  "manifest_sha256": "8be3fa769b09a9c5e15b70bc877817b014baad321df787582c3c601ece157435",
+  "conversations_processed": 21,
+  "textual_messages_processed": 304,
+  "user_messages_processed": 144,
+  "chunks_processed": 31,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 304,
+    "user_messages_processed": 144,
+    "raw_model_proposals": 21,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 3,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 6,
+    "historical_only_routing": 5,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 6,
+    "historical_only": 5,
+    "context_archive": 0
+  },
+  "staged_claims_count": 18,
+  "evidence_links_count": 19,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 226,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:5d5d0f61ebec04c5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers taking medication on Wednesdays to avoid weekend dips",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15652,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I like wednesday, no weekend dips on either med",
+          "source_timestamp": "2026-05-01T12:03:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_an_engineer_and_systems_thinker:6e62595e0628fefa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_an_engineer_and_systems_thinker",
+      "value_text": "engineer and systems thinker",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15642,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm also an engineer, a systems thinker, and I know AI wants you to rely on it, wants you to like it.",
+          "source_timestamp": "2026-05-01T11:38:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_business_experience:207c27e76cc544ea",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_business_experience",
+      "value_text": "Built and ran a multi-million dollar business with $1.3M peak year and $10M+ lifetime revenue over 12 years",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15628,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Actually, one year we did $1.3 million in sales. We've done over $10 million year-to-date, and that's over 12 years. Just adding that in.",
+          "source_timestamp": "2026-04-30T21:31:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:75933d51a0bdaa43",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Member's Mark Ultra Filtered 2% milk",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15515,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I added about a fourth a cup of Member's Mark Ultra Filtered 2% milk to kinda cut the artificial sweetener taste out of that Premier protein.",
+          "source_timestamp": "2026-04-28T14:14:07Z"
+        },
+        {
+          "history_message_id": 15517,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't know why you keep missing this, but the ultra filtered is lactose-free. That's why I drink it.",
+          "source_timestamp": "2026-04-28T14:15:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:e3f64416f2291058",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Premier Protein ready-to-drink shake",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15511,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I think you know the size. And then fill it the rest of the way with coffee.",
+          "source_timestamp": "2026-04-28T14:07:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:5465c34ae5a030bd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "handheld frother",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15509,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "What about using like one of the little frothers? Pour the protein in a cup, protein powder in a cup with a little bit of milk, and then hit it with one of those frothers to kind of blend it.",
+          "source_timestamp": "2026-04-28T14:04:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:avoids:a0458d0881a1e94d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "avoids",
+      "value_text": "lactose, gluten, dyes",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15517,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I can't handle gluten, I can't handle dyes, I can't handle lactose. Like, I can do cheese, but not milk.",
+          "source_timestamp": "2026-04-28T14:15:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:consumes:873ac9ffea4dd04f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "consumes",
+      "value_text": "cheese",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15517,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I can do cheese, but not milk.",
+          "source_timestamp": "2026-04-28T14:15:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_considering_something_for_pressure_canning:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_considering_something_for_pressure_canning",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15556,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well, I was thinking about something for pressure canning too, because that was something she was looking at.",
+          "source_timestamp": "2026-04-28T16:30:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_concern:a6c7ed5704de5e05",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_concern",
+      "value_text": "about embers/sparks ('fireflies') flying from fire pit in windy backyard posing safety risk",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15474,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "More worried about burning debri flying. Or fireflies elwe call them",
+          "source_timestamp": "2026-04-26T20:49:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_avoid_pirating:3c22e13687aca18a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_avoid_pirating",
+      "value_text": "we decided to get away from pirating",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15415,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Can you purge Plex from your memory? We decided to get away from pirating.",
+          "source_timestamp": "2026-04-24T19:36:35Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_subscription_services_over_pirating:d28c87cf302d4325",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_subscription_services_over_pirating",
+      "value_text": "we're just paying for subscription services like a schmuck, but feeling morally justified about it",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15417,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No thank you, we're just paying for subscription services like a schmuck, but feeling morally justified about it.",
+          "source_timestamp": "2026-04-24T19:36:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_non_soldered_ram_for_expandability:ea3031aa575b1998",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_non_soldered_ram_for_expandability",
+      "value_text": "I definitely don't want something that I can't... See, this thing would be perfect if I could throw like 128 gig of RAM in it",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15419,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, good catch on the uh, soldered RAM. I definitely don't want something that I can't... See, this thing would be perfect if I could throw like 128 gig of RAM in it.",
+          "source_timestamp": "2026-04-24T19:37:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:currently_evaluating_ryzen_ai_9_hx_395_for_nas:d653013e9ed8e7d1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "currently_evaluating_ryzen_ai_9_hx_395_for_nas",
+      "value_text": "Ryzen AI Max Plus 395",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15426,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, it was definitely the AI Max Plus 395.",
+          "source_timestamp": "2026-04-24T19:40:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:63f67b2dec960b86",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "lower power consumption for a mini form factor with 126 TOPS performance",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15430,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I wanted lower power consumption for, you know, what do they advertise, 126 tops? That sounds nice.",
+          "source_timestamp": "2026-04-24T19:42:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:estimates:16267e6f52b48476",
+      "subject_entity_id": "person:dustin",
+      "predicate": "estimates",
+      "value_text": "maximum RAM on the board is likely 96 or 128 GB",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15428,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I mean, I feel like 96 or 128 is probably the max of that board",
+          "source_timestamp": "2026-04-24T19:41:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:d4093cea22bc8a33",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "enjoying an evening drive with snacks and podcast listening to unwind",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15350,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Okay, yeah, I'm done for the night. I'm gonna close out my call, get my snacky, get my podcast, and enjoy my drive home.",
+          "source_timestamp": "2026-04-23T03:30:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:9e7e87258a51642e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Never uses crack or cocaine again",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15311,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm never doing crack. I'm never doing cocaine again.",
+          "source_timestamp": "2026-04-23T00:06:05Z"
+        }
+      ]
+    }
+  ]
+}

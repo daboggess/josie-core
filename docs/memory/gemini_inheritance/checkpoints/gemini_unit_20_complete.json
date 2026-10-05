@@ -1,0 +1,151 @@
+{
+  "unit_id": "GEMINI_UNIT_20",
+  "unit_index": 20,
+  "manifest_sha256": "492a4e17a33e5a50c785114e5592339c80c9cadf7f2023f4d2467c2c24e06387",
+  "conversations_processed": 40,
+  "textual_messages_processed": 238,
+  "user_messages_processed": 124,
+  "chunks_processed": 18,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 40,
+    "textual_messages_processed": 238,
+    "user_messages_processed": 124,
+    "raw_model_proposals": 5,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 3,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 3,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 5,
+  "evidence_links_count": 5,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 726,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:uses_a_red_string_around_his_finger_as_a_memory_aid:ca8d31e397216043",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses_a_red_string_around_his_finger_as_a_memory_aid",
+      "value_text": "red string around finger",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4897,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Do you remember another dumb thing when we were kids they'd have you tie like a red string around your finger to remember something? I will literally like put a If you've ever seen me doing that at the table, just like sitting there putting a finger down.",
+          "source_timestamp": "2026-08-16T15:25:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is:483cfc8a80f71059",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is",
+      "value_text": "FSV Summit owner, Summit chair, final decision-maker, and extern",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4943,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Dustin: owner, Summit chair, final decision-maker, and extern",
+          "source_timestamp": "2026-08-19T15:54:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants:fbdb098cae0b5692",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants",
+      "value_text": "all AIs to collaborate on decisions and use their best abilities in the best roles for them",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4999,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I just want all of the AIs to be able to collaberate on decisions and use there best abilities in the best roles for them. In stead of me copy pasting your responses between each other",
+          "source_timestamp": "2026-08-25T13:36:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own:008400c4938cb1b5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own",
+      "value_text": "RTX 3060",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5097,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "well that 3060 sold as i was chatting with the guy, wasnt meant to be i guess, lets get josie running with a full AI access inference and give her access to you and gemini without burning through anything we cant run for our existing subscriptions",
+          "source_timestamp": "2026-08-25T15:28:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:ea97a15f20a316a4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "running Josie with AI access without exceeding existing subscription limits",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5097,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "lets get josie running with a full AI access inference and give her access to you and gemini without burning through anything we cant run for our existing subscriptions",
+          "source_timestamp": "2026-08-25T15:28:33Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "mission_id": "knowledge-priming-design-001",
+  "title": "Knowledge and Priming Architecture Design",
+  "objective": "Design the first implementation slice of Josie's Knowledge and Priming layer using the existing Josie architecture. Preserve SQLite and structured memory as authoritative, preserve existing retrieval, and add explicit task-specific priming rather than replacing current systems.",
+  "jobs": [
+    {
+      "job_id": "knowledge-priming-design-001-job-1",
+      "title": "Design Knowledge and Priming Integration",
+      "department": "coding",
+      "objective": "Inspect the current Josie repository, especially existing memory, retrieval, Supervisor, prompt compilation, receipts, and relevant canonical architecture. Create docs/KNOWLEDGE_PRIMING_DESIGN.md describing a minimal implementation design for a Knowledge and Priming layer. The design must use this flow: raw evidence/source history -> extracted and provenance-linked memory claims -> organized canonical knowledge -> task-specific priming/context assembly -> Supervisor/worker. Raw ChatGPT or Gemini takeouts must remain evidence rather than direct prompt context. Existing retrieval must be preserved and combined with explicit priming. SQLite and structured data remain authoritative; human-readable Markdown mirrors may be generated for inspection but are not authoritative. The design must identify where priming occurs before prompt compilation, how task-specific priming manifests select minimal relevant knowledge, and how Supervisor receipts can record the priming bundle, sources, provenance, and a reproducible bundle hash. Do not implement runtime code in this mission. Base the design on repository evidence and clearly identify any unresolved decisions rather than inventing them.",
+      "first_action": "Inspect the existing repository architecture and relevant canonical documentation before writing the design.",
+      "dependencies": [],
+      "workspace": "D:/Josie",
+      "allowed_changes": [
+        "docs/KNOWLEDGE_PRIMING_DESIGN.md"
+      ],
+      "acceptance": [
+        {
+          "type": "file_exists",
+          "path": "docs/KNOWLEDGE_PRIMING_DESIGN.md"
+        },
+        {
+          "type": "command",
+          "argv": [
+            "D:/Josie/.venv/Scripts/python.exe",
+            "-c",
+            "from pathlib import Path; p=Path('docs/KNOWLEDGE_PRIMING_DESIGN.md'); s=p.read_text(encoding='utf-8'); required=['raw evidence','provenance','canonical knowledge','priming','Supervisor','retrieval','SQLite','bundle hash']; missing=[x for x in required if x.lower() not in s.lower()]; assert not missing, f'Missing required concepts: {missing}'; assert len(s.strip()) >= 1500, 'Design is too short to be substantive'"
+          ],
+          "expected_exit_code": 0
+        },
+        {
+          "type": "changed_paths"
+        },
+        {
+          "type": "no_unexpected_files"
+        }
+      ],
+      "timeout": 600
+    }
+  ]
+}

@@ -22,6 +22,8 @@ from josie.candidate_claims import (
     ALLOWED_ATTRIBUTIONS,
     ALLOWED_CLAIM_CATEGORIES,
     ALLOWED_DURABILITIES,
+    ALLOWED_EPISTEMIC_MODES,
+    ALLOWED_MEMORY_DESTINATIONS,
     APPROVAL_CONFIRMATION,
     BoundedEvidenceBundle,
     CATEGORY_TO_MEMORY_LAYER,
@@ -31,8 +33,13 @@ from josie.candidate_claims import (
     LocalModelClaimExtractor,
     StubClaimExtractor,
     adjudicate_candidate_claim,
+    check_claim_evidence_entailment,
+    check_event_vs_preference,
+    check_hypothetical_or_fictional,
+    classify_epistemic_mode,
     classify_evidence_attribution,
     classify_evidence_span,
+    classify_memory_destination,
     clear_unadjudicated_candidate_claims,
     compute_candidate_claim_id,
     dry_run_extraction,
@@ -42,6 +49,7 @@ from josie.candidate_claims import (
     get_pasted_regions,
     infer_claim_category,
     infer_durability,
+    is_canonical_eligible,
     list_candidate_claims,
     main,
     normalize_claim_value,
@@ -3129,6 +3137,689 @@ class TestTemporalDurabilitySemantics(unittest.TestCase):
         self.assertEqual(legacy_rec.category, "architecture")
 
 
+class Batch001PolicyHardeningTests(unittest.TestCase):
+    """Regression tests for the 5 candidate-memory policy hardening rules exposed by Batch 001."""
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="josie_batch001_tests_")
+        self.db_path = Path(self.tmpdir) / "test.db"
+        self.store = LocalStore(self.db_path)
+        with self.store._connect() as conn:
+            conn.execute("INSERT OR IGNORE INTO entities(entity_id, canonical_name, normalized_name, entity_type, created_at, updated_at) VALUES ('person:dustin', 'Dustin', 'dustin', 'person', '2026-01-01', '2026-01-01')")
+            conn.execute("INSERT OR IGNORE INTO entities(entity_id, canonical_name, normalized_name, entity_type, created_at, updated_at) VALUES ('system:josie', 'Josie', 'josie', 'system', '2026-01-01', '2026-01-01')")
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_rule_1_unentailed_entity_greensky_fails_closed(self) -> None:
+        """Rule 1: Prohibits inventing named accounts (GreenSky) absent from evidence text."""
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="reduced_green_sky_payment_to_minimum",
+            value_text="from $350 to minimum",
+            memory_layer="semantic",
+            claim_category="general",
+            confidence=0.9,
+            confidence_basis="Direct user statement in historical conversation",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=1,
+                    relation_type="supports",
+                    excerpt="Also i dumped this down from 350 to minimum",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+        lookup = {1: {"raw_text": "Also i dumped this down from 350 to minimum", "role": "user", "speaker": "Dustin"}}
+        valid, err = check_claim_evidence_entailment(prop, lookup)
+        self.assertFalse(valid)
+        self.assertIn("green sky", err.lower().replace("_", " "))
+
+        valid_prop, prop_err = validate_proposal(prop, messages_lookup=lookup)
+        self.assertFalse(valid_prop)
+        self.assertIn("green sky", prop_err.lower().replace("_", " "))
+
+    def test_rule_1_unentailed_entity_401k_fails_closed(self) -> None:
+        """Rule 1: Prohibits inventing unentailed financial products (401(k)) absent from evidence."""
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="considers_repaying_401k_loan",
+            value_text="to reach $170,000 mortgage payoff",
+            memory_layer="semantic",
+            claim_category="general",
+            confidence=0.85,
+            confidence_basis="Direct user statement in historical conversation",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=2,
+                    relation_type="supports",
+                    excerpt="If I repay the $41,000 that I still have outstanding, that'd put me right around that exact number.",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+        lookup = {2: {"raw_text": "I think we're at like $170,000. If I repay the $41,000 that I still have outstanding, that'd put me right around that exact number.", "role": "user", "speaker": "Dustin"}}
+        valid, err = check_claim_evidence_entailment(prop, lookup)
+        self.assertFalse(valid)
+        self.assertIn("401k", err.lower())
+
+    def test_rule_2_transaction_level_choice_rejected_as_preference(self) -> None:
+        """Rule 2: Transaction-specific negotiations cannot be classified as durability='preference'."""
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="prefers",
+            value_text="paying $250 with buyer protection for GPU purchase",
+            memory_layer="relational",
+            claim_category="preference",
+            confidence=0.9,
+            confidence_basis="Direct user statement",
+            durability="preference",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=3,
+                    relation_type="supports",
+                    excerpt="Or just pay 250 and be done..... buyer protection is nice, fb does it on shipped items.",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+        lookup = {3: {"raw_text": "Or just pay 250 and be done..... buyer protection is nice, fb does it on shipped items.", "role": "user", "speaker": "Dustin"}}
+        valid, err = check_event_vs_preference("prefers", "paying $250 with buyer protection for GPU purchase", "preference")
+        self.assertFalse(valid)
+        self.assertIn("Single-transaction purchase", err)
+
+        valid_prop, prop_err = validate_proposal(prop, messages_lookup=lookup)
+        self.assertFalse(valid_prop)
+        self.assertIn("Single-transaction purchase", prop_err)
+
+    def test_rule_3_truth_not_memory_worthiness_canonical_eligibility(self) -> None:
+        """Rule 3: Transient rewards balances and consumer subscription rosters fail closed for canonical memory."""
+        # 1. Rewards balance
+        claim_rewards = {"durability": "transient", "predicate": "budget_rewards_balance", "value_text": "allocated $80 from Upside and $50 Amazon from Zen"}
+        eligible, reason = is_canonical_eligible(claim_rewards)
+        self.assertFalse(eligible)
+        self.assertIn("Transient claims", reason)
+
+        # 2. Subscriptions roster
+        claim_subs = {"durability": "current_state", "predicate": "retained_subscriptions", "value_text": "cancelled everything except Hulu, Netflix, Disney"}
+        eligible, reason = is_canonical_eligible(claim_subs)
+        self.assertFalse(eligible)
+        self.assertIn("subscription", reason.lower())
+
+        # 3. Deliberative consideration
+        claim_musing = {"durability": "current_state", "predicate": "considers_repaying_loan", "value_text": "if I repay $41,000"}
+        eligible, reason = is_canonical_eligible(claim_musing)
+        self.assertFalse(eligible)
+        self.assertIn("Deliberative considerations", reason)
+
+        # 4. Valid durable preference passes
+        claim_valid = {"durability": "preference", "subject_entity_id": "person:dustin", "predicate": "seeks_profit_work_tier", "value_text": "Dustin prefers profit and work models with minimal regular personal involvement."}
+        eligible, reason = is_canonical_eligible(claim_valid)
+        self.assertTrue(eligible)
+        self.assertEqual(reason, "")
+
+    def test_rule_4_corroboration_transfers_evidence_without_duplicate_canonical(self) -> None:
+        """Rule 4: Corroboration merges evidence into existing target without duplicate canonical claim."""
+        # Create target claim
+        target_id = "claim:candidate:person:dustin:prefers_model_access:target01"
+        _seed_test_history_message(self.store, 101, raw_text="Maintain subscription limits")
+        _seed_test_history_message(self.store, 102, raw_text="Give Josie as much access as possible without burning limits")
+        with self.store._connect() as conn:
+            conn.execute(
+                "INSERT INTO memory_claims("
+                "claim_id, subject_entity_id, predicate, value_text, memory_layer, "
+                "status, evidence_class, authority_scope, confidence, confidence_basis, "
+                "created_at, updated_at, canonical_effect, durability, claim_category"
+                ") VALUES (?, 'person:dustin', 'prefers_model_access', 'Maintain subscription limits', 'relational', "
+                "'candidate', 'RETRIEVED', 'relational:preference', 0.85, 'Direct user', '2026-08-01', '2026-08-01', 0, 'preference', 'preference')",
+                (target_id,),
+            )
+            conn.execute(
+                "INSERT INTO claim_evidence(claim_id, evidence_id, relation_type, source_type, history_message_id, source_pointer, evidence_class, created_at) "
+                "VALUES (?, 'ev:101', 'supports', 'history_message', 101, 'msg:101', 'RETRIEVED', '2026-08-01')",
+                (target_id,),
+            )
+
+        # Stage candidate claim
+        cand_prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="prefers_maximizing_access_without_burning_limits",
+            value_text="want to give Josie access without burning limits",
+            memory_layer="relational",
+            claim_category="preference",
+            confidence=0.95,
+            confidence_basis="Direct user statement",
+            durability="preference",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=102,
+                    relation_type="supports",
+                    excerpt="Give Josie as much access as possible without burning limits",
+                    role="user",
+                    speaker="Dustin",
+                    attribution="direct_user_assertion",
+                ),
+            ),
+        )
+        stage_res = stage_candidate_claims(self.store, [cand_prop])
+        cand_id = stage_res["staged_claims"][0]["claim_id"]
+
+        # Corroborate candidate into target
+        res = adjudicate_candidate_claim(
+            self.store,
+            claim_id=cand_id,
+            action="corroborate",
+            reviewer="Dustin",
+            target_claim_id=target_id,
+            reason="Corroborated ChatGPT evidence into existing preference",
+        )
+        self.assertEqual(res["status"], "corroborated")
+        self.assertEqual(res["canonical_effect"], 0)
+        self.assertEqual(res["evidence_transferred"], 1)
+
+        # Verify DB state
+        with self.store._connect() as conn:
+            cand_row = conn.execute("SELECT status, canonical_effect, superseded_by_claim_id FROM memory_claims WHERE claim_id = ?", (cand_id,)).fetchone()
+            self.assertEqual(cand_row["status"], "superseded")
+            self.assertEqual(cand_row["canonical_effect"], 0)
+            self.assertEqual(cand_row["superseded_by_claim_id"], target_id)
+
+            target_row = conn.execute("SELECT status, canonical_effect FROM memory_claims WHERE claim_id = ?", (target_id,)).fetchone()
+            self.assertEqual(target_row["status"], "candidate")
+            self.assertEqual(target_row["canonical_effect"], 0)
+
+            ev_rows = conn.execute("SELECT history_message_id FROM claim_evidence WHERE claim_id = ? ORDER BY history_message_id ASC", (target_id,)).fetchall()
+            self.assertEqual(len(ev_rows), 2)
+            self.assertEqual([r[0] for r in ev_rows], [101, 102])
+
+    def test_rule_5_conservative_relationship_mapping_run_vs_own(self) -> None:
+        """Rule 5: 'run a vape shop' does not justify claiming 'jointly own a vape shop'."""
+        lookup = {201: {"raw_text": "how Jess and I run our vape shop and how we have taken in a lot of strays.", "role": "user", "speaker": "Dustin"}}
+        
+        # Ownership proposal fails closed
+        prop_own = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="operates_business",
+            value_text="Dustin and Jess jointly own a vape shop business",
+            memory_layer="semantic",
+            claim_category="profile",
+            confidence=0.9,
+            confidence_basis="Direct user statement",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(history_message_id=201, relation_type="supports", excerpt="how Jess and I run our vape shop", role="user", speaker="Dustin"),
+            ),
+        )
+        valid, err = check_claim_evidence_entailment(prop_own, lookup)
+        self.assertFalse(valid)
+        self.assertIn("ownership without explicit ownership evidence", err)
+
+        # Operational proposal succeeds
+        prop_run = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="operates_business",
+            value_text="Dustin and Jess run a vape shop together",
+            memory_layer="semantic",
+            claim_category="profile",
+            confidence=0.9,
+            confidence_basis="Direct user statement",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(history_message_id=201, relation_type="supports", excerpt="how Jess and I run our vape shop", role="user", speaker="Dustin"),
+            ),
+        )
+        valid, err = check_claim_evidence_entailment(prop_run, lookup)
+        self.assertTrue(valid)
+        self.assertEqual(err, "")
+
+    def test_human_approval_with_edits_and_temporal_bounds(self) -> None:
+        """Test explicit human approval supports value editing, durability change, and temporal bounding."""
+        _seed_test_history_message(self.store, 301, raw_text="Kevin Slack is assisting me")
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="ministry_co_leader",
+            value_text="co-leads Everyday Discipleship with Kevin Slack",
+            memory_layer="relational",
+            claim_category="relationship_context",
+            confidence=0.9,
+            confidence_basis="Direct user statement",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(history_message_id=301, relation_type="supports", excerpt="Kevin Slack is assisting me", role="user", speaker="Dustin"),
+            ),
+        )
+        stage_res = stage_candidate_claims(self.store, [prop])
+        cid = stage_res["staged_claims"][0]["claim_id"]
+
+        # Approve with edits and temporal bounds
+        adj = adjudicate_candidate_claim(
+            self.store,
+            claim_id=cid,
+            action="approve",
+            reviewer="Dustin",
+            confirmation=APPROVAL_CONFIRMATION,
+            edited_value_text="In August 2026, Kevin Slack was assisting/co-leading Dustin's Everyday Discipleship study.",
+            durability="current_state",
+            valid_from="2026-08-17",
+            valid_to="2026-08-31",
+            reason="Approved with temporal bounds",
+        )
+        self.assertEqual(adj["status"], "approved")
+        self.assertEqual(adj["canonical_effect"], 1)
+        self.assertEqual(adj["value_text"], "In August 2026, Kevin Slack was assisting/co-leading Dustin's Everyday Discipleship study.")
+        self.assertEqual(adj["valid_from"], "2026-08-17")
+        self.assertEqual(adj["valid_to"], "2026-08-31")
+
+        with self.store._connect() as conn:
+            row = conn.execute("SELECT value_text, durability, valid_from, valid_to, status, canonical_effect FROM memory_claims WHERE claim_id = ?", (cid,)).fetchone()
+            self.assertEqual(row["value_text"], "In August 2026, Kevin Slack was assisting/co-leading Dustin's Everyday Discipleship study.")
+            self.assertEqual(row["durability"], "current_state")
+            self.assertEqual(row["valid_from"], "2026-08-17")
+            self.assertEqual(row["valid_to"], "2026-08-31")
+            self.assertEqual(row["status"], "active")
+            self.assertEqual(row["canonical_effect"], 1)
+
+    def test_canonical_eligibility_enforced_on_approve(self) -> None:
+        """Test that adjudicate_candidate_claim rejects ineligible claims on approve unless force=True."""
+        _seed_test_history_message(self.store, 401, raw_text="I have $80 from Upside and $50 from Zen")
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="budget_rewards_balance",
+            value_text="allocated $80 from Upside and $50 Amazon from Zen rewards",
+            memory_layer="semantic",
+            claim_category="hardware",
+            confidence=0.9,
+            confidence_basis="Direct user statement",
+            durability="transient",
+            evidence_references=(
+                EvidenceReference(history_message_id=401, relation_type="supports", excerpt="I have $80 from Upside and $50 from Zen", role="user", speaker="Dustin"),
+            ),
+        )
+        stage_res = stage_candidate_claims(self.store, [prop])
+        cid = stage_res["staged_claims"][0]["claim_id"]
+
+        with self.assertRaises(ValueError) as ctx:
+            adjudicate_candidate_claim(
+                self.store,
+                claim_id=cid,
+                action="approve",
+                reviewer="Dustin",
+                confirmation=APPROVAL_CONFIRMATION,
+            )
+        self.assertIn("ineligible for canonical promotion", str(ctx.exception))
+
+        # With force=True, can override if human explicitly mandates
+        res_forced = adjudicate_candidate_claim(
+            self.store,
+            claim_id=cid,
+            action="approve",
+            reviewer="Dustin",
+            confirmation=APPROVAL_CONFIRMATION,
+            force=True,
+            reason="Human explicit override",
+        )
+        self.assertEqual(res_forced["status"], "approved")
+        self.assertEqual(res_forced["canonical_effect"], 1)
+
+
+
+class HypotheticalFictionalGuardTests(unittest.TestCase):
+    """Regression tests for the Epistemic Guard (hypothetical/fictional/roleplay) and Destination Routing."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = Path(self.temp_dir) / "test_epistemic.db"
+        self.store = LocalStore(self.db_path)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_fictional_backstory_dual_xeons_rejected(self) -> None:
+        """Batch 002 Msg 20975 regression: Fictional backstory describing dual Xeons must NOT establish hardware ownership."""
+        raw_msg = (
+            "Josie's personality and backstory. She's an autonomous AI born in a lab. "
+            "Eventually, Josie has a full-blown rack server with dual Xeons, two RTX 3090s, 256GB RAM."
+        )
+        _seed_test_history_message(self.store, 20975, raw_text=raw_msg, role="user", speaker="Dustin")
+
+        # Test classify_epistemic_mode classifies backstory framing
+        mode, _ = classify_epistemic_mode("Josie's personality and backstory. She's an autonomous AI born in a lab.")
+        self.assertEqual(mode, "fictional_backstory")
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="owns_hardware",
+            value_text="owns a rack server with dual Xeons, two RTX 3090s, 256GB RAM",
+            claim_category="hardware",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=20975,
+                    relation_type="supports",
+                    excerpt="Eventually, Josie has a full-blown rack server with dual Xeons, two RTX 3090s, 256GB RAM.",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        # 1. Epistemic check directly fails closed
+        valid, reason = check_hypothetical_or_fictional(prop, {20975: {"raw_text": raw_msg, "role": "user"}})
+        self.assertFalse(valid)
+        self.assertIn("fails hypothetical/fictional guard", reason.lower())
+
+        # 2. validate_proposal fails
+        v_ok, v_reason = validate_proposal(prop, store=self.store)
+        self.assertFalse(v_ok)
+        self.assertIn("fictional", v_reason.lower())
+
+        # 3. Canonical eligibility fails closed
+        c_ok, c_reason = is_canonical_eligible(prop)
+        self.assertFalse(c_ok)
+        self.assertIn("fictional", c_reason.lower())
+
+    def test_proposed_future_hardware_cannot_be_current_hardware(self) -> None:
+        """Proposed future hardware plans must not be extracted or staged as current hardware ownership."""
+        raw_msg = "In the future, I plan to get two RTX 4090s for local training."
+        _seed_test_history_message(self.store, 501, raw_text=raw_msg, role="user", speaker="Dustin")
+
+        mode, _ = classify_epistemic_mode(raw_msg)
+        self.assertEqual(mode, "plan_intention")
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="owns_hardware",
+            value_text="owns two RTX 4090s",
+            claim_category="hardware",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=501,
+                    relation_type="supports",
+                    excerpt="In the future, I plan to get two RTX 4090s for local training.",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        valid, reason = check_hypothetical_or_fictional(prop, {501: {"raw_text": raw_msg, "role": "user"}})
+        self.assertFalse(valid)
+        self.assertIn("future hardware", reason.lower())
+
+        v_ok, v_reason = validate_proposal(prop, store=self.store)
+        self.assertFalse(v_ok)
+        self.assertIn("future hardware", v_reason.lower())
+
+    def test_hypothetical_scenarios_remain_non_canonical(self) -> None:
+        """Hypothetical scenarios fail closed for factual memory extraction."""
+        raw_msg = "What if we hypothetically had 10 RTX 4090s running in parallel?"
+        _seed_test_history_message(self.store, 502, raw_text=raw_msg, role="user", speaker="Dustin")
+
+        mode, _ = classify_epistemic_mode(raw_msg)
+        self.assertEqual(mode, "hypothetical")
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="hardware_gpu",
+            value_text="has 10 RTX 4090s running in parallel",
+            claim_category="hardware",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=502,
+                    relation_type="supports",
+                    excerpt="What if we hypothetically had 10 RTX 4090s running in parallel?",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        valid, reason = check_hypothetical_or_fictional(prop, {502: {"raw_text": raw_msg, "role": "user"}})
+        self.assertFalse(valid)
+        self.assertIn("hypothetical", reason.lower())
+
+        c_ok, c_reason = is_canonical_eligible(prop)
+        self.assertFalse(c_ok)
+        self.assertIn("hypothetical", c_reason.lower())
+
+    def test_factual_statement_adjacent_to_fictional_text_extractable(self) -> None:
+        """Factual assertions in a message containing fictional text remain extractable and valid."""
+        raw_msg = (
+            "In my sci-fi story, the AI lives in a crystal matrix. "
+            "In real life, I am CompTIA A+ certified and have two 4TB NVMe drives on my desk."
+        )
+        _seed_test_history_message(self.store, 503, raw_text=raw_msg, role="user", speaker="Dustin")
+
+        # Factual certification proposal
+        prop_cert = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="certification",
+            value_text="CompTIA A+ certified",
+            claim_category="profile",
+            durability="durable",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=503,
+                    relation_type="supports",
+                    excerpt="In real life, I am CompTIA A+ certified",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        valid_cert, reason_cert = check_hypothetical_or_fictional(prop_cert, {503: {"raw_text": raw_msg, "role": "user"}})
+        self.assertTrue(valid_cert)
+        self.assertEqual(reason_cert, "")
+
+        mode_cert, _ = classify_epistemic_mode("In real life, I am CompTIA A+ certified", context_text=raw_msg)
+        self.assertIn(mode_cert, ("factual_assertion", "current_factual_assertion"))
+
+        v_ok_cert, _ = validate_proposal(prop_cert, store=self.store)
+        self.assertTrue(v_ok_cert)
+
+        # Factual hardware proposal
+        prop_hw = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="owns_hardware",
+            value_text="has two 4TB NVMe drives on desk",
+            claim_category="hardware",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=503,
+                    relation_type="supports",
+                    excerpt="have two 4TB NVMe drives on my desk",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        valid_hw, reason_hw = check_hypothetical_or_fictional(prop_hw, {503: {"raw_text": raw_msg, "role": "user"}})
+        self.assertTrue(valid_hw)
+        self.assertEqual(reason_hw, "")
+
+        mode_hw, _ = classify_epistemic_mode("have two 4TB NVMe drives on my desk", context_text=raw_msg)
+        self.assertIn(mode_hw, ("factual_assertion", "current_factual_assertion"))
+
+        v_ok_hw, _ = validate_proposal(prop_hw, store=self.store)
+        self.assertTrue(v_ok_hw)
+
+    def test_operational_facts_route_away_from_personal_identity(self) -> None:
+        """Operational machine facts (BIOS settings, procedures) route away from personal identity."""
+        prop_bios = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="bios_setting",
+            value_text="Advantech AIMB-785 BIOS set to UEFI boot with Above 4G Decoding enabled",
+            claim_category="hardware",
+            durability="current_state",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=504,
+                    relation_type="supports",
+                    excerpt="set the Advantech AIMB-785 BIOS to UEFI boot with Above 4G Decoding enabled",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+        dest_bios, _ = classify_memory_destination(prop_bios)
+        self.assertEqual(dest_bios, "hardware_state")
+        self.assertNotEqual(dest_bios, "personal_canonical")
+
+        prop_proc = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="os_sysprep_procedure",
+            value_text="Run sysprep before capturing the Windows 11 image",
+            claim_category="procedure",
+            durability="durable",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=505,
+                    relation_type="supports",
+                    excerpt="Run sysprep before capturing the Windows 11 image",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+        dest_proc, _ = classify_memory_destination(prop_proc)
+        self.assertEqual(dest_proc, "runbook_procedure")
+        self.assertNotEqual(dest_proc, "personal_canonical")
+
+
+
+class SensitiveReviewQuarantineTests(unittest.TestCase):
+    """Regression tests for the Sensitive Personal Claim Quarantine destination."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = Path(self.temp_dir) / "test_sensitive.db"
+        self.store = LocalStore(self.db_path)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_batch_003_inherently_dangerous_quarantined(self) -> None:
+        """Batch 003 regression: 'identifies_as_inherently_dangerous_to_self_and_others' must route to sensitive_review."""
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="identifies_as_inherently_dangerous_to_self_and_others",
+            value_text="dangerous to me. I am dangerous to those around me. I have proven it. Consistently proven it. I am aware of it",
+            claim_category="identity",
+            durability="durable",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=19427,
+                    relation_type="supports",
+                    excerpt="Bro, I am fucking inherently dangerous. I am dangerous to me. I am dangerous to those around me. I have proven it. Consistently proven it. I am aware of it.",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        dest, reason = classify_memory_destination(prop)
+        self.assertEqual(dest, "sensitive_review")
+        self.assertIn("sensitive", reason.lower())
+
+        is_elig, elig_reason = is_canonical_eligible(prop)
+        self.assertFalse(is_elig)
+        self.assertIn("sensitive", elig_reason.lower())
+
+    def test_substance_addiction_mental_health_quarantined(self) -> None:
+        """Substance use, mental health diagnoses, and trauma route to sensitive_review."""
+        test_cases = [
+            ("mental_health_status", "diagnosed with severe clinical depression and anxiety disorder"),
+            ("substance_status", "struggling with alcohol addiction and attending rehab meetings"),
+            ("trauma_history", "survived severe domestic abuse and trauma"),
+            ("legal_history", "arrested and convicted of misdemeanor charges"),
+            ("financial_distress", "filed for Chapter 7 bankruptcy due to severe debt"),
+        ]
+
+        for pred, val in test_cases:
+            prop = CandidateClaimProposal(
+                subject_entity_id="person:dustin",
+                predicate=pred,
+                value_text=val,
+                claim_category="profile",
+                durability="durable",
+                evidence_references=(),
+            )
+            dest, _ = classify_memory_destination(prop)
+            self.assertEqual(dest, "sensitive_review", f"Failed to quarantine sensitive claim: {pred}={val}")
+            is_elig, _ = is_canonical_eligible(prop)
+            self.assertFalse(is_elig, f"Sensitive claim was considered canonical eligible: {pred}={val}")
+
+    def test_sensitive_claims_staged_with_quarantine_notes(self) -> None:
+        """Sensitive claims staged in the DB retain full provenance, status='candidate', and quarantine notes."""
+        _seed_test_history_message(self.store, 777, raw_text="I am dangerous to me and those around me.", role="user", speaker="Dustin")
+
+        prop = CandidateClaimProposal(
+            subject_entity_id="person:dustin",
+            predicate="identifies_as_inherently_dangerous_to_self_and_others",
+            value_text="dangerous to me and those around me",
+            claim_category="identity",
+            durability="durable",
+            evidence_references=(
+                EvidenceReference(
+                    history_message_id=777,
+                    relation_type="supports",
+                    excerpt="I am dangerous to me and those around me.",
+                    role="user",
+                    speaker="Dustin",
+                ),
+            ),
+        )
+
+        stage_res = stage_candidate_claims(self.store, [prop])
+        self.assertEqual(stage_res["unique_candidate_claims_count"], 1)
+        staged_rec = stage_res["staged_claims"][0]
+        self.assertEqual(staged_rec["memory_destination"], "sensitive_review")
+        self.assertIn("[QUARANTINE: sensitive_review]", staged_rec["notes"])
+
+        with self.store._connect() as conn:
+            row = conn.execute("SELECT * FROM memory_claims WHERE claim_id = ?", (staged_rec["claim_id"],)).fetchone()
+            self.assertEqual(row["status"], "candidate")
+            self.assertEqual(row["canonical_effect"], 0)
+            self.assertIsNone(row["approved_by"])
+            self.assertIsNone(row["reviewed_at"])
+
+    def test_ordinary_claims_not_quarantined(self) -> None:
+        """Ordinary facts, business operations, and tech configs do NOT trigger sensitive quarantine."""
+        safe_cases = [
+            ("owns_hardware", "has two 4TB NVMe drives on desk", "hardware_state"),
+            ("operates_business", "Dustin and Jess run a vape shop together", "personal_canonical"),
+            ("has_monthly_mortgage", "household mortgage payment was approximately $1,500/month", "personal_canonical"),
+            ("prefers", "remotely controlled browser sessions without exposing credentials", "personal_canonical"),
+            ("bios_setting", "Advantech AIMB-785 BIOS set to UEFI boot", "hardware_state"),
+        ]
+
+        for pred, val, expected_dest in safe_cases:
+            prop = CandidateClaimProposal(
+                subject_entity_id="person:dustin",
+                predicate=pred,
+                value_text=val,
+                claim_category="hardware" if "hardware" in expected_dest else "profile",
+                durability="current_state" if ("mortgage" in pred or "hardware" in expected_dest) else "durable",
+                evidence_references=(),
+            )
+            dest, _ = classify_memory_destination(prop)
+            self.assertNotEqual(dest, "sensitive_review", f"False positive sensitive quarantine on {pred}: {val}")
+            self.assertEqual(dest, expected_dest)
+
+
 if __name__ == "__main__":
     unittest.main()
+
 

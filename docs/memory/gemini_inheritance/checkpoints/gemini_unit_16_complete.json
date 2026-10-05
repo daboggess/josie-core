@@ -1,0 +1,88 @@
+{
+  "unit_id": "GEMINI_UNIT_16",
+  "unit_index": 16,
+  "manifest_sha256": "e40f1c9eae0a16eab76dcefcd52064735fc4cce309aab64929af82bd76e6584d",
+  "conversations_processed": 50,
+  "textual_messages_processed": 180,
+  "user_messages_processed": 94,
+  "chunks_processed": 14,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 180,
+    "user_messages_processed": 94,
+    "raw_model_proposals": 2,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 1,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 1,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 2,
+  "evidence_links_count": 2,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 658,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:is_working_on:1b5e3673b5f733f0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_working_on",
+      "value_text": "Advantech small-form-factor system",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3681,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Its an advantech",
+          "source_timestamp": "2026-06-20T03:28:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_use:80ae3f5e353ac837",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_use",
+      "value_text": "motherboard for AI build",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3683,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Wanting to possibly use mobo for ai build",
+          "source_timestamp": "2026-06-20T03:28:54Z"
+        }
+      ]
+    }
+  ]
+}

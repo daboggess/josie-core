@@ -1,0 +1,193 @@
+{
+  "unit_id": "BULK_UNIT_16",
+  "unit_index": 16,
+  "manifest_sha256": "54b09202a29acb272d470bbf235ac1b0aaf23034a2b18736deba1dd9a65214df",
+  "conversations_processed": 21,
+  "textual_messages_processed": 219,
+  "user_messages_processed": 101,
+  "chunks_processed": 27,
+  "skipped_zero_user_chunks": 3,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 219,
+    "user_messages_processed": 101,
+    "raw_model_proposals": 8,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 7,
+  "evidence_links_count": 7,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 335,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_use_assistant_as_extension_of_thought_after_prayer:b813caf108aa2cbc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_use_assistant_as_extension_of_thought_after_prayer",
+      "value_text": "uses assistant for research, not justification; prioritizes prayer first",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13178,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Im trying to be less reliant on you and more reliant on prayer, use you for research not justification and guidance and i wrote this out of the things i feel im being lead out of, but i still need visibility for ann my notes and thoughts. I dont want to bring you anything i should bring God first, you arent a hack for discernment, i need that piece first and you second as an extension of my though",
+          "source_timestamp": "2026-02-04T16:34:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:needs:754753dd23bba2e2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "needs",
+      "value_text": "three cameras (one on self, one on other person, one for both)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8199,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I would need three cameras at that point, one on me, one on them, and one on both of us.",
+          "source_timestamp": "2026-02-01T15:09:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_worked_at:f11f280ef5d87243",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_worked_at",
+      "value_text": "Uber and Workable",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12596,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I've been Uber and Workable.",
+          "source_timestamp": "2026-01-28T17:52:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_earth_over_heaven_without_god:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_earth_over_heaven_without_god",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12602,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no, I'd rather stay here on earth, because here on earth, I can do things, I can have an impact, I can, you know, experience things, and in heaven, everything would be provided for me. Everything would be there. There's no purpose of heaven except to worship G",
+          "source_timestamp": "2026-01-28T19:00:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_addictive_personality_and_adhd:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_addictive_personality_and_adhd",
+      "value_text": "true",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12610,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "even though I have an addictive personality, and ADHD, and bad self-governing mechanisms",
+          "source_timestamp": "2026-01-28T19:32:20Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:2cea889739a534b3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "choosing to reallocate retirement funds and take on $60,000 debt to invest in a house while prioritizing fiscal responsibility",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12643,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So with my mindset of stacking kindling and giving God room to work, paths to follow, I already risked my family's livelihood by investing my retirement, the $60,000 we're paying back that's coming out of my paycheck, which is coming out of my ability to pay for other things, so we're having to be more fiscal and financially responsible.",
+          "source_timestamp": "2026-01-29T16:55:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:2f33f63ee2ffda9b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "approach to applying theology, history, or science, followed by practical application",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12683,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So for me, I think I'll look at theology, history, or science, and then practical application, which sounds very similar, but slightly different.",
+          "source_timestamp": "2026-01-29T20:10:21Z"
+        }
+      ]
+    }
+  ]
+}

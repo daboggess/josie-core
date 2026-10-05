@@ -1,0 +1,235 @@
+{
+  "unit_id": "BULK_UNIT_31",
+  "unit_index": 31,
+  "manifest_sha256": "34387c354f35475ec35a32824b1f6885653e5dafaa60c363235e340df067363a",
+  "conversations_processed": 7,
+  "textual_messages_processed": 720,
+  "user_messages_processed": 352,
+  "chunks_processed": 52,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 7,
+    "textual_messages_processed": 720,
+    "user_messages_processed": 352,
+    "raw_model_proposals": 12,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 3,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 5,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 5,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 3,
+    "context_archive": 0
+  },
+  "staged_claims_count": 9,
+  "evidence_links_count": 9,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 537,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:2f4085faf429636c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "GoDaddy for email server settings",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7154,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "previously I tried to point the domain to SiteGround through their ns.siteground.net settings, but when I did that I messed up my email server settings on GoDaddy on my domain.",
+          "source_timestamp": "2025-08-20T13:12:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns_business:58d30c38e373ae45",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns_business",
+      "value_text": "Full Steam Vapor",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6351,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I have owned full steam vapor for 11 years, done business in the local community, managed a successful business that has done over 1.3 million in sales in 2021 and over 10 million in 11 years if this is usefull, i live in buffalo and leave out the a+ stuff",
+          "source_timestamp": "2025-08-14T13:11:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_sales_performance:a6e2afdb53fabae8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_sales_performance",
+      "value_text": "over $1.3 million in 2021, over $10 million in 11 years",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6351,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I have owned full steam vapor for 11 years, done business in the local community, managed a successful business that has done over 1.3 million in sales in 2021 and over 10 million in 11 years if this is usefull, i live in buffalo and leave out the a+ stuff",
+          "source_timestamp": "2025-08-14T13:11:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:residence_location:fa6f2ad8d579fbf2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "residence_location",
+      "value_text": "Buffalo, WV",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6351,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I have owned full steam vapor for 11 years, done business in the local community, managed a successful business that has done over 1.3 million in sales in 2021 and over 10 million in 11 years if this is usefull, i live in buffalo and leave out the a+ stuff",
+          "source_timestamp": "2025-08-14T13:11:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:excludes_from_bio:6355bd94acfe2be0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "excludes_from_bio",
+      "value_text": "A+ certification",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6351,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "i live in buffalo and leave out the a+ stuff",
+          "source_timestamp": "2025-08-14T13:11:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:8e649ef178a8eccf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "topper products compatible with ceramic coatings rather than wax-based alternatives",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6719,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The reason I ask for alternatives is I don't want a wax, because hopefully I'll be able to get as many cars as possible ceramic coated, and I would like something that makes a good topper for ceramic coatings rather than a wax.",
+          "source_timestamp": "2025-08-16T16:29:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:chooses_3d_ceramic_coating_system_with_panel_wipe_and_3d_white:aa48af08571c5b68",
+      "subject_entity_id": "person:dustin",
+      "predicate": "chooses_3d_ceramic_coating_system_with_panel_wipe_and_3d_white",
+      "value_text": "3D option with Panel Wipe and 3D White",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6739,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm going to go with the 3D option and add Panel Wipe and keep 3D white.",
+          "source_timestamp": "2025-08-16T16:41:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:retains_optimum_no_rinse_in_chemical_lineup:6bdf3d44eff48957",
+      "subject_entity_id": "person:dustin",
+      "predicate": "retains_optimum_no_rinse_in_chemical_lineup",
+      "value_text": "Optimum No Rinse (ONR)",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6746,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "We still want to keep optimum no rents.",
+          "source_timestamp": "2025-08-16T16:44:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_carpro_perl_as_interior_dressing:701703008a0a2ae1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_carpro_perl_as_interior_dressing",
+      "value_text": "CarPro Perl",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6864,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Keep perl",
+          "source_timestamp": "2025-08-17T15:43:56Z"
+        }
+      ]
+    }
+  ]
+}

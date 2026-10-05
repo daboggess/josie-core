@@ -1,0 +1,265 @@
+{
+  "unit_id": "BULK_UNIT_21",
+  "unit_index": 21,
+  "manifest_sha256": "4c5486d045b5910d8b71be821fa387f4af9b7135fb5561fa9dddc61898b5ed69",
+  "conversations_processed": 22,
+  "textual_messages_processed": 252,
+  "user_messages_processed": 123,
+  "chunks_processed": 25,
+  "skipped_zero_user_chunks": 4,
+  "funnel": {
+    "source_conversations_processed": 22,
+    "textual_messages_processed": 252,
+    "user_messages_processed": 123,
+    "raw_model_proposals": 14,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 5,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 4,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 4,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 5,
+    "context_archive": 0
+  },
+  "staged_claims_count": 10,
+  "evidence_links_count": 11,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 421,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_a_preference_for_a_savings_account_balance_of_up_to_10_000:d7c2f19257f0c5f3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_a_preference_for_a_savings_account_balance_of_up_to_10_000",
+      "value_text": "$10,000",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11398,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I'm comfortable with it being $10,000",
+          "source_timestamp": "2025-12-30T16:11:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:67ad85977668406c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "ZYN Coffee 6 mg and Pillowz Peppermint 6 mg",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11348,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Oh, ive been using zyn coffee 6mg, some pillowz peppermint 6mg",
+          "source_timestamp": "2025-12-28T20:11:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:363862809f478c37",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "10-15 6mg pouches daily",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11344,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Off vaping for 2 months now, 10-15 6mg pouches a day since then",
+          "source_timestamp": "2025-12-28T20:05:13Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:26da906e14815924",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Nic Nac Naturals 6 mg occasionally",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11352,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Oh and a nic nac 6mg occasionally. They suck for flavor but i like the feel, and i dont get the rush up front but a nice long clean focus",
+          "source_timestamp": "2025-12-28T20:20:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:7d846701e5e7c852",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "slow onset, long duration, low sweetness, minimal rush, clean focus",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11350,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah zyn for nic, pillowz for maintenance thats exactly what it feels like",
+          "source_timestamp": "2025-12-28T20:13:07Z"
+        },
+        {
+          "history_message_id": 11352,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Oh and a nic nac 6mg occasionally. They suck for flavor but i like the feel, and i dont get the rush up front but a nice long clean focus",
+          "source_timestamp": "2025-12-28T20:20:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_spouse_with_personality_type:b35ac421cb0d428d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_spouse_with_personality_type",
+      "value_text": "ESFP",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11318,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Wife is esfp",
+          "source_timestamp": "2025-12-26T17:51:31Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:manufactures:d1bef4fab7e5425c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "manufactures",
+      "value_text": "Herd eliquid, FAD5 eliquid, and full steam vapor house line",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11115,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I manufacturer Herd eliquid, FAD5 eliquid and our full steam vapor house line.",
+          "source_timestamp": "2025-12-21T23:06:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:fc2e83c76d6dbbfd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "coffee flavor in nicotine lozenges",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11119,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I do want coffee flavor",
+          "source_timestamp": "2025-12-21T23:10:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:ee0f30dae0fc4804",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "malt-like mouthfeel resembling old school jaw breakers",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11121,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "The malt in nic nac resembiles old school jaw breakers in flavor and mouth feel",
+          "source_timestamp": "2025-12-21T23:12:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:759d4620ee2987c4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "even distribution of menthol in tablets",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 11150,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I'm worried that by mixing it, since it's a liquid going into a dry substance, that I will have, you know, hot spots that have too much menthol and then spots that don't have any menthol, and I want this to be as evenly incorporated so every single tablet has the exact same amount of menthol in it.",
+          "source_timestamp": "2025-12-22T19:41:33Z"
+        }
+      ]
+    }
+  ]
+}

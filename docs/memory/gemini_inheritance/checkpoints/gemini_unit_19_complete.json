@@ -1,0 +1,886 @@
+{
+  "unit_id": "GEMINI_UNIT_19",
+  "unit_index": 19,
+  "manifest_sha256": "65b242addf3ee6dd813ed51f4eb50e4c1eb23871706445547741321a777525fa",
+  "conversations_processed": 50,
+  "textual_messages_processed": 374,
+  "user_messages_processed": 190,
+  "chunks_processed": 31,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 374,
+    "user_messages_processed": 190,
+    "raw_model_proposals": 44,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 8,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 10,
+    "project_architecture_candidates": 9,
+    "hardware_state_candidates": 11,
+    "runbook_procedural_candidates": 2,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 3
+  },
+  "destinations": {
+    "personal_canonical": 10,
+    "project_architecture": 9,
+    "hardware_state": 11,
+    "runbook_procedure": 2,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 8,
+    "context_archive": 0
+  },
+  "staged_claims_count": 40,
+  "evidence_links_count": 40,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 722,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:hardware:current_state:def957fcc3bca02d",
+      "subject_entity_id": "hardware",
+      "predicate": "current_state",
+      "value_text": "200W power supply with no external PCIe power cables",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4539,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Power Man IP-S200FF1-0 shown in 7819.jpg enforces a strict 200W limit and lacks any external PCIe power cables.",
+          "source_timestamp": "2026-08-03T21:03:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:current_state:bd12cf46bf345a14",
+      "subject_entity_id": "hardware",
+      "predicate": "current_state",
+      "value_text": "i7-7700 CPU and 32GB RAM installed",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4540,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "We upgraded to i7 7700 and 32g ram",
+          "source_timestamp": "2026-08-03T21:04:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:882e513be9452f3a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "GPU budget constraint of under $300",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4550,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "under 300 be about the limit.",
+          "source_timestamp": "2026-08-03T21:08:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:9985d53e1bc2b242",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "minimum 8GB VRAM, ideally 12GB",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4550,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'd love to have 12, but it's what I can realistically purchase for under 300 be about the limit.",
+          "source_timestamp": "2026-08-03T21:08:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:ea90b604a2db0e91",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "Josie 1.0 as API orchestrator using Gemini/ChatGPT, not local AI processing",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4548,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Now, the 1.0 target is local orchestration basically with use of Gemini and ChatGPT, not the local only version.",
+          "source_timestamp": "2026-08-03T21:07:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:7b04ad7fb0561e75",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "keeping current platform if economically reasonable",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4634,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Goal is to keep this platform if economically reasonable.",
+          "source_timestamp": "2026-08-05T18:43:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:d4c60dc8f1d039fa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers purchasing used hardware from eBay due to reliability and return guarantees",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4654,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Uh check out eBay for all of these lovely things or different options. I have no problem used cuz eBay usually has a pretty good guarantee for getting your money back if something's messed up.",
+          "source_timestamp": "2026-08-05T19:23:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:holds:8903a3baad4f0642",
+      "subject_entity_id": "person:dustin",
+      "predicate": "holds",
+      "value_text": "provisional vape license",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4680,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we got a provisional We got a provisional vape license, but they don",
+          "source_timestamp": "2026-08-06T18:22:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:operates_at_capacity:10963ac2db22b5b8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "operates_at_capacity",
+      "value_text": "75%",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4682,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we're mostly wide open, but uh about 75%. We're still going aggressively after products that will bring in customers",
+          "source_timestamp": "2026-08-06T18:25:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_use:f14eef9735fd9963",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_use",
+      "value_text": "known brands",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4682,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we try to stick with brands we know and we'll order, you know, a decent amount the first round because people are like us",
+          "source_timestamp": "2026-08-06T18:25:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:50b5f42a20ee95fc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Upside, Fuel Rewards, and Fetch for gas receipt submissions",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4698,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "so I told you I use upside because it's company gas so I make a little bit of money I make about 30 bucks a month considering I drive like 50,000 miles a year I've considered using my AI to submit receipts to multiple different programs what are your thoughts",
+          "source_timestamp": "2026-08-06T19:38:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:92d60fdcfca6f254",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "manual receipt scanning over card-linking for company fuel card transactions",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4702,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "pretty much anything to make some money and usually I don't link it to the card because it's a company fuel card I just take pictures of the receipts",
+          "source_timestamp": "2026-08-06T19:40:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_automate:f31b258e0efff1d9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_automate",
+      "value_text": "uploading single receipt to multiple platforms via Josie",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4704,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "yes and I would like to make a plan of how we can use Josie that I can upload one receipt from my phone and have it loaded on multiple platforms we may have to give Josie Android",
+          "source_timestamp": "2026-08-06T19:41:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_keep_the_setup_as_cheap_as_possible:97f869162920c3f2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_keep_the_setup_as_cheap_as_possible",
+      "value_text": "well I really want to kind of keep this as cheap as possible",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4732,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "well I really want to kind of keep this as cheap as possible",
+          "source_timestamp": "2026-08-06T19:49:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_specific_hardware_configuration_for_josie_v1:6a674818e8c1a6a5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_specific_hardware_configuration_for_josie_v1",
+      "value_text": "will probably just call this Josie V1 and it'll be the Advent text motherboard the 32 gigs of RAM the i7 7700 and whatever if we can find a better case in PSU for cheap then I'll go that route when money is available",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4734,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "will probably just call this Josie V1 and it'll be the Advent text motherboard the 32 gigs of RAM the i7 7700 and whatever if we can find a better case in PSU for cheap then I'll go that route when money is available",
+          "source_timestamp": "2026-08-06T19:51:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:josie_is_now_locked_into_no_extra_spend_mode:fb96f219bb684117",
+      "subject_entity_id": "person:dustin",
+      "predicate": "josie_is_now_locked_into_no_extra_spend_mode",
+      "value_text": "Josie is now locked into no-extra-spend mode",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Josie is now locked into no-extra-spend mode",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:cloud_api_calls_are_disabled_by_default:5c94d01c96f0a1e8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "cloud_api_calls_are_disabled_by_default",
+      "value_text": "Cloud API calls are disabled by default",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Cloud API calls are disabled by default",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:both_keys_remain_configured_locally_and_excluded_from_git:5a86c2f3a1d4a2cb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "both_keys_remain_configured_locally_and_excluded_from_git",
+      "value_text": "Both keys remain configured locally and excluded from Git",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Both keys remain configured locally and excluded from Git",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:provider_status_works_without_contacting_either_service:28989d5d73c72374",
+      "subject_entity_id": "person:dustin",
+      "predicate": "provider_status_works_without_contacting_either_service",
+      "value_text": "Provider status works without contacting either service",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Provider status works without contacting either service",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:all_four_safety_tests_pass:ced3055a923244d2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "all_four_safety_tests_pass",
+      "value_text": "All four safety tests pass",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "All four safety tests pass",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:checkpoint_5afe7a7_is_committed_and_pushed:55d7ffebf7046d6a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "checkpoint_5afe7a7_is_committed_and_pushed",
+      "value_text": "Checkpoint 5afe7a7 is committed and pushed",
+      "claim_category": "procedure",
+      "durability": "durable",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Checkpoint 5afe7a7 is committed and pushed",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:local_and_github_branches_match:b5a40a7a31797810",
+      "subject_entity_id": "person:dustin",
+      "predicate": "local_and_github_branches_match",
+      "value_text": "Local and GitHub branches match",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4740,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Local and GitHub branches match",
+          "source_timestamp": "2026-08-06T22:28:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:josie_is_at_version_99:0f27bdcc8a2f6d59",
+      "subject_entity_id": "person:dustin",
+      "predicate": "josie_is_at_version_99",
+      "value_text": "Josie is at version .99",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4742,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "there she sits Josie .99 since we aren't quite to 1.0 yet",
+          "source_timestamp": "2026-08-06T22:49:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:i_m_always_hunting_for_that_gpu:2552701636476716",
+      "subject_entity_id": "person:dustin",
+      "predicate": "i_m_always_hunting_for_that_gpu",
+      "value_text": "I'm always hunting for that GPU",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4744,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Oh, I'm always hunting for that GPU",
+          "source_timestamp": "2026-08-06T22:50:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considering_different_hardware_options_for_josie:86c30b4393039140",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considering_different_hardware_options_for_josie",
+      "value_text": "Considering different hardware options for Josie",
+      "claim_category": "hardware",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4746,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I think if I find a ATX case and power supply and a cheap 3060 12 gig, I might just go ahead and do that next",
+          "source_timestamp": "2026-08-06T22:53:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses_current_hardware:54af6b2a7fe08f64",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses_current_hardware",
+      "value_text": "i7 and 32 gigs of RAM",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4786,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I think I'll keep looking for deals. If I find something around 200 bucks and I have 200 bucks in my pocket, I'll purchase it. But right now, we're going to stick to the i7 and the 32 gigs of RAM.",
+          "source_timestamp": "2026-08-07T11:29:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks_hardware:df64485219277adb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks_hardware",
+      "value_text": "T100 for around 200 bucks",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4786,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I think I'll keep looking for deals. If I find something around 200 bucks and I have 200 bucks in my pocket, I'll purchase it.",
+          "source_timestamp": "2026-08-07T11:29:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own_hardware:7551dbef435dac8c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own_hardware",
+      "value_text": "T100",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4786,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I think I'll keep looking for deals. If I find something around 200 bucks and I have 200 bucks in my pocket, I'll purchase it.",
+          "source_timestamp": "2026-08-07T11:29:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:7d66b4eba6342799",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "Advantech AIMB-205",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4788,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Josie 1.0 hardware\n\nAdvantech AIMB-205\n\ni7-7700\n\n32 GB DDR4\n\nCurrent SATA SSD for OS/active files\n\n10 TB external USB HDD for models, datasets, logs, archives, generated work, backups, etc.",
+          "source_timestamp": "2026-08-07T23:44:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:4d5777f0e7220b02",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "Intel i7-7700",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4788,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Josie 1.0 hardware\n\nAdvantech AIMB-205\n\ni7-7700\n\n32 GB DDR4\n\nCurrent SATA SSD for OS/active files\n\n10 TB external USB HDD for models, datasets, logs, archives, generated work, backups, etc.",
+          "source_timestamp": "2026-08-07T23:44:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:77758b27d360dc7e",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "32 GB DDR4",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4788,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Josie 1.0 hardware\n\nAdvantech AIMB-205\n\ni7-7700\n\n32 GB DDR4\n\nCurrent SATA SSD for OS/active files\n\n10 TB external USB HDD for models, datasets, logs, archives, generated work, backups, etc.",
+          "source_timestamp": "2026-08-07T23:44:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:2daeb9b70ab39a74",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "128 GB internal SATA SSD",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4800,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current hardware\nAdvantech AIMB-205G2\nIntel i7-7700\n32 GB DDR4-2400\n128 GB internal SATA SSD\nIntel HD 630 integrated graphics\n200 W power supply\nNo discrete GPU\n10 TB external USB drive attached as D:\nWindows 11 Pro boots relia",
+          "source_timestamp": "2026-08-08T20:20:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:3fea989c9319a0a4",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "Intel HD 630 integrated graphics",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4800,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current hardware\nAdvantech AIMB-205G2\nIntel i7-7700\n32 GB DDR4-2400\n128 GB internal SATA SSD\nIntel HD 630 integrated graphics\n200 W power supply\nNo discrete GPU\n10 TB external USB drive attached as D:\nWindows 11 Pro boots relia",
+          "source_timestamp": "2026-08-08T20:20:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:ac272cf41416dd57",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "200 W power supply",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4800,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current hardware\nAdvantech AIMB-205G2\nIntel i7-7700\n32 GB DDR4-2400\n128 GB internal SATA SSD\nIntel HD 630 integrated graphics\n200 W power supply\nNo discrete GPU\n10 TB external USB drive attached as D:\nWindows 11 Pro boots relia",
+          "source_timestamp": "2026-08-08T20:20:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_hardware:1e9760a19b573a32",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_hardware",
+      "value_text": "10 TB external USB drive",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4800,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current hardware\nAdvantech AIMB-205G2\nIntel i7-7700\n32 GB DDR4-2400\n128 GB internal SATA SSD\nIntel HD 630 integrated graphics\n200 W power supply\nNo discrete GPU\n10 TB external USB drive attached as D:\nWindows 11 Pro boots relia",
+          "source_timestamp": "2026-08-08T20:20:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:uses_operating_system:0bfad22dc22ad69f",
+      "subject_entity_id": "system:josie",
+      "predicate": "uses_operating_system",
+      "value_text": "Windows 11 Pro",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4800,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current hardware\nAdvantech AIMB-205G2\nIntel i7-7700\n32 GB DDR4-2400\n128 GB internal SATA SSD\nIntel HD 630 integrated graphics\n200 W power supply\nNo discrete GPU\n10 TB external USB drive attached as D:\nWindows 11 Pro boots relia",
+          "source_timestamp": "2026-08-08T20:20:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:lacks_hardware:e8ae75f53117c702",
+      "subject_entity_id": "system:josie",
+      "predicate": "lacks_hardware",
+      "value_text": "discrete GPU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4800,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current hardware\nAdvantech AIMB-205G2\nIntel i7-7700\n32 GB DDR4-2400\n128 GB internal SATA SSD\nIntel HD 630 integrated graphics\n200 W power supply\nNo discrete GPU\n10 TB external USB drive attached as D:\nWindows 11 Pro boots relia",
+          "source_timestamp": "2026-08-08T20:20:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_hardware_claim:bf8c1ffb04c78ff9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_hardware_claim",
+      "value_text": "Drive C has 45.3 GB free out of 118.2 GB total",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4802,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "C: 45.3 GB free of 118.2 GB",
+          "source_timestamp": "2026-08-08T20:39:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_hardware_claim:52ce7602bc5fde3c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_hardware_claim",
+      "value_text": "Drive D has approximately 9 TB free",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4802,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "D: approximately 9 TB free",
+          "source_timestamp": "2026-08-08T20:39:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:04a838918b5ae02f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Revised plan to use native Windows Ollama with storage protection as Phase 1",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4802,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I\u2019m revising the plan to use native Windows Ollama and treat storage protection as Phase 1",
+          "source_timestamp": "2026-08-08T20:39:18Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,298 @@
+{
+  "unit_id": "BULK_UNIT_08",
+  "unit_index": 8,
+  "manifest_sha256": "54e568c643bd7740dbcdfd5ffb203dd54172c4f0337958c7b5984129b63d47b0",
+  "conversations_processed": 21,
+  "textual_messages_processed": 364,
+  "user_messages_processed": 166,
+  "chunks_processed": 34,
+  "skipped_zero_user_chunks": 3,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 364,
+    "user_messages_processed": 166,
+    "raw_model_proposals": 13,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 6,
+    "historical_only_routing": 3,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 1,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 3,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 1,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 1,
+    "project_architecture": 0,
+    "hardware_state": 3,
+    "runbook_procedure": 0,
+    "sensitive_review": 1,
+    "transient_noise": 4,
+    "historical_only": 3,
+    "context_archive": 0
+  },
+  "staged_claims_count": 12,
+  "evidence_links_count": 12,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 208,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:f96a20d8d3504cd5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "interpreting theological discussions through a biblical-strategic framework that considers spiritual warfare around ethnic Israel due to covenantal relevance",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15975,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "That is contextually how I was taken everything that level was saying about the Jews being more Spiritually susceptible or not even susceptible Let's take that out because I think that's a distinction I saw you making versus the way I was taking it They are more spiritually at risk Two spiritual warfare because of The Covenant promises and Still Spiritually Revolent",
+          "source_timestamp": "2026-05-07T16:12:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:e95b04622b315d5d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "framing theological analysis around the Bible's primacy as the lens for understanding ethnic Israel's role in spiritual warfare",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15979,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Okay cool thank you you quit trying to guardrail me from bad theology or unhealthy ethnic or even Zionist anti-zionist belief and focused in on if we consider the Bible to be irrefutable and that is the lens by which you and I measure all conversations and all things that we can conclude that ethnic Israel definitely still has a role to play and definitely would be an increased hotbed for spiritua",
+          "source_timestamp": "2026-05-07T16:18:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_physical_attributes_and_training:23dfb025fdc58a0f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_physical_attributes_and_training",
+      "value_text": "6'4\", 260 pounds, wrestled in school, took kickboxing, jiu-jitsu, fairly good hand-to-hand, fairly decent with a firearm, trained by law enforcement and military members",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15948,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm 6'4\", 260 pounds, wrestled in school, took kickboxing, jiu-jitsu, fairly good hand-to-hand, fairly decent with a firearm, you know, trained, range time, was trained by law enforcement and military members of my own.",
+          "source_timestamp": "2026-05-06T14:14:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_personality_traits:76f35d0de0b5f830",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_personality_traits",
+      "value_text": "intelligence, size, presence, physical violence capabilities, soft, goofy, abused, broken kid inside who gets to come out and play and be okay and be safe",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "sensitive_review",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15952,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "my intelligence, my size, presence, physical violence capabilities, and then my really soft, goofy, you know, basically the same abused, broken kid is still inside of me. So that kid gets to come out and play and be okay and be safe",
+          "source_timestamp": "2026-05-06T14:30:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:62c7d0fc0b7942cc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "vehicle has full infotainment system and cross-traffic detection",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15938,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Hey, we are in our new 2026 Subaru Ascent Premium. So I've got the full infotainment system, cross-traffic detection. I lost my sunroof and my lumbar support, but other than that, I think about everything else in here is an upgrade.",
+          "source_timestamp": "2026-05-06T13:59:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:aafef11885d40ed1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "vehicle lacks sunroof and lumbar support",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15938,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Hey, we are in our new 2026 Subaru Ascent Premium. So I've got the full infotainment system, cross-traffic detection. I lost my sunroof and my lumbar support, but other than that, I think about everything else in here is an upgrade.",
+          "source_timestamp": "2026-05-06T13:59:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:3201b5c68024075f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "vehicle will be traded in after 100,000-120,000 miles of use (similar to previous corporate lease vehicle)",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15940,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "it'll probably get 100,000 miles on it, 120,000 miles on it, and then get traded in like the last one did",
+          "source_timestamp": "2026-05-06T14:02:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:feels_frustrated_by:4ec9c28a7f87281b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "feels_frustrated_by",
+      "value_text": "lack of societal response to child exploitation and systemic issues",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15857,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "You cant get people to care, thats what im.raging against here",
+          "source_timestamp": "2026-05-04T01:33:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_more_controlling_than_realized:0a137500c27ca71b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_more_controlling_than_realized",
+      "value_text": "because I try to pin people down",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15883,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I'm a lot more controlling than I realized because I try to pin people down",
+          "source_timestamp": "2026-05-04T14:29:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:avoids_conversations:acafa7bf6c6a5b5c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "avoids_conversations",
+      "value_text": "to prevent repeating past negative outcomes",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15895,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I try not to have conversations because I already had them in my head and the outcome turned out bad",
+          "source_timestamp": "2026-05-04T15:26:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:does_not_exist:dd2b4b549737c965",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "does_not_exist",
+      "value_text": "RTX 5060 GPU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15774,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "There is **no widely available \u201cRTX 5060\u201d** on the used market right now.",
+          "source_timestamp": "2026-05-03T01:32:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:99434a0eedea5a11",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "to fully build out projects (e.g., Buffalo Auto Spa) and then shelf them, avoiding over-engineering or mismatched expectations",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15675,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I can fully build it out, get it out of my head, into a project, and then shelf it",
+          "source_timestamp": "2026-05-01T21:19:16Z"
+        }
+      ]
+    }
+  ]
+}

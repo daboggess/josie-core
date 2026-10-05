@@ -829,6 +829,60 @@ class TestEvidenceIngestion(unittest.TestCase):
             self.assertFalse(good_id.startswith("."))
             self.assertFalse(good_id.endswith("."))
 
+    # 20. Production mode execution with expected counts verification
+    def test_20_production_mode_execution_and_expected_counts(self):
+        data = _create_chatgpt_json_data([
+            {"id": "msg-prod-001", "role": "user", "text": "Production message 1"},
+            {"id": "msg-prod-002", "role": "assistant", "text": "Production response 1"},
+        ])
+        archive_path = self.root / "chatgpt-prod.zip"
+        _create_chatgpt_zip(archive_path, data)
+
+        # Successful production import with auto expected counts
+        res = execute_evidence_ingest(
+            archive_path,
+            store=self.store,
+            mode="production",
+            run_id="chatgpt-prod-run-001",
+        )
+        self.assertEqual(res.status, "success")
+        self.assertEqual(res.inserted_messages, 2)
+        run_record = self.store.history_import_run("chatgpt-prod-run-001")
+        self.assertIsNotNone(run_record)
+        self.assertEqual(run_record["mode"], "production")
+        self.assertEqual(run_record["production_import"], 1)
+
+        # Mismatched expected counts triggers rollback
+        data2 = _create_chatgpt_json_data([
+            {"id": "msg-prod-003", "role": "user", "text": "Production message 2"},
+        ])
+        archive_path2 = self.root / "chatgpt-prod2.zip"
+        _create_chatgpt_zip(archive_path2, data2)
+        with self.assertRaises(ValueError):
+            execute_evidence_ingest(
+                archive_path2,
+                store=self.store,
+                mode="production",
+                run_id="chatgpt-prod-run-002",
+                expected={"messages": 999},  # Wrong count
+            )
+        # Database was rolled back; message count remains 2
+        self.assertEqual(self.store.history_counts()["history_messages"], 2)
+
+    # 21. Malformed record resilience: partial or corrupted records do not corrupt full import
+    def test_21_malformed_record_resilience(self):
+        adapter = ChatGPTTakeoutAdapter()
+        # Top-level is dict instead of list
+        bad_json_bytes = b'{"not": "a list"}'
+        bad_zip = self.root / "chatgpt-bad.zip"
+        with zipfile.ZipFile(bad_zip, "w") as zf:
+            zf.writestr("conversations.json", bad_json_bytes)
+
+        msgs, malformed = adapter.parse(bad_zip)
+        self.assertEqual(len(msgs), 0)
+        self.assertEqual(len(malformed), 1)
+        self.assertIn("Top-level conversations JSON must be an array", malformed[0].reason)
+
 
 if __name__ == "__main__":
     unittest.main()

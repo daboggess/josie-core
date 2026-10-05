@@ -1,0 +1,193 @@
+{
+  "unit_id": "BULK_UNIT_10",
+  "unit_index": 10,
+  "manifest_sha256": "dce9ac1d318d5c3fea31254535c19e603096a6760ab8b2373d33230497bb3a10",
+  "conversations_processed": 24,
+  "textual_messages_processed": 232,
+  "user_messages_processed": 108,
+  "chunks_processed": 28,
+  "skipped_zero_user_chunks": 3,
+  "funnel": {
+    "source_conversations_processed": 24,
+    "textual_messages_processed": 232,
+    "user_messages_processed": 108,
+    "raw_model_proposals": 10,
+    "assistant_authority_rejections": 2,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 3,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 2,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 3,
+    "project_architecture": 0,
+    "hardware_state": 2,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 7,
+  "evidence_links_count": 7,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 233,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:fasting_habit:ca8ee46ff1557770",
+      "subject_entity_id": "person:dustin",
+      "predicate": "fasting_habit",
+      "value_text": "Fasting initiated through prayer, with intermittent use of BodyArmor Flash IV energy drink pouches (95mg caffeine, no sugarloaf) previously recommended by ChatGPT",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15265,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "you were the one that helped me pick those body armor flashround energy drink pouches",
+          "source_timestamp": "2026-04-22T18:13:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_dietary_restrictions:a3aad56353df3370",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_dietary_restrictions",
+      "value_text": "gluten-free and cannot consume nuts due to adverse effects",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15279,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "you didn't acknowledge the gluten-free or the fact that I can't eat nuts or they have a horrible effect on my system.",
+          "source_timestamp": "2026-04-22T19:26:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:15218:added_to_project:99afbf3ee2ed7643",
+      "subject_entity_id": "15218",
+      "predicate": "added_to_project",
+      "value_text": "Loving My Wife project",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 15218,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I'm gonna add this into the Loving My Wife project, so maybe you can look at the whole picture.",
+          "source_timestamp": "2026-04-20T14:45:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:d31025588d2a9886",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Dell 5520 laptop",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15098,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Dell 5520 laptop",
+          "source_timestamp": "2026-04-15T13:42:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_been_on_trt_for_approximately_2_years:7dab2372ff909b06",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_been_on_trt_for_approximately_2_years",
+      "value_text": "2 years",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15081,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Maybe 2 years",
+          "source_timestamp": "2026-04-14T14:57:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_keep:bf98d1cd7f2512f8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_keep",
+      "value_text": "cat trees and ottoman",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14886,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Cat trees and ottoman need to stay",
+          "source_timestamp": "2026-04-08T21:39:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:a724b708a0094064",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Shark air purifier (brand new)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14919,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "This thing is Gucci.  Brand new",
+          "source_timestamp": "2026-04-10T23:05:15Z"
+        }
+      ]
+    }
+  ]
+}

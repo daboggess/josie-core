@@ -1,0 +1,214 @@
+{
+  "unit_id": "BULK_UNIT_30",
+  "unit_index": 30,
+  "manifest_sha256": "c17e60aed2a4676cf9bb9e5e5c94dd4a8c5992ab61fad6f1ab47f04d15bd16f7",
+  "conversations_processed": 12,
+  "textual_messages_processed": 603,
+  "user_messages_processed": 261,
+  "chunks_processed": 47,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 12,
+    "textual_messages_processed": 603,
+    "user_messages_processed": 261,
+    "raw_model_proposals": 11,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 5,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 5,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 2,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 8,
+  "evidence_links_count": 8,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 528,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:1dcfa80abd03b2ae",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "uses a company-provided vehicle for personal use (200-300 miles/month) without paying for gas or insurance",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7400,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "The vehicle, I get personal use out of it, which I usually tackle on about 200 to 300 miles a month of personal use, which I don't pay for gas, insurance, or anything on the vehicle.",
+          "source_timestamp": "2025-08-25T20:44:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:f784fa90a10919d4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "currently employed by Becton Dickinson in the HCSIS role",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7412,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I currently work for Becton Dickinson handling HCSIS",
+          "source_timestamp": "2025-08-25T20:49:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:3729926aa6d5bb12",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "256 GB RAM",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6210,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well go 256",
+          "source_timestamp": "2025-08-25T00:04:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_dual_cpu_configuration:8ccf2f9e9cc41e7a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_dual_cpu_configuration",
+      "value_text": "dual",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 6243,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Still want dual",
+          "source_timestamp": "2025-08-25T00:32:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_avoid_competing_with_king_s_flagship_product_lines:fb476ff2a03954e5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_avoid_competing_with_king_s_flagship_product_lines",
+      "value_text": "prefers to avoid competing with King's flagship product lines",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7339,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "GPT-100 was really saturated in the market. It's kind of ran its course. Most people have moved on from it, and we're not going to do the finest where that is kind of the flagship line of Kings. So keep that in mind going forward, please.",
+          "source_timestamp": "2025-08-21T13:32:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:589451a1eb96f5fd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Price first, speed second",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 7283,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Price first, speed second",
+          "source_timestamp": "2025-08-20T18:41:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:operates_business_since:96da37e95d5cc34f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "operates_business_since",
+      "value_text": "2014",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7206,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Out of years of knowledge, can we just say since 2014? That way, as it changes every year, we don't need to update it.",
+          "source_timestamp": "2025-08-20T15:48:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_include_in_business_description:600dcea955c121c0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_include_in_business_description",
+      "value_text": "10% military first responder discount and 5% cashback customer loyalty discount",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7200,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So this is our description under business information. We've got 750 characters, and I want to also add in that we have a 10% military first responder discount, and that we have a 5% cashback customer loyalty discount.",
+          "source_timestamp": "2025-08-20T15:45:04Z"
+        }
+      ]
+    }
+  ]
+}

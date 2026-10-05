@@ -1,0 +1,277 @@
+{
+  "unit_id": "GEMINI_UNIT_18",
+  "unit_index": 18,
+  "manifest_sha256": "0a404ade428df7e5df73f56ac131b14df02d41c5e54ac89d76296765b4f4df88",
+  "conversations_processed": 50,
+  "textual_messages_processed": 225,
+  "user_messages_processed": 119,
+  "chunks_processed": 19,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 225,
+    "user_messages_processed": 119,
+    "raw_model_proposals": 11,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 5,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 2,
+    "project_architecture_candidates": 1,
+    "hardware_state_candidates": 4,
+    "runbook_procedural_candidates": 1,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 2,
+    "project_architecture": 1,
+    "hardware_state": 4,
+    "runbook_procedure": 1,
+    "sensitive_review": 0,
+    "transient_noise": 2,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 11,
+  "evidence_links_count": 11,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 683,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_exact_tts_scan_of_chapter_7:21afd1350f2adbad",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_exact_tts_scan_of_chapter_7",
+      "value_text": "exact TTS scan of everything in chapter seven",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4351,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, I didn't want to break down. I wanted an exact TTS scan of everything in chapter seven.",
+          "source_timestamp": "2026-07-26T18:15:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:architecture:5f911d8c9b2f2109",
+      "subject_entity_id": "system:josie",
+      "predicate": "architecture",
+      "value_text": "Josie is the operating system; specialized engines drive it",
+      "claim_category": "architecture",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4394,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Josie is the operating system; we are the specialized engines driving it",
+          "source_timestamp": "2026-07-30T17:15:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:b73d3e3ca9bce27d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "Josie should earn autonomy through resilience, not immediate broad permissions",
+      "claim_category": "project_state",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4393,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "making Josie resilient enough that when she does have broad permissions, she doesn't accidentally do something unintended",
+          "source_timestamp": "2026-07-30T17:15:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_of_installed_software:1171adbcdd66e0b2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_of_installed_software",
+      "value_text": "Visual Studio Code (VS Code)",
+      "claim_category": "hardware",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4405,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Successfully installed",
+          "source_timestamp": "2026-07-30T17:31:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_of_not_owning:11a4a60b518bf249",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_of_not_owning",
+      "value_text": "Python",
+      "claim_category": "hardware",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4405,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No package found matching input criteria.",
+          "source_timestamp": "2026-07-30T17:31:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:dd41893ee0fe561a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "the RAM in question is SODIMM (Small Outline DIMM)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4439,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Incorrect. It is sodimm",
+          "source_timestamp": "2026-07-30T22:31:31Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:1234567890:is_incompatible_with:3244d53ea977f066",
+      "subject_entity_id": "1234567890",
+      "predicate": "is_incompatible_with",
+      "value_text": "ORICO e7400 4 TB PCIe 4.0 NVMe",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4451,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "The ORICO e7400 4 TB PCIe 4.0 NVMe will not work through that slot, even with an extension cable",
+          "source_timestamp": "2026-07-31T15:40:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:msata_drive_compatibility:8cef944617b76ebc",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "msata_drive_compatibility",
+      "value_text": "Kingston 120GB mSATA SSD fits into MINI_PCIE1 slot for OS storage",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4458,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Kingston 120GB mSATA SSD (The Blue Card): This is a native mSATA drive. It will drop directly into the white MINI_PCIE1 slot we identified earlier on the board.",
+          "source_timestamp": "2026-07-31T16:18:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:msata_hot_swap_risk:4be387da6af1dc5e",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "msata_hot_swap_risk",
+      "value_text": "Internal mSATA slots are not hot-swappable and risk shorting pins if inserted while powered",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4460,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Internal motherboard slots like mSATA, Mini-PCIe, and M.2 are not designed to be hot-swappable. The pins carry live voltage, and sliding the card in while the board has power will almost certainly short out the pins, instantly frying the motherboard, the SSD, or both.",
+          "source_timestamp": "2026-07-31T16:20:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:msata_cloning_procedure:bb5962800fc4f2a0",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "msata_cloning_procedure",
+      "value_text": "Cloning to mSATA requires an mSATA-to-USB adapter due to single motherboard slot limitation",
+      "claim_category": "procedure",
+      "durability": "durable",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4462,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Cloning to an mSATA drive requires an mSATA-to-USB adapter enclosure because motherboards only feature a single mSATA slot, preventing both drives from being connected internally at the same time.",
+          "source_timestamp": "2026-07-31T16:21:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:5611d7cf96e45c9b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "always selects Teays Valley campus when mentioning River Ridge",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4485,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "if I ever say River Ridge I'm always talking about Teays Valley",
+          "source_timestamp": "2026-08-01T09:50:11Z"
+        }
+      ]
+    }
+  ]
+}

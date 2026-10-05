@@ -1,0 +1,232 @@
+{
+  "unit_id": "GEMINI_UNIT_01",
+  "unit_index": 1,
+  "manifest_sha256": "6e79ca3740ef8131621482aeb96c4012cc29b4144b1a0b3207cec73b7e7857a6",
+  "conversations_processed": 50,
+  "textual_messages_processed": 349,
+  "user_messages_processed": 175,
+  "chunks_processed": 28,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 349,
+    "user_messages_processed": 175,
+    "raw_model_proposals": 12,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 7,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 0,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 0,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 7,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 4,
+  "evidence_links_count": 6,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 563,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:considers_hosting_customer_feedback_events_with_product_samples:162dcb481a13be50",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considers_hosting_customer_feedback_events_with_product_samples",
+      "value_text": "I wonder if I could get something together with them that they would send me samples that I could then let the public test that tell me what they want us to carry",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 140,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I wonder if I could get something together with them that they would send me samples that I could then let the public test that tell me what they want us to carry",
+          "source_timestamp": "2025-07-27T23:49:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considers_hosting_in_store_events:02571b820f434d4a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considers_hosting_in_store_events",
+      "value_text": "I'm kind of thinking about it now though",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 136,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm kind of thinking about it now though",
+          "source_timestamp": "2025-07-27T23:48:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_budget:2d2f1fda764e775a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_budget",
+      "value_text": "$2,500",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 150,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Probably about $2,500 and automation of browsing websites, pulling results, doing research.",
+          "source_timestamp": "2025-08-01T01:49:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_run:0327f0e3eb0f6f4c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_run",
+      "value_text": "AI tasks, media serving, remote access",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 148,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Uh, yes, all of those. I'd also like to be able to run my Plex server and bread setup and to be able to remote ask questions and get similar results to what I ask you.",
+          "source_timestamp": "2025-08-01T01:48:34Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:9824f42ffde63cdf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "two 24TB Seagate Exostraves and 24TB NVMe drives",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 152,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I currently have two twenty four TB Seagate Exostraves and 24 TB NVMe drives that I could use for this build.",
+          "source_timestamp": "2025-08-01T01:49:35Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:317:suggest:0bf665cd2406718b",
+      "subject_entity_id": "317",
+      "predicate": "suggest",
+      "value_text": "add specific keywords like 'premium e-liquids,' 'custom mods,' or 'expert coil-building' to attract customers searching for those items. Highlight unique services or specialties such as loyalty rewards or seasonal specials.",
+      "claim_category": "general",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 317,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "To make it even better, let's add some specific keywords that potential customers might use when searching for vape shops in the area. We can also highlight any unique products or services you offer, like premium e-liquids, custom mods, or expert coil-building.",
+          "source_timestamp": "2025-08-20T15:35:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:322:suggest:7218d731ae6ccfd0",
+      "subject_entity_id": "322",
+      "predicate": "suggest",
+      "value_text": "incorporate the 5% cashback loyalty reward into the description to enhance customer engagement and attract repeat business.",
+      "claim_category": "general",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 322,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We do offer 5% cash back loyalty rewards.",
+          "source_timestamp": "2025-08-20T15:36:24Z"
+        },
+        {
+          "history_message_id": 323,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Let's add that 5% cashback loyalty reward to your description. We can also include details about any seasonal specials you offer.",
+          "source_timestamp": "2025-08-20T15:36:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:324:suggest:57eedd2d4a4a8f8d",
+      "subject_entity_id": "324",
+      "predicate": "suggest",
+      "value_text": "include the 10% discount for military and first responders in the description to appeal to these specific customer groups and enhance brand reputation.",
+      "claim_category": "general",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 324,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "and 10% off for military and first responders.",
+          "source_timestamp": "2025-08-20T15:37:00Z"
+        },
+        {
+          "history_message_id": 325,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Enjoy a 5% cashback loyalty program, plus a 10% discount for military and first responders.",
+          "source_timestamp": "2025-08-20T15:37:00Z"
+        }
+      ]
+    }
+  ]
+}

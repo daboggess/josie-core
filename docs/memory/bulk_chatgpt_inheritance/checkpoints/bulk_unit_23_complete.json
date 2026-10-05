@@ -1,0 +1,379 @@
+{
+  "unit_id": "BULK_UNIT_23",
+  "unit_index": 23,
+  "manifest_sha256": "6376411174927185840df938bb358d009128a45181f1692b0b67b26185b52eee",
+  "conversations_processed": 21,
+  "textual_messages_processed": 352,
+  "user_messages_processed": 171,
+  "chunks_processed": 35,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 352,
+    "user_messages_processed": 171,
+    "raw_model_proposals": 21,
+    "assistant_authority_rejections": 4,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 6,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 3,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 5,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 3,
+    "project_architecture": 0,
+    "hardware_state": 5,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 6,
+    "context_archive": 0
+  },
+  "staged_claims_count": 15,
+  "evidence_links_count": 17,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 451,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:e3776fa61e2f57a2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "want to use the start to build into my future system",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10581,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "But i want to use the start to build into my future system",
+          "source_timestamp": "2025-12-11T12:59:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own:008400c4938cb1b5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own",
+      "value_text": "RTX 3060",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10577,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No existing 3060",
+          "source_timestamp": "2025-12-11T12:55:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants:30cb84db9205d1f4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants",
+      "value_text": "RGB lighting and a white case",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10554,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I kind of want some rgbs and a white case",
+          "source_timestamp": "2025-12-10T23:54:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:explained:c0e8829ab072995e",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "explained",
+      "value_text": "More expensive Minisforum models (e.g., 790S7) are not necessarily better for AI workloads due to GPU limitations, thermal constraints, and expandability tradeoffs",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 10487,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "I can walk you through **why some of the more expensive MS-series (or other Minisforum small P",
+          "source_timestamp": "2025-12-10T01:31:23Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:self_assesses_emotional_maturity_intelligence:e2aec5d3a7662a86",
+      "subject_entity_id": "person:dustin",
+      "predicate": "self_assesses_emotional_maturity_intelligence",
+      "value_text": "equivalent to 2 year old",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10079,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "emotional maturity/intelligence of a 2 year old",
+          "source_timestamp": "2025-12-09T14:15:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:desires:d349f7eca38fde52",
+      "subject_entity_id": "person:dustin",
+      "predicate": "desires",
+      "value_text": "to become Servant/steward",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10079,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Desire need to become Servant/steward",
+          "source_timestamp": "2025-12-09T14:15:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:abac543861732da4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "owns a 2024 Subaru Forester with 100,000 miles",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10351,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Which vehicle i have a 24 forrester now w 100k miles",
+          "source_timestamp": "2025-12-08T23:40:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:b4b982f79498a3ad",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers Subaru EyeSight safety system over Toyota equivalents",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10357,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I really love subaru eyesight for steering assist. Wifes toyota equivalent sucks by comparison and saftey",
+          "source_timestamp": "2025-12-09T00:05:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:582607347db9dec9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "10 terabyte hard drive",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10317,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "a 10 terabyte hard drive backup.",
+          "source_timestamp": "2025-12-08T18:23:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:8d478bf4606ceb61",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "MyBook",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10317,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "MyBook",
+          "source_timestamp": "2025-12-08T18:23:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_behavior:4a9919dff4ebdc31",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_behavior",
+      "value_text": "has not vaped in 2 months",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10221,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I haven't vaped in about 2 months",
+          "source_timestamp": "2025-12-03T18:38:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_experience:38ca9676b515a4f2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_experience",
+      "value_text": "NicNac lozenges last longer than Zyn/Pillowz",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10229,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I feel like these last longer than zyn. Zyn last 10 to 15 minutes before the flavor is gone and i take them out, pillowz last 30 up 60 before loosing flavor/feeling",
+          "source_timestamp": "2025-12-03T18:43:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_preference:90a5eea8ccafe195",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_preference",
+      "value_text": "to watch content from Church of 1122 related to marriage",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10203,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "and I'm hoping maybe they have something else that's geared towards marriage.",
+          "source_timestamp": "2025-12-03T17:16:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_preference:a95df19618c82918",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_preference",
+      "value_text": "to watch Church of 1122 content",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10193,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I've been watching Church of 1122.",
+          "source_timestamp": "2025-12-03T17:14:46Z"
+        },
+        {
+          "history_message_id": 10197,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I just finished watching the Stand Firm and Act Like Men series.",
+          "source_timestamp": "2025-12-03T17:16:17Z"
+        },
+        {
+          "history_message_id": 10199,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "videos and then the Deepin podcast as well.",
+          "source_timestamp": "2025-12-03T17:16:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:4093bd0ab049724c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "USB battery pack on hand",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10095,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have a usb battery pack on hand if that helps",
+          "source_timestamp": "2025-12-02T14:20:01Z"
+        }
+      ]
+    }
+  ]
+}

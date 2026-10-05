@@ -1,0 +1,454 @@
+{
+  "unit_id": "BULK_UNIT_20",
+  "unit_index": 20,
+  "manifest_sha256": "09a45b28695d4a6d6c62d22b0dd918d275f6880e593079f04bf193d3e6b86304",
+  "conversations_processed": 21,
+  "textual_messages_processed": 246,
+  "user_messages_processed": 109,
+  "chunks_processed": 25,
+  "skipped_zero_user_chunks": 5,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 246,
+    "user_messages_processed": 109,
+    "raw_model_proposals": 27,
+    "assistant_authority_rejections": 6,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 3,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 8,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 8,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 2,
+    "historical_only": 3,
+    "context_archive": 0
+  },
+  "staged_claims_count": 19,
+  "evidence_links_count": 20,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 411,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:deleted:6c358203c85af86d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "deleted",
+      "value_text": "registry values for HTTP_PROXY, HTTPS_PROXY, and NO_PROXY under HKEY_USERS\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11777,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I deleted them.....",
+          "source_timestamp": "2026-01-08T20:30:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:only_reorders_to_match_sales:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "only_reorders_to_match_sales",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11647,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Only reordering to match sales, this is new product to increase offerings and hopefully customers",
+          "source_timestamp": "2026-01-06T16:27:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:only_reorders_top_sellers:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "only_reorders_top_sellers",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11649,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Yes we only reorder top sellers",
+          "source_timestamp": "2026-01-06T16:29:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:engages_in:d42b2ea71484bd75",
+      "subject_entity_id": "person:dustin",
+      "predicate": "engages_in",
+      "value_text": "making up scenarios in my head constantly of real-world situations or completely made-up situations and playing them out multiple different ways in my head",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11686,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I make up scenarios in my head constantly of real-world situations or completely made-up situations and play them out multiple different ways in my head.",
+          "source_timestamp": "2026-01-06T21:45:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:experiences:9b528a37deb7023e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "experiences",
+      "value_text": "oscillating between self-perception of worthlessness and recognition of being blessed with skills and talents",
+      "claim_category": "profile",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 11692,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Even in prayer, I go back and forth between I'm so worthless and so terrible to God has blessed me with all of these skills and talents and I'm capable of amazing things.",
+          "source_timestamp": "2026-01-06T21:48:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_been_told:36c00db10cf8ac62",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_been_told",
+      "value_text": "that I'm a waste of the time",
+      "claim_category": "identity",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 11694,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I've been told I'm a waste of the time.",
+          "source_timestamp": "2026-01-06T21:48:31Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:user_profile:knows_trends_and_data_sources:19e5fbafd362c273",
+      "subject_entity_id": "user_profile",
+      "predicate": "knows_trends_and_data_sources",
+      "value_text": "used to do all the hardware ordering, still knows trends and data sources",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11605,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "i used to do all the hardware ordering bow my wife does it but i still know trends and data sources so she asked for my input",
+          "source_timestamp": "2026-01-06T14:39:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_hardware:a9a1aa3110ddaac1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_hardware",
+      "value_text": "Vaporesso LUXE XR Max 2",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11628,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "We carry lux xr 2, and gtx coils. Looking at more gtx compatable mods",
+          "source_timestamp": "2026-01-06T15:13:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_hardware:920aeede14582001",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_hardware",
+      "value_text": "GTX coils",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11628,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "We carry lux xr 2, and gtx coils. Looking at more gtx compatable mods",
+          "source_timestamp": "2026-01-06T15:13:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_hardware_inventory:04d1d39953c75005",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_hardware_inventory",
+      "value_text": "B and P coils in moderate stock",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11621,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "We have b and p coils in moderate stock already",
+          "source_timestamp": "2026-01-06T14:54:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state_hardware_mapping:14ed1aa4d810d7a7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state_hardware_mapping",
+      "value_text": "Force kit = B coils",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11625,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Wrong again....... force is b coil",
+          "source_timestamp": "2026-01-06T15:10:16Z"
+        },
+        {
+          "history_message_id": 11627,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Force kit = B coils",
+          "source_timestamp": "2026-01-06T15:10:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:02788f3ddd2c8b81",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Focus on GTX-compatible mods",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11628,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Looking at more gtx compatable mods",
+          "source_timestamp": "2026-01-06T15:13:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:393b56bf6fd57630",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Vaporesso Eco Nano Pro",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11640,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we have the eco nano pro but the nano plus has a 10ml pod. The 10ml pod is compatable with the nano pro so were hoping to use the new pod to sell off the pro before bring innthe plus",
+          "source_timestamp": "2026-01-06T15:36:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:99830263d7a5f73b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "Adam's Polishes Ceramic Spray",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11572,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Sound like Adams would be the best all around solution to me",
+          "source_timestamp": "2026-01-04T20:23:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:attends:529c9c13d747032d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "attends",
+      "value_text": "Sunday and Monday men's groups",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11542,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well ive leaned into sunday and Monday but work prevents wednesday attendance",
+          "source_timestamp": "2026-01-02T22:43:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:participates_in:0172fa38aa0ec852",
+      "subject_entity_id": "person:dustin",
+      "predicate": "participates_in",
+      "value_text": "informal Saturday night accountability group (invite-only)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11548,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Its not a formal river ridge church group, its more invite only",
+          "source_timestamp": "2026-01-02T22:53:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:provides_assistance_with:d111403817485104",
+      "subject_entity_id": "person:dustin",
+      "predicate": "provides_assistance_with",
+      "value_text": "car alternator troubleshooting and washer latch replacement",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11544,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Jack, i helped troubleshoot and replace his cars alternator (hes not mechanical works at a school) and Justin replace a latch switch on his washer (chemo nurse) not mechanical.",
+          "source_timestamp": "2026-01-02T22:46:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:describes:5c585a1abef1fa19",
+      "subject_entity_id": "person:dustin",
+      "predicate": "describes",
+      "value_text": "Sunday group feels more like a country club that does charity work together occasionally",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11546,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "The sunday group feels more like a country club that does charity workntogether occasionally",
+          "source_timestamp": "2026-01-02T22:50:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_constraint:d9079a1125cd0465",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_constraint",
+      "value_text": "Wednesday group attendance blocked by work commitments",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11542,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well ive leaned into sunday and Monday but work prevents wednesday attendance",
+          "source_timestamp": "2026-01-02T22:43:03Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,466 @@
+{
+  "unit_id": "BULK_UNIT_05",
+  "unit_index": 5,
+  "manifest_sha256": "f3a5c2a8b2502a59d5e2dc689c442c87f2a3c2ef9c2b2c682c74314fc2def474",
+  "conversations_processed": 21,
+  "textual_messages_processed": 338,
+  "user_messages_processed": 142,
+  "chunks_processed": 30,
+  "skipped_zero_user_chunks": 4,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 338,
+    "user_messages_processed": 142,
+    "raw_model_proposals": 24,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 3,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 8,
+    "project_architecture_candidates": 2,
+    "hardware_state_candidates": 6,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 3
+  },
+  "destinations": {
+    "personal_canonical": 8,
+    "project_architecture": 2,
+    "hardware_state": 6,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 3,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 20,
+  "evidence_links_count": 20,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 169,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_use_peptides_and_other_supplements_to_aid_weight_loss:0810f2c5496c96b4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_use_peptides_and_other_supplements_to_aid_weight_loss",
+      "value_text": "due to an inability to attend the gym regularly",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17737,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "adding different peptides or other things to supplement my weight loss and push past this plateau since I can't get to a gym to save my life because of my insane schedule",
+          "source_timestamp": "2026-07-02T17:19:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_save_hsa_funds_for_future_expenses:add46b607c95230c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_save_hsa_funds_for_future_expenses",
+      "value_text": "rather than using them for supplements",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17749,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm trying to save my HSA money for building up for next year and for covering",
+          "source_timestamp": "2026-07-02T17:28:13Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:remaining_dose:is:6dd27f2c38b1b7bd",
+      "subject_entity_id": "remaining_dose",
+      "predicate": "is",
+      "value_text": "0.22ml",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15135,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "0.40-0.18=0.22",
+          "source_timestamp": "2026-06-26T23:27:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_a_preference_for_avoiding_gluten_and_red_dye:54dab9eb6d3204a0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_a_preference_for_avoiding_gluten_and_red_dye",
+      "value_text": "durable",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17280,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I haven't had M&Ms in forever because I don't do red dye.",
+          "source_timestamp": "2026-06-30T00:37:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:consumed_three_32_ounce_owalas:c9315b735a289b9a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "consumed_three_32_ounce_owalas",
+      "value_text": "transient",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 17284,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I had my three 32-ounce Owalas",
+          "source_timestamp": "2026-06-30T00:38:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:believes_preschool_ministry_should_have_transparent_safeguards:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "believes_preschool_ministry_should_have_transparent_safeguards",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17254,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no way, shape, or form has that ever worried me",
+          "source_timestamp": "2026-06-26T18:20:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:believes_youth_ministry_should_avoid_isolated_access:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "believes_youth_ministry_should_avoid_isolated_access",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17262,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no teen or young adult ministry where anyone should ever be alone",
+          "source_timestamp": "2026-06-26T19:12:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_young_female_family_members:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_young_female_family_members",
+      "value_text": "true",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17267,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have so many young female family members",
+          "source_timestamp": "2026-06-26T19:17:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:experiences_emotional_distress_at_work:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "experiences_emotional_distress_at_work",
+      "value_text": "true",
+      "claim_category": "profile",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 17270,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Im trying not to cry at work",
+          "source_timestamp": "2026-06-26T19:21:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:setting_up_a_joint_bank_account_and_starting_budgets:eefce833f84a2865",
+      "subject_entity_id": "person:dustin",
+      "predicate": "setting_up_a_joint_bank_account_and_starting_budgets",
+      "value_text": "we're going to go to one joint bank account and basically start setting budgets",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17198,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we're going to go to one joint bank account and basically start setting budgets",
+          "source_timestamp": "2026-06-25T18:29:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:establishing_monthly_allowance_amounts:9da8fdbe7d0f2b83",
+      "subject_entity_id": "person:dustin",
+      "predicate": "establishing_monthly_allowance_amounts",
+      "value_text": "allowance for me of $200 a month and the same for her and my daughter",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17198,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "allowance for me of $200 a month and the same for her and my daughter",
+          "source_timestamp": "2026-06-25T18:29:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hardware:502134b3e26c7c1b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hardware",
+      "value_text": "two Advantech CTOS industrial systems",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16612,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have 2 adventech.....",
+          "source_timestamp": "2026-06-19T14:57:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hardware:5d3758e5586577e9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hardware",
+      "value_text": "Delta DPS-200PB-138 power supply (considered trash)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16615,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Just a random power supply i have, off inventory work stuff. Aka trash",
+          "source_timestamp": "2026-06-19T15:00:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hardware:1fca4533df7a3dc0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hardware",
+      "value_text": "8GB RAM installed on second Advantech",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16619,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Second adventech, i installed the other 4gb ram.",
+          "source_timestamp": "2026-06-19T15:24:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hardware:5df302d7bd956fe1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hardware",
+      "value_text": "2x 4TB NVMe",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16621,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have 2 4tb nvme, and 2 24tb hhd and plenty of 500 to 128 ssd",
+          "source_timestamp": "2026-06-19T15:28:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hardware:17d427c4fbb41ed1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hardware",
+      "value_text": "2x 24TB HDD",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16621,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have 2 4tb nvme, and 2 24tb hhd and plenty of 500 to 128 ssd",
+          "source_timestamp": "2026-06-19T15:28:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hardware:017d99799f076ffa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hardware",
+      "value_text": "8GB DDR3",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16628,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "8gb ddr3",
+          "source_timestamp": "2026-06-19T15:36:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:is_named:d118e41faea4e000",
+      "subject_entity_id": "system:josie",
+      "predicate": "is_named",
+      "value_text": "Josie",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16597,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "and now, instead of what we previously called Hydra, we're gonna call it Josie, like Joseph from the Bible, interpreting dreams and managing feast and famine, and yeah, that was the background on that.",
+          "source_timestamp": "2026-06-18T16:57:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:has_naming_convention:d1842e5d7c8a77f4",
+      "subject_entity_id": "system:josie",
+      "predicate": "has_naming_convention",
+      "value_text": "Josie (from Joseph), Sophie (ChatGPT), Bernie (Gemini)",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16597,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Sophie, you and I came to. Bernie, we kind of went with Bernard, Bernadette, and then Josie instead of Hydra, because I was or",
+          "source_timestamp": "2026-06-18T16:57:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:expresses_concern_about_checklist_sustainability:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "expresses_concern_about_checklist_sustainability",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 16563,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I just wanted to go in with the understanding that if we create a checklist, we can do it for now, but we can only expect i",
+          "source_timestamp": "2026-06-15T18:08:17Z"
+        }
+      ]
+    }
+  ]
+}

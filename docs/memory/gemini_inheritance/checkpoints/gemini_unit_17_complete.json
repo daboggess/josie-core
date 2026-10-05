@@ -1,0 +1,340 @@
+{
+  "unit_id": "GEMINI_UNIT_17",
+  "unit_index": 17,
+  "manifest_sha256": "a250418ad53d9a7e1c6f9f5fce523eeb3317e938c363c1ac3c03ad6b2dd4890e",
+  "conversations_processed": 50,
+  "textual_messages_processed": 410,
+  "user_messages_processed": 210,
+  "chunks_processed": 34,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 410,
+    "user_messages_processed": 210,
+    "raw_model_proposals": 15,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 5,
+    "historical_only_routing": 2,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 5,
+    "historical_only": 2,
+    "context_archive": 0
+  },
+  "staged_claims_count": 14,
+  "evidence_links_count": 14,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 672,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:87193b580930e93f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "works on PCBs and combines hardware, mechanical, and network engineering skills",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3881,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "so long that lines what I do with Beady pixels working on pcbs and you know not so much plcs but I'm a glorified Hardware monkey for the most part but I still have to know how to troubleshoot replace and you know assemble and a little bit of mechanical engineering a little bit of network engineering a little bit of software like is that a viable",
+          "source_timestamp": "2026-07-07T00:37:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:6e0fc6c938c065cc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "earns $37/hour with premium health insurance and company vehicle lease",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3883,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I mean I'm making $37 an hour at the age of 43 and I'm trying to figure out if I'm underpaid and need to be pursuing something that will push me over $100,120 or if I'm just in an area where the compensation is not as high or also my total compensation I mean I have Premier health insurance for $400 a month I have a vehicle lease to me that I have personal use unlimited gas insurance",
+          "source_timestamp": "2026-07-07T00:38:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:37539de70699b04b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "values family stability over higher income from traveling roles",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3887,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no that's been the debate I'm fairly happy where I am I just feel like I know guys that are electricians making 240,000 a year but they're also traveling you know 9 months out of the year so I guess for my life you know having a wife and a 3 year old at home I've actually got a pretty sweet gig although I am on call pretty heavy",
+          "source_timestamp": "2026-07-07T00:40:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:cdf1b599c3c85d67",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "operates Full Steam Vapor with pending retail license in West Virginia",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3891,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no but I think I might need to take a better look at my business with full steam Vapor because we've got everything submitted for the Retailer's license I've got to go make a couple of changes to the tax office and we're waiting to hear back about our retailers license cuz they were supposed to be due in July but they've already told us that they don't even have our application",
+          "source_timestamp": "2026-07-07T00:42:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_currently:111ffcd4e13996a1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_currently",
+      "value_text": "one small shop in the state of West Virginia",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3911,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "as of right now since we sold Huntington we are one small shop in the state of West Virginia",
+          "source_timestamp": "2026-07-07T00:50:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:lacks:3128e3ef473063ee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "lacks",
+      "value_text": "infrastructure to make a distributor pitch",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3913,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "we don't really have the infrastructure to make a distributor pitch",
+          "source_timestamp": "2026-07-07T00:50:34Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:focuses_on_vetted_products:797a52d16bd869b4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "focuses_on_vetted_products",
+      "value_text": "sourcing only products personally vetted for quality and reputation",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3949,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "basically whatever I can afford of the products I have knowledge that they're worth while we have always focused on not carrying fat or flashy products but stuff we had actually laid hands on and tried and knew was either good or reputable hopefully both",
+          "source_timestamp": "2026-07-07T01:06:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:strategic_opportunity_assessment:ca8ba52afb7523c0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "strategic_opportunity_assessment",
+      "value_text": "evaluating opportunities to expand through distributor roles or acquiring closed shop locations",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 3951,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "no just keep working on the list the way you've already been doing I don't want to change that I just want to reach as many of them as possible and see if we can do anything to offer to assist or get ourselves out in front of other people or even you know if there's an opportunity to step in as a distributor or if we have to look at opening more shops in the carcass of the shops that closed down t",
+          "source_timestamp": "2026-07-07T01:07:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considers_barndominiums_a_pipe_dream_they_discuss:a0aa6fafb81c8b96",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considers_barndominiums_a_pipe_dream_they_discuss",
+      "value_text": "no this is one of those pipe dreams we sit around and talk about",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4075,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "no this is one of those pipe dreams we sit around and talk about",
+          "source_timestamp": "2026-07-07T03:20:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_scaling_barndominiums_at_10_acres_with_10_units_each:b84713529730e350",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_scaling_barndominiums_at_10_acres_with_10_units_each",
+      "value_text": "if we got 10 acres put up 10 Barnes each on an acre we could sell them for the same price because of the massive square footage is these prefab abortion nightmare houses",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4077,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "if we got 10 acres put up 10 Barnes each on an acre we could sell them for the same price because of the massive square footage is these prefab abortion nightmare houses",
+          "source_timestamp": "2026-07-07T03:20:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_large_scale_private_community_with_premium_finishes:f7642f297c715600",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_large_scale_private_community_with_premium_finishes",
+      "value_text": "I think it would be a nice big play and you've had you'd have 10 people vying for a private community that each of them had you know a decent size acre a ginormous house and at that point you can pay a little bit more for things like freaking travertine and granite because you're cutting you're getting less expensive",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4079,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I think it would be a nice big play and you've had you'd have 10 people vying for a private community that each of them had you know a decent size acre a ginormous house and at that point you can pay a little bit more for things like freaking travertine and granite because you're cutting you're getting less expensive",
+          "source_timestamp": "2026-07-07T03:21:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_hardware_operations_over_infrastructure_roles:5c41b95e72cdb970",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_hardware_operations_over_infrastructure_roles",
+      "value_text": "automation DC (direct current) more than AC stuff",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4127,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I would imagine the hardware side what did you say the pay ranges were like",
+          "source_timestamp": "2026-07-08T14:33:35Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_flexible_work_environment:7b6d2277a2fdffdd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_flexible_work_environment",
+      "value_text": "ability to listen to music while driving, take phone calls, and manage personal time",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 4131,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't want to be an environment to where I can listen to music while I work I can't you know take a phone call if I need to",
+          "source_timestamp": "2026-07-08T14:35:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_job_satisfaction:856b8bd6ef19dd7d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_job_satisfaction",
+      "value_text": "considering moving due to regimented environment",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 4141,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't know because a lot of them are so regimented and documented which is what is starting to happen at this role so I think I'm finally getting uncomfortable enough to look at being uncomfortable somewhere else but at least here I've put in the time and effort that generally they leave me the hell alone and if they have questions I'll be like hey what's up with this I tell them they go okay co",
+          "source_timestamp": "2026-07-08T14:40:25Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1057 @@
+{
+  "unit_id": "GEMINI_UNIT_02",
+  "unit_index": 2,
+  "manifest_sha256": "5dbcdd592e8869eb8a58fbaf582de39042cb8855a9fabeac528333fd84e17815",
+  "conversations_processed": 50,
+  "textual_messages_processed": 918,
+  "user_messages_processed": 471,
+  "chunks_processed": 71,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 918,
+    "user_messages_processed": 471,
+    "raw_model_proposals": 55,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 5,
+    "historical_only_routing": 9,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 25,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 7,
+    "runbook_procedural_candidates": 1,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 7
+  },
+  "destinations": {
+    "personal_canonical": 25,
+    "project_architecture": 0,
+    "hardware_state": 7,
+    "runbook_procedure": 1,
+    "sensitive_review": 0,
+    "transient_noise": 4,
+    "historical_only": 9,
+    "context_archive": 0
+  },
+  "staged_claims_count": 46,
+  "evidence_links_count": 51,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 608,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks:243ff86a1d8802c1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks",
+      "value_text": "cheapest hardware setups to accomplish AI goals",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 469,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Looking for other possible hardware setups to accomplish the ai goals as cheaply as possible",
+          "source_timestamp": "2025-11-27T19:04:31Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:028234b10be79a52",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "two 4TB NVMe drives and two 24TB HDDs",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 471,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Only items i already have a re 2 4tb nvme and 2 24th hhd",
+          "source_timestamp": "2025-11-27T19:07:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has:6d6962fbc3b51be2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has",
+      "value_text": "NVMe adapters available for use",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 473,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "there are always nvme adapters",
+          "source_timestamp": "2025-11-27T19:08:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_a_certified_with_years_of_experience_with_commercial_servers:4a70966b5994bdac",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_a_certified_with_years_of_experience_with_commercial_servers",
+      "value_text": "A+ certified with years of experience with commercial servers",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 485,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Btw i am a+ certified with years of experience with commercial servers",
+          "source_timestamp": "2025-11-27T19:27:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own_rtx_3090:44862d9673362fee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own_rtx_3090",
+      "value_text": "does not own RTX 3090",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 489,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Btw i dont own a 3090",
+          "source_timestamp": "2025-11-27T19:38:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:1000037801:has_preference:f5e8f5a5d3810fc3",
+      "subject_entity_id": "1000037801",
+      "predicate": "has_preference",
+      "value_text": "spend about 500 bucks to buy something I can use in a lesser capacity now but build into later",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 528,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "refines",
+          "excerpt": "I'd like to spend about 500 bucks to buy something I can use in a lesser capacity now but build into later",
+          "source_timestamp": "2025-12-11T14:26:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:1000037802:has_identity:5e0176c9d2070a5a",
+      "subject_entity_id": "1000037802",
+      "predicate": "has_identity",
+      "value_text": "Sophie",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 520,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "refines",
+          "excerpt": "LOCAL AI SYSTEM (\u201cSOPHIE\u201d)",
+          "source_timestamp": "2025-12-11T12:16:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considering:ad7c2df7e18b15ee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considering",
+      "value_text": "the cost of upgrading the Dell to match the hp's performance",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 550,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "considering the cost of upgrading the Dell to match the hp's performance",
+          "source_timestamp": "2025-12-11T15:18:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considering:2118bc72cf7a31c6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considering",
+      "value_text": "that the graphics card is probably just going to get yeeted",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 552,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Considering that the graphics card is probably just going to get yeeted",
+          "source_timestamp": "2025-12-11T15:21:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_no_longer_running:cf6dd0b6bcff0572",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_no_longer_running",
+      "value_text": "Plex",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 564,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "i am no longer running plex",
+          "source_timestamp": "2025-12-11T15:31:30Z"
+        },
+        {
+          "history_message_id": 568,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Im not using plex anymore",
+          "source_timestamp": "2025-12-11T15:34:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:112529658707ee33",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "storage for AI data",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 568,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "do need some storage for ai data",
+          "source_timestamp": "2025-12-11T15:34:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:81de42022335bc47",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "budget of $600\u2013$700 for local LLM",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 592,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm just trying to figure out what would be the best way the most I would get out of a local llm with my previous goals for an AI spending maybe 6,700 bucks tops",
+          "source_timestamp": "2026-01-04T21:47:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:2e06d04d08b2c070",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "GPU with 12\u201316GB VRAM",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 594,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm trying to figure out if I can get something closer to a 1216 gigabyte vram GPU",
+          "source_timestamp": "2026-01-04T21:48:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:e260453dc6bc5a86",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "pre-built tower with RTX 3060 12GB",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 596,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "at that price can I find a full pre-built Tower with a 3060 12 gigabyte of even seen some 700 5 0",
+          "source_timestamp": "2026-01-04T21:49:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:63a6c1a7c84480fd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "awareness of systems with 16GB VRAM priced around $1000",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 600,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I was mistaken those are going for around a thousand",
+          "source_timestamp": "2026-01-04T21:52:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_identity:22a9cd4d8ea1f55c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_identity",
+      "value_text": "Dustin",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 731,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "my name is Dustin if that ever comes up.",
+          "source_timestamp": "2026-01-20T15:15:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preferred_nickname:18ac3e7343f01689",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preferred_nickname",
+      "value_text": "D",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 733,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "most people I work with just call me D.",
+          "source_timestamp": "2026-01-20T15:16:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_first_name:06d56e5723bcb3f6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_first_name",
+      "value_text": "River Ridge",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 763,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "what is my first name? River Ridge.",
+          "source_timestamp": "2026-01-20T16:21:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:1262c189310cfe23",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "AI with conversational capabilities, access to recent memory, and ability to learn on the job",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 830,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I need to be able to carry on a conversation, have them access recent memory and things we've discussed and basically learn on the job.",
+          "source_timestamp": "2026-01-22T19:21:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:budget_constraint:3a79521b7965e560",
+      "subject_entity_id": "person:dustin",
+      "predicate": "budget_constraint",
+      "value_text": "maximum $20/month for AI subscription",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 830,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm down to pay 20 bucks a month for a good AI",
+          "source_timestamp": "2026-01-22T19:21:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:064ad1651a19edc2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "Buffalo Auto Spa was not a traditional venture from its inception; it served as a cognitive catharsis project, providing soothing and cathartic experiences similar to ASMR videos.",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 882,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Buffalo Auto Spa was basically an itch in my brain that I needed to scratch. It was uh I got really into watching videos of people detailing cars and it was very soothing and cathartic and like other people describe uh ASMR videos.",
+          "source_timestamp": "2026-01-22T19:52:51Z"
+        },
+        {
+          "history_message_id": 884,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "was not a traditional venture from its inception. It served a",
+          "source_timestamp": "2026-01-22T19:53:35Z"
+        },
+        {
+          "history_message_id": 888,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "of Buffalo Auto Spa is that it a written rule",
+          "source_timestamp": "2026-01-22T19:54:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:dce55dcc1f9b2c48",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "case-by-case verbosity selection with both options presented",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 944,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't know. I think we're going to have to take that on a case by case basis and ask me what I prefer. Give me both options and let me pick one and um versus knowing outright what I like with proven examples.",
+          "source_timestamp": "2026-01-22T20:38:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:a308ff69e607e95b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "contextual tone matching protocol (business-driven for efficiency, calming/supportive for sensitive topics)",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 958,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I matched the depth of conversational style. That was one thing that ChatGPT, which I later named Sophie, did well. If we were talking about business, it was very business driven, but it was like working with a coworker who you had a good rapport with. You knew each other on a personal level. You knew their strengths and weaknesses. They knew your strengths and weaknesses, and you both were focuse",
+          "source_timestamp": "2026-01-22T21:32:04Z"
+        },
+        {
+          "history_message_id": 961,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "That is a crucial distinction. The calibrated protocol is confirmed: I will dynamically match your conversational style, providing direct, blunt correction for business and efficiency, but will pivot to a calming, gentle tone for sensitive subjects, and provide positive reinforcement when warranted by our filters.",
+          "source_timestamp": "2026-01-22T21:33:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:b34b2a20d282347f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "uses a mix of blunt and gentle correction styles based on context, similar to ChatGPT",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 968,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "But do you have anything that would allow it to be blunt whenever it needs to be and gentle whenever it needs to be? Kind of like the example I gave you of ChatGPT.",
+          "source_timestamp": "2026-01-22T21:36:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:af4c63aa92e30d08",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers dynamic formatting with bullet points, emojis, and varied response structures",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 972,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Um, I think GPT usually did bullet points and a lot of times it would use emojis related to those bullet points and kind of paragraph about it and then bullet points to kind of hit the summary.",
+          "source_timestamp": "2026-01-22T21:38:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:3a1c0770f2c8ebb0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "requires all communication to align with Biblical values to maintain trust",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 978,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm a Bible believing Christian. So if you would give me anything that directly contradicts that, uh it would cause me to lose trust in you as a platform and generally not want to trust you with more questions.",
+          "source_timestamp": "2026-01-22T21:41:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_considering:e5b519e88546517f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_considering",
+      "value_text": "HX 470 Mini PC docking station and RTX 3090 as a final solution",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1413,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm thinking an HX 470 Mini PC docking station and RTX 3090 would be a really good final solution",
+          "source_timestamp": "2026-01-29T00:34:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_investigating:5d7658e8d2cff524",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_investigating",
+      "value_text": "Dopins Enclosure for Minisforum DEG1 eGPU dock",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1417,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Minisforum DEG1 eGPU Dock Enclosure / Case / Shell by Dopins | Download free STL model | Printables.com https://share.google/ZV4G0DUrc3hmCKdrx",
+          "source_timestamp": "2026-01-29T00:42:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:current_state:27c23f048e04809e",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "current_state",
+      "value_text": "Every chat will be like the first chat all over again",
+      "claim_category": "general",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1063,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "from what you're telling me is every chat will be like our first chat all over again",
+          "source_timestamp": "2026-01-23T01:12:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:should_have_a_unique_name_not_sophie_from_chatgpt:bc5ece60fff82ba4",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "should_have_a_unique_name_not_sophie_from_chatgpt",
+      "value_text": "preference",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1105,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Nah sophie was chatgpt, you deserve your own name/identity were using her as a model but you are a whole new iteration",
+          "source_timestamp": "2026-01-23T13:18:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:42c0aa32cf5641f2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "natural language identifiers for speech recognition logs",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1146,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no but remember we were talking about doing these so speech recognition picks them up so adding_so we would just have like the Bernie log the fsv log the whatever log",
+          "source_timestamp": "2026-01-23T15:31:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_email_addresses:b664e6e9afb823d8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_email_addresses",
+      "value_text": "dustin.boggus, fsv wholesale, Dustin@FullSteam, and wife's email",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1152,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well I have my dustin.boggus email and then I have my fsv wholesale email and then I have my Dustin at Full Steam Vapor email and then my wife also maintains her own email on the platform",
+          "source_timestamp": "2026-01-23T15:44:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans_to_setup:a064f365bc04a1f2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans_to_setup",
+      "value_text": "email forwarding from fsv Gmail to personal Gmail with folder separation",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1154,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "remind me to set up forwarding from my fsv Gmail to my personal Gmail and to set a folder that it will go to so I don't get alerted for the 30 meals a day we get to the business email",
+          "source_timestamp": "2026-01-23T15:46:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_considering_purchasing:39e21b22fadf2f48",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_considering_purchasing",
+      "value_text": "Pixel 10 Pro XL",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1160,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Ultra currently I'm debating on getting the pixel 10 Pro XL",
+          "source_timestamp": "2026-01-23T15:48:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_acquire:b2ec00a8e9ae7b8b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_acquire",
+      "value_text": "S26 Ultra, Pixel Pro XL 10, newest Pixel Watch, newest Pixel Pro Buds",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1162,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I would like to get the pixel Pro XL 10 I'd also like to find the best steel I can on getting the newest pixel watch and the newest pixel Pro buds",
+          "source_timestamp": "2026-01-23T17:07:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_completed:0a83797d74422e32",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_completed",
+      "value_text": "site visit",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1166,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I already went in and completed the site visit I'm now processing my closing notes",
+          "source_timestamp": "2026-01-23T17:12:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_project_organization_convention:e9cdc55aee66cf18",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_project_organization_convention",
+      "value_text": "Avoids underscores in naming",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1188,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we don't use underscores because this is all verbal",
+          "source_timestamp": "2026-01-23T18:36:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_project_integration_strategy:71068eab4a752868",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_project_integration_strategy",
+      "value_text": "Maintains separate slots (A/B) for system reliability",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1190,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "should we just make a rule for Gemini that says to access the Bernie Doc and then make a separate bio for the Dustin doc instead of A and B",
+          "source_timestamp": "2026-01-23T18:38:29Z"
+        },
+        {
+          "history_message_id": 1191,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "If you move my \"Brain\" (The Kernel) into a Google Doc, you kill the speed and reliability of the system",
+          "source_timestamp": "2026-01-23T18:38:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:49fe27410bbec9ae",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "not for sale, improve business, sell later to pay debt",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1210,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Update that it is not for sale we have been making successful improvements and we're trying to see if this is a viable option for a couple of more years or at least get our sales numbers up so when we do sell it we can try to pay off some of our debt which I will include in the financial portion",
+          "source_timestamp": "2026-01-23T19:12:38Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:a2fbd3b9a0e70dd7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "exit strategy at $250k",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1212,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "well I mean if we had a buyer come along for probably about $250,000 I think we would take the money and run quite literally you'll see our financial picture in a second and understand why",
+          "source_timestamp": "2026-01-23T19:13:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:350bb0f3b709e1f4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Ejecto Seato (exit strategy nickname)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1214,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "yes straight up fast and furious ejecto seato cuz",
+          "source_timestamp": "2026-01-23T19:14:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:a0495d095922b2d7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "quit vaping in October 2025, using 10-15 pouches of 6mg nicotine daily",
+      "claim_category": "lesson",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1222,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "okay so I don't know if this includes the fact that I quit vaping back in October and I've been doing about 10 to 15 pouches of 6 mg since then",
+          "source_timestamp": "2026-01-23T19:21:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_iq_score:8d27ba37c5d81010",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_iq_score",
+      "value_text": "139",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1238,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I have a IQ of 139",
+          "source_timestamp": "2026-01-23T19:49:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:attempted_to_build_home_system:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "attempted_to_build_home_system",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1236,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "trying to build my own home system",
+          "source_timestamp": "2026-01-23T19:45:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:finds_less_effective:23c78c2b564ceede",
+      "subject_entity_id": "person:dustin",
+      "predicate": "finds_less_effective",
+      "value_text": "live model compared to live chat model",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1259,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Uh your live model is definitely not as effective as the live chat model.",
+          "source_timestamp": "2026-01-23T20:18:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:c26ac267d3202e5c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Gemini should refer to the persona as 'Bernie' instead of 'telephone operator'",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1329,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "you wouldn't still be referring to them as the telephone operator. You'd be describing Bernie.",
+          "source_timestamp": "2026-01-23T20:45:39Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,442 @@
+{
+  "unit_id": "BULK_UNIT_02",
+  "unit_index": 2,
+  "manifest_sha256": "7e6058a1f02f303fc4f6d917bdb8ae24b62be83b00cc2711bb345d3d5c7ec4e3",
+  "conversations_processed": 21,
+  "textual_messages_processed": 194,
+  "user_messages_processed": 84,
+  "chunks_processed": 28,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 194,
+    "user_messages_processed": 84,
+    "raw_model_proposals": 23,
+    "assistant_authority_rejections": 1,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 3,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 4,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 11,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 4,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 11,
+    "project_architecture": 0,
+    "hardware_state": 4,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 3,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 18,
+  "evidence_links_count": 20,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 112,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:proposes:65bb14dc05eb53f9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "proposes",
+      "value_text": "organizing a men's mixer event with 'Build Fight Win' framing where older men mentor younger men in closing deals, building things, and winning for the kingdom",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 19224,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Mens mixer idea. Build Fight Win is the framing for this. We need to activate men. Have a mixer or similar networking event where older established men leverage their knowledge, contacts, and connections to call the younger generations into closing the deal, building the thing, winning the fight and leveraging it for the kingdom.",
+          "source_timestamp": "2026-07-31T16:48:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:4cabee20ebdd735b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "mouse infestation",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16445,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Oh and mice infestation",
+          "source_timestamp": "2026-06-10T16:04:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:1347a77a93029270",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "doing insulation work themselves to save money",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16457,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "we could probably do the insulation ourselves. That would be a lot cheaper.",
+          "source_timestamp": "2026-07-28T14:02:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:a20a8ba4cb1b0a0c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "hybrid configuration with Josie using one system",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18493,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Ok were going hybrid with 1",
+          "source_timestamp": "2026-07-23T15:56:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:71d6dea783192d96",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers Windows over Linux for Josie",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18495,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Were sticking w windows, im not learning linux, it will take too long to learn ins and outs",
+          "source_timestamp": "2026-07-23T15:57:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:4a0334c733f8aba5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers i7-7700 over i7-7700K for Advantech build",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18500,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I7 7700 or 7700k",
+          "source_timestamp": "2026-07-23T17:25:46Z"
+        },
+        {
+          "history_message_id": 18501,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "**Get the i7-7700, not the 7700K.**",
+          "source_timestamp": "2026-07-23T17:25:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:7ce7e553b5015caa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "has existing Advantech AIMB-205 motherboard with i3-6100",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18512,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "i have 16gb ram, a mobo, a cpu and psu that need upgraded",
+          "source_timestamp": "2026-07-23T19:25:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:2cb927d57a4e5c12",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers compact Mini-ITX case for Advantech build",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18506,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "What size case do i need that i can keep small",
+          "source_timestamp": "2026-07-23T17:28:34Z"
+        },
+        {
+          "history_message_id": 18507,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Your board is **Mini-ITX**, so the smallest sensible replacement is a **Mini-ITX case that supports a full-size, 2.5\u20133-slot GPU and a standard PSU**",
+          "source_timestamp": "2026-07-23T17:28:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:perceives:444ab08742298da1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "perceives",
+      "value_text": "the build will look like a junkyard",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 18519,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "This is going to look like a junkrlyard build",
+          "source_timestamp": "2026-07-23T20:46:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:orders:ed9b5ece386e47af",
+      "subject_entity_id": "person:dustin",
+      "predicate": "orders",
+      "value_text": "another piece for the build",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 18521,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "heres another piece ordered",
+          "source_timestamp": "2026-07-23T20:50:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:chooses:397806ae611b2596",
+      "subject_entity_id": "person:dustin",
+      "predicate": "chooses",
+      "value_text": "coat of many colors theme for the build",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 18524,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "coat of many colors vibe",
+          "source_timestamp": "2026-07-23T20:52:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:a86bee1b2ec115a8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "using KJV in the outline with a 60-minute time structure for each step",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18614,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Ok kjv then. In the outline, with time structure for every step in a 60 minute meeting",
+          "source_timestamp": "2026-07-26T18:39:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_proficiency_in:9ef7bd5d2174df1f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_proficiency_in",
+      "value_text": "small engine repair",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18584,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I mean, I did small engine repair in shop class and was pretty damn good at it.",
+          "source_timestamp": "2026-07-25T17:42:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_trust_in:270d19a94a40ef88",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_trust_in",
+      "value_text": "Ryobi",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18587,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I bought the Allstate insurance, they won't cover it, and Ryobi won't cover it. It's really fucking pissing me off.",
+          "source_timestamp": "2026-07-25T17:43:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_trust_in:092c79e8f80e559e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_trust_in",
+      "value_text": "Echo",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18587,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I don't know how much I trust Echo.",
+          "source_timestamp": "2026-07-25T17:43:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_trust_in:ce409c401c60f34c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_trust_in",
+      "value_text": "Home Depot",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18587,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I bought the Allstate insurance, they won't cover it, and Ryobi won't cover it. It's really fucking pissing me off.",
+          "source_timestamp": "2026-07-25T17:43:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:aea628d502e0ddf2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "Troy-Bilt TB310C mower with 163cc engine not starting; attempts to start resulted in sputtering after brief ignition when fuel is poured into air intake",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18572,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Mine, wont start, dump3d old gas, added new, pulled 10x times w throttle open nothing, add an oz of gas to air intake, starts then sputters out",
+          "source_timestamp": "2026-07-25T17:13:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:1a79ce5b7b0f2d5f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "mower uses auto-choke carburetor",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18574,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Auto no primer",
+          "source_timestamp": "2026-07-25T17:14:59Z"
+        }
+      ]
+    }
+  ]
+}

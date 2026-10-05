@@ -1,0 +1,109 @@
+{
+  "unit_id": "GEMINI_UNIT_06",
+  "unit_index": 6,
+  "manifest_sha256": "56936f94128a7c2b30f5d23029770278e2c83fd93f7176a4df80e989ff11c650",
+  "conversations_processed": 50,
+  "textual_messages_processed": 155,
+  "user_messages_processed": 91,
+  "chunks_processed": 14,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 155,
+    "user_messages_processed": 91,
+    "raw_model_proposals": 3,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 0,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 1,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 0,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 1,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 3,
+  "evidence_links_count": 3,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 619,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:gemini:does_not_support:63e3a8ddd5505ed2",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "does_not_support",
+      "value_text": "GPS/location triggers for reminders",
+      "claim_category": "procedure",
+      "durability": "durable",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1810,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I can certainly help with that, though I should mention that I currently can't trigger reminders based on your GPS location (like \"when I leave home\").",
+          "source_timestamp": "2026-02-19T01:22:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requested:9584e947e193a02c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requested",
+      "value_text": "reminder to drop off Jess's check at 7:45 AM tomorrow",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1807,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "tomorrow morning at 7:45 remind me to drop off Jess's check",
+          "source_timestamp": "2026-02-19T01:22:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:bf15d6ce1d5e7f9c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "Chevelle",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1862,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "give me some Chevelle",
+          "source_timestamp": "2026-02-19T23:34:17Z"
+        }
+      ]
+    }
+  ]
+}

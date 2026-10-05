@@ -247,6 +247,35 @@ Mini-ITX platform; exact PSU, connector and board compatibility remain unverifie
 9. [x] Complete Wave 3 with a deterministic evidence gate, one-use holdout, and offline deal scorer while keeping live discovery and model authority blocked.
 10. [x] Add and test the research-only manual Deal Hunter screen; keep every live marketplace and outward action behind a separate human gate.
 11. [x] Select and safely stage eBay as the first source without creating credentials or enabling live network access.
+12. [x] Complete ChatGPT and Gemini historical Takeout ingestion and staged candidate extraction (726 noncanonical candidates, 777 evidence rows, zero automatic promotions).
+13. [x] Formulate 35 consolidated human decision items in `DUSTIN_FINAL_DECISION_QUEUE.md` and ratify 2026-10-05 forward direction.
+14. [ ] Execute final human adjudication of decision queue and promote first-generation canonical knowledge.
+15. [ ] Implement persistent continuity-state schema and event scheduler.
+16. [ ] Deploy primary direct Dustin ↔ Josie conversation interface.
+
+## Continuity, interface, and evolutionary learning (2026-10-05 forward direction)
+
+See canonical specification: [docs/JOSIE_CONTINUITY_AND_INTERFACE_DIRECTION_2026-10-05.md](file:///D:/Josie/docs/JOSIE_CONTINUITY_AND_INTERFACE_DIRECTION_2026-10-05.md).
+
+### Immediate Next (Inheritance Closeout & Continuity Foundation)
+- [ ] 1. Finish inheritance closeout and final human adjudication across 35 consolidated items in `DUSTIN_FINAL_DECISION_QUEUE.md`.
+- [ ] 2. Establish canonical first-generation knowledge via governed promotion of approved candidates into `josie.db` (canonical count currently remains 10).
+- [ ] 3. Implement persistent structured continuity-state schema (goals, jobs, blockers, open questions, meta-narrative; "persistent continuity != continuous GPU inference").
+- [ ] 4. Build deterministic event queue and task scheduler waking model reasoning only when justified.
+- [ ] 5. Implement direct Dustin ↔ Josie text interface with conversational memory and state management (primary relationship front door; Telegram is project team workroom).
+- [ ] 6. Direct voice roadmap: STT (Whisper/successor) and TTS (stable Josie voice) integration under direct local control.
+
+### Later & Research Milestones
+- [ ] 7. Conversational memory editing, questioning, and natural operational state updates.
+- [ ] 8. Telegram multi-party project workroom (Dustin, Josie, Sophie, Bernie).
+- [ ] 9. Transparent, inspectable Josie/Sophie/Bernie collaboration in Telegram without hidden backchannels.
+- [ ] 10. Bounded Purposeful Curiosity engine and structured Question Ledger.
+- [ ] 11. Frontier intelligence broker for bounded work orders to cloud models.
+- [ ] 12. Continuous incremental evidence and candidate memory intake pipeline.
+- [ ] 13. Provider-neutral model qualification and phased Qwen exit path (Ornith successor evaluation).
+- [ ] 14. Josie Model Lab: evaluation corpus and regression benchmark suites by role.
+- [ ] 15. LoRA and adapter experiments on qualified locally controllable base models.
+- [ ] 16. Specialized locally controlled worker models under supervisor governance.
 
 ## Change-control rule
 

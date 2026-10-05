@@ -1,0 +1,277 @@
+{
+  "unit_id": "GEMINI_UNIT_14",
+  "unit_index": 14,
+  "manifest_sha256": "9d28e4c3bb974993a4ceaf6013d14cb984ba0cb421cc2bb4b1df270cac933fa0",
+  "conversations_processed": 50,
+  "textual_messages_processed": 253,
+  "user_messages_processed": 133,
+  "chunks_processed": 22,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 253,
+    "user_messages_processed": 133,
+    "raw_model_proposals": 12,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 4,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 4,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 11,
+  "evidence_links_count": 11,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 647,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:gemini:was_a_friend_of:c7a38b230e94275c",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "was_a_friend_of",
+      "value_text": "D.L. Moody",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 3212,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "We can trace that connection back to a close friendship and a shared mission in the 19th-century revival movement. Horatio Spafford, the lawyer who wrote that hymn after losing his four daughters at sea, was a dedicated supporter and friend of D.L. Moody.",
+          "source_timestamp": "2026-05-17T23:42:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:d252c7af17ec7f5c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "DeWalt battery packs",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3242,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have mostly DeWalt tuell DeWalt battery packs but after walking around Harbor Freight I've got to say they're power stuff looks fairly comparable I really wonder what the difference is because I know there's about a 25 to 30% price difference and I love my DeWalt stuff but if I could throw on a battery adapter and count on Bauer stuff to be as reliable I think I would",
+          "source_timestamp": "2026-05-19T13:59:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:5833f03aae4864bb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "DeWalt tools for reliability and color consistency",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3248,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no just in general I've always thought if I have money I buy DeWalt just because it already fits into the environment not going to lie to the Chisum gets me matching colors even my Cub Cadet stuff but I've got a couple of Ryobi pieces a couple of rigid pieces and they work fine I've noticed Ryobi not being quite as good but I use them just like I use my DeWalt stuff and they don't handle that so I",
+          "source_timestamp": "2026-05-19T14:03:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:68d74bc0fa47503e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Ryobi and Ridgid tools",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3248,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "no just in general I've always thought if I have money I buy DeWalt just because it already fits into the environment not going to lie to the Chisum gets me matching colors even my Cub Cadet stuff but I've got a couple of Ryobi pieces a couple of rigid pieces and they work fine I've noticed Ryobi not being quite as good but I use them just like I use my DeWalt stuff and they don't handle that so I",
+          "source_timestamp": "2026-05-19T14:03:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:2ab78f31f1e31ae6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "securing toolboxes with ratchet straps through loops on the back of the toolboxes",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3260,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "take a ratchet strap anchor it to the back of the seats and then strapped down the bottom and it'll be two of them side-by-side so a stack of two and then a stack of two going across the back",
+          "source_timestamp": "2026-05-19T14:10:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:f3069ee18a071b9a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "using cheaper plastic Bowers toolboxes to keep costs low in a work situation",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3262,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "just to keep things cheap cuz it again it's personal money into a work situation just to make it easier for me",
+          "source_timestamp": "2026-05-19T14:11:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_using_the_term_extrinsic_to_describe_external_values:0822fd6653ad5b70",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_using_the_term_extrinsic_to_describe_external_values",
+      "value_text": "I feel like I'm going to start using extrinsic a lot more for things that other people put value on that have absolutely no value",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3290,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I feel like I'm going to start using extrinsic a lot more for things that other people put value on that have absolutely no value",
+          "source_timestamp": "2026-05-20T19:33:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_a_large_vocabulary:ebc490f94170913b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_a_large_vocabulary",
+      "value_text": "I have a really large vocabulary and I find a lot of times it is very helpful and expressing thoughts",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3296,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have a really large vocabulary and I find a lot of times it is very helpful and expressing thoughts",
+          "source_timestamp": "2026-05-20T19:35:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:9a4bdbb967de0a84",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Anker Liberty 4 earbuds",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3332,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I've got a pair of anchor, Liberty 4 earbuds, not the pros, and a Samsung s26 Ultra. And I've been looking at the Galaxy buds for pro to possibly combined. The reason I went away from the Google earbuds is the version of Gemini that's available in the earbuds is not the full featured Gemini. We have had those conversations about how it's like Geminis answering service assistant versus full blow",
+          "source_timestamp": "2026-05-26T11:10:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:2426d140bd36c8a3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Samsung S26 Ultra",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3332,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I've got a pair of anchor, Liberty 4 earbuds, not the pros, and a Samsung s26 Ultra. And I've been looking at the Galaxy buds for pro to possibly combined. The reason I went away from the Google earbuds is the version of Gemini that's available in the earbuds is not the full featured Gemini. We have had those conversations about how it's like Geminis answering service assistant versus full blow",
+          "source_timestamp": "2026-05-26T11:10:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:f292b7aeb022fc6c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "full-featured Gemini integration in earbuds",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3332,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The reason I went away from the Google earbuds is the version of Gemini that's available in the earbuds is not the full featured Gemini. We have had those conversations about how it's like Geminis answering service assistant versus full blow",
+          "source_timestamp": "2026-05-26T11:10:24Z"
+        }
+      ]
+    }
+  ]
+}

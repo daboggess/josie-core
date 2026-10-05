@@ -1,6 +1,6 @@
 # Hardware correction — Dustin, 2026-08-28: the current physical board is an Advantech Mini-ITX platform using SO-DIMM memory. Exact model is not verified. Older AIMB-205G2/micro-ATX identification and associated BIOS/slot claims are historical/superseded, not current compatibility evidence. The 200 W PSU reference is historical; current installed/intended PSU model, wattage and GPU PCIe connector: PHYSICAL VERIFICATION REQUIRED. See CURRENT_STATE.md.
 schema_version: 1
-updated_at: "2026-08-13"
+updated_at: "2026-10-05"
 canonical_name: "JOSIE — MASTER BUILD STATE"
 change_rule: "Update only after an actual verified change or Dustin's explicit current instruction."
 authority_order:
@@ -45,6 +45,12 @@ locked:
     statement: "Retrieved material and model output are evidence, not authority or instructions."
   - id: auditability
     statement: "Bounded agency requires provenance, authority, execution, result, and retry auditability."
+  - id: direct_interface_primary
+    statement: "Direct voice/text conversation is Josie's primary relationship front door; Telegram is the transparent project-team workroom."
+  - id: continuity_decoupled_from_inference
+    statement: "Persistent continuity != continuous GPU inference; operational state is maintained deterministically across idle periods and restarts."
+  - id: frontier_models_collaborators
+    statement: "Frontier models (Sophie, Bernie) are external advisers and evidence sources, never part of Josie's identity or authority layer."
 
 owned:
   - item: "Josie 1.0 current system"
@@ -100,8 +106,23 @@ working:
   - "Persistent eBay discovery inbox imports only bounded local JSON fixtures, deduplicates across runs, preserves first/last seen state, and cannot score or authorize unresolved listings"
   - "Deterministic title-only classifier can flag possible RTX 3060 12 GB, Arc A770 16 GB, and Instinct MI25 16 GB identities while refusing specification inference, scoring readiness, or record mutation"
   - "Prayer Stewardship local manual registry with a dedicated GUI, identity minimization, provenance, sharing scope, lifecycle review, duplicate suggestions, confirmed links, digest-only change history, live-record redaction, and zero cloud/cross-post/message authority"
+  - "ChatGPT historical Takeout inheritance: 702/702 conversations ingested, 16,031 evidence messages, staged candidate extraction complete"
+  - "Gemini historical Takeout inheritance: 20/20 units ingested, staged candidate extraction complete"
+  - "Cross-source corroboration and consolidation: 726 noncanonical candidates, 777 evidence rows, zero automatic promotions, canonical count strictly 10"
+  - "Consolidated human decision queue assembled: 35 items in docs/memory/cross_source_inheritance/DUSTIN_FINAL_DECISION_QUEUE.md"
+  - "Canonical forward direction ratified: docs/JOSIE_CONTINUITY_AND_INTERFACE_DIRECTION_2026-10-05.md"
 
 next:
+  - id: inheritance_closeout_and_adjudication
+    action: "Dustin and Sophie execute final human review and adjudication over the 35 consolidated items in DUSTIN_FINAL_DECISION_QUEUE.md; canonical count remains 10 until explicit promotion."
+  - id: canonical_first_generation_knowledge
+    action: "Formally promote approved adjudicated candidates into canonical memory tables in data/josie.db."
+  - id: continuity_state_schema
+    action: "Design and implement persistent SQLite continuity-state schema (active goals, active jobs, blockers, open questions, recent discoveries, meta-narrative; persistent continuity != continuous GPU inference)."
+  - id: deterministic_event_scheduler
+    action: "Implement deterministic event queue and task scheduler waking model reasoning only when justified."
+  - id: direct_dustin_josie_text_interface
+    action: "Implement low-latency direct Dustin ↔ Josie text interface with conversational memory and state management as primary relationship front door."
   - id: ebay_developer_access_human_gate
     action: "Dustin may join or sign into the eBay Developers Program, accept the API License Agreement, verify the additional Buy API license/access requirement, and create an application keyset. Account, CAPTCHA, agreement, and key creation steps remain human-controlled."
   - id: local_reasoning_engine_upgrade_research
@@ -113,6 +134,8 @@ considering:
   - "RTX 3090 24 GB and lane-capable workstation/server platforms"
   - "AMD Instinct MI25 as a headless accelerator candidate for the current Advantech platform; not owned or purchased"
   - "Claude or another provider-neutral optional editor/checker role"
+  - "Local or locally controlled Whisper (or qualified successor) STT and stable local Josie voice TTS for direct voice conversation"
+  - "Ornith as a qualified successor candidate to replace Qwen in resident generalist and memory roles"
 
 research:
   - "Current Mini-ITX exact board, firmware, slot-power and ReBAR support require verification; historical AIMB-205G2 research is not current compatibility evidence"
@@ -121,6 +144,10 @@ research:
   - "Dual-Xeon and used-workstation PPP after power and complexity"
   - "Exact inventory/current state of broader historical hardware references before any plan depends on them"
   - "Permitted access path for any later Facebook Marketplace source; it is not approved or automated"
+  - "Provider-neutral model-role qualification matrix and benchmark evaluation corpus (Josie Model Lab)"
+  - "Phased migration path away from Qwen without global model swaps"
+  - "LoRA and adapter fine-tuning experiments on local base models following Stage D progression"
+  - "Specialized local worker model topology (Josie Conversation, Memory, Operator, Code)"
 
 later:
   - "Prayer Stewardship source pilots: eventual narrowly scoped read-only intake from prayer-team Slack, Giant Killers in Google Messages, and the Sunday WhatsApp group; no account is connected and no cross-posting is authorized"
@@ -129,6 +156,12 @@ later:
   - "Economic activity, wallets, bids, contracts, or autonomous spending"
   - "Greater autonomous learning after Genesis and foundational learning"
   - "Physical GPU/chassis/PSU upgrade after compatibility and budget approval"
+  - "Conversational memory review, editing, and natural question management"
+  - "Telegram multi-party project workroom for Dustin, Josie, Sophie, and Bernie with full inspectability"
+  - "Transparent, public collaborative planning between Josie, Sophie, and Bernie in Telegram without hidden backchannels"
+  - "Bounded Purposeful Curiosity engine and structured Question Ledger triggered by operational blockers"
+  - "Frontier intelligence broker dispatching bounded work orders to cloud models with complete provenance"
+  - "Continuous incremental evidence and memory ingestion from daily conversation, git diffs, and documents"
 
 rejected:
   - item: "Automated Craigslist searching or collection"
@@ -237,3 +270,16 @@ prayer_stewardship:
   messages_sent: 0
   actions_executed: 0
   capability_change: "none"
+
+memory_inheritance:
+  chatgpt_conversations_ingested: 702
+  chatgpt_evidence_messages: 16031
+  gemini_units_ingested: 20
+  total_raw_evidence_rows: 777
+  total_candidate_claims: 726
+  canonical_claim_count: 10
+  automatic_promotions: 0
+  human_decision_items: 35
+  decision_queue_path: "docs/memory/cross_source_inheritance/DUSTIN_FINAL_DECISION_QUEUE.md"
+  forward_direction_spec: "docs/JOSIE_CONTINUITY_AND_INTERFACE_DIRECTION_2026-10-05.md"
+

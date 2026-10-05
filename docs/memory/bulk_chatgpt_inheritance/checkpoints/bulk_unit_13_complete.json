@@ -1,0 +1,529 @@
+{
+  "unit_id": "BULK_UNIT_13",
+  "unit_index": 13,
+  "manifest_sha256": "cd5e0dc4889e58852a9e53a68488d71155357aedcc78ceb8be468db2ad90a159",
+  "conversations_processed": 21,
+  "textual_messages_processed": 410,
+  "user_messages_processed": 191,
+  "chunks_processed": 38,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 410,
+    "user_messages_processed": 191,
+    "raw_model_proposals": 26,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 3,
+    "historical_only_routing": 6,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 12,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 2,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 1,
+    "extraction_errors": 0,
+    "malformed_source_problems": 3
+  },
+  "destinations": {
+    "personal_canonical": 12,
+    "project_architecture": 0,
+    "hardware_state": 2,
+    "runbook_procedure": 0,
+    "sensitive_review": 1,
+    "transient_noise": 2,
+    "historical_only": 6,
+    "context_archive": 0
+  },
+  "staged_claims_count": 23,
+  "evidence_links_count": 23,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 287,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:takes_liothyronine_t3_in_morning_and_night:1b280188763865fb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "takes_liothyronine_t3_in_morning_and_night",
+      "value_text": "Liothyronine (T3)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14061,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Again, I take the T3 hormone in morning and nighttime.",
+          "source_timestamp": "2026-03-15T13:51:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:takes_testosterone_and_glp_1s_every_wednesday:23405cbf281eb98f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "takes_testosterone_and_glp_1s_every_wednesday",
+      "value_text": "testosterone and GLP-1s",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14059,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "That is correct, but I also take the T3 one at night as well, and I take my testosterone and GLP-1s every Wednesday.",
+          "source_timestamp": "2026-03-15T13:51:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:fasts_until_3_pm:253f2ea9dd5d7764",
+      "subject_entity_id": "person:dustin",
+      "predicate": "fasts_until_3_pm",
+      "value_text": "fasting until ~3 PM",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14063,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No first meal, fasting till 3",
+          "source_timestamp": "2026-03-15T14:29:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses_lemon_energy_water_himalayan_salt_during_fasting:10ab1ec27fcd8374",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses_lemon_energy_water_himalayan_salt_during_fasting",
+      "value_text": "lemon energy, water, Himalayan salt",
+      "claim_category": "hardware",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 14065,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No coffee, true lemon energy, water, Himalayan salt while fasting",
+          "source_timestamp": "2026-03-15T14:30:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:0a4f33ce715bb313",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "inexpensive but effective stack",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14073,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Inexpensive but most effective, build my stack",
+          "source_timestamp": "2026-03-25T12:59:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:c7efbc5508393e02",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "ordering all products from one place",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14075,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "One place to order all",
+          "source_timestamp": "2026-03-25T13:01:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:247d07a7d4436b62",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "two-product stack",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14077,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "2 product",
+          "source_timestamp": "2026-03-25T13:02:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:2a8142e1c9cd421a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "nicotine pouches with coffee or related flavors",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14395,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Must be nic, must be coffee or related",
+          "source_timestamp": "2026-03-24T14:44:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:found_insufficient:f521019a14c53cc2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "found_insufficient",
+      "value_text": "Mates brand pouches have marshmallow-like flavor profile",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 14389,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "sesh too marshmallow ish",
+          "source_timestamp": "2026-03-24T14:40:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considers:08353a082d75c460",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considers",
+      "value_text": "bulk purchasing of nicotine pouches",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14399,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Im fine w ordering in bulk",
+          "source_timestamp": "2026-03-24T14:46:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans_to_provide_feedback_to_tom:370a19a32a52b90c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans_to_provide_feedback_to_tom",
+      "value_text": "giving Tom a personal update on his experience in the men's group",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14099,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I think I need to come to Tom and just kind of be like, hey, so I told you up front, I wanted to try this shop. Let me tell you how that went for me.",
+          "source_timestamp": "2026-03-16T18:06:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses_sitrep_analogy_for_communication:f0da121894daf4c7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses_sitrep_analogy_for_communication",
+      "value_text": "comparing his update to Tom as a SITREP rather than a nine-line report",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14101,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So basically, to put it in Tom terms, I started out to write a nine line, and now I just need to give him a SITREP.",
+          "source_timestamp": "2026-03-16T18:15:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:acknowledges_lack_of_contact_with_tom:68664f164ff1159a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "acknowledges_lack_of_contact_with_tom",
+      "value_text": "no proximity to Tom since November 2023",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14105,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I've had absolutely no proximity to Tom since he left the men's group in, like, November after I got in in October.",
+          "source_timestamp": "2026-03-16T18:52:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_build_something_in_men_s_ministry:1663f2e310b89182",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_build_something_in_men_s_ministry",
+      "value_text": "I want to build something in the men's ministry before I wanted to kind of take over something in the men's ministry and just be responsible for a piece of it. And yes, I do want Tom's approval as well, because Tom is the director of men's ministry, so yeah.",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14121,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I want to build something in the men's ministry before I wanted to kind of take over something in the men's ministry and just be responsible for a piece of it. And yes, I do want Tom's approval as well, because Tom is the director of men's ministry, so yeah. If we had a personal relationship where Tom could act as like one of the guys in giant killers, I would absolutely love that, but that's not",
+          "source_timestamp": "2026-03-16T20:18:23Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_profile:f6fe880f49984be1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_profile",
+      "value_text": "experiences severe physical and psychological abuse from mother, including violent behavior, manipulation, and fabricated biblical justifications",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "sensitive_review",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12663,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "it didn't feel like my accomplishment it didn't feel like I had done anything worthwhile",
+          "source_timestamp": "2026-01-29T18:25:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:80114a9716fb8d06",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "maintains clear boundaries with mother regarding daughter Abby's life, including conditional access and non-escalatory communication",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12665,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "we've made it clear we'll meet you anytime anywhere just say the word and we will make Abby available and she hasn't responded two years she saw Abby the first time one visit to her house and I think we went to dinner once and it was at Cracker Barrel and she proceede",
+          "source_timestamp": "2026-01-29T18:30:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_a_barbecuer:39ffed81dd7bd0fa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_a_barbecuer",
+      "value_text": "Dustin identifies as a barbecuer",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14002,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm a barbecuer",
+          "source_timestamp": "2026-03-15T19:04:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:14028:owns:b817dd9684065cab",
+      "subject_entity_id": "14028",
+      "predicate": "owns",
+      "value_text": "barbecue restaurant",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14028,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I own a barbecue restaurant.",
+          "source_timestamp": "2026-03-15T20:09:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_professional_background_in_marketing_and_sales:8845237177fe3260",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_professional_background_in_marketing_and_sales",
+      "value_text": "marketing and sales",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14034,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "my background in education's in marketing and sales, and then I switched over to system",
+          "source_timestamp": "2026-03-15T20:25:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:operated_a_barbecue_restaurant:b817dd9684065cab",
+      "subject_entity_id": "person:dustin",
+      "predicate": "operated_a_barbecue_restaurant",
+      "value_text": "barbecue restaurant",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14036,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "my wife and I used to own a barbecue restaurant",
+          "source_timestamp": "2026-03-15T20:26:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_business_ownership_experience:965455023c91f19b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_business_ownership_experience",
+      "value_text": "business owner",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14036,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm still a business owner",
+          "source_timestamp": "2026-03-15T20:26:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:lived_on_a_farm_in_putnam_county:a7b43026c5d169bb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "lived_on_a_farm_in_putnam_county",
+      "value_text": "my entire life",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13969,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I have lived on a farm in Putnam County my entire life.",
+          "source_timestamp": "2026-03-09T12:05:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:grew_up_around:f693396983dada39",
+      "subject_entity_id": "person:dustin",
+      "predicate": "grew_up_around",
+      "value_text": "farm with pumpkin patches, corn mazes, blackberry patch, pick your own strawberries, fresh eggs, cattle, sheep, goats, turkeys",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13969,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "My grandma and grandpa have a small farm in Leon, WV. Between pumpkin patches, corn mazes, blackberry patch, pick your own strawberries, fresh eggs, cattle, sheep, goats, turkeys.. they\u2019ve done it all. I was blessed to grow up around this.",
+          "source_timestamp": "2026-03-09T12:05:18Z"
+        }
+      ]
+    }
+  ]
+}

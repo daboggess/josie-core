@@ -1,0 +1,21 @@
+{
+  "mission_id": "remote-acceptance-001",
+  "title": "Remote Mission Acceptance",
+  "objective": "Prove that Josie can receive, persist, execute, verify, and report a bounded Mission Manager task submitted entirely from the phone front door.",
+  "jobs": [
+    {
+      "job_id": "remote-acceptance-001-job-1",
+      "title": "Verify remote orchestration state",
+      "objective": "Inspect the Josie repository and verify that the Supervisor, Mission Manager, Campaign Manager, conversation-control remote bridge, and local worker configuration are present. Create docs/operations/REMOTE_ACCEPTANCE_20260917.md containing only verified findings, the commands/tests actually run, and any blockers encountered.",
+      "workspace": "D:\\Josie",
+      "acceptance": [
+        "docs/operations/REMOTE_ACCEPTANCE_20260917.md exists",
+        "The report distinguishes verified facts from assumptions",
+        "At least one relevant deterministic test is run and its actual result is recorded",
+        "No production service configuration is changed",
+        "No credentials are read or exposed",
+        "No Git commit, push, merge, or branch rewrite is performed"
+      ]
+    }
+  ]
+}

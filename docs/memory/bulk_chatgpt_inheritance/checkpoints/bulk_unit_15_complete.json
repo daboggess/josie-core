@@ -1,0 +1,202 @@
+{
+  "unit_id": "BULK_UNIT_15",
+  "unit_index": 15,
+  "manifest_sha256": "e43fb306d336930b1377a3029675fe50a16abfe1d696bac6418a5dc25935d926",
+  "conversations_processed": 21,
+  "textual_messages_processed": 311,
+  "user_messages_processed": 155,
+  "chunks_processed": 32,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 311,
+    "user_messages_processed": 155,
+    "raw_model_proposals": 8,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 4,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 1,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 4,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 1,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 7,
+  "evidence_links_count": 8,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 328,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks:d8fda57c7148c3b4",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks",
+      "value_text": "transfer credits + competency / life-experience credits to finish degree as cheaply as possible",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 13582,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Transfer credits or use life credits to complete a  degree as cheaply as possible",
+          "source_timestamp": "2026-02-16T16:33:23Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:holds:5bc74f35c97a3005",
+      "subject_entity_id": "person:dustin",
+      "predicate": "holds",
+      "value_text": "CLI BA in Christian Leadership",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13586,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well cli ba in christian leadership is a given",
+          "source_timestamp": "2026-02-16T16:40:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has:1921b4a01a94eb7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has",
+      "value_text": "12-year sustained performance record in Google Business Profile management",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13590,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Gbp numbers were sep to feb, weve done that or higher for 12 years",
+          "source_timestamp": "2026-02-16T17:08:34Z"
+        },
+        {
+          "history_message_id": 13592,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Gbp was over 6 months use as an average for the 12 years",
+          "source_timestamp": "2026-02-16T17:09:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:8ce7bba776096f28",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "a text app, small groups with breakouts to leadership, and each small group leader uses different platforms for group but all funneled to leadership",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13567,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I spoke w ryan they have a text app they use and small groups with break outs to leadership. Each small group leader uses different platforms for group but all funneled to leadership",
+          "source_timestamp": "2026-02-16T01:18:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_cognitive_strategy:c02cbaa4a3c80492",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_cognitive_strategy",
+      "value_text": "plans for the worst, hopes for the best, and expects the worst",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13264,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I plan for the worst, hope for the best, and usually expect the worst.",
+          "source_timestamp": "2026-02-09T14:49:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_cultural_identity_influences:4b8d08f6acb1a47c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_cultural_identity_influences",
+      "value_text": "associates personality with intellectual thoughts from comedians and Doctor Who's Clara the Impossible Girl",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13268,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Most of my personality is nothing more than a conglomeration of my favorite intellectual thoughts of comedians and Doctor Who, Clara the Impossible Girl.",
+          "source_timestamp": "2026-02-09T17:32:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_media_consumption_preference:ec5d003e60a6e00a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_media_consumption_preference",
+      "value_text": "avoids secular music but retains appreciation for music",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13270,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I got out of movies and like secular music, but music a",
+          "source_timestamp": "2026-02-09T17:40:18Z"
+        }
+      ]
+    }
+  ]
+}

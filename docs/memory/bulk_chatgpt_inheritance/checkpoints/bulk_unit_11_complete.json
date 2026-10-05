@@ -1,0 +1,361 @@
+{
+  "unit_id": "BULK_UNIT_11",
+  "unit_index": 11,
+  "manifest_sha256": "af3077c7c0d0ace403cfc0fc88af7325185998344058f813f6ae8ea3fa659f77",
+  "conversations_processed": 15,
+  "textual_messages_processed": 595,
+  "user_messages_processed": 266,
+  "chunks_processed": 46,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 15,
+    "textual_messages_processed": 595,
+    "user_messages_processed": 266,
+    "raw_model_proposals": 19,
+    "assistant_authority_rejections": 1,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 3,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 10,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 3,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 1,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 10,
+    "project_architecture": 0,
+    "hardware_state": 3,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 15,
+  "evidence_links_count": 15,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 248,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks:e248826ef9435c23",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks",
+      "value_text": "shower wand that positively builds pressure",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15046,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I need a shower wand that is positively going to build pressure.",
+          "source_timestamp": "2026-04-10T13:25:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:evaluates:df4aa0fd948c7a9f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "evaluates",
+      "value_text": "AquaCare 8-Setting High-Pressure Handheld Shower Head",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 15056,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "You don't want to miss it! https://a.co/d/09J4PddU",
+          "source_timestamp": "2026-04-10T13:35:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_self_paced_learning:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_self_paced_learning",
+      "value_text": "yes",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14791,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I just wanna continue down the same path that I can go at my own speed, because it'll be nothing for a couple of weeks, and then it'll be three or four days of knocking out an entire semester.",
+          "source_timestamp": "2026-04-07T20:20:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:e111815b25b00ad8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "self-paced and flexible learning environments over structured, rote-based systems",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14805,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Liberty is that old school rote system. We give you an assignment. We tell you what to write about. We want you to parrot it all back to us, and then we put a stamp on you that says you're good. I don't...",
+          "source_timestamp": "2026-04-07T20:24:23Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:a6646c62ae0d36d8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "education institutions that allow mastery of material based on knowledge rather than rote memorization",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14809,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I wanna pass based on my knowledge of the material, not my ability to understand it and to have understood it versus my ability to parrot i",
+          "source_timestamp": "2026-04-07T20:26:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:6dbd731f07449b55",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "auditory 2x piece for success",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14825,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I just don't know if that will fit me as well, because I need the auditory 2x piece to be successful.",
+          "source_timestamp": "2026-04-07T20:31:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_self_paced_learning_with_audio_video_content_at_2x_speed:f38a55c85ce5196e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_self_paced_learning_with_audio_video_content_at_2x_speed",
+      "value_text": "prefers self-paced learning with audio/video content at 2x speed",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14831,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I want something that is, like I said, as long as I can listen to it at least and listen to it at 2x speed and complete it online at my own pace, then we can go through the film theory.",
+          "source_timestamp": "2026-04-07T20:33:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_identity:95a870185f66b23b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_identity",
+      "value_text": "father and husband",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14716,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Father and husband",
+          "source_timestamp": "2026-04-07T01:38:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:a3cdf0b63f8252d7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "vinyl mat in garage",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14689,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yes",
+          "source_timestamp": "2026-04-05T16:34:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:4199d69ae8c58b85",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "rug in garage for cat floor comfort",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14689,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yes",
+          "source_timestamp": "2026-04-05T16:34:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:f79051fdb6bbbc51",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "exhaust fan allows hot/cold air entry",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14689,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yes",
+          "source_timestamp": "2026-04-05T16:34:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:15d30679193e1396",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "never-change style air purifier",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14691,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Best deal you can find on a never-change style of air purifier.",
+          "source_timestamp": "2026-04-05T16:35:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:normally_to_a_trenta_starbucks_with_2_shots:ea10ca71f6d8a4bc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "normally_to_a_trenta_starbucks_with_2_shots",
+      "value_text": "normally to a trenta starbucks with 2 shots",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14673,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I normally to a trenta starbucks with 2 shots",
+          "source_timestamp": "2026-04-04T14:49:38Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:12792:has_current_liability:37204d7f741deed1",
+      "subject_entity_id": "12792",
+      "predicate": "has_current_liability",
+      "value_text": "$275,000 total exit cost (retirement payback, mortgage, foundation, medical bills)",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12792,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I can't remember, but as of right now, gut reaction, $275K, buy it out lock, stock, and barrel.",
+          "source_timestamp": "2026-02-19T18:35:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:12794:has_professional_connection:1bab32cd3d46d4d9",
+      "subject_entity_id": "12794",
+      "predicate": "has_professional_connection",
+      "value_text": "uncle as business manager with experience in auction board retirements",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12794,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "He's our business manager. He retired from the board of four auctions and then I've mentioned him before. He does things like this in his sleep.",
+          "source_timestamp": "2026-02-19T18:44:30Z"
+        }
+      ]
+    }
+  ]
+}

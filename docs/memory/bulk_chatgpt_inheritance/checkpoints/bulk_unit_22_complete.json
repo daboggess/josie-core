@@ -1,0 +1,361 @@
+{
+  "unit_id": "BULK_UNIT_22",
+  "unit_index": 22,
+  "manifest_sha256": "3d817b1c7ed26db8d325c8ec8763611a758b5ffd7dfe84457ea3ec55aa75496b",
+  "conversations_processed": 21,
+  "textual_messages_processed": 513,
+  "user_messages_processed": 239,
+  "chunks_processed": 41,
+  "skipped_zero_user_chunks": 6,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 513,
+    "user_messages_processed": 239,
+    "raw_model_proposals": 16,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 4,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 10,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 2,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 10,
+    "project_architecture": 0,
+    "hardware_state": 2,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 2,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 15,
+  "evidence_links_count": 15,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 436,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:3887ba38d1f8d77f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers B over A due to fear of past costs associated with A",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11104,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I like A but im scared of it. B is safe and im good at it if i can keep my patience and peace",
+          "source_timestamp": "2025-12-20T22:42:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:observes_current_state:e6092ad9b3ba3041",
+      "subject_entity_id": "person:dustin",
+      "predicate": "observes_current_state",
+      "value_text": "existing church home groups for men with wives and kids are not effectively engaging adult men",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11106,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Right nowni crave a way to reach the men at our church, the sunday group feels like an old mens club, the youth has some in fire young guys but seriously where are the adult men with wives and kids digging in, in safe small groups",
+          "source_timestamp": "2025-12-20T22:45:54Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:recommends:5698d92e11e8483b",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "recommends",
+      "value_text": "Dell Precision T7820 as best option for AI build",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 11066,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "related_to",
+          "excerpt": "## \u2705 **Best option for your AI build: Dell Precision T7820 \u2013 $200**\n**Buy this one. No contest.**",
+          "source_timestamp": "2025-12-18T18:01:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:a58f1f39cb4063e9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Best small or mini pc for my ai goals under 1000",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 10368,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Best small or mini pc for my ai goals under 1000",
+          "source_timestamp": "2025-12-09T19:55:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:mentions_elementvape_as_wholesaler:9390298f3fb0c5b1",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "mentions_elementvape_as_wholesaler",
+      "value_text": "no",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 10932,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "related_to",
+          "excerpt": "I mean the ones from elementvape",
+          "source_timestamp": "2025-12-15T20:41:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:105f33ee95e0ce1c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2\u00d7 ORICO 4TB NVMe Gen4 drives",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10838,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have 2 of these",
+          "source_timestamp": "2025-12-14T12:45:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:needs:1f1556e66392136a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "needs",
+      "value_text": "LEDs for GidXeon",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10855,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Need leds for gidxeon",
+          "source_timestamp": "2025-12-14T13:51:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:b7da2917985104f6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "being a Flash nerd with Flash-themed items (wedding band, wallet, watch face)",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10877,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "And im a huge flash nerd. I have a flash wedding band, wallet, watch face....... big flash geek",
+          "source_timestamp": "2025-12-14T20:21:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:identifies_as:c6dd02a4c5457aae",
+      "subject_entity_id": "person:dustin",
+      "predicate": "identifies_as",
+      "value_text": "Gideon as a flashed AI/PC/system from the future",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10879,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "And gideon was flashed ai/pc/system from the future",
+          "source_timestamp": "2025-12-14T20:21:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:identifies_as:e74b9d83653abb0c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "identifies_as",
+      "value_text": "maintaining Sophie as the conversational interface while Gideon serves as a system variation",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10885,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "So, you will remain sophie, this will be some variation of Gideon",
+          "source_timestamp": "2025-12-14T20:25:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_eating_habit:e26e7d13603852b5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_eating_habit",
+      "value_text": "waiting until around 2pm to eat",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10776,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I usually try to wait till around 2pm to eat",
+          "source_timestamp": "2025-12-13T14:39:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considers_modifying_breakfast:73a23dd58ef5ef91",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considers_modifying_breakfast",
+      "value_text": "adding protein powder to breakfast",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 10780,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Add protein powder? There is some protein in aldis lf milk",
+          "source_timestamp": "2025-12-13T14:44:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:trusts_wife_decision_making:3fe3fe42057098f8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "trusts_wife_decision_making",
+      "value_text": "trusts his wife's decision-making regarding their daughter and business",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9842,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have told her whenever it comes to our daughter or our business that I always trust her decision-making. Even if she is gracious enough to run it by me first, which I appreciate, I trust her judgment.",
+          "source_timestamp": "2025-11-28T22:24:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:3d0b2974e4fb76d2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "presenting the tribute on an 8x11 sheet of paper framed with a purple-y graphic background",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9916,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm trying to think of the best way to present it to her, if I should put it on like a 8x11 sheet of paper and frame it, put like a, some kind of graphic behind it, something pretty purple-y, I'm just trying to think of how to print and present this to her, what would be the best options.",
+          "source_timestamp": "2025-12-13T15:31:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:be2e4680aa28005b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "a flowery background with AI assistance",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9947,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "i want the pretty flowery background ai is a plus",
+          "source_timestamp": "2025-12-13T16:33:28Z"
+        }
+      ]
+    }
+  ]
+}

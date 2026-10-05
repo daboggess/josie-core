@@ -1,0 +1,512 @@
+{
+  "unit_id": "GEMINI_UNIT_18",
+  "unit_index": 18,
+  "conversations_count": 50,
+  "total_messages": 225,
+  "user_messages": 119,
+  "start_timestamp": "2026-07-14T21:23:21Z",
+  "end_timestamp": "2026-08-01T15:02:40Z",
+  "conversations": [
+    {
+      "id": 851,
+      "source_id": "4e59be3c0051f214",
+      "title": "Gemini Conversation 851",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4265,
+      "max_mid": 4265
+    },
+    {
+      "id": 852,
+      "source_id": "7d05eaa917b46773",
+      "title": "Gemini Conversation 852",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4266,
+      "max_mid": 4267
+    },
+    {
+      "id": 853,
+      "source_id": "ae766b71ed947c79",
+      "title": "Gemini Conversation 853",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4268,
+      "max_mid": 4269
+    },
+    {
+      "id": 854,
+      "source_id": "e0bea7afcb7cb93d",
+      "title": "Gemini Conversation 854",
+      "total_msgs": 5,
+      "user_msgs": 3,
+      "asst_msgs": 2,
+      "min_mid": 4270,
+      "max_mid": 4274
+    },
+    {
+      "id": 855,
+      "source_id": "a51173361a6a3044",
+      "title": "Gemini Conversation 855",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4275,
+      "max_mid": 4275
+    },
+    {
+      "id": 856,
+      "source_id": "691fdbbea4f42636",
+      "title": "Gemini Conversation 856",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4276,
+      "max_mid": 4277
+    },
+    {
+      "id": 857,
+      "source_id": "7e0c5c081af2c977",
+      "title": "Gemini Conversation 857",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4278,
+      "max_mid": 4278
+    },
+    {
+      "id": 858,
+      "source_id": "a68a2f4b204d99e7",
+      "title": "Gemini Conversation 858",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4279,
+      "max_mid": 4280
+    },
+    {
+      "id": 859,
+      "source_id": "67b35252de8bddc6",
+      "title": "Gemini Conversation 859",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4281,
+      "max_mid": 4282
+    },
+    {
+      "id": 860,
+      "source_id": "11839614ca7701d9",
+      "title": "Gemini Conversation 860",
+      "total_msgs": 4,
+      "user_msgs": 2,
+      "asst_msgs": 2,
+      "min_mid": 4283,
+      "max_mid": 4286
+    },
+    {
+      "id": 861,
+      "source_id": "39157cba5eae35c8",
+      "title": "Gemini Conversation 861",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4287,
+      "max_mid": 4287
+    },
+    {
+      "id": 862,
+      "source_id": "ac0a328d226e611b",
+      "title": "Gemini Conversation 862",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4288,
+      "max_mid": 4289
+    },
+    {
+      "id": 863,
+      "source_id": "9570fbcee381f3a6",
+      "title": "Gemini Conversation 863",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4290,
+      "max_mid": 4291
+    },
+    {
+      "id": 864,
+      "source_id": "036735f45087a993",
+      "title": "Gemini Conversation 864",
+      "total_msgs": 18,
+      "user_msgs": 9,
+      "asst_msgs": 9,
+      "min_mid": 4292,
+      "max_mid": 4309
+    },
+    {
+      "id": 865,
+      "source_id": "430035d5c10a8bde",
+      "title": "Gemini Conversation 865",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4311,
+      "max_mid": 4312
+    },
+    {
+      "id": 866,
+      "source_id": "ac1984c8511d347f",
+      "title": "Gemini Conversation 866",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4313,
+      "max_mid": 4314
+    },
+    {
+      "id": 867,
+      "source_id": "02f3cac742136052",
+      "title": "Gemini Conversation 867",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4315,
+      "max_mid": 4315
+    },
+    {
+      "id": 868,
+      "source_id": "f1f366d0266c8d39",
+      "title": "Gemini Conversation 868",
+      "total_msgs": 6,
+      "user_msgs": 3,
+      "asst_msgs": 3,
+      "min_mid": 4316,
+      "max_mid": 4321
+    },
+    {
+      "id": 869,
+      "source_id": "31b68b55a10028a5",
+      "title": "Gemini Conversation 869",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4322,
+      "max_mid": 4323
+    },
+    {
+      "id": 870,
+      "source_id": "71ad76c66cd640b7",
+      "title": "Gemini Conversation 870",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4324,
+      "max_mid": 4324
+    },
+    {
+      "id": 871,
+      "source_id": "fe9e2a91644d96d9",
+      "title": "Gemini Conversation 871",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4325,
+      "max_mid": 4326
+    },
+    {
+      "id": 872,
+      "source_id": "8445173b090bb725",
+      "title": "Gemini Conversation 872",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4327,
+      "max_mid": 4328
+    },
+    {
+      "id": 873,
+      "source_id": "a4cda1c3f1e41d6d",
+      "title": "Gemini Conversation 873",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4329,
+      "max_mid": 4329
+    },
+    {
+      "id": 874,
+      "source_id": "2492960c44058775",
+      "title": "Gemini Conversation 874",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4330,
+      "max_mid": 4331
+    },
+    {
+      "id": 875,
+      "source_id": "b9fdd37d0b4cdcf5",
+      "title": "Gemini Conversation 875",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4332,
+      "max_mid": 4333
+    },
+    {
+      "id": 876,
+      "source_id": "d4a411f6c41f701c",
+      "title": "Gemini Conversation 876",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4334,
+      "max_mid": 4334
+    },
+    {
+      "id": 877,
+      "source_id": "7f6f530901e96db0",
+      "title": "Gemini Conversation 877",
+      "total_msgs": 8,
+      "user_msgs": 4,
+      "asst_msgs": 4,
+      "min_mid": 4335,
+      "max_mid": 4342
+    },
+    {
+      "id": 878,
+      "source_id": "6932f5522cf6566f",
+      "title": "Gemini Conversation 878",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4343,
+      "max_mid": 4344
+    },
+    {
+      "id": 879,
+      "source_id": "1b0b60104ddec2cb",
+      "title": "Gemini Conversation 879",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4345,
+      "max_mid": 4346
+    },
+    {
+      "id": 880,
+      "source_id": "e45989c640bd8eb6",
+      "title": "Gemini Conversation 880",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4347,
+      "max_mid": 4348
+    },
+    {
+      "id": 881,
+      "source_id": "a0701bb6c8f72fea",
+      "title": "Gemini Conversation 881",
+      "total_msgs": 4,
+      "user_msgs": 2,
+      "asst_msgs": 2,
+      "min_mid": 4349,
+      "max_mid": 4352
+    },
+    {
+      "id": 882,
+      "source_id": "fd3315aad04a340e",
+      "title": "Gemini Conversation 882",
+      "total_msgs": 4,
+      "user_msgs": 2,
+      "asst_msgs": 2,
+      "min_mid": 4353,
+      "max_mid": 4356
+    },
+    {
+      "id": 883,
+      "source_id": "3572e007f2c09019",
+      "title": "Gemini Conversation 883",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4357,
+      "max_mid": 4357
+    },
+    {
+      "id": 884,
+      "source_id": "66d758ccccfbc4be",
+      "title": "Gemini Conversation 884",
+      "total_msgs": 4,
+      "user_msgs": 2,
+      "asst_msgs": 2,
+      "min_mid": 4358,
+      "max_mid": 4361
+    },
+    {
+      "id": 885,
+      "source_id": "9fc408b27c6acf2c",
+      "title": "Gemini Conversation 885",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4362,
+      "max_mid": 4363
+    },
+    {
+      "id": 886,
+      "source_id": "3d1aa4a5828702e5",
+      "title": "Gemini Conversation 886",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4364,
+      "max_mid": 4364
+    },
+    {
+      "id": 887,
+      "source_id": "f79c0c2a77e8c61d",
+      "title": "Gemini Conversation 887",
+      "total_msgs": 6,
+      "user_msgs": 3,
+      "asst_msgs": 3,
+      "min_mid": 4365,
+      "max_mid": 4370
+    },
+    {
+      "id": 888,
+      "source_id": "c706cfa3ea54fa6f",
+      "title": "Gemini Conversation 888",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4371,
+      "max_mid": 4372
+    },
+    {
+      "id": 889,
+      "source_id": "39d13b8591c24378",
+      "title": "Gemini Conversation 889",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4373,
+      "max_mid": 4374
+    },
+    {
+      "id": 890,
+      "source_id": "8f3da90674a33800",
+      "title": "Gemini Conversation 890",
+      "total_msgs": 1,
+      "user_msgs": 1,
+      "asst_msgs": 0,
+      "min_mid": 4375,
+      "max_mid": 4375
+    },
+    {
+      "id": 891,
+      "source_id": "2baa3bd6dc1c0c29",
+      "title": "Gemini Conversation 891",
+      "total_msgs": 24,
+      "user_msgs": 12,
+      "asst_msgs": 12,
+      "min_mid": 4376,
+      "max_mid": 4432
+    },
+    {
+      "id": 892,
+      "source_id": "9d551e7405512248",
+      "title": "Gemini Conversation 892",
+      "total_msgs": 31,
+      "user_msgs": 16,
+      "asst_msgs": 15,
+      "min_mid": 4378,
+      "max_mid": 4420
+    },
+    {
+      "id": 893,
+      "source_id": "e557dc68d73ef953",
+      "title": "Gemini Conversation 893",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4415,
+      "max_mid": 4416
+    },
+    {
+      "id": 894,
+      "source_id": "e1828f55090f1f33",
+      "title": "Gemini Conversation 894",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4433,
+      "max_mid": 4434
+    },
+    {
+      "id": 895,
+      "source_id": "ffe6e36bcbe7b11c",
+      "title": "Gemini Conversation 895",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4435,
+      "max_mid": 4436
+    },
+    {
+      "id": 896,
+      "source_id": "71c334a63efaf017",
+      "title": "Gemini Conversation 896",
+      "total_msgs": 4,
+      "user_msgs": 2,
+      "asst_msgs": 2,
+      "min_mid": 4437,
+      "max_mid": 4440
+    },
+    {
+      "id": 897,
+      "source_id": "9116500f14c02cc6",
+      "title": "Gemini Conversation 897",
+      "total_msgs": 22,
+      "user_msgs": 11,
+      "asst_msgs": 11,
+      "min_mid": 4441,
+      "max_mid": 4462
+    },
+    {
+      "id": 898,
+      "source_id": "bb0bca609e1bb1ce",
+      "title": "Gemini Conversation 898",
+      "total_msgs": 20,
+      "user_msgs": 10,
+      "asst_msgs": 10,
+      "min_mid": 4463,
+      "max_mid": 4482
+    },
+    {
+      "id": 899,
+      "source_id": "e45619ff6caa72a8",
+      "title": "Gemini Conversation 899",
+      "total_msgs": 6,
+      "user_msgs": 3,
+      "asst_msgs": 3,
+      "min_mid": 4483,
+      "max_mid": 4488
+    },
+    {
+      "id": 900,
+      "source_id": "c3593c2e5f7bafa0",
+      "title": "Gemini Conversation 900",
+      "total_msgs": 2,
+      "user_msgs": 1,
+      "asst_msgs": 1,
+      "min_mid": 4489,
+      "max_mid": 4490
+    }
+  ],
+  "manifest_sha256": "0a404ade428df7e5df73f56ac131b14df02d41c5e54ac89d76296765b4f4df88"
+}

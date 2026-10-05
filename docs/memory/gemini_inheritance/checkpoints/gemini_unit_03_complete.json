@@ -1,0 +1,181 @@
+{
+  "unit_id": "GEMINI_UNIT_03",
+  "unit_index": 3,
+  "manifest_sha256": "f69f70a2c9f378a7b06d6d23a28b93c89208b30a813516ef042fe817410c18d1",
+  "conversations_processed": 50,
+  "textual_messages_processed": 210,
+  "user_messages_processed": 115,
+  "chunks_processed": 18,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 210,
+    "user_messages_processed": 115,
+    "raw_model_proposals": 9,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 4,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 1,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 3
+  },
+  "destinations": {
+    "personal_canonical": 4,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 1,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 6,
+  "evidence_links_count": 7,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 614,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:gemini:recommends:fc202cfad70eb4a3",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "recommends",
+      "value_text": "Akaluli L816",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1477,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "related_to",
+          "excerpt": "For your current situation, I recommend the Akaluli (L816) or a similar Akaluli/Note AI unbranded unit on eBay.",
+          "source_timestamp": "2026-02-02T20:45:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:gemini:mentions:2560146d684750a6",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "mentions",
+      "value_text": "Akaluli L816 uses OpenAI\u2019s Whisper model for transcription",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 1475,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "related_to",
+          "excerpt": "They both use OpenAI\u2019s Whisper model for transcription",
+          "source_timestamp": "2026-02-02T20:43:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_pizza_with:20652b0850b01820",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_pizza_with",
+      "value_text": "gluten-free crust, pineapple, ham, banana peppers, mozzarella, and thawed crust",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1555,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "make a reminder with no set date and time or a task I guess it would be gluten-free pizza crust pineapple ham banana peppers and figure out what pizza sauce it is that just likes",
+          "source_timestamp": "2026-02-09T15:32:20Z"
+        },
+        {
+          "history_message_id": 1557,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "can you add to it to make sure that I have mozzarella and a crust taken out of the freezer and put it in the fridge",
+          "source_timestamp": "2026-02-09T15:32:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_full_name:fa012c86a0e3f857",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_full_name",
+      "value_text": "Dustin Boggess",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1567,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "My surname is boggess first name dustin",
+          "source_timestamp": "2026-02-09T16:19:34Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_maternal_maiden_name:3b9b05c720497601",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_maternal_maiden_name",
+      "value_text": "Brady",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1571,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "my mother's maiden name is Brady",
+          "source_timestamp": "2026-02-09T16:22:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_family_origins_in:a7f9027d33df34a3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_family_origins_in",
+      "value_text": "Upshur, Randolph, and Pocahontas County, West Virginia",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 1571,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I know a lot of her family hails from up around Upshur Randolph and Pocahontas County",
+          "source_timestamp": "2026-02-09T16:22:40Z"
+        }
+      ]
+    }
+  ]
+}

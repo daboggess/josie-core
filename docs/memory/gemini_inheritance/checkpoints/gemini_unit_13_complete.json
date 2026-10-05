@@ -1,0 +1,172 @@
+{
+  "unit_id": "GEMINI_UNIT_13",
+  "unit_index": 13,
+  "manifest_sha256": "86bcd1a45465eed3d3fed5c1d9ebed4f0b3ab6758edfa64a3f747cc974893fed",
+  "conversations_processed": 50,
+  "textual_messages_processed": 391,
+  "user_messages_processed": 200,
+  "chunks_processed": 32,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 391,
+    "user_messages_processed": 200,
+    "raw_model_proposals": 8,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 6,
+  "evidence_links_count": 6,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 636,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_physical_attributes:2164346dd8bea833",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_physical_attributes",
+      "value_text": "6'4\" 260lbs all belly",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2927,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Im 6'4\" 260lbs all belly",
+          "source_timestamp": "2026-05-10T22:15:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_holster_material:5022472b2831c66a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_holster_material",
+      "value_text": "leather",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2931,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Prefer leather over kydex but meh",
+          "source_timestamp": "2026-05-10T22:17:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:rejects_holster_material:50be6e8fdeb1927d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "rejects_holster_material",
+      "value_text": "kydex",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2933,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Hate kydex",
+          "source_timestamp": "2026-05-10T22:18:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_holster_placement:d6cacbf1a28106a0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_holster_placement",
+      "value_text": "bottom of the mag right above the belt",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2937,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I like the bottom of the mag right above the belt",
+          "source_timestamp": "2026-05-10T22:33:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:rejects_carry_method:ff4ba4b5aac5b776",
+      "subject_entity_id": "person:dustin",
+      "predicate": "rejects_carry_method",
+      "value_text": "below-the-waistband (BWB) deep",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2941,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Not bwb deep",
+          "source_timestamp": "2026-05-10T22:55:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_study_preference:a56652dcc372f224",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_study_preference",
+      "value_text": "double checks self to avoid cheating and focuses on remembering overall concepts rather than specific quotations",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3074,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No, for the most part, uh I don't double check myself to cheat. I double check myself usually for the point of I'm really good at remembering overall concepts, but a lot of times specific quotation trips me up.",
+          "source_timestamp": "2026-05-11T23:41:58Z"
+        }
+      ]
+    }
+  ]
+}

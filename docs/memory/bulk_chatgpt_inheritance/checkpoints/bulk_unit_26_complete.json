@@ -1,0 +1,235 @@
+{
+  "unit_id": "BULK_UNIT_26",
+  "unit_index": 26,
+  "manifest_sha256": "0485b4487e8c7fc3248011cf7bcec4f2724fbf206b15aaff1a0a11a16c89afdd",
+  "conversations_processed": 21,
+  "textual_messages_processed": 327,
+  "user_messages_processed": 158,
+  "chunks_processed": 34,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 327,
+    "user_messages_processed": 158,
+    "raw_model_proposals": 10,
+    "assistant_authority_rejections": 1,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 2,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 3,
+    "runbook_procedural_candidates": 3,
+    "sensitive_review_candidates": 1,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 2,
+    "project_architecture": 0,
+    "hardware_state": 3,
+    "runbook_procedure": 3,
+    "sensitive_review": 1,
+    "transient_noise": 0,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 9,
+  "evidence_links_count": 9,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 486,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:4f11d9b44f90af85",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers not to sell Delta, THC, and CBD products",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8779,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So that's why we want to sell it, because we can't do well if we're not offering those products in that area. So that's why we figured we probably shouldn't be in that area.",
+          "source_timestamp": "2025-10-23T16:42:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:operates:58d30c38e373ae45",
+      "subject_entity_id": "person:dustin",
+      "predicate": "operates",
+      "value_text": "Full Steam Vapor",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8719,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "This is for Full Steam vapor",
+          "source_timestamp": "2025-10-22T00:31:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:consumes:bf2021b5b1e91dcb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "consumes",
+      "value_text": "6-8 TrueLemon strawberry lemonade packets per day",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8643,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I drink about six packets of those a day, because they're per 16-ounce. And I've got a 22-ounce and a 32-ounce water bottle. And I drink the 22 and probably about two of the 32s. So that's about six to eight packets of that a day.",
+          "source_timestamp": "2025-10-15T13:03:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:asserts:ded875963936a169",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "asserts",
+      "value_text": "TrueLemon strawberry lemonade packets have low glycemic load due to stevia/minimal sugar content",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 8650,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Plus, you're avoiding all that sucralose, which i",
+          "source_timestamp": "2025-10-15T13:04:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:operates_with_specific_hours:009b755f02c2d0d6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "operates_with_specific_hours",
+      "value_text": "open from 8 a.m. to 8 p.m. Monday through Friday, 11 a.m. to 8 p.m. Saturday, and 1 to 5 on Sundays",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8587,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We're open from 8 a.m. to 8 p.m. Monday through Friday, 11 a.m. to 8 p.m. Saturday, and 1 to 5 on Sundays.",
+          "source_timestamp": "2025-10-06T17:35:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:pays_rent:ad9e56c1a3460c27",
+      "subject_entity_id": "person:dustin",
+      "predicate": "pays_rent",
+      "value_text": "Taze Valley: $2,500/month; Huntington: $900/month",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8587,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "The rent at Taze Valley is $2,500, and the rent in Huntington is $900.",
+          "source_timestamp": "2025-10-06T17:35:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:employs_one_worker_at_a_time:d3adbdf901045fb5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "employs_one_worker_at_a_time",
+      "value_text": "1 worker",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8587,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We only keep one worker in the store at a time.",
+          "source_timestamp": "2025-10-06T17:35:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:61ab242f320214df",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "reduce vaping to 3-6 mg using pouches without sucralose to break the addiction cycle",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "sensitive_review",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 8503,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I think I need to step down vaping for both the break of addiction and nicotine. I think if I can get it down to 3 to 6 mg through the pouches, because they don't have all the extra sucralose, that I would be able to effectively help get out of the addiction cycle.",
+          "source_timestamp": "2025-10-06T13:40:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_currently_taking:f86ba3140e66622e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_currently_taking",
+      "value_text": "Manjaro to manage blood sugar",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8503,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I take Manjaro and my blood sugar",
+          "source_timestamp": "2025-10-06T13:40:56Z"
+        }
+      ]
+    }
+  ]
+}

@@ -919,6 +919,7 @@ def execute_evidence_ingest(
     mode: str = "isolated_test_fixture",
     backup: bool = True,
     backup_dir: Path | None = None,
+    expected: dict[str, object] | None = None,
     simulate_failure_after: int | None = None,
 ) -> IngestionSummary:
     """Safely ingest raw evidence records into SQLite history tables with idempotency and rollback."""
@@ -933,7 +934,12 @@ def execute_evidence_ingest(
             "Ingestion aborted to prevent corrupting historical records."
         )
 
-    active_run_id = run_id or f"test-ingest-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    if run_id:
+        active_run_id = run_id
+    elif mode == "production":
+        active_run_id = f"chatgpt-production-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    else:
+        active_run_id = f"test-ingest-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
     active_set_id = source_set_id or p.stem
 
     if dry_run.messages_would_insert == 0 and dry_run.messages_discovered > 0:
@@ -964,6 +970,15 @@ def execute_evidence_ingest(
 
     messages, malformed = active_adapter.parse(p)
 
+    active_expected = expected
+    if active_expected is None and mode == "production":
+        current_counts = store.history_counts()
+        active_expected = {
+            "canonical_effect_rows": 0,
+            "messages": current_counts["history_messages"] + dry_run.messages_would_insert,
+            "conversations": current_counts["history_conversations"] + dry_run.conversations_discovered,
+        }
+
     stats = store.import_raw_evidence(
         run_id=active_run_id,
         source_set_id=active_set_id,
@@ -974,6 +989,7 @@ def execute_evidence_ingest(
         attachments=(),
         mode=mode,
         authorized=True,
+        expected=active_expected,
         simulate_failure_after=simulate_failure_after,
     )
 
@@ -1056,6 +1072,9 @@ if __name__ == "__main__":
     parser.add_argument("--dry-run", action="store_true", default=True, help="Perform dry-run inspection without DB writes")
     parser.add_argument("--execute", action="store_true", help="Execute live ingestion into SQLite database")
     parser.add_argument("--db", type=str, default="data/josie.db", help="Target SQLite database path")
+    parser.add_argument("--mode", type=str, default="isolated_test_fixture", choices=["isolated_test_fixture", "production"], help="Ingestion mode")
+    parser.add_argument("--run-id", type=str, default=None, help="Import run ID")
+    parser.add_argument("--source-set-id", type=str, default=None, help="Source set ID")
     parser.add_argument("--inventory", action="store_true", help="Discover and report available archives on system")
     args = parser.parse_args()
 
@@ -1080,6 +1099,9 @@ if __name__ == "__main__":
             archive_path,
             store=target_store,
             adapter=target_adapter,
+            run_id=args.run_id,
+            source_set_id=args.source_set_id,
+            mode=args.mode,
         )
         print(json.dumps(summary.to_dict(), indent=2))
     else:

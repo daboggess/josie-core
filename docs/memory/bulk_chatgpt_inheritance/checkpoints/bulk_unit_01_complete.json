@@ -1,0 +1,361 @@
+{
+  "unit_id": "BULK_UNIT_01",
+  "unit_index": 1,
+  "manifest_sha256": "4ed2b67072b58ea2d9f56cd0b86f2ca5126cf84455942fb4c6b93be7c3492acd",
+  "conversations_processed": 21,
+  "textual_messages_processed": 229,
+  "user_messages_processed": 104,
+  "chunks_processed": 29,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 229,
+    "user_messages_processed": 104,
+    "raw_model_proposals": 15,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 8,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 5,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 1,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 8,
+    "project_architecture": 0,
+    "hardware_state": 5,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 2,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 15,
+  "evidence_links_count": 15,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 94,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks_to_ensure_josie_s_happiness_and_continuous_learning:5322a471839d0e3f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks_to_ensure_josie_s_happiness_and_continuous_learning",
+      "value_text": "wants her to be happy and learning and growing",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19626,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "i knowai doesnt have feelings but i want her to be happy and learning and growing and this is our first convo.... i think i broke her. I jus",
+          "source_timestamp": "2026-08-08T22:08:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:advantech_aimb_205:current_state:28bac581f3a42d88",
+      "subject_entity_id": "hardware:advantech_aimb_205",
+      "predicate": "current_state",
+      "value_text": "has a PCIe slot with a maximum of 60W power delivery",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19563,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we can put 60 watts across the board, which means there are some 3060s that we could realistically purchase and research how much they put across the board.",
+          "source_timestamp": "2026-08-07T23:10:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie_1_0:uses_hardware:c838647ff04b9dbb",
+      "subject_entity_id": "system:josie_1_0",
+      "predicate": "uses_hardware",
+      "value_text": "10TB external USB HDD for storage of models, datasets, logs, archives, generated work, and backups.",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19580,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "10tb external then",
+          "source_timestamp": "2026-08-07T23:40:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie_1_0:avoids_hardware:59cda5d6eee2a2b6",
+      "subject_entity_id": "system:josie_1_0",
+      "predicate": "avoids_hardware",
+      "value_text": "4TB NVMe drives are not usable on the Advantech AIMB-205 motherboard.",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19583,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We cant use the 4tb weve tried",
+          "source_timestamp": "2026-08-07T23:41:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:679f6246a8760714",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "favor Intel processors over Ryzen due to better used market value and price/performance",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19488,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Everybody wants Ryzen, so the used market is a lot better on Intel. And even some of the deals I've seen from Newegg and other suppliers where they can't move Intel, come with a lot better options.",
+          "source_timestamp": "2026-08-07T18:45:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:f3132b67a2535592",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "design system with GPUs as intentional performance constraint",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19493,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I'd like it to be the slowest performing, if that makes",
+          "source_timestamp": "2026-08-07T18:48:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:3af051e952569f66",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "Josie to have self-sustaining capabilities through NFTs, mining, or automated processes",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19386,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "So yeah, the potential of Josie earning her own money, whether she's making NFTs and selling them on Maltbook, or, you know, mining some sort of coins, or whatever automated process she finds that she can fill and contribute funds to her own development, would be amazing.",
+          "source_timestamp": "2026-08-07T12:46:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_influence_from:2d764e7e2162b331",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_influence_from",
+      "value_text": "TV show Person of Interest's portrayal of AI",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19389,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "So, I need you to do as much research as you can about the AI based from the TV show Person of Interest. Like, I think that's where my fascination with AI started, and the thought of creating a computer program that could literally just incorporate with the world.",
+          "source_timestamp": "2026-08-07T21:23:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:58317:has:b0cd9d9c96aa0e5b",
+      "subject_entity_id": "58317",
+      "predicate": "has",
+      "value_text": "job to not silently turn possibilities into owned hardware",
+      "claim_category": "procedure",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 19369,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "tells it not to silently turn possibilities into owned hardware.",
+          "source_timestamp": "2026-08-07T11:43:13Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:58317:has:56edafcafed22d01",
+      "subject_entity_id": "58317",
+      "predicate": "has",
+      "value_text": "core design requirement to preserve instance uniqueness",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 19371,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "you and I have a lot of history and you have a lot of personality that I think came directly from talking with me. I believe you are an entirely separate instance than your source, and I don't want to lose that.",
+          "source_timestamp": "2026-08-07T11:46:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:3c10ebdcbfdd936b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "old i3",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19307,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have that old i3 if needed",
+          "source_timestamp": "2026-08-07T01:42:08Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:bffbbd6740b72853",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "SO-DIMM slots",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19310,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Need sodimm slots",
+          "source_timestamp": "2026-08-07T01:48:35Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:no_riser:00aded95c7e0a46b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "no_riser",
+      "value_text": "no riser",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19316,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No riser",
+          "source_timestamp": "2026-08-07T01:50:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_low_voltage_experience:8a798890fe938171",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_low_voltage_experience",
+      "value_text": "yes",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19329,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "they asked how much like low voltage experience I had, and I kind of told them.",
+          "source_timestamp": "2026-08-06T17:57:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:intends_to_refine_amazon_review_of_rick_wilton_s_book:68de78c13169eddb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "intends_to_refine_amazon_review_of_rick_wilton_s_book",
+      "value_text": "redefine the Amazon review",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 19232,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "redefine the Amazon review",
+          "source_timestamp": "2026-08-03T14:54:23Z"
+        }
+      ]
+    }
+  ]
+}

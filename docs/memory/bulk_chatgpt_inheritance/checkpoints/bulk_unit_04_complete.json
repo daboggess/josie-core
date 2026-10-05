@@ -1,0 +1,382 @@
+{
+  "unit_id": "BULK_UNIT_04",
+  "unit_index": 4,
+  "manifest_sha256": "f3c75274861d49e30bd58ac52456048f54a6d6b368225f4da67295abf89782ad",
+  "conversations_processed": 21,
+  "textual_messages_processed": 261,
+  "user_messages_processed": 118,
+  "chunks_processed": 31,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 261,
+    "user_messages_processed": 118,
+    "raw_model_proposals": 17,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 3,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 6,
+    "project_architecture_candidates": 1,
+    "hardware_state_candidates": 5,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 6,
+    "project_architecture": 1,
+    "hardware_state": 5,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 3,
+    "context_archive": 0
+  },
+  "staged_claims_count": 16,
+  "evidence_links_count": 16,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 149,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:is_reading:6a750265b7571b0e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_reading",
+      "value_text": "Experiencing God by Henry Blackaby",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 17962,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm about six chapters deep right now, and honestly, it sounds like John Piper's Desiring God",
+          "source_timestamp": "2026-07-14T05:35:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:e712a02b83a65ca2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "beelink",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18006,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No existing hardware. Just the beelink, 2 4tb nvme and 2 24tb hhd. And those scrap adventek parts",
+          "source_timestamp": "2026-07-14T03:49:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:5c079b892a3310c1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2 4tb nvme",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18006,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No existing hardware. Just the beelink, 2 4tb nvme and 2 24tb hhd. And those scrap adventek parts",
+          "source_timestamp": "2026-07-14T03:49:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:8bae8f99f832df8b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2 24tb hhd",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18006,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No existing hardware. Just the beelink, 2 4tb nvme and 2 24tb hhd. And those scrap adventek parts",
+          "source_timestamp": "2026-07-14T03:49:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:intends_to_acquire:b6bf702aa092994a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "intends_to_acquire",
+      "value_text": "cheap intel arc 16gb or higher",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18024,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Exclude gpu, ill probably pick up a cheap intel arc 16gb or higher",
+          "source_timestamp": "2026-07-14T04:16:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:considers:eca1a523b687eeaa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "considers",
+      "value_text": "NVIDIA GPUs for a cheaper setup around $300",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18041,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "so if I go, I know I've seen a lot of cheap 12-gig GPUs on Facebook Marketplace recently. So now I need to figure out if I'm going Nvidia, does that open me back up to the cheaper setup we were talking about earlier that I could honestly get away, like, 300 bucks, since we're not going Intel, because I know Intel made it a little bit more expensive.",
+          "source_timestamp": "2026-07-14T05:08:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:45bec01b978c7bdb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "used B550/Ryzen tower over Xeon/X99 when AM4 systems are available on Marketplace",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18046,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, I'm rethinking the 550 because I know I've seen them cheap on Marketplace and people just trying to get something back out of them because there's not a lot of resale value in they're kind of run-of-the-mill. So depending on what features they have, people have been letting them go pretty cheap with the tower and a couple of AIO coolers or something to try to get, you know, a little bit of i",
+          "source_timestamp": "2026-07-14T05:26:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:is_designed_for:20ced1278cdb182f",
+      "subject_entity_id": "system:josie",
+      "predicate": "is_designed_for",
+      "value_text": "cloud/n8n orchestration",
+      "claim_category": "architecture",
+      "durability": "durable",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17854,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Well josie was supposed to be a cloud/n8n orchastrator",
+          "source_timestamp": "2026-07-09T02:14:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans_to_use_existing_church_channels_for_promotion:dd9e79a39835d399",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans_to_use_existing_church_channels_for_promotion",
+      "value_text": "Tom posts bulletins in all the men's room above the urinals",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17821,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Tom posts bulletins in all the men's room above the urinals, because what else are you gonna stare at while you're taking a piss",
+          "source_timestamp": "2026-07-09T00:23:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:gave_testimony:95011fc68791a270",
+      "subject_entity_id": "person:dustin",
+      "predicate": "gave_testimony",
+      "value_text": "in front of men's group and Giant Killers group",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12354,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I gave it in front of my men's group, and then the guys from my giant killers group came too and listened to it.",
+          "source_timestamp": "2026-07-06T20:09:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:participates_in:cae2eed347686252",
+      "subject_entity_id": "person:dustin",
+      "predicate": "participates_in",
+      "value_text": "Saturday morning 'Giant Killers' group",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12354,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "the guys from my giant killers group came too and listened to it",
+          "source_timestamp": "2026-07-06T20:09:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:struggles_with:9afc4df1c5aa267d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "struggles_with",
+      "value_text": "giving a moving speech/presentation",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12356,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The struggle now is I want to get up and give a moving speech, presentation, whatever it is",
+          "source_timestamp": "2026-07-06T20:25:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_desire_to:5affb64be8c9c92c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_desire_to",
+      "value_text": "share testimony in a more impactful way",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12356,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I wanted to do this like way back when. This has been formulating for a long time",
+          "source_timestamp": "2026-07-06T20:25:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:interacted_with:2cdfccf1b87d3229",
+      "subject_entity_id": "person:dustin",
+      "predicate": "interacted_with",
+      "value_text": "former pastors",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12356,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "multiple of which are former pastors themselves of other churches",
+          "source_timestamp": "2026-07-06T20:25:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:8650248ff6ab977a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "Sacred Marriage downloaded",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17333,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I think I have it downloaded and haven't read it yet.",
+          "source_timestamp": "2026-07-01T17:36:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:17595:has_hardware:a811ce2b9aed14d8",
+      "subject_entity_id": "17595",
+      "predicate": "has_hardware",
+      "value_text": "10 terabyte hard drive hooked up to a D-Link",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 17595,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "the 10 terabyte hard drive I've got hooked up to that D-Link",
+          "source_timestamp": "2026-07-02T16:25:32Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,517 @@
+{
+  "unit_id": "BULK_UNIT_32",
+  "unit_index": 32,
+  "manifest_sha256": "0e9707a159aeef00763958f97562780255554d32f6a8cb509a4c89e93a3de257",
+  "conversations_processed": 45,
+  "textual_messages_processed": 861,
+  "user_messages_processed": 417,
+  "chunks_processed": 81,
+  "skipped_zero_user_chunks": 4,
+  "funnel": {
+    "source_conversations_processed": 45,
+    "textual_messages_processed": 861,
+    "user_messages_processed": 417,
+    "raw_model_proposals": 35,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 6,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 5,
+    "historical_only_routing": 3,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 14,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 5,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 7
+  },
+  "destinations": {
+    "personal_canonical": 14,
+    "project_architecture": 0,
+    "hardware_state": 5,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 3,
+    "context_archive": 0
+  },
+  "staged_claims_count": 22,
+  "evidence_links_count": 23,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 559,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_document_to_contain_everything_discussed:5e9d2647e9112713",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_document_to_contain_everything_discussed",
+      "value_text": "everything discussed",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 6922,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "related_to",
+          "excerpt": "That document does not contain everything. I want everything.",
+          "source_timestamp": "2025-08-14T16:47:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:0194a5df17c42faf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "new motherboard and processor combo",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7093,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "We've got a new motherboard and processor combo.",
+          "source_timestamp": "2025-08-14T19:19:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:4146539a5dd567b0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "PowerEdge FB are a T-something model",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5792,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "PowerEdge FB are a T-something model.",
+          "source_timestamp": "2025-07-31T20:41:20Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:214404ba8f92c4cd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers Intel over AMD",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5732,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No, I definitely prefer Intel.",
+          "source_timestamp": "2025-07-29T15:56:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:d72e0eed260e05cd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "AI tools for automating workflows, integrating with personal apps (Google Calendar, Tasks, Notes), and assisting with SEO/content creation",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5650,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "different things I wanted to accomplish with AI",
+          "source_timestamp": "2025-07-28T02:02:46Z"
+        },
+        {
+          "history_message_id": 5653,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "automating workflows, integrating with your personal apps like Google Calendar, Tasks, and Notes, and possibly assisting with SEO and content creation",
+          "source_timestamp": "2025-07-28T02:03:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_emphasize:a43be883f7240efb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_emphasize",
+      "value_text": "liquids, hardware, disposables, long-running history and knowledge",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5519,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I would like to emphasize our liquids, hardware, disposables, and our long-running history and knowledge.",
+          "source_timestamp": "2025-07-27T20:14:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_serve:d8579079470343d5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_serve",
+      "value_text": "nearby towns as large of an area as possible from Barbersville to Crosslanes",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5519,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I definitely want to serve nearby towns as large of an area as we can from Barbersville to Crosslanes.",
+          "source_timestamp": "2025-07-27T20:14:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_tone:2bbd93ecef2f3ab5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_tone",
+      "value_text": "professional and friendly",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5519,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Professional and friendly would be a good tone.",
+          "source_timestamp": "2025-07-27T20:14:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:suggests_service_area_list_for_huntington:9c2d945d1525b618",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "suggests_service_area_list_for_huntington",
+      "value_text": "Huntington, WV; Barboursville, WV; Ceredo, WV; Kenova, WV; Proctorville, OH; Lavalette, WV; Pea Ridge, WV; South Point, OH; Saint Albans",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 5547,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "You give me a copy and paste service area list like we did for Hurricane.",
+          "source_timestamp": "2025-07-27T20:34:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_goal:291ce74d0c590979",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_goal",
+      "value_text": "create business valuation to sell the business",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5462,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm trying to create a business valuation to sell the business.",
+          "source_timestamp": "2025-07-27T03:00:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:website_not_for_commerce:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "website_not_for_commerce",
+      "value_text": "true",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5388,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We will not be using the site for commerce.",
+          "source_timestamp": "2025-07-26T12:17:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:recommends:138f3e8783bc6002",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "recommends",
+      "value_text": "Minisforum UM790 Pro or UM890 Pro",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 5377,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "quoted_or_pasted_content",
+          "relation_type": "related_to",
+          "excerpt": "The best **mini PC for AI and Plex** balances GPU acceleration (for AI and Plex hardware transcoding), fast storage, and compact form. Here are top picks for **2025**, broken into **tiers and use cases**:\n\n---\n\n### \ud83d\udd25 **Top Pick (Powerful & Compact) \u2013 for AI & 4K Plex**\n**\u25b6 Minisforum UM790 Pro or UM890 Pro**\n- **CPU**: AMD Ryzen 9 7940HS or 8945HS (8C/16T, very fast)\n- **GPU**: Radeon 780M (great",
+          "source_timestamp": "2025-07-22T00:31:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:specifies:d3fbf6e94c823bc4",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "specifies",
+      "value_text": "AMD Ryzen 9 7940HS or 8945HS (8C/16T, very fast)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 5377,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "quoted_or_pasted_content",
+          "relation_type": "related_to",
+          "excerpt": "- **CPU**: AMD Ryzen 9 7940HS or 8945HS (8C/16T, very fast)\n- **GPU**: Radeon 780M (great",
+          "source_timestamp": "2025-07-22T00:31:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:specifies:9ea273b6a3e5caa6",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "specifies",
+      "value_text": "Radeon 780M",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 5377,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "quoted_or_pasted_content",
+          "relation_type": "related_to",
+          "excerpt": "- **GPU**: Radeon 780M (great",
+          "source_timestamp": "2025-07-22T00:31:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:does_not_assert_ownership_of:68dd55a28d181523",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "does_not_assert_ownership_of",
+      "value_text": "local models equivalent to DeepSeek",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 5255,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Does Chat GPT have something like deep-seek I could run locally and access remotely",
+          "source_timestamp": "2025-06-29T22:57:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:080c304df63931e2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "Intel i7 processors",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5305,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I7",
+          "source_timestamp": "2025-06-30T02:06:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses_property_search_platforms:3dbe2326ce18a8eb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses_property_search_platforms",
+      "value_text": "Redfin, Zillow, InvestorLift",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5181,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "A combination of all. I have been using Redfin, Zillow, InvestorLift.",
+          "source_timestamp": "2025-03-07T16:08:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:employs_search_strategies:a91121129231b53b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "employs_search_strategies",
+      "value_text": "combination of MLS listings, auctions, off-market deals",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5181,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "A combination of all. I have been using Redfin, Zillow, InvestorLift.",
+          "source_timestamp": "2025-03-07T16:08:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:collaborates_with_real_estate_agents:b0f313cd6472fb35",
+      "subject_entity_id": "person:dustin",
+      "predicate": "collaborates_with_real_estate_agents",
+      "value_text": "both working with agents and self-searching",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5183,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Both.",
+          "source_timestamp": "2025-03-07T16:09:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:focuses_on_property_criteria:e2b77b4e3c58db07",
+      "subject_entity_id": "person:dustin",
+      "predicate": "focuses_on_property_criteria",
+      "value_text": "ARV prioritization over property type or land",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5187,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No, I'm more interested in the ARV.",
+          "source_timestamp": "2025-03-07T16:09:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:83b8737dc416b29b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "DealChecker and BackFlip",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5197,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "A fixer upper is more preferable and the area is less important.",
+          "source_timestamp": "2025-03-07T16:11:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:babe02e294f0af93",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "fixer-uppers",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 5197,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "A fixer upper is more preferable and the area is less important.",
+          "source_timestamp": "2025-03-07T16:11:59Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "unit_id": "GEMINI_UNIT_11",
+  "unit_index": 11,
+  "manifest_sha256": "c4fe16c7dac8a635d296388aafcdde1ec93c83bffba26a7a9958389847c7f140",
+  "conversations_processed": 50,
+  "textual_messages_processed": 116,
+  "user_messages_processed": 59,
+  "chunks_processed": 9,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 116,
+    "user_messages_processed": 59,
+    "raw_model_proposals": 3,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 2,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 2,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 3,
+  "evidence_links_count": 3,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 630,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:009197487076c4ee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "currently enrolled in CLI Christian Leadership Institute pursuing a VA in Christian leadership or general Divinity",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2599,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm currently enrolled in CLI Christian Leadership Institute pursuing a VA in Christian leadership or just general Divinity but I've been looking at other options we've talked before about pulling up stakes from CLI I'm just going straight to Nations and paying the money cuz it's 900 bucks and I can probably do it in about a year to",
+          "source_timestamp": "2026-04-26T21:37:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:679d2e76380471a5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "considering transferring to NationsUniversity for a Master\u2019s program",
+      "claim_category": "profile",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2599,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm currently enrolled in CLI Christian Leadership Institute pursuing a VA in Christian leadership or just general Divinity but I've been looking at other options we've talked before about pulling up stakes from CLI I'm just going straight to Nations and paying the money cuz it's 900 bucks and I can probably do it in about a year to",
+          "source_timestamp": "2026-04-26T21:37:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:44b3e401070b6608",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "seeking additional theological resources beyond William Lane Craig and John Piper",
+      "claim_category": "profile",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 2607,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm looking for somebody else that brings that level of deep theology heavily backed up able to exp",
+          "source_timestamp": "2026-04-26T21:45:19Z"
+        }
+      ]
+    }
+  ]
+}

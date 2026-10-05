@@ -1,0 +1,487 @@
+{
+  "unit_id": "BULK_UNIT_06",
+  "unit_index": 6,
+  "manifest_sha256": "1434e3228e9aa0f68cac39d5827ba52f5209d72e9ad4be157ba5e46a92495b59",
+  "conversations_processed": 21,
+  "textual_messages_processed": 409,
+  "user_messages_processed": 196,
+  "chunks_processed": 39,
+  "skipped_zero_user_chunks": 3,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 409,
+    "user_messages_processed": 196,
+    "raw_model_proposals": 24,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 1,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 3,
+    "historical_only_routing": 6,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 12,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 12,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 3,
+    "historical_only": 6,
+    "context_archive": 0
+  },
+  "staged_claims_count": 21,
+  "evidence_links_count": 21,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 190,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:d4a09ed638794ed6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "The business Full Steam Vapor is structured as a partnership or S-Corp, as evidenced by the receipt of K-1s (not K-100s) for tax purposes.",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16546,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "All right, so another situation we are guarding against, but trying to be as transparent as possible, I need to get my federal tax returns caught up.",
+          "source_timestamp": "2026-06-15T15:15:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:d21d511f11152e37",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "The ownership structure of Full Steam Vapor changed in August or September 2025, with Chris being bought out by Dustin and Jess.",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16544,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I think it was around August, it was August or September of 2025.",
+          "source_timestamp": "2026-06-15T15:12:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:fb9e6548813df611",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "Annual business filings for Full Steam Vapor have not been submitted since 2019, necessitating corrections for past years.",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16552,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So again, apparently we've not filed our annual business filing since 2019, so if we have to go back and correct those years, I believe we can look at when Jess stopped taking distributions and use that as a marker to put on that year to the state that, hey, this is when the ownership share is transferred from one spouse to the other.",
+          "source_timestamp": "2026-06-15T15:33:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:5bd4fed6cd08cd2c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "Jess is listed on the business bank accounts of Full Steam Vapor but has not taken any form of payment from the business for two years.",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16550,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "And I don't believe Jess has taken any form of payment from the business for two years, but she is, again, on all of the business bank accounts.",
+          "source_timestamp": "2026-06-15T15:27:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:41d8703594f0b950",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "uncertainty about practical implementation of connection/follow-up process without admins/moderators",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14277,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't know how the practical application of that is going to happen if I'm doing everything by myself at first until we raise up admins and moderators.",
+          "source_timestamp": "2026-04-13T15:32:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_include:e4b52df412160804",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_include",
+      "value_text": "talking points from group leaders in the document",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14303,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I wanted to really include, you know, your group leaders have their schedule of what they plan to discuss, and if I could get from the group leaders, you know, some of the talking points that they have, and I can mention just one or two of those talking points, because again, you tend to judge a book by its cover, like Man in the Mirror, you know. I",
+          "source_timestamp": "2026-04-13T15:46:45Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans_to_share:27d61153b364f097",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans_to_share",
+      "value_text": "content in correlation with the main Facebook page",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14307,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We would also share in correlation with the main Facebook page.",
+          "source_timestamp": "2026-04-13T18:49:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_researching:15e7629fb8de515a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_researching",
+      "value_text": "leadership models including Patrick Morley's 'No Man Left Behind' and Francis Chan's 'Multiply'",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14352,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I think I'd like to include, in preparation for this, I looked into a couple of successful leadership models like Patrick Morley's No Man Left Behind, Francis Chan's Multiply, and if you could remind me the third book you recommended, because I basically glossed through reviews of it versus reading the whole book.",
+          "source_timestamp": "2026-04-13T19:14:13Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_evaluating_fruit_over_kpis:edd541801f9c0ba8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_evaluating_fruit_over_kpis",
+      "value_text": "prefers evaluating fruit over KPIs",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 14364,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "we're gonna look for fruits. Is this bearing fruit? You can tell if something's bearing fruit or not. But yeah, so instead of KPIs, we're looking for fruit.",
+          "source_timestamp": "2026-06-09T18:06:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:engagement_with_religious_materials:a380124ea27c12f7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "engagement_with_religious_materials",
+      "value_text": "currently studying Patrick Morley's 'Making Disciples' as part of a men's group",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16379,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Last night was our men's group, and we're studying Patrick Morley's Making Disciples.",
+          "source_timestamp": "2026-06-08T15:50:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:engagement_with_religious_resources:c0e0e188ba5e2090",
+      "subject_entity_id": "person:dustin",
+      "predicate": "engagement_with_religious_resources",
+      "value_text": "sharing a Bible app link as a form of spiritual engagement",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 16387,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Let's connect with God's Word together! Add me as a Friend on the YouVersion Bible App.",
+          "source_timestamp": "2026-06-08T22:56:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:watches_youtube_content_for_8_to_12_hours_per_week:2720ab78329551d1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "watches_youtube_content_for_8_to_12_hours_per_week",
+      "value_text": "for the past year",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16389,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "And I can't pull up my YouTube watch history but you can see the things I'm subscribed to and generally it says I watch 8 to 12 hours a week for the past year",
+          "source_timestamp": "2026-06-08T23:30:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:omitted_measurable_outcomes_from_initial_goals_document:ee8467734cfeaade",
+      "subject_entity_id": "person:dustin",
+      "predicate": "omitted_measurable_outcomes_from_initial_goals_document",
+      "value_text": "to avoid imposing corporate structure on church context",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16391,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I had certain goals, but no measurables. And I told him I had all of that in the original document, and I took it out specifically because I felt led that I was trying to bring a corporate structure into a church and that defining success on numb",
+          "source_timestamp": "2026-06-09T15:25:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:met_with_tom_for_2_5_hours_without_completing_first_document:096d0b83d43d97ee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "met_with_tom_for_2_5_hours_without_completing_first_document",
+      "value_text": "Facebook group proposal discussion",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 16393,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Okay, the other thing, uh, felt horrible. Like, we took two and a half hours and did not even get through the first document, which was the small one about the Facebook group",
+          "source_timestamp": "2026-06-09T16:35:11Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:exhibited_excessive_verbal_participation_during_meeting_with_tom:7c9e9e43860fd06a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "exhibited_excessive_verbal_participation_during_meeting_with_tom",
+      "value_text": "self-perceived over-talkativeness",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 16395,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We didnt even make it through half of the FB group paper... i couldnt stop myself from asking to understand things he wasnt asking or talking about, it was fruitful but i feel like i talked waaaaaaayyyyy too much",
+          "source_timestamp": "2026-06-09T17:02:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:8dc46708a8b57c5b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "a vape shop",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16306,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "So you know, I own a vape shop and we've been dealing with the West Virginia Vapor registry and the pmta registration and recently a bunch of flavored Vapes from cosmic or glass got approved. And they are the first non-tobacco Menthol flavors, really to be approved. And a lot of it is because they have some sort of Bluetooth and some sort of software that you've got a register on your phone and th",
+          "source_timestamp": "2026-05-27T18:42:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:engages_with:5665e6d263a14c41",
+      "subject_entity_id": "person:dustin",
+      "predicate": "engages_with",
+      "value_text": "West Virginia Vapor registry and PMTA registration",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16306,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "So you know, I own a vape shop and we've been dealing with the West Virginia Vapor registry and the pmta registration and recently a bunch of flavored Vapes from cosmic or glass got approved. And they are the first non-tobacco Menthol flavors, really to be approved. And a lot of it is because they have some sort of Bluetooth and some sort of software that you've got a register on your phone and th",
+          "source_timestamp": "2026-05-27T18:42:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_been_operating_in_the_vape_retail_industry_since:96da37e95d5cc34f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_been_operating_in_the_vape_retail_industry_since",
+      "value_text": "2014",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16319,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "we got in the business in 2014",
+          "source_timestamp": "2026-05-27T19:13:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks_to_expand_business_to:8a01970f37a06957",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks_to_expand_business_to",
+      "value_text": "10 stores",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16325,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "unless we expand somehow to 10 stores",
+          "source_timestamp": "2026-05-27T19:43:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_family_history_involving:a8cb294a068c1fdc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_family_history_involving",
+      "value_text": "moonshine production",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16331,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "my grandfather on my dad's side uh made moonshine",
+          "source_timestamp": "2026-05-27T20:19:01Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:f80f587d7dbb1bb1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "current audio setup over new earbuds",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 16293,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I don't need new earbuds I've already got good infrastructure",
+          "source_timestamp": "2026-05-26T11:14:10Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,403 @@
+{
+  "unit_id": "BULK_UNIT_29",
+  "unit_index": 29,
+  "manifest_sha256": "d39b9062fa25b5463f0ec545402fe7f1444bcd4d57100a0a2d6c460704ecc17d",
+  "conversations_processed": 21,
+  "textual_messages_processed": 268,
+  "user_messages_processed": 126,
+  "chunks_processed": 28,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 268,
+    "user_messages_processed": 126,
+    "raw_model_proposals": 18,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 2,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 7,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 8,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 7,
+    "project_architecture": 0,
+    "hardware_state": 8,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 2,
+    "context_archive": 0
+  },
+  "staged_claims_count": 17,
+  "evidence_links_count": 17,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 520,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:is_not_influenced_by:fe965dcc710e8562",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "is_not_influenced_by",
+      "value_text": "demons or supernatural forces",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 7809,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No \u2014 ChatGPT is **not influenced by demons** or any kind of supernatural force.",
+          "source_timestamp": "2025-08-31T20:25:03Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:46ecf898a457ff59",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "case with LCD display",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7687,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "related_to",
+          "excerpt": "Change the build keep the case, or another similar case with lcd display",
+          "source_timestamp": "2025-08-31T14:15:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:b902301aa7b9ee04",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "dual GPU setup",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7691,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "related_to",
+          "excerpt": "Need dual gpu",
+          "source_timestamp": "2025-08-31T14:17:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:9bc38a7017b0cfc9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2 \u00d7 4TB NVMe SSDs and 2 \u00d7 24TB HDDs",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7637,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't have anything but 2x4tb nvme and 2x24tb hhd",
+          "source_timestamp": "2025-08-30T18:12:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires_local_data_security:45a126e41dc008cd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires_local_data_security",
+      "value_text": "all personal information must remain secure and not shared",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7560,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I want the local llm to be able to keep all my personal information secure and not share it",
+          "source_timestamp": "2025-08-29T18:58:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:demands_ai_agent_capabilities:05ef8afd76a04649",
+      "subject_entity_id": "person:dustin",
+      "predicate": "demands_ai_agent_capabilities",
+      "value_text": "access to local files, system control, app interaction, and browser automation",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7564,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "And an ai agent that can access the local files and system and use apps and use and see the browser, controll moise and keyboard",
+          "source_timestamp": "2025-08-29T19:03:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires_external_model_access:2e33f6eb335a5f5f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires_external_model_access",
+      "value_text": "AI agent must interface with Gemini, Copilot, Claude, and other code models",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7570,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "will have access to gemini, copilot, you, amd claude code",
+          "source_timestamp": "2025-08-29T19:08:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prioritizes_privacy_and_ownership:6cced0a327c8dbb8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prioritizes_privacy_and_ownership",
+      "value_text": "absolute focus on data privacy and system ownership",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7573,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Again privacy and ownership are my main focus",
+          "source_timestamp": "2025-08-29T19:10:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:eeb1edbb6e8bdfb6",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2\u00d7 4TB NVMe and 2\u00d7 24TB HDD",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7588,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have 2 4tb nvmes and 2 24tb hhd.",
+          "source_timestamp": "2025-08-29T19:29:44Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:286747ebf33c335f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "build an AI system using the Lenovo ThinkStation P720 as a base",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7546,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "For my ai build",
+          "source_timestamp": "2025-08-29T15:46:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:72420b447f659274",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "compare this system to all previous AI builds for evaluation",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7548,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Compare this to all previous ai builds",
+          "source_timestamp": "2025-08-29T15:48:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:7497:has_hardware_component:ea365f2f29288a10",
+      "subject_entity_id": "7497",
+      "predicate": "has_hardware_component",
+      "value_text": "barebones chassis with 900W PSU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7497,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We were using the $399 bare bones a $800 3090 and a $300 3060 with 128 ram (canr remember price) 900w included in bare bones",
+          "source_timestamp": "2025-08-29T13:55:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:7497:has_hardware_component:ddf6dcbba933e490",
+      "subject_entity_id": "7497",
+      "predicate": "has_hardware_component",
+      "value_text": "NVIDIA RTX 3090 GPU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7497,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We were using the $399 bare bones a $800 3090 and a $300 3060 with 128 ram (canr remember price) 900w included in bare bones",
+          "source_timestamp": "2025-08-29T13:55:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:7497:has_hardware_component:2598988b0ec1a0f3",
+      "subject_entity_id": "7497",
+      "predicate": "has_hardware_component",
+      "value_text": "NVIDIA RTX 3060 GPU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7497,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We were using the $399 bare bones a $800 3090 and a $300 3060 with 128 ram (canr remember price) 900w included in bare bones",
+          "source_timestamp": "2025-08-29T13:55:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:7497:has_hardware_component:c085037140109c6e",
+      "subject_entity_id": "7497",
+      "predicate": "has_hardware_component",
+      "value_text": "128 GB RAM",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7497,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We were using the $399 bare bones a $800 3090 and a $300 3060 with 128 ram (canr remember price) 900w included in bare bones",
+          "source_timestamp": "2025-08-29T13:55:55Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:7499:has_hardware_component:4c29e309bb2498bb",
+      "subject_entity_id": "7499",
+      "predicate": "has_hardware_component",
+      "value_text": "2 \u00d7 Intel Xeon Gold 61xx CPUs",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7499,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "And we were buying 2 of the 61?? Gold xeon cpus",
+          "source_timestamp": "2025-08-29T13:56:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_a_salesforce_super_user:d53e1d9ec3c49d8f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_a_salesforce_super_user",
+      "value_text": "reports directly to subject matter experts for Salesforce",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7421,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm also a Salesforce super user who reports directly to our subject matter experts for Salesforce.",
+          "source_timestamp": "2025-08-26T01:10:10Z"
+        }
+      ]
+    }
+  ]
+}

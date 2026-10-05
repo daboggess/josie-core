@@ -1,0 +1,223 @@
+{
+  "unit_id": "BULK_UNIT_24",
+  "unit_index": 24,
+  "manifest_sha256": "62b00a078d158bb7a5ad38976af3a00265de6791c5797bade3444bba336a495b",
+  "conversations_processed": 21,
+  "textual_messages_processed": 316,
+  "user_messages_processed": 145,
+  "chunks_processed": 29,
+  "skipped_zero_user_chunks": 4,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 316,
+    "user_messages_processed": 145,
+    "raw_model_proposals": 10,
+    "assistant_authority_rejections": 2,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 4,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 4,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 4,
+    "project_architecture": 0,
+    "hardware_state": 4,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 8,
+  "evidence_links_count": 9,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 459,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:recommends:c521e19ee8d1e549",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "recommends",
+      "value_text": "EVGA 750W Gold modular PSU",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 9802,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "EVGA 750W Gold modular PSU",
+          "source_timestamp": "2025-11-27T21:35:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:operates:58d30c38e373ae45",
+      "subject_entity_id": "person:dustin",
+      "predicate": "operates",
+      "value_text": "Full Steam Vapor",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9792,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Suggested black friday sales. Look at out fb and insta at the new items",
+          "source_timestamp": "2025-11-27T20:13:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own:2810a5b8ff5115cf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own",
+      "value_text": "RTX 3090",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9778,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I dont own a 3090",
+          "source_timestamp": "2025-11-27T19:36:06Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:44862d9673362fee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "does not own RTX 3090",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9632,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Those 3090s are for parts",
+          "source_timestamp": "2025-11-21T05:36:38Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_use:9608a494a3b870f1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_use",
+      "value_text": "dual Xeons",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9586,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Btw its not dual xeon......",
+          "source_timestamp": "2025-11-21T04:04:20Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:588c2e078a7bb69a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "automated AI solutions requiring no ongoing human involvement after setup",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9538,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I dont want to have to actively do anything",
+          "source_timestamp": "2025-11-20T19:27:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:strategizes:e0bafcde87ecdbb9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "strategizes",
+      "value_text": "launch AI projects with $0 initial budget and scale after generating income",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9536,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Current infrastructure, $0 budget but may scale after making income",
+          "source_timestamp": "2025-11-20T19:26:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:47a2dc627c995f98",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "a Bible reading plan similar to Bible Recap with availability on U-Version app",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9505,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I kind of want to do another read-through, because I feel like the more times I go through it, the more I'm going to retain it.",
+          "source_timestamp": "2025-11-18T21:57:39Z"
+        },
+        {
+          "history_message_id": 9511,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Let's stick with as close to Bible Recap as possible. It doesn't have to be chronological, but it does have to be available on the U-Version app.",
+          "source_timestamp": "2025-11-18T22:00:36Z"
+        }
+      ]
+    }
+  ]
+}

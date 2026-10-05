@@ -1,0 +1,235 @@
+{
+  "unit_id": "BULK_UNIT_27",
+  "unit_index": 27,
+  "manifest_sha256": "b6bf93d4d2d2bfa9e4dd0e772459615258e65c552b1ed9a3caea2027fd426605",
+  "conversations_processed": 21,
+  "textual_messages_processed": 392,
+  "user_messages_processed": 191,
+  "chunks_processed": 37,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 392,
+    "user_messages_processed": 191,
+    "raw_model_proposals": 15,
+    "assistant_authority_rejections": 2,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 2,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 5,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 5,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 2,
+    "context_archive": 0
+  },
+  "staged_claims_count": 9,
+  "evidence_links_count": 9,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 495,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_identity:fa012c86a0e3f857",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_identity",
+      "value_text": "Dustin Boggess",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8328,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "My name is Dustin Boggess, and I was saved when I was 12, and I never got baptized, and I always felt like it was something I was commanded to do that I had never fulfilled, so I feel like it's time to fulfill that commandment, or what would be a better word for commandment,",
+          "source_timestamp": "2025-09-30T19:38:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_life_event:68a73cfb7fb31589",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_life_event",
+      "value_text": "came back to faith in my 30s",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8354,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "then in my 30s, I started to come back and walk more with Christ.",
+          "source_timestamp": "2025-09-30T19:48:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_relationship:c46809d7d0efc340",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_relationship",
+      "value_text": "married to Jessica",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8360,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "it wasn't just me that dedicated Abigail, it was me and my wife Jessica.",
+          "source_timestamp": "2025-09-30T19:50:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_life_event:911907bfa1782ecc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_life_event",
+      "value_text": "dedicated daughter Abigail with wife Jessica",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8360,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "it wasn't just me that dedicated Abigail, it was me and my wife Jessica.",
+          "source_timestamp": "2025-09-30T19:50:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_intention:fb3483354b05ac39",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_intention",
+      "value_text": "intends to be baptized now",
+      "claim_category": "profile",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 8362,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "So I want to be baptized now is my next step in obedience.",
+          "source_timestamp": "2025-09-30T19:51:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:is_named:fa012c86a0e3f857",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_named",
+      "value_text": "Dustin Boggess",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8398,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Hi, I'm Dustin Boggess, I'm here today to take the next step in obedience to Christ.",
+          "source_timestamp": "2025-09-30T20:05:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:lenovo_thinkstation_p330_mt:has_specifications:20be7af493fbcedc",
+      "subject_entity_id": "hardware:lenovo_thinkstation_p330_mt",
+      "predicate": "has_specifications",
+      "value_text": "Intel i7-9700 (8c/8t, 3.0 \u2192 4.7 GHz boost), NVIDIA RTX 3060 (12 GB VRAM), 64 GB DDR4, 2 TB SSD, Windows 11 Pro, Lenovo ThinkStation MT chassis",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8312,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Lenovo ThinkStation P330 MT | Windows 11 Pro. up to i7-9700 RTX 3060 64GB RAM 2TB SSD Win 11 Pro. - 2TB 2.5\". SSD Options 3.7 GHz to 4.7 GHz Boost. 3.0 GHz to 4.7 GHz Boost.",
+          "source_timestamp": "2025-09-29T01:47:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:7402af0a84af6a30",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "prefers online seminary programs that are both cheap and fast",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8203,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Not sure of degree need online only cheap over fast but prefer both",
+          "source_timestamp": "2025-09-16T14:21:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:recommends:87285a4c339bd6c4",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "recommends",
+      "value_text": "ESV as a more up-to-date and accurate translation compared to KJV",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 8008,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "the ESV is generally considered the more literal of the two",
+          "source_timestamp": "2025-09-09T21:54:52Z"
+        }
+      ]
+    }
+  ]
+}

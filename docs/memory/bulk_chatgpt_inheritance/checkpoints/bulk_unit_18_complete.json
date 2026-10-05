@@ -1,0 +1,286 @@
+{
+  "unit_id": "BULK_UNIT_18",
+  "unit_index": 18,
+  "manifest_sha256": "cad2350f3f95341bbed856faf4d1c2afe41a02f7ff4c4a1dab8e1df95c1f7c37",
+  "conversations_processed": 21,
+  "textual_messages_processed": 266,
+  "user_messages_processed": 123,
+  "chunks_processed": 30,
+  "skipped_zero_user_chunks": 2,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 266,
+    "user_messages_processed": 123,
+    "raw_model_proposals": 12,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 10,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 10,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 1,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 11,
+  "evidence_links_count": 12,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 374,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_project_scope_limitation_to_mental_only:7202fa16b957f37f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_project_scope_limitation_to_mental_only",
+      "value_text": "I meant for this project Mental only",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12291,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I meant for this project Mental only",
+          "source_timestamp": "2026-01-23T18:31:23Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_raw_historical_export_without_roles_rules:994fe2c02449c802",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_raw_historical_export_without_roles_rules",
+      "value_text": "I don't want to give it roles, I kind of just want to give it the history of everything in this project and let it figure out how to rank it and shape it into its ecosystem",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12293,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I don't want to give it roles, I kind of just want to give it the history of everything in this project and let it figure out how to rank it and shape it into its ecosystem",
+          "source_timestamp": "2026-01-23T18:32:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks_universal_command_for_standardized_extraction:5eef07cf7d0df3b1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks_universal_command_for_standardized_extraction",
+      "value_text": "Give me a command I can enter into every single one of my projects to pull out the exact same type of thing, style information, everything that you just gave me for this project",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12297,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Give me a command I can enter into every single one of my projects to pull out the exact same type of thing, style information, everything that you just gave me for this project",
+          "source_timestamp": "2026-01-23T18:40:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:0d629af3214a0aef",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "check-in routine using four Ws questions in specific order (walk with God, wife, work, weakness)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12255,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I always start in the order I gave them. How's your walk? How's your wife? How's your work? How's your weakness? Because the walk with God is first and foremost, and then the wife is right thereafter. And then work is, you know, what I do. One of the things I do to give glory to God, to, you know, sustain the life my wife and I have. Not because it's less important than work, but by that point, yo",
+          "source_timestamp": "2026-01-22T19:11:12Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:a36c8e6b3c4b1fea",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "looking at the potential profitability",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12081,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I hate to say it, but I'm looking at the potential profitability.",
+          "source_timestamp": "2026-01-21T19:29:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:bba20c1c6ca9e4ee",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "Prayer Circle to be personal and invite-only",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12128,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "The Prayer Circle definitely needs to be personal.",
+          "source_timestamp": "2026-01-21T20:16:20Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:6609fde15dedd329",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prioritizes financial freedom over profiting directly from users' prayers",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12142,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Honestly, this is kind of selfish, because I'd like to get to that financial freedom piece that we talked about. But after that, I don't feel like I can profit off people's prayers.",
+          "source_timestamp": "2026-01-21T20:22:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:77fb4d60d65eaf4d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "seeks to scale the app to a million-dollar business through strategic partnerships and marketing",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12148,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Could we grow this into a million-dollar business? Is that honestly feasible? With what you know about me, and what you know about this app, and what you know about the market and development, give me a deep analysis if you need to.",
+          "source_timestamp": "2026-01-21T20:24:39Z"
+        },
+        {
+          "history_message_id": 12152,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm already thinking about how to put this on Snapchat, how to put it on TikTok, and what influencers to work with to get people signing up, and what kind of payment options to work out, and that sort of model.",
+          "source_timestamp": "2026-01-21T20:25:46Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:cc1f773c06438c8f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers a long-term, iterative development approach over immediate large-scale execution",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12154,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I think I need to have the vision in place before I start to execute because I know a lot of times when I've gone just big overarching idea, I've lost the pieces and lost the interest. So I need to, it's like I start big and work backwards all the way down to the bottom.",
+          "source_timestamp": "2026-01-21T20:26:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:4c3b24468685a71a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "propensity to give up on projects when they become difficult and lack immediate windfalls",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12197,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm trying to figure out if this is worth pursuing given my current time constraints and my propensity to give up on things whenever they start to get hard and I don't see a big windfall at the end, whenever the juice is no longer worth the squeeze, so to speak.",
+          "source_timestamp": "2026-01-21T20:43:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:aaf595723e078bb0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "goal of potentially making a million dollars over the next five years",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12199,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I mean, if I can potentially make a million dollars over the next five years, then it's definitely worth it. It's just being realistic if I'm on the trail to making a million dollars in the next five years.",
+          "source_timestamp": "2026-01-21T20:44:10Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,442 @@
+{
+  "unit_id": "BULK_UNIT_19",
+  "unit_index": 19,
+  "manifest_sha256": "498a9011c4b2b40afa0adc64fc14fe6700ba5a2bf8ca2d6f9026fde1d1481d20",
+  "conversations_processed": 20,
+  "textual_messages_processed": 563,
+  "user_messages_processed": 267,
+  "chunks_processed": 49,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 20,
+    "textual_messages_processed": 563,
+    "user_messages_processed": 267,
+    "raw_model_proposals": 23,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 1,
+    "hypothetical_fictional_rejections": 2,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 13,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 1,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 2
+  },
+  "destinations": {
+    "personal_canonical": 13,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 1,
+    "sensitive_review": 0,
+    "transient_noise": 2,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 18,
+  "evidence_links_count": 20,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 392,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:is_working_from_home_due_to_abby_being_sick_and_no_childcare:c9315b735a289b9a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "is_working_from_home_due_to_abby_being_sick_and_no_childcare",
+      "value_text": "transient",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 12053,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Abby's still sick, couldn't go to the babysitter. I called my co-worker and my manager and said, hey, I got a sick kid and no child care. I gotta work from home today.",
+          "source_timestamp": "2026-01-20T21:35:14Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_verbal_communication_over_written_journaling:7d5866af53f7317c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_verbal_communication_over_written_journaling",
+      "value_text": "prefers talking over writing",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 12027,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I hate journaling, and I keep hearing how important it is for my prayer life, for my mental health, for my productivity. And I started thinking, I don't journal, I hate journal, I hate sitting there writing, but I talk to you a lot.",
+          "source_timestamp": "2026-01-20T19:44:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_personal_experience:f26109cddf3002ad",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_personal_experience",
+      "value_text": "experienced rejection from family after salvation",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11166,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "after I got saved, I went home, told my mom, and she just basically told me how I was still wicked and worthless.",
+          "source_timestamp": "2025-12-22T17:10:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_high_iq:fb77d778f01ac4d0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_high_iq",
+      "value_text": "very high IQ",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11249,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "put me in gifted classes and have a very high IQ",
+          "source_timestamp": "2026-01-12T21:48:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_emotional_intelligence:33a9d4931017cf4b",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_emotional_intelligence",
+      "value_text": "emotional intelligence",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11251,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have the emotional intelligence to know that",
+          "source_timestamp": "2026-01-12T21:49:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_identity:22a9cd4d8ea1f55c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_identity",
+      "value_text": "Dustin",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9998,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "My name's Dustin, but it feels like you're calling me your name.",
+          "source_timestamp": "2025-12-01T14:26:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:efd7bc7ae7d0f5ff",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers old ChatGPT interface with blue dot animation",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 10000,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No, I don't like the new ChatGPT voice. It used to be a big blue dot that kind of bounced and moved around while we were talking, and now it's just this little bar down at the bottom.",
+          "source_timestamp": "2025-12-01T14:27:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_professional_experience:67dfc912a5dabc1e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_professional_experience",
+      "value_text": "participated in speech and debate, drama, and show choir, leading to a degree in advertising and a career in sales",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 10038,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I did do those things, i lied, i chased attention, i wanted to be the center, i put myself first in all things and manipulated everyone and everything around me because i thought i was smarter than everyone else and i became an alcoholic and an insufferable ass hole",
+          "source_timestamp": "2025-12-18T20:28:11Z"
+        },
+        {
+          "history_message_id": 10040,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "This has crossed my mind, but i have thought what i could do withbthe following i used to have, but that was me as the face of a business or as me selling me",
+          "source_timestamp": "2025-12-18T20:59:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_a_history_of_adapting_his_personality_in_sales:dd564d5887ad925c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_a_history_of_adapting_his_personality_in_sales",
+      "value_text": "when I was in sales, I had a bad history of lying to people. Not lying about the deal or doing anything underhanded, but my personality. My personality, I was a completely different person with every sales lead that I spoke to. I got just kind of shapeshifted into whatever I needed to be to get that sale done.",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11901,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I mentioned, I took some accountability for this, but I didn't explain it. I was talking to one of the guys, him and his wife are the only people they've ever been with, so that's awesome. And I was explaining to him that, you know, I wish I could have done that, started out with those intentions, but, you know, we split up, we didn't continue down the path",
+          "source_timestamp": "2026-01-12T20:00:18Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:f9f777cacf1874b0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "using others' stories as illustrations in communication",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11913,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I tend to BS and, you know, pass off somebody else's story as my story or change up, you know, different people and different stories.",
+          "source_timestamp": "2026-01-12T20:08:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:intends_to_recruit_co_group_leader:9ce645427ee7d577",
+      "subject_entity_id": "person:dustin",
+      "predicate": "intends_to_recruit_co_group_leader",
+      "value_text": "see if I can get somebody else to come forward and be a co-group lead with me",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8955,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "see if I can get somebody else to come forward and be a co-group lead with me",
+          "source_timestamp": "2026-01-12T03:03:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:references_joby_martin_s_stand_as_potential_content:7d8f2754eb007592",
+      "subject_entity_id": "person:dustin",
+      "predicate": "references_joby_martin_s_stand_as_potential_content",
+      "value_text": "Joby Martin's Stand",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8955,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I'm going to go over Joby Martin's Stand",
+          "source_timestamp": "2026-01-12T03:03:28Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:a655162b3d8636b0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "Max on that account is 15k",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11418,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Max on that account is 15k",
+          "source_timestamp": "2025-12-30T17:02:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_business_project:58d30c38e373ae45",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_business_project",
+      "value_text": "Full Steam Vapor",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "runbook_procedure",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11476,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I'll do that in a full STEAM project.",
+          "source_timestamp": "2025-12-30T20:10:13Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:received:43a6d05fca4721c2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "received",
+      "value_text": "$10,000 from wife for house payment",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11489,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "she's got about $10,000 of it already signed to the house payment. She had about another $10,000 setting, so we agreed she'd send it to me.",
+          "source_timestamp": "2026-01-09T17:26:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:9deb861caa92af27",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "AI features that can interact with Google products (e.g., looking at emails, Chrome saved items)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11844,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Looking at AI features because you know I love AI to be able to do things for me and I know where I do have a lot of Google products that might be something that the AI on the phone is capable of looking at emails or looking at things that I have saved in Chrome or so I don't know much about Samsung's Galaxy AI.",
+          "source_timestamp": "2026-01-09T17:14:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:90c647c2cb5e462f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "automation for monitoring Samsung phone deals starting February 20th, with preferences for unlocked or T-Mobile branded devices (excluding AT&T/Verizon)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11856,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I want to set up an automation for you starting, let's say, February 20th to start looking at rumored releases for the Samsung and rumored offers for either Unlocked or T-Mobile. Whether I get it through Samsung, or whether I get it through T-Mobile, or whether I get it through a third-party authorized reseller, I don't care. I want the best possible deal, and if it includes watches or bu",
+          "source_timestamp": "2026-01-09T17:22:18Z"
+        },
+        {
+          "history_message_id": 11858,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "And again, it needs to either be unlocked or T-Mobile branded. I don't care about anything from AT&T or Verizon.",
+          "source_timestamp": "2026-01-09T17:22:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:found:21ea1f2792508abb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "found",
+      "value_text": "Gemini+ to be less responsive and requiring more training compared to current assistant",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 11854,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I think I have Gemini+, because conversationally, it is really flat and dull. I did have to spend some time training and educating you about me, but you really picked up, whereas Gemini did not, which is why I kind of abandoned it.",
+          "source_timestamp": "2026-01-09T17:20:40Z"
+        }
+      ]
+    }
+  ]
+}

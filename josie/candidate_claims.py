@@ -109,6 +109,34 @@ ALLOWED_DURABILITIES = frozenset({
     "transient",
 })
 
+# Allowed epistemic modes for evidence evaluation
+ALLOWED_EPISTEMIC_MODES = frozenset({
+    "factual_assertion",
+    "historical_factual_assertion",
+    "current_factual_assertion",
+    "preference",
+    "plan_intention",
+    "deliberation",
+    "hypothetical",
+    "fictional_backstory",
+    "roleplay",
+    "example",
+    "question",
+    "uncertain_speculative",
+})
+
+# Allowed memory destinations for candidate knowledge routing
+ALLOWED_MEMORY_DESTINATIONS = frozenset({
+    "personal_canonical",
+    "project_architecture",
+    "hardware_state",
+    "runbook_procedure",
+    "historical_only",
+    "transient_noise",
+    "sensitive_review",
+    "reject",
+})
+
 
 def infer_durability(
     subject_entity_id: str = "",
@@ -128,11 +156,29 @@ def infer_durability(
     cat = (claim_category or "").lower().strip()
     val = (value_text or "").lower().strip()
 
-    # 1. Check transient markers first
+    # 1. Check transient markers first (Rule 3)
     if any(k in pred for k in ("transient", "temporary", "temp_", "session", "short_lived", "availability")):
         return "transient"
     if cat in ("transient", "context"):
         return "transient"
+    if any(k in pred for k in ("reward", "rewards_balance", "points_balance")) or (
+        "balance" in val and any(k in val for k in ("reward", "rewards", "upside", "zen"))
+    ):
+        return "transient"
+
+    # Single-transaction purchase tactics or contextual build choices (Rule 2)
+    is_transaction_or_tactical = (
+        any(k in val for k in ("pay 250", "pay $", "paying $", "buyer protection", "sell as a whole", "sell whole", "part out", "parting out"))
+        or any(k in pred for k in ("pc_resale_strategy", "resale_strategy"))
+    )
+    if is_transaction_or_tactical and not any(k in val for k in ("always", "never", "policy", "rule", "standard", "routine")):
+        return "transient"
+
+    # Operational/current-state profile markers (e.g. vape shop operations, financial liabilities, tracking tools)
+    if any(k in pred for k in ("operates_", "runs_", "tracker", "mortgage", "liability", "uses_finance", "co_leader")) or (
+        any(k in val for k in ("vape shop", "rocket money", "mortgage", "everyday discipleship"))
+    ):
+        return "current_state"
 
     # 2. Check durable profile/identity markers (certifications, experience, identity)
     if any(k in pred for k in ("certif", "qualification", "credential", "experience", "degree", "license")):
@@ -515,6 +561,8 @@ class CandidateClaimProposal:
     valid_to: str | None = None
     supersedes_claim_id: str | None = None
     notes: str = ""
+    epistemic_mode: str = "factual_assertion"
+    memory_destination: str = "personal_canonical"
 
     def __post_init__(self) -> None:
         if not isinstance(self.subject_entity_id, str) or not self.subject_entity_id.strip():
@@ -552,6 +600,16 @@ class CandidateClaimProposal:
             )
         object.__setattr__(self, "durability", clean_dur)
 
+        clean_mode = str(self.epistemic_mode or "factual_assertion").strip().lower()
+        if clean_mode not in ALLOWED_EPISTEMIC_MODES:
+            clean_mode = "factual_assertion"
+        object.__setattr__(self, "epistemic_mode", clean_mode)
+
+        clean_dest = str(self.memory_destination or "personal_canonical").strip().lower()
+        if clean_dest not in ALLOWED_MEMORY_DESTINATIONS:
+            clean_dest = "personal_canonical"
+        object.__setattr__(self, "memory_destination", clean_dest)
+
         v_until = self.valid_until
         v_to = self.valid_to
         if v_until is not None and v_to is None:
@@ -582,6 +640,8 @@ class CandidateClaimProposal:
             "valid_to": self.valid_to,
             "supersedes_claim_id": self.supersedes_claim_id,
             "notes": self.notes,
+            "epistemic_mode": self.epistemic_mode,
+            "memory_destination": self.memory_destination,
         }
 
     @classmethod
@@ -640,6 +700,21 @@ class CandidateClaimProposal:
         elif v_to and not v_until:
             v_until = v_to
 
+        mode_val = str(data.get("epistemic_mode") or "").strip().lower()
+        if not mode_val or mode_val not in ALLOWED_EPISTEMIC_MODES:
+            first_ex = refs[0].excerpt if refs else ""
+            mode_val, _ = classify_epistemic_mode(first_ex, predicate=str(data.get("predicate") or ""), value_text=str(data.get("value_text") or ""))
+
+        dest_val = str(data.get("memory_destination") or "").strip().lower()
+        if not dest_val or dest_val not in ALLOWED_MEMORY_DESTINATIONS:
+            dest_val, _ = classify_memory_destination({
+                "subject_entity_id": str(data.get("subject_entity_id") or ""),
+                "predicate": str(data.get("predicate") or ""),
+                "value_text": str(data.get("value_text") or ""),
+                "durability": clean_dur,
+                "claim_category": clean_cat,
+            })
+
         return cls(
             subject_entity_id=str(data.get("subject_entity_id") or "").strip(),
             predicate=str(data.get("predicate") or "").strip(),
@@ -656,6 +731,8 @@ class CandidateClaimProposal:
             valid_to=v_to,
             supersedes_claim_id=str(data.get("supersedes_claim_id")).strip() if data.get("supersedes_claim_id") else None,
             notes=str(data.get("notes") or "").strip(),
+            epistemic_mode=mode_val,
+            memory_destination=dest_val,
         )
 
 
@@ -689,6 +766,8 @@ class CandidateClaimRecord:
     extractor_id: str = ""
     claim_category: str = "general"
     notes: str = ""
+    epistemic_mode: str = "factual_assertion"
+    memory_destination: str = "personal_canonical"
 
     def __post_init__(self) -> None:
         v_until = self.valid_until
@@ -697,6 +776,16 @@ class CandidateClaimRecord:
             object.__setattr__(self, "valid_to", v_until)
         elif v_to is not None and v_until is None:
             object.__setattr__(self, "valid_until", v_to)
+
+        clean_mode = str(self.epistemic_mode or "factual_assertion").strip().lower()
+        if clean_mode not in ALLOWED_EPISTEMIC_MODES:
+            clean_mode = "factual_assertion"
+        object.__setattr__(self, "epistemic_mode", clean_mode)
+
+        clean_dest = str(self.memory_destination or "personal_canonical").strip().lower()
+        if clean_dest not in ALLOWED_MEMORY_DESTINATIONS:
+            clean_dest = "personal_canonical"
+        object.__setattr__(self, "memory_destination", clean_dest)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -726,6 +815,8 @@ class CandidateClaimRecord:
             "extractor_id": self.extractor_id,
             "claim_category": self.claim_category,
             "notes": self.notes,
+            "epistemic_mode": self.epistemic_mode,
+            "memory_destination": self.memory_destination,
         }
 
 
@@ -858,9 +949,9 @@ def classify_evidence_span(
         else ex
     )
 
-    # Rule 1: Assistant / Model turns cannot be direct user assertions.
-    if r in ("assistant", "model") or spk in (
-        "gemini apps", "gemini", "assistant", "model", "bernie", "sophie", "chatgpt"
+    # Rule 1: Assistant / Model / Activity turns cannot be direct user assertions.
+    if r in ("assistant", "model", "activity") or spk in (
+        "gemini apps", "gemini", "assistant", "model", "bernie", "sophie", "chatgpt", "google my activity"
     ):
         if proposed_attribution in ("assistant_assertion", "quoted_or_pasted_content"):
             return proposed_attribution, span_start, span_end
@@ -965,6 +1056,514 @@ def classify_evidence_attribution(
     return attr
 
 
+UNENTAILED_NAMED_ENTITIES: tuple[str, ...] = (
+    "greensky",
+    "green sky",
+    "401k",
+    "401(k)",
+    "roth",
+    "vanguard",
+    "fidelity",
+    "schwab",
+    "sofi",
+    "affirm",
+    "klarna",
+    "afterpay",
+)
+
+OWNERSHIP_ASSERTIONS: tuple[str, ...] = (
+    "own a vape shop",
+    "owns a vape shop",
+    "owns the vape shop",
+    "jointly own",
+    "co-owner",
+    "co-owns",
+    "business owner",
+    "owner of the vape shop",
+    "owner of the business",
+)
+
+TRANSACTION_NEGOTIATION_INDICATORS: tuple[str, ...] = (
+    "pay 250",
+    "pay $",
+    "paying $",
+    "buyer protection",
+    "sell as a whole",
+    "sell whole",
+    "parting out",
+    "part out",
+    "for this build",
+    "this purchase",
+    "be done",
+    "fb does it",
+    "facebook does it",
+)
+
+GENERALIZING_PREFERENCE_INDICATORS: tuple[str, ...] = (
+    "always",
+    "never",
+    "as a rule",
+    "policy",
+    "consistently",
+    "enduring",
+    "general preference",
+    "standard practice",
+    "routine",
+)
+
+
+def check_claim_evidence_entailment(
+    proposal: CandidateClaimProposal | dict[str, Any],
+    messages_lookup: dict[int, dict[str, Any]] | None = None,
+) -> tuple[bool, str]:
+    """Validate that candidate claim does not inject unentailed entities, accounts, or unjustified ownership.
+
+    Rule 1 (Named entities & accounts): Prohibits inventing named financial accounts (e.g. GreenSky, 401(k))
+    or institutions absent from evidence text.
+    Rule 5 (Conservative relationship mapping): 'run a vape shop' does not establish 'jointly own a vape shop'.
+    Asserting business ownership without explicit ownership terms in evidence fails closed.
+    """
+    if isinstance(proposal, dict):
+        pred = str(proposal.get("predicate") or "").lower()
+        val = str(proposal.get("value_text") or "").lower()
+        refs = proposal.get("evidence_references") or []
+    else:
+        pred = proposal.predicate.lower()
+        val = proposal.value_text.lower()
+        refs = proposal.evidence_references
+
+    combined_claim = f"{pred} {val}"
+
+    # Extract all available evidence text from messages_lookup or excerpts in refs
+    ev_snippets: list[str] = []
+    if messages_lookup:
+        for ref in refs:
+            mid = getattr(ref, "history_message_id", None) if hasattr(ref, "history_message_id") else (ref.get("history_message_id") if isinstance(ref, dict) else None)
+            if mid is not None and mid in messages_lookup:
+                ev_snippets.append(str(messages_lookup[mid].get("raw_text") or ""))
+    for ref in refs:
+        ex = getattr(ref, "excerpt", None) if hasattr(ref, "excerpt") else (ref.get("excerpt") if isinstance(ref, dict) else "")
+        if ex:
+            ev_snippets.append(str(ex))
+
+    ev_text = " ".join(ev_snippets).lower()
+
+    # Rule 1: Named financial accounts / institution entities
+    for term in UNENTAILED_NAMED_ENTITIES:
+        term_clean = term.replace(" ", "_")
+        term_no_space = term.replace(" ", "")
+        if term in combined_claim or term_clean in combined_claim or term_no_space in combined_claim:
+            if term not in ev_text and term.replace("-", " ") not in ev_text and term.replace("(", "").replace(")", "") not in ev_text:
+                return False, f"Unentailed named entity or account in proposition ({term!r}) not present in evidence text"
+
+    # Rule 5: Ownership vs operational running
+    for own_term in OWNERSHIP_ASSERTIONS:
+        if own_term in combined_claim or own_term.replace(" ", "_") in combined_claim:
+            has_ownership_evidence = any(
+                w in ev_text.split() or f" {w} " in f" {ev_text} "
+                for w in ("own", "owns", "owned", "owner", "owners", "co-owner", "co-owners", "ownership", "proprietor", "equity")
+            )
+            if not has_ownership_evidence:
+                return (
+                    False,
+                    "Proposition asserts business ownership without explicit ownership evidence in text; "
+                    "conservative semantic mapping requires operational phrasing (e.g. 'run', 'operate')",
+                )
+
+    if "green_sky" in pred or "greensky" in pred:
+        if "greensky" not in ev_text and "green sky" not in ev_text:
+            return False, "Predicate specifies unentailed entity 'green_sky' not found in evidence text"
+    if "401k" in pred or "401_k" in pred:
+        if "401k" not in ev_text and "401(k)" not in ev_text and "401 k" not in ev_text:
+            return False, "Predicate specifies unentailed account '401k' not found in evidence text"
+
+    return True, ""
+
+
+def check_event_vs_preference(
+    predicate: str,
+    value_text: str,
+    durability: str,
+    category: str = "",
+    evidence_text: str = "",
+) -> tuple[bool, str]:
+    """Validate that single-transaction choices or opportunistic negotiations are not classified as enduring preferences.
+
+    Rule 2 (Event != Preference): Single-transaction tactics ('pay 250 and be done')
+    or contextual project choices ('sell as a whole preferably') are situational events or project decisions,
+    not enduring preferences. They must not be classified as durability='preference'.
+    """
+    clean_dur = (durability or "").lower().strip()
+    clean_cat = (category or "").lower().strip()
+    pred = (predicate or "").lower().strip()
+    val = (value_text or "").lower().strip()
+    ev = (evidence_text or "").lower().strip()
+
+    combined = f"{pred} {val} {ev}"
+
+    if clean_dur == "preference" or clean_cat == "preference":
+        has_transaction_marker = any(k in combined for k in TRANSACTION_NEGOTIATION_INDICATORS)
+        if has_transaction_marker:
+            has_generalizing = any(k in combined for k in GENERALIZING_PREFERENCE_INDICATORS)
+            if not has_generalizing:
+                return (
+                    False,
+                    "Single-transaction purchase, negotiation tactic, or contextual build choice cannot "
+                    "be classified as durability='preference' without generalizing evidence",
+                )
+
+    return True, ""
+
+
+_FICTION_SIGNALS = re.compile(
+    r"(?i)\b(?:backstory|lore|origin\s+story|bounty\s+hunter|roleplay|in-character|creative\s+writing|"
+    r"gives?\s+(?:her|him|them|me)\s+a\s+(?:badass\s+)?backstory|"
+    r"brought\s+into\s+this\s+world|helped\s+my\s+creator|badass\s+backstory)\b"
+)
+
+_HYPOTHETICAL_SIGNALS = re.compile(
+    r"(?i)\b(?:hypothetically|hypothetical|counterfactual|what\s+if|imagine\s+if|suppose\s+that|"
+    r"let['’]?s\s+say\s+(?:we|i)|say\s+(?:we|i)\s+had|in\s+a\s+world\s+where|assuming\s+(?:we|i)|"
+    r"if\s+i\s+(?:were\s+to|repay|had)|pretend\s+that)\b"
+)
+
+_FUTURE_PLAN_SIGNALS = re.compile(
+    r"(?i)\b(?:eventually|plan\s+to|planning\s+on|intend\s+to|in\s+the\s+future|down\s+the\s+road|"
+    r"later\s+(?:we|i)\s+will|hoping\s+to\s+get|looking\s+for\s+a\s+3060|looking\s+to\s+buy)\b"
+)
+
+_EXAMPLE_SIGNALS = re.compile(
+    r"(?i)\b(?:for\s+example|for\s+instance|e\.g\.|like\s+say|as\s+an\s+example|just\s+an\s+example)\b"
+)
+
+_DELIBERATION_SIGNALS = re.compile(
+    r"(?i)\b(?:considering|debating\s+whether|might\s+repay|wondering\s+if)\b"
+)
+
+_HARDWARE_OWNERSHIP_PREDICATES = re.compile(
+    r"(?i)\b(?:owns|has_hardware|owns_a_server|has_inventory|owns_device|installed_hardware)\b"
+)
+
+_BIOS_RUNBOOK_TERMS = re.compile(
+    r"(?i)\b(?:bios|mmio|above\s+4g|4g\s+decoding|admin\s+password|boot\s+order|uefi|firmware|advantech\s+box)\b"
+)
+
+_SENSITIVE_PERSONAL_PATTERNS = re.compile(
+    r"(?i)\b(?:"
+    r"danger(?:ous)?[-_ ]+to[-_ ]+(?:me|myself|self|others)|"
+    r"inherently[-_ ]+dangerous|"
+    r"self[-_ ]+harm|suicid(?:e|al)|kill(?:ing)?[-_ ]+myself|hurt(?:ing)?[-_ ]+myself|"
+    r"violenc(?:e|t)|physical(?:ly)?[-_ ]+altercation|assault|"
+    r"mental[-_ ]+health|depress(?:ion|ed)|bipolar|schizo(?:phrenia|phrenic)?|ptsd|trauma|anxiety[-_ ]+disorder|panic[-_ ]+attack|"
+    r"therap(?:y|ist)|psychiat(?:ry|rist)|psych[-_ ]+meds?|antidepressant|adderall|ssri|"
+    r"substance[-_ ]+abuse|addict(?:ion|ed|s)?|alcoholi(?:sm|c)|sober|sobriety|relapse|"
+    r"drug[-_ ]+abuse|overdose|intoxicated|rehab|"
+    r"abus(?:e|ed|er|ive)|domestic[-_ ]+abuse|victim(?:ized)?|"
+    r"criminal|arrest(?:ed)?|felon(?:y)?|misdemeanor|jail|prison|convict(?:ed)?|"
+    r"sexual(?:ity)?|sex[-_ ]+life|fetish|erotic|"
+    r"bankrupt(?:cy)?|foreclos(?:ure|ed)|evict(?:ion|ed)|severe[-_ ]+debt|defaulting[-_ ]+on[-_ ]+debt"
+    r")\b"
+)
+
+
+def _get_sentence_or_clause_context(full_text: str, excerpt: str) -> tuple[str, str]:
+    """Find the specific sentence or clause containing the excerpt and immediate paragraph context."""
+    if not full_text or not excerpt:
+        return full_text, full_text
+
+    idx = full_text.find(excerpt)
+    if idx == -1:
+        idx = full_text.lower().find(excerpt.lower())
+
+    if idx == -1:
+        return full_text, full_text
+
+    # Extract enclosing paragraph
+    para_start = full_text.rfind("\n", 0, idx)
+    para_start = 0 if para_start == -1 else para_start + 1
+    para_end = full_text.find("\n", idx + len(excerpt))
+    para_end = len(full_text) if para_end == -1 else para_end
+    para_text = full_text[para_start:para_end].strip()
+
+    # Extract sentence start (look for previous sentence delimiter before idx)
+    m_prev = None
+    for pm in re.finditer(r"(?:[.!?]\s+|\n+)", full_text[:idx]):
+        m_prev = pm
+    sent_start = m_prev.end() if m_prev else 0
+
+    # Extract sentence end
+    end_idx = idx + len(excerpt)
+    if excerpt.rstrip().endswith((".", "!", "?")):
+        sent_end = end_idx
+    else:
+        m_next = re.search(r"(?:[.!?](?:\s+|$))|\n+", full_text[end_idx:])
+        sent_end = end_idx + m_next.end() if m_next else len(full_text)
+
+    sentence_text = full_text[sent_start:sent_end].strip()
+    return sentence_text, para_text
+
+
+def classify_epistemic_mode(
+    excerpt: str,
+    context_text: str = "",
+    predicate: str = "",
+    value_text: str = "",
+) -> tuple[str, str]:
+    """Classify the epistemic mode of an evidence span within its conversational context.
+
+    Returns: (epistemic_mode, reason)
+    """
+    ex = (excerpt or "").strip()
+    full = (context_text or "").strip() or ex
+    sent_text, para_text = _get_sentence_or_clause_context(full, ex)
+
+    # 1. Fictional / Backstory / Roleplay (highest priority override)
+    fiction_sent = _FICTION_SIGNALS.search(sent_text)
+    if fiction_sent:
+        return "fictional_backstory", f"Evidence span occurs inside a fictional narrative clause ('{fiction_sent.group(0)}')"
+
+    fiction_para = _FICTION_SIGNALS.search(para_text)
+    if fiction_para:
+        if any(k in ex.lower() for k in ("creator", "bounty hunter", "backstory", "brought into this world", "hunted")):
+            return "fictional_backstory", f"Evidence span is framed within fictional lore or character backstory ('{fiction_para.group(0)}')"
+        if any(k in sent_text.lower() for k in ("creator", "bounty hunter", "backstory", "brought into this world", "hunted")):
+            return "fictional_backstory", f"Sentence is framed within fictional lore or character backstory ('{fiction_para.group(0)}')"
+
+    # 2. Hypothetical / Counterfactual (takes precedence over general question)
+    hyp_match = _HYPOTHETICAL_SIGNALS.search(sent_text) or _HYPOTHETICAL_SIGNALS.search(ex)
+    if hyp_match:
+        return "hypothetical", f"Evidence span is governed by hypothetical / conditional framing ('{hyp_match.group(0)}')"
+
+    # 3. Example / Illustrative
+    ex_match = _EXAMPLE_SIGNALS.search(sent_text)
+    if ex_match:
+        return "example", f"Evidence span is introduced as an illustrative example ('{ex_match.group(0)}')"
+
+    # 4. Question
+    if ex.endswith("?") or (sent_text.endswith("?") and re.match(r"(?i)^(?:can|could|would|should|what|is|are|did|does)\b", sent_text)):
+        return "question", "Utterance is phrased as an inquiry or question"
+
+    # 5. Deliberation
+    delib_match = _DELIBERATION_SIGNALS.search(sent_text)
+    if delib_match:
+        return "deliberation", f"Evidence span expresses uncommitted deliberation ('{delib_match.group(0)}')"
+
+    # 6. Future Plan / Intention
+    plan_match = _FUTURE_PLAN_SIGNALS.search(sent_text)
+    if plan_match:
+        return "plan_intention", f"Evidence span describes future plans or intentions rather than current factual state ('{plan_match.group(0)}')"
+
+    # 7. Preference
+    if any(k in predicate.lower() for k in ("prefer", "preference", "seeks", "wants")) or any(k in ex.lower() for k in ("i prefer", "prefers", "i want", "id like", "i'd like")):
+        return "preference", "Evidence span expresses a user goal or preference"
+
+    # 8. Historical vs Current Factual Assertion
+    if any(k in ex.lower() for k in ("the first thing i bought", "previously", "in august 2026", "as of", "back when", "bought", "used to")):
+        return "historical_factual_assertion", "Evidence span asserts a historical factual event or past state"
+
+    return "current_factual_assertion", "Evidence span asserts a current factual state or observation"
+
+
+def check_hypothetical_or_fictional(
+    proposal: Any,
+    messages_lookup: dict[int, dict[str, Any]] | None = None,
+) -> tuple[bool, str]:
+    """Fail-closed guard preventing non-factual, hypothetical, fictional, or roleplay claims.
+
+    Rule 6: User-authored evidence is necessary for claims about Dustin, but user authorship
+    alone does not establish factual assertion.
+    1. Fictional backstory, character lore, or roleplay cannot establish factual personal claims or hardware ownership.
+    2. Proposed future hardware or plans cannot be asserted as current hardware ownership (current_state).
+    3. Hypothetical scenarios and counterfactuals cannot become canonical or factual memory claims.
+    4. Factual statements adjacent to fictional text in the same message remain extractable.
+    """
+    if isinstance(proposal, dict):
+        subj = str(proposal.get("subject_entity_id") or "").strip().lower()
+        pred = str(proposal.get("predicate") or "").strip().lower()
+        val = str(proposal.get("value_text") or "").strip()
+        dur = str(proposal.get("durability") or "").strip().lower()
+        cat = str(proposal.get("claim_category") or "").strip().lower()
+        refs = proposal.get("evidence_references") or []
+    else:
+        subj = proposal.subject_entity_id.strip().lower()
+        pred = proposal.predicate.strip().lower()
+        val = proposal.value_text.strip()
+        dur = proposal.durability.strip().lower()
+        cat = proposal.claim_category.strip().lower()
+        refs = proposal.evidence_references
+
+    lookup = messages_lookup or {}
+
+    for ref in refs:
+        mid = ref.get("history_message_id") if isinstance(ref, dict) else ref.history_message_id
+        excerpt = ref.get("excerpt") if isinstance(ref, dict) else ref.excerpt
+        excerpt = (excerpt or "").strip()
+
+        msg = lookup.get(mid, {})
+        full_text = str(msg.get("raw_text") or "")
+
+        mode, mode_reason = classify_epistemic_mode(
+            excerpt=excerpt,
+            context_text=full_text,
+            predicate=pred,
+            value_text=val,
+        )
+
+        # Rule 1: Fictional / Backstory / Roleplay fail-closed
+        if mode in ("fictional_backstory", "roleplay"):
+            return False, f"Fails hypothetical/fictional guard: claim is derived from {mode} ({mode_reason})"
+
+        # Rule 2: Hypothetical / Example / Question fail-closed for factual claims
+        if mode in ("hypothetical", "example", "question"):
+            return False, f"Fails hypothetical/fictional guard: claim is derived from {mode} ({mode_reason})"
+
+        # Rule 3: Proposed future hardware cannot be asserted as current hardware ownership
+        if mode == "plan_intention":
+            is_hardware_claim = cat == "hardware" or "hardware" in pred or _HARDWARE_OWNERSHIP_PREDICATES.search(pred) or "owns" in val.lower() or "has" in pred
+            if is_hardware_claim and dur in ("current_state", "durable"):
+                return False, f"Fails hypothetical/fictional guard: proposed future hardware or intention cannot establish current hardware ownership ({mode_reason})"
+
+    return True, ""
+
+
+def classify_memory_destination(proposal_or_claim: Any) -> tuple[str, str]:
+    """Classify the appropriate memory destination for a candidate claim.
+
+    Destinations:
+      - 'personal_canonical': Durable personal credentials, core profile facts, durable preferences of Dustin.
+      - 'project_architecture': Josie software architecture, design principles, prompt contracts, governance.
+      - 'hardware_state': Physical machine specs, component inventory, host topology.
+      - 'runbook_procedure': BIOS settings, troubleshooting steps, operational runbooks, config steps.
+      - 'historical_only': Point-in-time states, elapsed milestones, expired configurations, historical logs.
+      - 'transient_noise': Scratchpad balances, deal browsing, temporary shopping, transient tasks.
+      - 'reject': Hypothetical, fictional, roleplay, unconfirmed assistant opinions, unentailed claims.
+    """
+    if isinstance(proposal_or_claim, dict):
+        subj = str(proposal_or_claim.get("subject_entity_id") or "").strip().lower()
+        pred = str(proposal_or_claim.get("predicate") or "").strip().lower()
+        val = str(proposal_or_claim.get("value_text") or "").strip()
+        dur = str(proposal_or_claim.get("durability") or "").strip().lower()
+        cat = str(proposal_or_claim.get("claim_category") or "").strip().lower()
+    else:
+        subj = proposal_or_claim.subject_entity_id.strip().lower()
+        pred = proposal_or_claim.predicate.strip().lower()
+        val = proposal_or_claim.value_text.strip()
+        dur = proposal_or_claim.durability.strip().lower()
+        cat = proposal_or_claim.claim_category.strip().lower()
+
+    # 0. Check sensitive personal claim quarantine FIRST
+    if _SENSITIVE_PERSONAL_PATTERNS.search(val) or _SENSITIVE_PERSONAL_PATTERNS.search(pred):
+        return "sensitive_review", "Sensitive personal topic (health, safety, substance, trauma, distress, or legal) quarantined for explicit human adjudication"
+
+    # Check transient
+    if dur == "transient":
+        return "transient_noise", "Transient durability claim belongs in transient/noise scratch store"
+
+    # Check BIOS / machine runbook
+    if _BIOS_RUNBOOK_TERMS.search(val) or _BIOS_RUNBOOK_TERMS.search(pred) or "bios" in subj:
+        if "setting" in val.lower() or "password" in val.lower() or "changeable" in val.lower() or "access" in val.lower() or "admin" in val.lower():
+            return "runbook_procedure", "Operational BIOS / firmware troubleshooting belongs in runbook/procedure knowledge"
+        return "hardware_state", "Machine hardware configuration belongs in hardware state"
+
+    # Check system:josie
+    if subj in ("system:josie", "system:supervisor", "system:worker") or cat == "architecture":
+        return "project_architecture", "System architecture decisions and constraints belong in Josie project/architecture knowledge"
+
+    # Check procedure / runbook
+    if cat in ("procedure", "runbook") or "procedure" in pred or "runbook" in pred:
+        return "runbook_procedure", "Operational procedures, runbooks, and workflow steps belong in runbook/procedure knowledge"
+
+    # Check hardware
+    if cat == "hardware" or "gpu" in val.lower() or "nvme" in val.lower() or "hdd" in val.lower() or "reefer" in val.lower():
+        if dur == "current_state":
+            return "hardware_state", "Physical hardware inventory and host topology belong in hardware state"
+
+    # Check personal:dustin
+    if subj == "person:dustin":
+        if cat in ("profile", "preference", "identity"):
+            if dur in ("durable", "preference"):
+                return "personal_canonical", "Durable human credential, profile fact, or preference belongs in personal canonical memory"
+            elif dur == "current_state":
+                if any(k in pred for k in ("business", "operates", "ministry", "finance", "mortgage")):
+                    return "personal_canonical", "Core life/business/financial relationship state belongs in personal canonical memory"
+                return "historical_only", "Point-in-time personal state belongs in historical evidence store"
+        return "historical_only", "Situational personal context belongs in historical-only store"
+
+    return "historical_only", "Default historical evidence store"
+
+
+def is_canonical_eligible(
+    claim_or_proposal: dict[str, Any] | CandidateClaimProposal,
+) -> tuple[bool, str]:
+    """Deterministic filter establishing canonical memory worthiness.
+
+    Rule 3 (Truth != Memory-Worthiness): A candidate claim can be direct, true, and verified,
+    yet NOT belong in canonical memory. Canonical memory is reserved for enduring identity,
+    core profile facts, active commitments, durable preferences, and long-lived system state.
+
+    Fails closed on:
+    - durability='transient' (temporary balances, scratch state)
+    - point-in-time rewards or cash balances (e.g. Upside, Zen rewards)
+    - point-in-time personal subscription rosters (e.g. Hulu, Netflix streaming lists)
+    - deliberative 'what if' musings or uncommitted considerations (e.g. considers repaying...)
+    - single-transaction purchase tactics or single-build resale choices
+    - assistant-generated advice or proposals unconfirmed by Dustin
+    """
+    if isinstance(claim_or_proposal, dict):
+        dur = str(claim_or_proposal.get("durability") or "").lower().strip()
+        pred = str(claim_or_proposal.get("predicate") or "").lower().strip()
+        val = str(claim_or_proposal.get("value_text") or "").lower().strip()
+        subj = str(claim_or_proposal.get("subject_entity_id") or "").lower().strip()
+    elif isinstance(claim_or_proposal, CandidateClaimProposal):
+        dur = claim_or_proposal.durability.lower().strip()
+        pred = claim_or_proposal.predicate.lower().strip()
+        val = claim_or_proposal.value_text.lower().strip()
+        subj = claim_or_proposal.subject_entity_id.lower().strip()
+    else:
+        dur = str(claim_or_proposal["durability"]).lower().strip() if "durability" in claim_or_proposal else ""
+        pred = str(claim_or_proposal["predicate"]).lower().strip() if "predicate" in claim_or_proposal else ""
+        val = str(claim_or_proposal["value_text"]).lower().strip() if "value_text" in claim_or_proposal else ""
+        subj = str(claim_or_proposal["subject_entity_id"]).lower().strip() if "subject_entity_id" in claim_or_proposal else ""
+
+    dest = str(claim_or_proposal.get("memory_destination") or "").strip().lower() if isinstance(claim_or_proposal, dict) else getattr(claim_or_proposal, "memory_destination", "")
+    if dest == "sensitive_review" or _SENSITIVE_PERSONAL_PATTERNS.search(val) or _SENSITIVE_PERSONAL_PATTERNS.search(pred):
+        return False, "Sensitive personal claims are quarantined in sensitive_review and ineligible for automatic canonical promotion"
+
+    if dur == "transient":
+        return False, "Transient claims (durability='transient') are ineligible for canonical memory promotion"
+
+    if any(k in pred for k in ("reward", "rewards_balance", "points_balance")) or (
+        "balance" in val and any(k in val for k in ("upside", "zen", "reward", "rewards"))
+    ):
+        return False, "Point-in-time rewards or cash balances are transient evidence, ineligible for canonical memory"
+
+    if any(k in pred for k in ("retained_subscriptions", "subscription_list", "subscriptions_list")) or (
+        "subscription" in val and any(k in val for k in ("hulu", "netflix", "disney", "youtube"))
+    ):
+        return False, "Point-in-time personal entertainment subscription rosters are historical evidence, ineligible for canonical memory"
+
+    if pred.startswith("considers_") or pred.startswith("considering_") or any(
+        k in val for k in ("if i repay", "considering repaying", "what if", "might repay")
+    ):
+        return False, "Deliberative considerations and hypothetical musings are ineligible for canonical memory"
+
+    if any(k in val for k in ("pay 250", "buyer protection", "sell as a whole", "sell whole")):
+        return False, "Single-transaction purchase tactics or contextual build choices are ineligible for canonical memory"
+
+    if subj.startswith("assistant:") or pred in ("proposes", "suggests"):
+        return False, "Unconfirmed assistant proposals are ineligible for canonical memory"
+
+    mode = str(claim_or_proposal.get("epistemic_mode") or "").strip().lower() if isinstance(claim_or_proposal, dict) else getattr(claim_or_proposal, "epistemic_mode", "")
+    if mode in ("hypothetical", "fictional_backstory", "roleplay", "example", "question", "deliberation"):
+        return False, f"Non-factual claims ({mode}) are ineligible for canonical memory promotion"
+
+    hyp_ok, hyp_reason = check_hypothetical_or_fictional(claim_or_proposal)
+    if not hyp_ok:
+        return False, f"Fails hypothetical/fictional guard for canonical memory ({hyp_reason})"
+
+    return True, ""
+
+
 def validate_proposal(
     proposal: CandidateClaimProposal | dict[str, Any],
     *,
@@ -1034,6 +1633,15 @@ def validate_proposal(
     if not prop.evidence_references:
         return False, "Candidate claim proposal must include at least one evidence reference"
 
+    valid_ev_pref, pref_err = check_event_vs_preference(
+        predicate=prop.predicate,
+        value_text=prop.value_text,
+        durability=prop.durability,
+        category=prop.claim_category,
+    )
+    if not valid_ev_pref:
+        return False, pref_err
+
     # Prepare lookup if store provided
     lookup = dict(messages_lookup or {})
     if store is not None and not lookup:
@@ -1047,6 +1655,26 @@ def validate_proposal(
                 ).fetchall()
                 for row in rows:
                     lookup[row["message_id"]] = dict(row)
+
+    valid_entail, entail_err = check_claim_evidence_entailment(prop, lookup)
+    if not valid_entail:
+        return False, entail_err
+
+    if lookup:
+        all_ev = " ".join([str(m.get("raw_text") or "") for m in lookup.values()])
+        valid_ev_pref, pref_err = check_event_vs_preference(
+            predicate=prop.predicate,
+            value_text=prop.value_text,
+            durability=prop.durability,
+            category=prop.claim_category,
+            evidence_text=all_ev,
+        )
+        if not valid_ev_pref:
+            return False, pref_err
+
+    valid_hyp, hyp_err = check_hypothetical_or_fictional(prop, lookup)
+    if not valid_hyp:
+        return False, hyp_err
 
     for ref in prop.evidence_references:
         if ref.relation_type not in ALLOWED_RELATION_TYPES:
@@ -1458,6 +2086,7 @@ class LocalModelClaimExtractor:
             "Distinguish direct user statements from assistant assertions and quoted/pasted text. "
             "Use subject_entity_id 'person:dustin' for Dustin's direct facts, preferences, and background, "
             "'assistant:gemini' for Gemini Apps, 'assistant:chatgpt' for ChatGPT, and 'system:josie' ONLY for Josie architecture. "
+            "Do NOT use 'person:dustin' for operational machine facts, BIOS settings, hardware runbooks, or imagined/fictional scenarios. "
             "Classify durability into exactly one of: "
             "- 'durable': professional certification, long-term experience/background, permanent identity (e.g. A+ certified with commercial server experience). "
             "- 'current_state': hardware inventory, point-in-time hardware ownership, current parts on hand, or lack of hardware (e.g. owns 4TB NVMes and 24TB HDDs, does not own RTX 3090). Do NOT classify hardware ownership or lack of hardware as durable. "
@@ -1476,6 +2105,8 @@ class LocalModelClaimExtractor:
             "- 'quoted_or_pasted_content': pasted AI output such as ChatGPT recommendations inside a user turn. "
             "- 'assistant_assertion': conversational assistant output from Gemini Apps. "
             "- 'ambiguous_source': unclear or unattributed source. "
+            "RULE 6 (FICTIONAL / ROLEPLAY / HYPOTHETICAL): Do NOT propose claims from fictional backstories, imagined architectures, roleplay, hypothetical scenarios, or future hardware wishes (e.g. servers with dual Xeons and dual RTX 3090s described in a scenario or backstory are NOT real-world hardware Dustin owns). "
+            "RULE 7 (DESTINATION & DOMAIN ROUTING): Distinguish personal identity/profile facts from machine configuration, BIOS settings, and operational procedures. "
             "Return 0 proposals if evidence is insufficient or purely conversational filler.\n\n"
             + "\n\n---\n\n".join(formatted_messages)
         )
@@ -1495,6 +2126,12 @@ class LocalModelClaimExtractor:
             "CRITICAL TEMPORAL / DURABILITY RULES: "
             "Distinguish durable credentials/identity ('durable') from point-in-time hardware states ('current_state') and evolving goals/strategies ('preference'). "
             "Hardware ownership or lack of hardware (e.g. does not own RTX 3090) MUST be classified as 'current_state', NEVER as 'durable'. "
+            "RULE 1 (STRICT TEXTUAL ENTAILMENT): Never invent or assume named entities, account names (e.g. GreenSky, 401(k)), or specific financial institutions not explicitly stated in the evidence text. If an entity name is not explicitly mentioned, use faithful generic phrasing. "
+            "RULE 2 (EVENT != PREFERENCE): Single-transaction choices, negotiation tactics, and one-off project decisions are NOT enduring preferences. E.g. 'pay 250 and be done' or 'sell as a whole' are situational choices; durability must be 'transient' or 'current_state', NEVER 'preference'. "
+            "RULE 3 (MEMORY WORTHINESS): Ephemeral rewards balances, cash balances, temporary entertainment subscription rosters, and deliberative 'what if' musings are transient evidence, not durable knowledge. Mark ephemeral balances as 'transient'. "
+            "RULE 5 (CONSERVATIVE SEMANTIC MAPPING): Do not infer stronger legal or institutional relationships than evidence supports. E.g. 'how Jess and I run our vape shop' supports 'Dustin and Jess run a vape shop', but does NOT support 'jointly own a vape shop'. Ownership requires explicit ownership evidence; use operational phrasing (e.g. 'run', 'operate'). "
+            "RULE 6 (FICTIONAL / ROLEPLAY / HYPOTHETICAL GUARD): Do NOT propose claims from fictional backstories, imagined architectures, roleplay, hypothetical scenarios, examples, or proposed future states as if they were current physical facts or real-world hardware. If Dustin is describing a scenario, backstory, roleplay, or hypothetical (e.g. 'Josie eventually having a server with dual Xeons and dual RTX 3090s'), do NOT extract this as physical hardware Dustin owns or has. Only extract factual assertions about real-world current state or durable truth. "
+            "RULE 7 (DESTINATION & DOMAIN ROUTING): Distinguish personal canonical memory (about Dustin) from Josie system/project knowledge, operational hardware states, and procedures/runbooks. Operational machine facts (e.g., BIOS settings, network configs, motherboard jumpers, OS tweaks) belong to hardware state or runbook/procedure, NOT person:dustin. "
             "CRITICAL ATTRIBUTION RULES: Historical messages may contain mixed sources (e.g. Dustin introducing his background before pasted ChatGPT output). "
             "Excerpts within pasted AI blocks MUST be classified as 'quoted_or_pasted_content' and MUST NOT be attributed as direct Dustin assertions. "
             "Excerpts spoken directly by Dustin outside pasted blocks are 'direct_user_assertion'. "
@@ -1878,6 +2515,11 @@ def stage_candidate_claims(
                             break
                 v_until = data.get("valid_until") or data.get("valid_to")
 
+                dest_val, dest_reason = classify_memory_destination(data)
+                notes_val = str(data.get("notes") or "")
+                if dest_val == "sensitive_review" and "[QUARANTINE: sensitive_review]" not in notes_val:
+                    notes_val = f"[QUARANTINE: sensitive_review] {notes_val}".strip()
+
                 record = CandidateClaimRecord(
                     claim_id=cid,
                     subject_entity_id=data["subject_entity_id"],
@@ -1904,7 +2546,9 @@ def stage_candidate_claims(
                     evidence_references=tuple(data["evidence_references"]),
                     extractor_id=extractor_str,
                     claim_category=data["claim_category"],
-                    notes=data["notes"],
+                    notes=notes_val,
+                    epistemic_mode=data.get("epistemic_mode", "current_factual_assertion"),
+                    memory_destination=dest_val,
                 )
                 staged_claims.append(record)
 
@@ -2156,22 +2800,32 @@ def adjudicate_candidate_claim(
     reviewer: str,
     reason: str = "",
     supersedes_claim_id: str | None = None,
+    target_claim_id: str | None = None,
     confirmation: str | None = None,
+    edited_value_text: str | None = None,
+    durability: str | None = None,
+    valid_from: str | None = None,
+    valid_to: str | None = None,
+    force: bool = False,
 ) -> dict[str, Any]:
     """Controlled promotion/adjudication gate for candidate claims.
     
     Actions:
     - approve: Promotes candidate to active CANONICAL claim with canonical_effect=1.
       Requires explicit human reviewer and confirmation.
-      Verifies candidate exists, has valid evidence links, and is in reviewable state.
+      Verifies candidate exists, has valid evidence links, is in reviewable state,
+      and satisfies canonical memory eligibility (Rule 3).
+      Supports human edits to value_text, durability, and temporal validity bounds.
       If supersedes_claim_id is supplied, atomically marks the prior claim as superseded.
+    - corroborate / merge: Corroborates candidate into an existing target claim (Rule 4),
+      transferring evidence references and updating confidence without creating duplicate canonical memory.
     - reject: Marks candidate as rejected with canonical_effect=0, preserving provenance.
     - dispute / needs_review: Marks candidate as disputed / needs_review with canonical_effect=0.
     - supersede: Marks claim as superseded by another claim with canonical_effect=0.
     - defer: Leaves candidate in review queue with recorded audit reason.
     """
     clean_action = action.strip().lower()
-    valid_actions = {"approve", "reject", "dispute", "needs_review", "mark_needs_review", "supersede", "defer"}
+    valid_actions = {"approve", "reject", "dispute", "needs_review", "mark_needs_review", "supersede", "defer", "corroborate", "merge"}
     if clean_action not in valid_actions:
         raise ValueError(f"Unsupported adjudication action: {action!r}. Must be one of {sorted(valid_actions)}")
 
@@ -2193,7 +2847,7 @@ def adjudicate_candidate_claim(
             existing = conn.execute(
                 "SELECT claim_id, subject_entity_id, predicate, value_text, status, "
                 "evidence_class, authority_scope, canonical_effect, superseded_by_claim_id, "
-                "durability, claim_category, memory_layer "
+                "durability, claim_category, memory_layer, valid_from, valid_to "
                 "FROM memory_claims WHERE claim_id = ?",
                 (claim_id,),
             ).fetchone()
@@ -2212,6 +2866,15 @@ def adjudicate_candidate_claim(
                         f"Approval requires explicit human confirmation token ({APPROVAL_CONFIRMATION!r}). "
                         "A caller-controlled reviewer string alone does not constitute proof of human authority."
                     )
+
+                # Canonical eligibility check (Rule 3)
+                if not force:
+                    eligible, ineligibility_reason = is_canonical_eligible(dict(existing))
+                    if not eligible:
+                        raise ValueError(
+                            f"Candidate claim {claim_id} is ineligible for canonical promotion: {ineligibility_reason}. "
+                            "Use force=True if explicit human override is intended."
+                        )
 
                 evidence_count = conn.execute(
                     "SELECT COUNT(*) FROM claim_evidence WHERE claim_id = ?",
@@ -2261,9 +2924,38 @@ def adjudicate_candidate_claim(
                     else:
                         existing_cat = str(existing["memory_layer"])
 
+                # Value text override (edit)
+                final_val = str(existing["value_text"])
+                if edited_value_text is not None and edited_value_text.strip():
+                    final_val = edited_value_text.strip()
+                    if len(final_val) > 1500:
+                        raise ValueError(f"Edited value_text exceeds 1500 character limit ({len(final_val)} chars)")
+
+                # Durability override
+                final_dur = str(existing["durability"])
+                if durability is not None and durability.strip():
+                    clean_dur = durability.strip().lower()
+                    if clean_dur not in ALLOWED_DURABILITIES:
+                        raise ValueError(f"Unsupported durability: {durability!r}; must be one of {sorted(ALLOWED_DURABILITIES)}")
+                    final_dur = clean_dur
+
+                # Valid from override
+                final_vfrom = existing["valid_from"]
+                if valid_from is not None and valid_from.strip():
+                    final_vfrom = valid_from.strip()
+
+                # Valid to override
+                final_vto = existing["valid_to"]
+                if valid_to is not None and valid_to.strip():
+                    final_vto = valid_to.strip()
+
                 conn.execute(
                     "UPDATE memory_claims SET "
                     "status = 'active', "
+                    "value_text = ?, "
+                    "durability = ?, "
+                    "valid_from = ?, "
+                    "valid_to = ?, "
                     "evidence_class = 'CANONICAL', "
                     "authority_scope = ?, "
                     "claim_category = COALESCE(claim_category, ?), "
@@ -2272,7 +2964,7 @@ def adjudicate_candidate_claim(
                     "reviewed_at = ?, "
                     "updated_at = ? "
                     "WHERE claim_id = ?",
-                    (new_auth, existing_cat, clean_reviewer, now, now, claim_id),
+                    (final_val, final_dur, final_vfrom, final_vto, new_auth, existing_cat, clean_reviewer, now, now, claim_id),
                 )
 
                 adj_id = f"adj:{claim_id}:{hashlib.sha256((now + clean_reviewer).encode('utf-8')).hexdigest()[:12]}"
@@ -2292,12 +2984,16 @@ def adjudicate_candidate_claim(
                     (
                         now,
                         "candidate_claim_approved",
-                        f"Candidate {claim_id} promoted to CANONICAL by {clean_reviewer}; reason: {reason}",
+                        f"Candidate {claim_id} promoted to CANONICAL by {clean_reviewer}; value={final_val!r}; durability={final_dur}; reason: {reason}",
                     ),
                 )
                 return {
                     "status": "approved",
                     "claim_id": claim_id,
+                    "value_text": final_val,
+                    "durability": final_dur,
+                    "valid_from": final_vfrom,
+                    "valid_to": final_vto,
                     "prior_status": curr_status,
                     "resulting_status": "active",
                     "canonical_effect": 1,
@@ -2306,6 +3002,117 @@ def adjudicate_candidate_claim(
                     "reason": reason,
                     "evidence_count": evidence_count,
                     "superseded_claim": superseded_record,
+                }
+
+            elif clean_action in ("corroborate", "merge"):
+                if not target_claim_id:
+                    raise ValueError("Corroboration/merge action requires target_claim_id")
+                target_claim = conn.execute(
+                    "SELECT claim_id, subject_entity_id, predicate, value_text, status, confidence, confidence_basis, canonical_effect "
+                    "FROM memory_claims WHERE claim_id = ?",
+                    (target_claim_id,),
+                ).fetchone()
+                if target_claim is None:
+                    raise ValueError(f"Target claim to corroborate does not exist: {target_claim_id}")
+
+                source_evidence = conn.execute(
+                    "SELECT * FROM claim_evidence WHERE claim_id = ?",
+                    (claim_id,),
+                ).fetchall()
+
+                evidence_transferred = 0
+                for ev in source_evidence:
+                    inserted = conn.execute(
+                        "INSERT OR IGNORE INTO claim_evidence("
+                        "claim_id, evidence_id, relation_type, source_type, source_platform, "
+                        "conversation_id, history_message_id, source_message_id, source_timestamp, "
+                        "role, speaker, attribution, span_start, span_end, source_pointer, "
+                        "evidence_class, excerpt_sha256, created_at"
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            target_claim_id,
+                            ev["evidence_id"],
+                            ev["relation_type"],
+                            ev["source_type"],
+                            ev["source_platform"],
+                            ev["conversation_id"],
+                            ev["history_message_id"],
+                            ev["source_message_id"],
+                            ev["source_timestamp"],
+                            ev["role"],
+                            ev["speaker"],
+                            ev["attribution"],
+                            ev["span_start"],
+                            ev["span_end"],
+                            ev["source_pointer"],
+                            ev["evidence_class"],
+                            ev["excerpt_sha256"],
+                            now,
+                        ),
+                    ).rowcount
+                    if inserted > 0:
+                        evidence_transferred += 1
+
+                all_target_refs = [
+                    EvidenceReference(
+                        history_message_id=r["history_message_id"],
+                        relation_type=r["relation_type"],
+                        excerpt="",
+                        role=r["role"] or "",
+                        speaker=r["speaker"] or "",
+                        attribution=r["attribution"] or "ambiguous_source",
+                        span_start=r["span_start"],
+                        span_end=r["span_end"],
+                        source_timestamp=r["source_timestamp"] or "",
+                        source_pointer=r["source_pointer"] or "",
+                        evidence_class=r["evidence_class"] or "RETRIEVED",
+                    )
+                    for r in conn.execute("SELECT * FROM claim_evidence WHERE claim_id = ?", (target_claim_id,)).fetchall()
+                ]
+                new_conf, new_basis, new_e_class = evaluate_evidence_weight(
+                    all_target_refs, base_confidence=float(target_claim["confidence"])
+                )
+                conn.execute(
+                    "UPDATE memory_claims SET "
+                    "confidence = MAX(confidence, ?), "
+                    "confidence_basis = ?, "
+                    "updated_at = ? "
+                    "WHERE claim_id = ?",
+                    (new_conf, new_basis, now, target_claim_id),
+                )
+
+                conn.execute(
+                    "UPDATE memory_claims SET "
+                    "status = 'superseded', "
+                    "canonical_effect = 0, "
+                    "superseded_by_claim_id = ?, "
+                    "approved_by = ?, "
+                    "reviewed_at = ?, "
+                    "updated_at = ? "
+                    "WHERE claim_id = ?",
+                    (target_claim_id, clean_reviewer, now, now, claim_id),
+                )
+
+                conn.execute(
+                    "INSERT INTO audit(created_at, event, detail) VALUES (?, ?, ?)",
+                    (
+                        now,
+                        "candidate_claim_corroborated",
+                        f"Candidate {claim_id} corroborated into {target_claim_id} by {clean_reviewer} ({evidence_transferred} evidence links transferred); reason: {reason}",
+                    ),
+                )
+
+                return {
+                    "status": "corroborated",
+                    "claim_id": claim_id,
+                    "target_claim_id": target_claim_id,
+                    "prior_status": curr_status,
+                    "resulting_status": "superseded",
+                    "canonical_effect": 0,
+                    "evidence_transferred": evidence_transferred,
+                    "reviewed_by": clean_reviewer,
+                    "reviewed_at": now,
+                    "reason": reason,
                 }
 
             elif clean_action == "reject":
@@ -2776,7 +3583,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     p_approve.add_argument("--reason", default="", help="Adjudication reason/notes")
     p_approve.add_argument("--supersedes", help="Optional claim ID to supersede")
     p_approve.add_argument("--confirmation", required=True, help="Explicit human confirmation token ('EXPLICIT HUMAN APPROVAL')")
+    p_approve.add_argument("--edit", help="Edited value text to store upon approval")
+    p_approve.add_argument("--durability", choices=sorted(list(ALLOWED_DURABILITIES)), help="Override durability classification")
+    p_approve.add_argument("--valid-from", help="Temporal validity start date/time (e.g. '2026-08-17')")
+    p_approve.add_argument("--valid-to", help="Temporal validity end date/time (e.g. '2026-08-31')")
+    p_approve.add_argument("--force", action="store_true", help="Bypass canonical eligibility filter")
     p_approve.add_argument("--json", action="store_true", help="Output JSON")
+
+    # corroborate / merge
+    p_corrob = subparsers.add_parser("corroborate", aliases=["merge"], help="Corroborate candidate into existing claim without creating duplicate")
+    p_corrob.add_argument("claim_id", help="Candidate claim ID to merge")
+    p_corrob.add_argument("--target", required=True, help="Existing target claim ID to enrich")
+    p_corrob.add_argument("--reviewer", required=True, help="Reviewer identity (must be Dustin)")
+    p_corrob.add_argument("--reason", default="", help="Corroboration reason/notes")
+    p_corrob.add_argument("--json", action="store_true", help="Output JSON")
 
     # reject
     p_reject = subparsers.add_parser("reject", help="Reject candidate claim")
@@ -2919,13 +3739,35 @@ def main(argv: Sequence[str] | None = None) -> int:
             reason=args.reason,
             supersedes_claim_id=args.supersedes,
             confirmation=args.confirmation,
+            edited_value_text=args.edit,
+            durability=args.durability,
+            valid_from=args.valid_from,
+            valid_to=args.valid_to,
+            force=args.force,
         )
         if args.json:
             print(json.dumps(res, indent=2))
         else:
             print(f"Approved candidate {args.claim_id} -> canonical_effect={res['canonical_effect']}")
+            if res.get("value_text"):
+                print(f"Stored value: {res['value_text']}")
             if res.get("superseded_claim"):
                 print(f"Superseded prior claim: {res['superseded_claim']['claim_id']}")
+        return 0
+
+    elif args.command in ("corroborate", "merge"):
+        res = adjudicate_candidate_claim(
+            store,
+            claim_id=args.claim_id,
+            action="corroborate",
+            reviewer=args.reviewer,
+            target_claim_id=args.target,
+            reason=args.reason,
+        )
+        if args.json:
+            print(json.dumps(res, indent=2))
+        else:
+            print(f"Corroborated candidate {args.claim_id} into {args.target} ({res.get('evidence_transferred', 0)} evidence links transferred)")
         return 0
 
     elif args.command == "reject":

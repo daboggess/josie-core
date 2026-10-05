@@ -1,0 +1,214 @@
+{
+  "unit_id": "BULK_UNIT_28",
+  "unit_index": 28,
+  "manifest_sha256": "7b359cb0d26eb45e7d51e286ec30a5fcada0446e833c667e4186a1d73cd77095",
+  "conversations_processed": 21,
+  "textual_messages_processed": 255,
+  "user_messages_processed": 124,
+  "chunks_processed": 29,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 255,
+    "user_messages_processed": 124,
+    "raw_model_proposals": 9,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 0,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 7,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 1,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 7,
+    "project_architecture": 0,
+    "hardware_state": 1,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 0,
+    "context_archive": 0
+  },
+  "staged_claims_count": 8,
+  "evidence_links_count": 8,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 503,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:administers:d2df8c95ef367d32",
+      "subject_entity_id": "person:dustin",
+      "predicate": "administers",
+      "value_text": "a state-level advocacy group with 981 members",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7742,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "state level advocacy group 981",
+          "source_timestamp": "2025-08-31T19:22:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:b7503d98730f6f47",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "desires to help grow Ridge Men group as a primary passion",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7758,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I really want to help with the Ridge Men FB group.",
+          "source_timestamp": "2025-08-31T19:34:35Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:990c0bc729aea230",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "willing to serve remotely via text/email/call and attend meetings if needed",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7771,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "i cant meet with members but i can call, text, email, or possibly go to a group meeting if needed",
+          "source_timestamp": "2025-08-31T19:49:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_profile:4956a8a3916dc730",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_profile",
+      "value_text": "has technical experience and marketing background from education/employment",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7760,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I also have years of technical experience you could pull from my resume you wrote for me and my marketing background from that as well in my education section",
+          "source_timestamp": "2025-08-31T19:37:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:44324990fe9cdba1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "currently employed with Becton Dickinson on an on-call schedule",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7763,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "due to my on call schedule with Becton dickinson for Pyx",
+          "source_timestamp": "2025-08-31T19:42:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:46d4ff3472d7e628",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers to frame retail business experience neutrally without mentioning vaping industry",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7769,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "dont mention FSV by name just  \"my retail business\" or something that fits without mentioning Vaping",
+          "source_timestamp": "2025-08-31T19:47:49Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:81412ff6e71e9788",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "No Plex",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7908,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No plex",
+          "source_timestamp": "2025-09-03T02:15:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:9fd93d8bebbb3b1d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "an AI free of outside influence and without giving away data",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 7820,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I want an ai free of outside influence and without giving away data",
+          "source_timestamp": "2025-08-31T20:32:39Z"
+        }
+      ]
+    }
+  ]
+}

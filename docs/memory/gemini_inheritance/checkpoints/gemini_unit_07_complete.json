@@ -1,0 +1,67 @@
+{
+  "unit_id": "GEMINI_UNIT_07",
+  "unit_index": 7,
+  "manifest_sha256": "a603c6b4dbbff282d4b8daa05567df8d8ab2d222cc97cd35c14c9093e3f53f4c",
+  "conversations_processed": 50,
+  "textual_messages_processed": 142,
+  "user_messages_processed": 77,
+  "chunks_processed": 11,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 142,
+    "user_messages_processed": 77,
+    "raw_model_proposals": 1,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 1,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 0,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 0,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 0,
+    "project_architecture": 0,
+    "hardware_state": 0,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 1,
+  "evidence_links_count": 1,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 620,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:assistant:gemini:has_identity:22a9cd4d8ea1f55c",
+      "subject_entity_id": "assistant:gemini",
+      "predicate": "has_identity",
+      "value_text": "Dustin",
+      "claim_category": "identity",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 2061,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "It is still me, Dustin.",
+          "source_timestamp": "2026-03-23T14:19:36Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,487 @@
+{
+  "unit_id": "BULK_UNIT_03",
+  "unit_index": 3,
+  "manifest_sha256": "af024e8d6a84ed0b208ef85977e9561e142230be9bd97c58b1e9871b85079f47",
+  "conversations_processed": 21,
+  "textual_messages_processed": 201,
+  "user_messages_processed": 90,
+  "chunks_processed": 25,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 201,
+    "user_messages_processed": 90,
+    "raw_model_proposals": 22,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 0,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 2,
+    "historical_only_routing": 2,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 12,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 7,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 12,
+    "project_architecture": 0,
+    "hardware_state": 7,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 2,
+    "context_archive": 0
+  },
+  "staged_claims_count": 21,
+  "evidence_links_count": 21,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 133,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:2aa5dbc15446d3af",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "cheap setup",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18354,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Grrrrrr i just need a cheap setup",
+          "source_timestamp": "2026-07-22T19:14:20Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:03c256e5fc551d7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "minimum VRAM for Josie goals",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18358,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Min gb vram i actually n3ed for my Josie goals",
+          "source_timestamp": "2026-07-22T19:18:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:65b1daaf859f83ad",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "avoid running two boxes",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18368,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Yeah, I really don't want to be running two boxes",
+          "source_timestamp": "2026-07-22T19:26:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:047049361aed87cb",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "two ORICO e7400 4TB drives brand new unopened",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18384,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "Both of them are brand new in the package, never opened, cellophane's still on them",
+          "source_timestamp": "2026-07-22T19:42:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:d89977d14d026402",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "one 10TB external HDD (Seagate HD3510)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18397,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Ok ill keep one 4tb and the 10tb external",
+          "source_timestamp": "2026-07-22T19:56:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:intends_to_sell:5fdd1598b89f34bd",
+      "subject_entity_id": "person:dustin",
+      "predicate": "intends_to_sell",
+      "value_text": "one sealed 4TB ORICO e7400 NVMe drive",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18397,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Ok ill keep one 4tb and the 10tb external",
+          "source_timestamp": "2026-07-22T19:56:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:intends_to_sell:fdf1ea886de4995f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "intends_to_sell",
+      "value_text": "both 24TB Seagate Exos ST24000NM000C drives",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18397,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Ok ill keep one 4tb and the 10tb external",
+          "source_timestamp": "2026-07-22T19:56:10Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference_for:c32bbae6d4b13393",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference_for",
+      "value_text": "NLT and ESV as favorite Bible versions",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18447,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "NLT and ESV are my favorite",
+          "source_timestamp": "2026-07-21T13:56:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:preference:fa25123aea67bd00",
+      "subject_entity_id": "person:dustin",
+      "predicate": "preference",
+      "value_text": "chose NASB 2020 Bible version",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18462,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I went with NASB 2020, and so far so good.",
+          "source_timestamp": "2026-07-21T15:33:08Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_automation_solutions_for_managing_chats_and_projects:d16ba0d913fa0859",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_automation_solutions_for_managing_chats_and_projects",
+      "value_text": "automation solutions",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18314,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, I just wish there was some way to automate this. That's been our struggle from the get-go, is trying to figure out automation.",
+          "source_timestamp": "2026-07-20T13:29:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:intends_to_build_a_local_agent_to_interact_with_files:19a960723722c6a2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "intends_to_build_a_local_agent_to_interact_with_files",
+      "value_text": "local agent to interact with files",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18314,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "And until I build the local agent that can actually interact with files for me, I don't think that's gonna happen.",
+          "source_timestamp": "2026-07-20T13:29:09Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:2bd8759ac3dc6134",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "avoids soy in protein powders",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18249,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I dont like soy either",
+          "source_timestamp": "2026-07-18T23:45:58Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:old_jetson_nano_is_not_suitable_for_josie_s_main_server_role:9390298f3fb0c5b1",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "old_jetson_nano_is_not_suitable_for_josie_s_main_server_role",
+      "value_text": "no",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 18233,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "old Jetson Nano, no.",
+          "source_timestamp": "2026-07-18T21:49:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:assistant:chatgpt:jetson_orin_nano_super_is_being_considered:dcfff5eb40423f05",
+      "subject_entity_id": "assistant:chatgpt",
+      "predicate": "jetson_orin_nano_super_is_being_considered",
+      "value_text": "maybe",
+      "claim_category": "hardware",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 18233,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "Jetson Orin Nano Super, maybe.",
+          "source_timestamp": "2026-07-18T21:49:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:ae0a372a68d6f12f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2 \u00d7 4TB NVMe drives and 2 \u00d7 24TB hard drives",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18223,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Again, i own no hardware except the drives",
+          "source_timestamp": "2026-07-18T13:13:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:does_not_own:bfdb1ff99b240d23",
+      "subject_entity_id": "person:dustin",
+      "predicate": "does_not_own",
+      "value_text": "RX 7600 XT 16GB, MI50, BC-250, RAM, Ryzen 2600, Ryzen 1600/RX 480 PC",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18223,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Again, i own no hardware except the drives",
+          "source_timestamp": "2026-07-18T13:13:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:489fea7a27f66f74",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "single GPU setup",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18214,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "For 1 gpu",
+          "source_timestamp": "2026-07-18T01:38:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:avoids_forcing_jesus_into_conversations:cdad5ba833a6410c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "avoids_forcing_jesus_into_conversations",
+      "value_text": "if I try to look for angles to work Jesus into a conversation, like, it doesn't work out",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18194,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "if I try to look for angles to work Jesus into a conversation, like, it doesn't work out",
+          "source_timestamp": "2026-07-17T20:49:00Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_watermark_with_under_his_mission_phrase:9af474036b82f516",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_watermark_with_under_his_mission_phrase",
+      "value_text": "to include 'under his mission' in watermark for visibility",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18116,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Yeah, throw in a little under his mission just so I can see the watermark.",
+          "source_timestamp": "2026-07-15T22:32:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:c97cda8044871813",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "owns 2x 4TB NVMe and 2x 24TB HDD",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18093,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Have nothing but 2 4tb nvme, 2 24tb hhd",
+          "source_timestamp": "2026-07-15T01:23:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:326ccffd3f373eaf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "prefers cheapest hardware setups to achieve AI goals",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 18088,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Going cheap3st route",
+          "source_timestamp": "2026-07-15T01:19:35Z"
+        }
+      ]
+    }
+  ]
+}

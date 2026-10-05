@@ -1,0 +1,244 @@
+{
+  "unit_id": "GEMINI_UNIT_15",
+  "unit_index": 15,
+  "manifest_sha256": "a01988b9839e7a5cea7ebccb3a9bc7123df2a9eb06e924ad742968adb4afbe1b",
+  "conversations_processed": 50,
+  "textual_messages_processed": 274,
+  "user_messages_processed": 141,
+  "chunks_processed": 26,
+  "skipped_zero_user_chunks": 1,
+  "funnel": {
+    "source_conversations_processed": 50,
+    "textual_messages_processed": 274,
+    "user_messages_processed": 141,
+    "raw_model_proposals": 12,
+    "assistant_authority_rejections": 1,
+    "entailment_rejections": 1,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 0,
+    "historical_only_routing": 2,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 5,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 2,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 0
+  },
+  "destinations": {
+    "personal_canonical": 5,
+    "project_architecture": 0,
+    "hardware_state": 2,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 0,
+    "historical_only": 2,
+    "context_archive": 0
+  },
+  "staged_claims_count": 9,
+  "evidence_links_count": 10,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 656,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:1ca894ed9a21ec49",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Samsung Galaxy S26 Ultra",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3511,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "All done from my galaxy s26 Ultra",
+          "source_timestamp": "2026-06-11T13:07:16Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:203377684fae7a40",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "offline MP3 export capability",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3527,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I need to be able to export the audio file.",
+          "source_timestamp": "2026-06-11T14:42:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers:994674071e1bbe21",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers",
+      "value_text": "free/inexpensive TTS solution",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3505,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I need something that's easy and sounds natural and preferably not a dollar a week subscription",
+          "source_timestamp": "2026-06-11T13:03:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_target_protein_intake:84e717a6c6527805",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_target_protein_intake",
+      "value_text": "1 gram per pound of goal weight (200-220 lbs)",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3602,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "maybe where should I be at calorically then",
+          "source_timestamp": "2026-06-15T14:28:20Z"
+        },
+        {
+          "history_message_id": 3606,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "possible but I need to keep better track so I actually know",
+          "source_timestamp": "2026-06-15T14:29:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:firebat_mn56_a6:has_ram_upgradability:86e1ec82ad513fb4",
+      "subject_entity_id": "hardware:firebat_mn56_a6",
+      "predicate": "has_ram_upgradability",
+      "value_text": "not upgradable",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3638,
+          "role": "assistant",
+          "speaker": "Gemini Apps",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "No. This specific Firebat MN56/A6 shell uses soldered LPDDR5-4800MHz memory. The 16GB capacity shown in your screenshot is permanently attached to the motherboard, meaning there are no physical SO-DIMM slots t",
+          "source_timestamp": "2026-06-18T16:29:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_hydra_use_case:4c52f52695d18d7e",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_hydra_use_case",
+      "value_text": "inventory management via POS system integration",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3651,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "it would go to my POS system in the browser, go to I would have to I guess teach it how to go to my inventory from the browser in an N8N process",
+          "source_timestamp": "2026-06-18T16:42:48Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:app:creed:owns_an_app_called_creed_with_ai_named_lena:632c4101d1b37a7f",
+      "subject_entity_id": "app:creed",
+      "predicate": "owns_an_app_called_creed_with_ai_named_lena",
+      "value_text": "User explicitly mentioned owning an app called Creed with an AI named Lena.",
+      "claim_category": "identity",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3665,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have an app called Creed, and it has an AI that we've dubbed Lena.",
+          "source_timestamp": "2026-06-18T17:15:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_profile:351041b4f6a64b25",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_profile",
+      "value_text": "field service engineer",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3667,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I'm a Christian husband, father, small business owner, and field service engineer.",
+          "source_timestamp": "2026-06-18T17:15:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:1668bb7280b39e8c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "exploring how artificial intelligence can be used not merely for productivity, but for stewardship",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 3667,
+          "role": "user",
+          "speaker": "google_account_owner",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Over the last year, I've been exploring how artificial intelligence can be used not merely for productivity, but for stewardship,",
+          "source_timestamp": "2026-06-18T17:15:30Z"
+        }
+      ]
+    }
+  ]
+}

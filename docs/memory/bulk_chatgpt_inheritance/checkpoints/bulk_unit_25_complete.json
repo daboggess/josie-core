@@ -1,0 +1,445 @@
+{
+  "unit_id": "BULK_UNIT_25",
+  "unit_index": 25,
+  "manifest_sha256": "301c1dbf6f80e639ce476b6da813731f7b8b8412171278a93bcceaa7af6dfc50",
+  "conversations_processed": 21,
+  "textual_messages_processed": 419,
+  "user_messages_processed": 203,
+  "chunks_processed": 39,
+  "skipped_zero_user_chunks": 3,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 419,
+    "user_messages_processed": 203,
+    "raw_model_proposals": 21,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 3,
+    "historical_only_routing": 1,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 4,
+    "project_architecture_candidates": 1,
+    "hardware_state_candidates": 10,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 1,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 4,
+    "project_architecture": 1,
+    "hardware_state": 10,
+    "runbook_procedure": 0,
+    "sensitive_review": 1,
+    "transient_noise": 2,
+    "historical_only": 1,
+    "context_archive": 0
+  },
+  "staged_claims_count": 19,
+  "evidence_links_count": 19,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 478,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:1622d371915c849a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Beelink S12 mini PC",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9482,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The s12, 2 4tb nvmes and 2 24 tb hhds are all i have",
+          "source_timestamp": "2025-11-14T22:35:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:2383bc93551c5b62",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2 \u00d7 4TB NVMe SSDs",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9482,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The s12, 2 4tb nvmes and 2 24 tb hhds are all i have",
+          "source_timestamp": "2025-11-14T22:35:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:3f8802bc8ce043c2",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "2 \u00d7 24TB Seagate Exos HDDs",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9482,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "The s12, 2 4tb nvmes and 2 24 tb hhds are all i have",
+          "source_timestamp": "2025-11-14T22:35:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:a598351860731164",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "10TB WD My Book (external USB)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9486,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Oh and a 10tb my book",
+          "source_timestamp": "2025-11-14T22:37:34Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_existing_lab_and_ingredients:b5bea41b6c623f7c",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_existing_lab_and_ingredients",
+      "value_text": "true",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9129,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "We still have a lot of the ingredients, we still have the lab",
+          "source_timestamp": "2025-11-10T21:44:07Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:system:josie:fda_classifies_nixodine_as_supplement:b5bea41b6c623f7c",
+      "subject_entity_id": "system:josie",
+      "predicate": "fda_classifies_nixodine_as_supplement",
+      "value_text": "true",
+      "claim_category": "procedure",
+      "durability": "current_state",
+      "memory_destination": "project_architecture",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9133,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "the FDA's classified that as a supplement",
+          "source_timestamp": "2025-11-10T21:45:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_to_assemble_custom_vape_devices:2a9eb9dea67ffde1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_to_assemble_custom_vape_devices",
+      "value_text": "prefers to source empty disposables and assemble them in his lab",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9156,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "be to get blank or empty disposables and fill and assemble them in my lab.",
+          "source_timestamp": "2025-11-10T21:57:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires_high_puff_capacity:e79ca42a1432f163",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires_high_puff_capacity",
+      "value_text": "requires devices with 35,000+ puffs (minimum 35,000 puffs)",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9160,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Yeah, I need something around or above 40,000, 35,000 pups would be kind of the minimum.",
+          "source_timestamp": "2025-11-10T21:59:23Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:concerns_supplier_reputation:ee0d8e86442e4dce",
+      "subject_entity_id": "person:dustin",
+      "predicate": "concerns_supplier_reputation",
+      "value_text": "expresses concern about supplier reputation when ordering from Alibaba for brand credibility",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9165,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Okay, that's my biggest concern anytime ordering from Alibaba is the reputation and whether or not I'm actually going to get something that I would feel comfortable putting my brand name on.",
+          "source_timestamp": "2025-11-10T22:01:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_device_capacity_for_propylene_glycol:8d5b997f03c66adc",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_device_capacity_for_propylene_glycol",
+      "value_text": "20 mL",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9198,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I want to use propylene glycol in the mix. I want something that holds probably about 20 mL of propylene glycol.",
+          "source_timestamp": "2025-11-11T18:08:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has:cd7ac4280cfbee6a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has",
+      "value_text": "Beelink S12 Pro",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9013,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "It is the Beelink S12 Pro.",
+          "source_timestamp": "2025-11-10T02:35:02Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:will_use_exclusively_for:6a7d64268449e532",
+      "subject_entity_id": "person:dustin",
+      "predicate": "will_use_exclusively_for",
+      "value_text": "this specific AI build iteration",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 9015,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "This is the only piece of equipment I will be using for this specific iteration of the AI build",
+          "source_timestamp": "2025-11-10T02:35:33Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:owns:6bf2ae8a597d0b67",
+      "subject_entity_id": "hardware",
+      "predicate": "owns",
+      "value_text": "WD 10 TB My Book",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9025,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have a wd 10 tb something book",
+          "source_timestamp": "2025-11-10T04:12:08Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:owns:6551e52d18c09959",
+      "subject_entity_id": "hardware",
+      "predicate": "owns",
+      "value_text": "10 TB DAS (Direct-Attached Storage)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9023,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Add das 10tb to hardware",
+          "source_timestamp": "2025-11-10T04:11:25Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:hardware:no_other_available:d13e0be095574088",
+      "subject_entity_id": "hardware",
+      "predicate": "no_other_available",
+      "value_text": "No other hardware available",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9031,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No other hardware available anymore",
+          "source_timestamp": "2025-11-10T04:17:59Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:seeks:965dd750070ed1ab",
+      "subject_entity_id": "person:dustin",
+      "predicate": "seeks",
+      "value_text": "best AI-performance system around $500 regardless of brand, size, or age",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 9106,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Best ai performance of any option available no preferences, new used barebones whatever around 500",
+          "source_timestamp": "2025-11-10T05:26:05Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:446bc39cbba8eaf0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "does not want to let the current tenant stay",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 8903,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I don't want to let him stay.",
+          "source_timestamp": "2025-10-28T13:53:52Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_medical_coverage_gap:c6d4d32cc1418d55",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_medical_coverage_gap",
+      "value_text": "Sterling Pharmacy (Zyosted testosterone replacement) and BetterHelp therapist services are not covered by current insurance plan",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "sensitive_review",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 8820,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Family, sterling isnt cobered by insurance neither is better health (therapist) that i know of. I'll take any suggestions on how to make this more affordable without sacrificing coverage",
+          "source_timestamp": "2025-10-27T14:45:56Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses_current_health_plan:b3c1156184468982",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses_current_health_plan",
+      "value_text": "Cigna HSA+ plan with HSA funds covering Sterling Pharmacy and BetterHelp expenses",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 8826,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "should my, I currently have the HSA+, and I'm paying Sterling and BetterHelp out of my HSA",
+          "source_timestamp": "2025-10-27T14:53:43Z"
+        }
+      ]
+    }
+  ]
+}

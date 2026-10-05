@@ -1,0 +1,796 @@
+{
+  "unit_id": "BULK_UNIT_14",
+  "unit_index": 14,
+  "manifest_sha256": "17f6ef8fd52f2fb13817cb9fbb5f9feec7d8a4cfa57a4b73bd0f25d325c7755a",
+  "conversations_processed": 21,
+  "textual_messages_processed": 468,
+  "user_messages_processed": 228,
+  "chunks_processed": 45,
+  "skipped_zero_user_chunks": 0,
+  "funnel": {
+    "source_conversations_processed": 21,
+    "textual_messages_processed": 468,
+    "user_messages_processed": 228,
+    "raw_model_proposals": 36,
+    "assistant_authority_rejections": 0,
+    "entailment_rejections": 0,
+    "hypothetical_fictional_rejections": 1,
+    "event_preference_rejections": 0,
+    "transient_noise_suppression": 3,
+    "historical_only_routing": 7,
+    "duplicate_corroborating_evidence": 0,
+    "personal_memory_candidates": 16,
+    "project_architecture_candidates": 0,
+    "hardware_state_candidates": 8,
+    "runbook_procedural_candidates": 0,
+    "sensitive_review_candidates": 0,
+    "extraction_errors": 0,
+    "malformed_source_problems": 1
+  },
+  "destinations": {
+    "personal_canonical": 16,
+    "project_architecture": 0,
+    "hardware_state": 8,
+    "runbook_procedure": 0,
+    "sensitive_review": 0,
+    "transient_noise": 3,
+    "historical_only": 7,
+    "context_archive": 0
+  },
+  "staged_claims_count": 34,
+  "evidence_links_count": 38,
+  "total_database_canonical_claims": 10,
+  "total_database_candidate_claims": 321,
+  "staged_claims": [
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:c17f24276988e927",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "flex pipe inside 4-inch drainage pipe",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13919,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Well, if I'm going to put the flex pipe inside of the 4-inch drainage pipe, then I shouldn't have to worry about it being crushed or anything like that, especially if I'm burying it a foot deep.",
+          "source_timestamp": "2026-03-08T21:39:51Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_current_state:8dd2edcfd250db8a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_current_state",
+      "value_text": "solid line inside perforated line",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13921,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No, as in a solid line inside of the perforated line.",
+          "source_timestamp": "2026-03-08T21:40:26Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:e2b1534f44812994",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "DeWalt angle grinder and several DeWalt tools",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13903,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I've got a DeWalt angle grinder. Actually, I've got several DeWalt tools.",
+          "source_timestamp": "2026-03-06T22:37:50Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:10767c1ea9b76de7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "pull-out drawers for storage in Subaru Ascent",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13452,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Im.getting a subaru ascent, i need s tool box with pull out drawers to fit in the back as big as possible to store all my tools in",
+          "source_timestamp": "2026-02-13T22:57:15Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:da20c25abdfc02ed",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "minimum 30\" drawer depth for large parts storage",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13458,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Large parts not so much tools need 30in min drawers",
+          "source_timestamp": "2026-02-14T00:03:35Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:5022d4c7929d5762",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "30\" width for drawer boxes in Subaru Ascent",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13464,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "30 width",
+          "source_timestamp": "2026-02-14T00:06:19Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:requires:01f3e692587ec2b0",
+      "subject_entity_id": "person:dustin",
+      "predicate": "requires",
+      "value_text": "easy in/out mechanism for drawer boxes",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13466,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "Easy in and out",
+          "source_timestamp": "2026-02-14T00:07:30Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:user_current_setup:has_vehicle_and_totes:c8c98e40d88e8cd0",
+      "subject_entity_id": "user_current_setup",
+      "predicate": "has_vehicle_and_totes",
+      "value_text": "2024 Subaru Forrester with two GSC 45L heavy-duty flip totes and eight small totes (19L each)",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13477,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "I currently have a forrester 2024 and two of these each with 4 small one on top on each....",
+          "source_timestamp": "2026-02-26T21:16:21Z"
+        },
+        {
+          "history_message_id": 13482,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "label tells us exactly what we need",
+          "source_timestamp": "2026-02-26T21:19:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:user_preference:prefers_cheaper_solution:f0d3664dfd7db19b",
+      "subject_entity_id": "user_preference",
+      "predicate": "prefers_cheaper_solution",
+      "value_text": "No cheaper option available for required storage solutions",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13473,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "No cheaper option",
+          "source_timestamp": "2026-02-14T00:37:17Z"
+        },
+        {
+          "history_message_id": 13474,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "derived_from",
+          "excerpt": "no cheaper mainstream alternative",
+          "source_timestamp": "2026-02-14T00:37:17Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:aea7ceed6c0a4b45",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "attending and serving at River Ridge TV",
+      "claim_category": "relationship_context",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13870,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "My name is Dustin, my wife Jessica, our daughter Abby and I attend and serve at River Ridge TV.",
+          "source_timestamp": "2026-03-03T17:00:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:1ff0f32075de81b9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "17GB free space after deleting temp files, disk cleanup, and failed update software files",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13790,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "now stuck at 17gb free",
+          "source_timestamp": "2026-02-26T17:33:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:current_state:036d59e23acee5fa",
+      "subject_entity_id": "person:dustin",
+      "predicate": "current_state",
+      "value_text": "does not own an ISO file",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13796,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I have no iso",
+          "source_timestamp": "2026-02-26T17:41:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:did_not_proceed_with_supplement_recommendation:50785d0e31c47611",
+      "subject_entity_id": "person:dustin",
+      "predicate": "did_not_proceed_with_supplement_recommendation",
+      "value_text": "Didnt pull the trigger will wait",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13776,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Didnt pull the trigger will wait",
+          "source_timestamp": "2026-02-24T15:09:27Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:holds_leadership_role:06925a2cbe52927a",
+      "subject_entity_id": "person:dustin",
+      "predicate": "holds_leadership_role",
+      "value_text": "lead/supervisor role over Kentucky and West Virginia",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13780,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Moving into lead/supervisor ish role over ky and wv",
+          "source_timestamp": "2026-02-24T15:08:36Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:wants_to_add_a_prayer_component_to_the_men_s_group:fa7687a30155be2f",
+      "subject_entity_id": "person:dustin",
+      "predicate": "wants_to_add_a_prayer_component_to_the_men_s_group",
+      "value_text": "to make prayer requests more relevant and encourage engagement with the prayer team",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13662,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I wanna cross-prom",
+          "source_timestamp": "2026-02-17T16:28:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:plans_to_create_a_video_featuring_rob_akers:2daa46ced5f7bcc8",
+      "subject_entity_id": "person:dustin",
+      "predicate": "plans_to_create_a_video_featuring_rob_akers",
+      "value_text": "to discuss the prayer team's role and encourage participation",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13662,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "I wanna cross-prom",
+          "source_timestamp": "2026-02-17T16:28:37Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:86b236480523d645",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "Galaxy S22 Ultra",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13682,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "We're on my most used platform right now, which is the Galaxy 22 Ultra.",
+          "source_timestamp": "2026-02-17T17:34:04Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:desires:3b3df03e7e66ff32",
+      "subject_entity_id": "person:dustin",
+      "predicate": "desires",
+      "value_text": "both peace and fire",
+      "claim_category": "preference",
+      "durability": "preference",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13687,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I want peace, but I want fire.",
+          "source_timestamp": "2026-02-17T17:55:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:owns:d2947b7d7c4d96a3",
+      "subject_entity_id": "person:dustin",
+      "predicate": "owns",
+      "value_text": "Soundcore Liberty 4 earbuds",
+      "claim_category": "hardware",
+      "durability": "current_state",
+      "memory_destination": "hardware_state",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13282,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Good, I got the new Soundcore Liberty 4. They're not the pros, but they seem to be picking up good.",
+          "source_timestamp": "2026-02-11T17:01:32Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:i_feel_like_i_am_an_impact_multiplier:63ffa8627773b9ce",
+      "subject_entity_id": "person:dustin",
+      "predicate": "i_feel_like_i_am_an_impact_multiplier",
+      "value_text": "I feel like I am an impact multiplier",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13308,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "So you say that multiple the impact that I feel like I am an impact multiplier, like that's my ability, and that's kind of where I fit in.",
+          "source_timestamp": "2026-02-11T17:24:24Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:was_involved_in:5c8c2871f6f250f7",
+      "subject_entity_id": "person:dustin",
+      "predicate": "was_involved_in",
+      "value_text": "MNI Mission Not Impossible project",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13316,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So what Em and I did was we had to commit eight hours a week. So I did four hours every, I rigged it to my advantage. I did it Tuesday and Thursday.",
+          "source_timestamp": "2026-02-11T17:32:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:implements:d81bce5a54c6ce2d",
+      "subject_entity_id": "person:dustin",
+      "predicate": "implements",
+      "value_text": "structured preventative maintenance schedule on Tuesdays and Thursdays",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13318,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "But the other thing was we need to schedule PMs, preventative maintenance, so we need to touch all of the refrigerators and anesthesia stations, which is honestly maybe 30% of our total volume. And I told Harlan, if things ever got bad where he only gets paid if there's work, we would just start scheduling out PMs. I would do PMs all day every Tuesday and Thursday and then go home. And then he wou",
+          "source_timestamp": "2026-02-11T17:34:58Z"
+        },
+        {
+          "history_message_id": 13320,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "That's the other thing. I think Bob hasn't called it out directly, but I'm pretty sure he recognizes that that's what I've done because he goes back and looks at how I utilize Harlan and where I utilize him. And I think he knows that, hey, I keep Harlan fed, but I do it through the lens of justifiable expense. So I make sure Harlan stays working and Harlan stays happy, but I make sure that when th",
+          "source_timestamp": "2026-02-11T17:36:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:uses:756aff3e8bdfe998",
+      "subject_entity_id": "person:dustin",
+      "predicate": "uses",
+      "value_text": "structured time blocks for project work",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13316,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "So what Em and I did was we had to commit eight hours a week. So I did four hours every, I rigged it to my advantage. I did it Tuesday and Thursday. So basically Tuesday and Thursday, I would work half a day from home. So 8 to 9, 10, 11, 12, 8 to noon, I would work on Em and I. And then take an hour for lunch, of course. So from 12 to 1. And then from 1 to 5, I would be the main on-call person. Ha",
+          "source_timestamp": "2026-02-11T17:32:47Z"
+        },
+        {
+          "history_message_id": 13317,
+          "role": "assistant",
+          "speaker": "ChatGPT",
+          "attribution": "assistant_assertion",
+          "relation_type": "supports",
+          "excerpt": "That setup actually sounds like a perfect model to pitch again. You\u2019ve already proven that structured time blocks, like those MNI days, can work. So, even if it\u2019s not called MNI now, you could propose a similar carve-out\u2014like a couple half-days weekly\u2014where you focus on those higher-level contributions. That way, you\u2019re still covering your vast territory\u2014but you\u2019re also creating dependable windows",
+          "source_timestamp": "2026-02-11T17:32:47Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:demonstrates:b531b773ae2fa4bf",
+      "subject_entity_id": "person:dustin",
+      "predicate": "demonstrates",
+      "value_text": "ability to manage contingent worker Harlan effectively",
+      "claim_category": "profile",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13320,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "That's the other thing. I think Bob hasn't called it out directly, but I'm pretty sure he recognizes that that's what I've done because he goes back and looks at how I utilize Harlan and where I utilize him. And I think he knows that, hey, I keep Harlan fed, but I do it through the lens of justifiable expense. So I make sure Harlan stays working and Harlan stays happy, but I make sure that when th",
+          "source_timestamp": "2026-02-11T17:36:22Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:13356:has_current_supervisor:a982c97d452cc71f",
+      "subject_entity_id": "13356",
+      "predicate": "has_current_supervisor",
+      "value_text": "Wayne",
+      "claim_category": "profile",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13356,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "my current supervisor is Wayne",
+          "source_timestamp": "2026-02-18T17:43:43Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:13368:acknowledges_company_actions:fddbf361b5fc646e",
+      "subject_entity_id": "13368",
+      "predicate": "acknowledges_company_actions",
+      "value_text": "equity and cost-saving",
+      "claim_category": "preference",
+      "durability": "current_state",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13368,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "the company is saving money overall",
+          "source_timestamp": "2026-02-18T17:56:57Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:ccf2ad1d300a3cda",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Corporate is always going to do whatever it takes to make money and keep investors happy.",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13388,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "corporate is always gonna do whatever they have to to make money and keep investors happy.",
+          "source_timestamp": "2026-02-18T19:04:40Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:d2afa41c8415b665",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Wanting work to suck less and sometimes suck in his favor.",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13390,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I want it to suck less, and I want it to sometimes suck in my favor.",
+          "source_timestamp": "2026-02-18T19:07:42Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:has_preference:0511b2c9ffdbf3f5",
+      "subject_entity_id": "person:dustin",
+      "predicate": "has_preference",
+      "value_text": "Need to balance not tilting windmills and not rolling over and accepting things.",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "personal_canonical",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13392,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I have to be careful not to tilt windmills, but not just roll over and accept it either.",
+          "source_timestamp": "2026-02-18T19:08:41Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:13408:preference:c1b40d1d823a5080",
+      "subject_entity_id": "13408",
+      "predicate": "preference",
+      "value_text": "I don't even want to pitch it as a pilot. Just say, you know, this is what it could look like.",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13408,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "I don't even want to pitch it as a pilot. Just say, you know, this is what it could look like.",
+          "source_timestamp": "2026-02-18T20:39:53Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:13406:preference:620a0eed2025163f",
+      "subject_entity_id": "13406",
+      "predicate": "preference",
+      "value_text": "we should now be shifting to creating that document",
+      "claim_category": "preference",
+      "durability": "durable",
+      "memory_destination": "historical_only",
+      "canonical_eligible": true,
+      "evidence_references": [
+        {
+          "history_message_id": 13406,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "contradicts",
+          "excerpt": "we should now be shifting to creating that document",
+          "source_timestamp": "2026-02-18T20:22:21Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_structured_communication_over_unstructured:f0761165cd1052f1",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_structured_communication_over_unstructured",
+      "value_text": "prefers structured communication over unstructured",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 13434,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "No need to tighten it really. I feel like you hit the nail on the head. The only thing is, I would remove the customer analogy altogether.",
+          "source_timestamp": "2026-02-18T21:49:39Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_avoiding_alignment_language_in_documents:21c2d3bb4805cce9",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_avoiding_alignment_language_in_documents",
+      "value_text": "prefers avoiding alignment language in documents",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 13442,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Remove any discussion of alignment between me and him. I don't need to be involved in this one.",
+          "source_timestamp": "2026-02-18T22:11:29Z"
+        }
+      ]
+    },
+    {
+      "claim_id": "claim:candidate:person:dustin:prefers_immediate_document_generation:4c9ae130a0c67e10",
+      "subject_entity_id": "person:dustin",
+      "predicate": "prefers_immediate_document_generation",
+      "value_text": "prefers immediate document generation",
+      "claim_category": "preference",
+      "durability": "transient",
+      "memory_destination": "transient_noise",
+      "canonical_eligible": false,
+      "evidence_references": [
+        {
+          "history_message_id": 13436,
+          "role": "user",
+          "speaker": "user",
+          "attribution": "direct_user_assertion",
+          "relation_type": "supports",
+          "excerpt": "Yeah, that's it. Generate it into a Word doc, exactly as you have it. Slam dunk.",
+          "source_timestamp": "2026-02-18T21:54:18Z"
+        }
+      ]
+    }
+  ]
+}
