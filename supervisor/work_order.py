@@ -14,7 +14,7 @@ class ValidationError(ValueError):
 
 
 KNOWN_FIELDS = {
-    "schema_version", "job_id", "objective", "workspace", "harness", "model",
+    "schema_version", "job_id", "mission_id", "objective", "workspace", "harness", "model",
     "allowed_changed_paths", "forbidden_paths", "timeout_seconds", "max_attempts",
     "acceptance", "prompt_profile", "receipt_destination", "harness_executable",
     "first_action", "strict_validation", "ollama_url", "harness_config", "agent",
@@ -26,6 +26,7 @@ KNOWN_FIELDS = {
     "reporting_instructions", "edit_format", "aider_config", "read_only_paths",
     "prompt_contract_version", "worker_failure_modes", "resource_rules", "receipt_instructions",
     "priming_context", "priming_bundle_hash", "memory_router",
+    "worker_interface",
 }
 KNOWN_ACCEPTANCE = {"file_exists", "file_exact", "command", "changed_paths", "no_unexpected_files"}
 
@@ -46,6 +47,10 @@ class WorkOrder:
     workspace: Path
     allowed_changed_paths: tuple[str, ...]
     forbidden_paths: tuple[str, ...]
+
+    @property
+    def mission_id(self) -> str | None:
+        return self.raw.get("mission_id")
 
     @property
     def prompt_contract_version(self) -> str:
@@ -205,4 +210,12 @@ class WorkOrder:
             mr = data["memory_router"]
             if not isinstance(mr, dict):
                 raise ValidationError("memory_router must be an object")
+        if "worker_interface" in data:
+            interface = data["worker_interface"]
+            if not isinstance(interface, dict) or interface.get("name") != "structured_transform":
+                raise ValidationError("unsupported worker_interface")
+            if set(interface) - {"name", "max_calls"}:
+                raise ValidationError("unknown worker_interface fields")
+            if interface.get("max_calls", 2) != 2:
+                raise ValidationError("structured_transform max_calls must be 2")
         return cls(data, workspace, allowed_rules, forbidden)

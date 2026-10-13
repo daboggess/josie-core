@@ -57,6 +57,9 @@ def _validate_state(mission: dict, expected_mission_id: str) -> None:
         raise MissionStateError("MALFORMED_MISSION_STATE: invalid or duplicate job ID")
     by_id = {job["job_id"]: job for job in jobs}
     for job in jobs:
+        if job.get("status") == "BLOCKED_BY_DEPENDENCY":
+            job["status"] = "BLOCKED"
+            job["result_reason"] = "BLOCKED_BY_DEPENDENCY"
         if job.get("status") not in JOB_STATES:
             raise MissionStateError(f"MALFORMED_MISSION_STATE: invalid status for {job['job_id']}")
         dependencies = job.get("dependencies")
@@ -90,8 +93,17 @@ def _refresh(mission: dict) -> None:
     by_id = {job["job_id"]: job for job in mission["jobs"]}
     terminal_failure = False
     for job in mission["jobs"]:
+        if job.get("status") == "BLOCKED_BY_DEPENDENCY":
+            job["status"] = "BLOCKED"
+            job["result_reason"] = "BLOCKED_BY_DEPENDENCY"
         dependencies = [by_id[item]["status"] for item in job["dependencies"]]
-        if job["status"] == "WAITING" and dependencies and any(item in {"FAIL", "BLOCKED", "SKIPPED"} for item in dependencies):
+        if job["status"] in {"WAITING", "BLOCKED"} and job.get("result_reason") == "BLOCKED_BY_DEPENDENCY":
+            if dependencies and any(item in {"FAIL", "BLOCKED", "SKIPPED"} for item in dependencies):
+                job["status"] = "BLOCKED"
+            elif all(item == "PASS" for item in dependencies):
+                job["status"] = "READY"
+                job["result_reason"] = None
+        elif job["status"] == "WAITING" and dependencies and any(item in {"FAIL", "BLOCKED", "SKIPPED"} for item in dependencies):
             job["status"] = "BLOCKED"
             job["result_reason"] = "BLOCKED_BY_DEPENDENCY"
         elif job["status"] == "WAITING" and all(item == "PASS" for item in dependencies):
@@ -158,9 +170,16 @@ class MissionManager:
                     max_attempts: int = 2) -> tuple[dict, Path]:
         attempt = job["attempts"] + 1
         work_id = f"mission-{mission['mission_id']}-{job['job_id']}-a{attempt}"
+        target = self.work_order_directory / f"{work_id}.json"
+        while target.exists():
+            attempt += 1
+            work_id = f"mission-{mission['mission_id']}-{job['job_id']}-a{attempt}"
+            target = self.work_order_directory / f"{work_id}.json"
+        job["attempts"] = attempt - 1
+
         harness = job.get("harness") or "coder"
         order = {
-            "schema_version": "1", "job_id": work_id, "objective": job["objective"],
+            "schema_version": "1", "job_id": work_id, "mission_id": mission["mission_id"], "objective": job["objective"],
             "first_action": job.get("first_action") or "Inspect only the relevant existing source and tests, then make the bounded change.",
             "workspace": job["workspace"], "harness": harness,
             "primary_harness_executable": r"I:\Josie-Storage\apps\goose-1.50.0\goose-package\goose.exe",
@@ -176,11 +195,15 @@ class MissionManager:
             "acceptance": job["acceptance"], "prompt_profile": "josie-coder-v1",
             "receipt_destination": str(self.receipt_directory), "ollama_url": "http://127.0.0.1:11434",
         }
+        for field in (
+            "priming_context", "priming_bundle_hash", "retrieved_evidence",
+            "worker_failure_modes", "reporting_instructions",
+            "worker_interface",
+        ):
+            if job.get(field) is not None:
+                order[field] = job[field]
         from supervisor.work_order import WorkOrder
         WorkOrder.validate(order)
-        target = self.work_order_directory / f"{work_id}.json"
-        if target.exists():
-            raise DispatchError(f"work order already exists: {target}")
         temporary = self.work_order_directory / f".{target.name}.{uuid.uuid4().hex}.tmp"
         try:
             with temporary.open("x", encoding="utf-8", newline="\n") as handle:
@@ -216,7 +239,7 @@ class MissionManager:
         selected_model = job.get("pending_fallback_model")
         order, order_path = self._work_order(
             mission, job, model=selected_model,
-            max_attempts=1 if selected_model else 2,
+            max_attempts=1 if selected_model else job.get("max_attempts", 2),
         )
         job["status"] = "RUNNING"
         job["attempts"] += 1
@@ -256,7 +279,7 @@ class MissionManager:
             raise SupervisorFailure("SUPERVISOR_FAILURE") from exc
 
     def consume_receipt(self, mission_id: str, receipt_path: Path, *, job_id: str) -> dict:
-        mission = self.load(mission_id)
+        mission = self.store.load(mission_id)
         job = _job(mission, job_id)
         if not job["dispatch_ids"]:
             raise DispatchError("job has no Supervisor dispatch")
@@ -302,15 +325,67 @@ class MissionManager:
             job_id = ready["job_id"]
             try:
                 mission = self.dispatch_next(mission_id)
-            except SupervisorFailure:
+            except (SupervisorFailure, DispatchError) as exc:
                 return {"mission": self.load(mission_id), "dispatched": dispatched + [job_id],
-                        "stop_reason": "SUPERVISOR_FAILURE"}
+                        "stop_reason": str(exc)}
             dispatched.append(job_id)
             completed = _job(mission, job_id)
             if completed["status"] != "PASS":
                 return {"mission": mission, "dispatched": dispatched,
                         "stop_reason": completed.get("result_reason") or completed["status"]}
         return {"mission": self.load(mission_id), "dispatched": dispatched, "stop_reason": "RESOURCE_BOUND"}
+
+    def resolve_gate_approval(self, mission_id: str, job_id: str, receipt_path: Path) -> dict:
+        """Resolve a gated job to PASS using an authoritative review receipt, unblocking dependents."""
+        mission = self.store.load(mission_id)
+        job = _job(mission, job_id)
+        expected = job["dispatch_ids"][-1] if job.get("dispatch_ids") else None
+        evidence = read_authoritative_receipt(receipt_path, expected_job_id=expected)
+        if evidence["final_status"] != "PASS":
+            raise DispatchError("gate resolution receipt must have status PASS")
+        job["status"] = "PASS"
+        job["receipt_ref"] = str(receipt_path)
+        job["result_reason"] = evidence["reason"]
+        job["receipt_evidence"] = evidence
+        if evidence["receipt_id"] not in mission["receipt_refs"]:
+            mission["receipt_refs"].append(evidence["receipt_id"])
+        for dependent in mission["jobs"]:
+            if dependent.get("result_reason") == "BLOCKED_BY_DEPENDENCY":
+                dependent["status"] = "WAITING"
+                dependent["result_reason"] = None
+        mission["status"] = "ACTIVE"
+        mission["updated_at"] = now()
+        _refresh(mission)
+        self.store.save(mission)
+        self.store.append_event(mission_id, {
+            "event": "GATE_APPROVED", "at": mission["updated_at"],
+            "job_id": job_id, "receipt_id": evidence["receipt_id"], "final_status": "PASS"
+        })
+        return mission
+
+    def unblock_job(self, mission_id: str, job_id: str) -> dict:
+        """Unblock a BLOCKED job back to WAITING/READY so it can be dispatched."""
+        mission = self.store.load(mission_id)
+        job = _job(mission, job_id)
+        job["status"] = "WAITING"
+        job["result_reason"] = None
+        job.pop("receipt_ref", None)
+        job.pop("receipt_evidence", None)
+        for dependent in mission["jobs"]:
+            if dependent.get("result_reason") == "BLOCKED_BY_DEPENDENCY":
+                dependent["status"] = "WAITING"
+                dependent["result_reason"] = None
+        if "next_eligible_phase" in mission and mission["next_eligible_phase"].get("job_id") == job_id:
+            mission["next_eligible_phase"]["status"] = "UNBLOCKED"
+        mission["status"] = "ACTIVE"
+        mission["updated_at"] = now()
+        _refresh(mission)
+        self.store.save(mission)
+        self.store.append_event(mission_id, {
+            "event": "JOB_UNBLOCKED", "at": mission["updated_at"],
+            "job_id": job_id, "new_status": job["status"]
+        })
+        return mission
 
     def authorize_premature_stop_retry(self, mission_id: str, job_id: str, *,
                                        updated_objective: str | None = None,
