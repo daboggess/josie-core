@@ -44,7 +44,7 @@ In Project Josie, **sovereignty is rooted in bare-metal physical custody.** Whil
 
 ### 6.1.2 The Harbor Freight Hardware Heritage
 
-Josie's physical implementation reflects an enduring design ethos: the **Harbor Freight Philosophy** (`DEC-0031`, `DEC-0033`).
+Josie's physical implementation reflects an enduring design ethos: the **Harbor Freight Philosophy** (`CON-031`, `CON-033`).
 
 Throughout his entrepreneurial ventures, Dustin developed a deep appreciation for the practical, modular, and repairable utility of accessible tools. In enterprise engineering, there is a pervasive temptation to believe that sophisticated systems require exorbitant capital expenditure—that an AI project is not serious unless it runs on enterprise server racks, expensive cloud clusters, or top-tier enterprise GPUs.
 
@@ -274,7 +274,7 @@ Under `DEC-0003` and `CON-014`:
 * **Public Funnels are Prohibited:** Public reverse-proxy tunnels that allow unauthenticated inbound traffic from the public web are banned.
 * **Tailscale Serve Exclusivity:** Remote access to Josie’s interfaces (Open WebUI, API bridges) is permitted exclusively over private, end-to-end encrypted mesh networks using **Tailscale Serve**. Access requires authenticated device pairing within Dustin’s private Tailscale tailnet.
 
-### 6.5.2 Multi-Tenant Account & Data Boundary Separation (`DEC-0028`)
+### 6.5.2 Multi-Tenant Account & Data Boundary Separation (`CON-028`)
 
 To preserve absolute privacy and prevent cross-contamination, the system enforces strict administrative segregation between Josie’s operational infrastructure and Dustin's personal life:
 * **Dedicated Service Accounts:** Cloud model APIs, cloud project IDs, and developer credentials must operate under dedicated service accounts, completely decoupled from Dustin's personal Google account (personal Gmail, Google Drive, Google Photos).

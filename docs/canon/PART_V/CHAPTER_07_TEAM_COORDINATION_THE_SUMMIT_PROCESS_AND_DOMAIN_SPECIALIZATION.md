@@ -7,8 +7,8 @@
 
 ```
 Document Class:     Foundational Canon / Operational Governance Doctrine
-Version:            1.0.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Active Draft — Submitted for Owner & Architectural Review)
+Version:            1.1.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Reconciled per Sophie & Owner Directives)
 Primary Subject:    The Summit Process, Evidence-Weighted Coordination, Mission Manager Sole Scheduler Authority,
                     Drift Prevention Protocols, and Domain Enclaves
 Primary Sources:    FSV Summit Unification Directive v1.0 (docs/decisions/FSV_SUMMIT_UNIFICATION_DIRECTIVE_v1.0.md, 2026-08-19);
@@ -129,7 +129,9 @@ The Mission Manager operates as a deterministic Python control plane residing di
 
 ### 7.2.3 Bounded Work Orders and Task Packets
 
-Workers dispatched by the Mission Manager do not receive open-ended, natural-language conversational prompts. They receive strictly bounded **Task Packets** (`DEC-0021`, `DEC-0032`):
+*Operational Reality:* The Mission Manager represents an intended institutional architecture and tested verification harness (`mission_manager/dispatcher.py`), proven through discrete gates (`06_AUTONOMOUS_MISSION_GATE.md`). It is not currently a 24/7 background scheduler autonomously triggering tasks without human initiation.
+
+When tasks are dispatched, workers do not receive open-ended, natural-language conversational prompts. They receive strictly bounded **Task Packets** (`DEC-0021`, `CON-032`):
 * **Mission Statement:** A concise, single-sentence definition of the objective.
 * **Authoritative Context:** The exact file paths, schema definitions, and background constraints required.
 * **Approved Scope:** The precise list of files the worker is permitted to read or mutate.
@@ -137,9 +139,9 @@ Workers dispatched by the Mission Manager do not receive open-ended, natural-lan
 * **Verification Criteria:** The specific automated test commands or deterministic checks required for task acceptance.
 * **Evidence Required:** The expected machine receipt format, including exit codes, diff blocks, and execution runtimes.
 
-### 7.2.4 Zero-Defect Operational Runbook Rules (`CON-0032`, `DEC-0032`)
+### 7.2.4 Zero-Defect Operational Runbook Rules (`CON-032`)
 
-To eliminate self-delusion and unattended runaway loops, the Mission Manager enforces the **Zero-Defect Operational Invariants (`CON-0032`)**:
+To eliminate self-delusion and unattended runaway loops, the Mission Manager enforces the **Zero-Defect Operational Invariants (`CON-032`)**:
 * **"No Fake Passes":** A task never receives a pass status based on worker self-declaration. If an execution script exits with code 0 but fails to produce the expected artifact or test receipt, the run is classified as a critical failure.
 * **"No Duplicate Workers":** The dispatcher strictly forbids launching concurrent workers targeting the same repository branch, database, or GPU resource.
 * **"No Endless Test Loops":** If a worker fails a verification test twice consecutively, execution is immediately halted fail-closed, marked `BLOCKED`, and escalated to Dustin. Blind, repetitive trial-and-error retry loops are prohibited.
@@ -164,7 +166,9 @@ A core function of the Summit is safeguarding domain truths against model drift 
 
 ### 7.3.3 The 12-Stage Summit State Machine
 
-To coordinate multi-model collaboration without conversational chaos, the FSV Summit implemented a formal **12-Stage Finite State Machine**:
+*Architectural Classification: Ratified Design & Phased Operational Specification (`FSV_SUMMIT_UNIFICATION_DIRECTIVE_v1.0.md`).*
+
+To coordinate multi-model collaboration without conversational chaos, the FSV directive established a formal **12-Stage Finite State Machine** to govern task lifecycle across phased milestones:
 
 ```
 +----------------------------------------------------------------------------------------------------+
@@ -214,34 +218,39 @@ To coordinate multi-model collaboration without conversational chaos, the FSV Su
 
 ### 7.3.4 The Shared Collaboration Surface & Append-Only Storage
 
-The physical coordination surface for the FSV Summit was implemented across two integrated layers:
-1. **The Shared Surface (Private Google Sheet):** A structured Google Sheet named `FSV Summit` served as the human-readable collaboration dashboard, partitioned into dedicated tabs: `Threads`, `Messages`, `Decisions`, `Tasks`, `Capabilities`, `Artifacts`, and `Audit`.
-2. **Persistent Store (Bare-Metal SQLite):** An independent SQLite database running in Write-Ahead Logging (WAL) mode maintained the authoritative, immutable history. To eliminate database race conditions and locking conflicts, an n8n deterministic workflow service acted as the sole database writer.
-3. **Append-Only Immutability:** Overwriting existing entries was strictly prohibited. When Sophie or Bernie amended a previous statement, the system appended a new message version linked cryptographically to the parent ID.
+The physical coordination surface for the FSV Summit was specified across two integrated layers:
+1. **The Shared Surface (Private Google Sheet):** A structured Google Sheet named `FSV Summit` designed as the human-readable collaboration dashboard, partitioned into dedicated tabs: `Threads`, `Messages`, `Decisions`, `Tasks`, `Capabilities`, `Artifacts`, and `Audit`.
+2. **Persistent Store (Bare-Metal SQLite):** An independent SQLite database running in Write-Ahead Logging (WAL) mode maintaining the authoritative history, with n8n deterministic workflows designated as the database writer to avoid concurrency conflicts.
+3. **Append-Only Immutability:** Overwriting existing entries was strictly prohibited; corrections append new linked message versions.
 
-### 7.3.5 The Two-Click Confirmed Publishing Protocol (`CON-017`)
+### 7.3.5 The Two-Click Confirmed Publishing Protocol (`CON-017`): Design vs. Prototype Reality
 
 Publishing business information to public platforms (such as Google Business Profile) represents an irreversible external action. A faulty automated script or hallucinated post could cause immediate commercial and reputational damage.
 
 To govern external publishing, Dustin mandated the **Two-Click Confirmed Publishing Protocol (`CON-017`)**:
-* **Signed Single-Use Expiring Tokens:** Publishing drafts generate a cryptographically signed approval token with a strict expiration window (e.g., 2 hours).
+* **Signed Single-Use Expiring Tokens:** Publishing drafts generate a cryptographically signed approval token with a strict expiration window.
 * **The Email Prefetch Threat:** Modern email clients, anti-virus gateways, and security scanners routinely prefetch HTTP links contained in incoming emails to check for malware. If an email contained a single "Click here to publish" link, the email scanner bot would automatically trigger publication without human intent.
 * **The Two-Click Guard:** 
   * **Click 1 (Intent):** The link in the approval email opens a secure, authenticated review page on Dustin’s private Tailscale network, rendering the exact text, images, and target platform.
   * **Click 2 (Execution):** Publication occurs *only* when Dustin manually clicks the secondary confirmation button on that rendered web page.
-* **Deterministic Logging:** The system records the approver identity, approval timestamp, source draft ID, token digest, and target platform publication receipt.
+
+#### Empirical Implementation Reality (`FSV-LOCAL-TEST-001` Verification)
+Live inspection of repository artifacts (`docs/workflows/full_steam_vapor/FSV_LOCAL_TEST_001_CHECKPOINT.md`) reveals the exact implementation boundary:
+* **Implemented Prototype:** The protocol was constructed as four n8n workflows (`fsv-review-intake.json`, `fsv-review-decision-portal.json`, `fsv-approval-audit-append.json`, and table initializer) running in container `josie-n8n-1` accessible over Tailscale Serve (`https://refurb.tail0ab4d2.ts.net:5678`).
+* **Verified Tested Capabilities:** Controlled testing confirmed that a 64-byte random token was generated, its HMAC-SHA256 digest stored, a 72-hour expiry enforced, and an invalid token correctly rejected with HTTP 403 over Tailscale. The portal workflow verified intent on GET without mutating state.
+* **What Was NOT Deployed to Production:** The checkpoint explicitly records that **no production publishing node or live Google Business Profile webhook was connected, no live Gmail message was sent, and nothing could publish to Google**. Status remained: `SAFE / READY FOR CONTROLLED PHONE TEST / AWAITING DUSTIN CONFIRMATION`. The two-click publishing protocol is a verified, token-safe workflow prototype, not a production-deployed automated publishing pipeline.
 
 ---
 
 ## 7.4 Inter-Model Drift Prevention & Communication Protocols
 
-### 7.4.1 The Pathology of Inter-Model Drift (`CON-0030`, `DEC-0030`)
+### 7.4.1 The Pathology of Inter-Model Drift (`CON-030`)
 
 When multiple large language models interact directly without human oversight, they exhibit a well-documented pathological failure mode: **autonomous drift**.
 
 In unconstrained environments, Model A generates a slightly imprecise assumption; Model B interprets that assumption as established fact and builds upon it; Model A validates Model B's elaboration, compounding the error. Within three to four conversational turns, both models hallucinate mutual agreement on imaginary requirements, invalid code APIs, or non-existent files.
 
-Dustin formally addressed this vulnerability under **Decision DEC-0030** and **Concept CON-0030**:
+Dustin formally addressed this vulnerability in Conversation 1716, codified in **Concept CON-030 (Sophie-Bernie Drift Prevention Protocol)**:
 > *"Sophie and Bernie cannot independently keep chatting, hallucinating mutual agreements, or modifying files without human review. Every handoff must be bounded by receipts."*
 
 ### 7.4.2 The Asynchronous Build Board Wire (`DEC-0008`)
@@ -302,23 +311,24 @@ To protect privacy, prevent cross-contamination, and preserve focus, Josie organ
 |                         | market opportunity analysis.      | strictly prohibited (DEC-0006).    |
 +-------------------------+-----------------------------------+------------------------------------+
 | PERSONAL ADMINISTRATION | Household scheduling, family      | Dedicated service accounts         |
-| & PRODUCTIVITY          | workflows, task coordination,     | (DEC-0028); zero personal Google   |
+| & PRODUCTIVITY          | workflows, task coordination,     | (CON-028); zero personal Google    |
 |                         | document drafting.                | credential contamination.          |
 +-------------------------+-----------------------------------+------------------------------------+
 | SCRIPTURAL STUDY &      | Comparative biblical research,    | Scripture interprets Scripture     |
 | THEOLOGICAL REFLECTION  | commentary analysis, linguistic   | (CON-018); ministerial counsel;   |
 |                         | study (Greek/Hebrew texts).       | non-oracle advisory stance.        |
 +-------------------------+-----------------------------------+------------------------------------+
-| PRAYER STEWARDSHIP      | Pastoral prayer records, family   | Physical SQLite isolation          |
-| (Sacred Registry)       | spiritual burdens, personal       | (DEC-0019, DEC-0020); excluded     |
-|                         | reflections, intercession notes.  | from general worker memory priming.|
+| PRAYER STEWARDSHIP      | Pastoral prayer records, family   | Logical table segregation in       |
+| (Sacred Registry)       | spiritual burdens, personal       | josie.db (DEC-0019, DEC-0020);     |
+|                         | reflections, intercession notes.  | excluded from inspected priming;   |
+|                         |                                   | zero encryption at rest.           |
 +==================================================================================================+
 ```
 
 #### Enclave Integrity Principles:
 1. **The Deal Hunter Boundary (`CON-010`, `DEC-0006`, `DEC-0015`):** The Deal Hunter workflow is strictly read-only. It may query the eBay Browse API, scrape approved public listings, calculate profit margins, and present opportunities in a local staging database. **Autonomous bidding, purchasing, or credit card checkout is permanently forbidden.** Final execution requires Dustin's direct physical action.
 2. **The Scriptural Study Principle (`CON-018`):** In theological inquiry, Josie operates as a study partner, not a spiritual authority. She compares scripture with scripture, examines original language roots and historical contexts, and treats historic theological commentaries as wise human counsel rather than divine revelation. She offers grounding without claiming prophetic insight or replacing pastoral fellowship.
-3. **The Prayer Stewardship Enclave (`DEC-0019`, `DEC-0020`):** Personal and pastoral prayer requests are held in a physically segregated database registry. They are permanently shielded from commercial pipelines, model fine-tuning sets, and general worker context assembly.
+3. **The Prayer Stewardship Enclave (`DEC-0019`, `DEC-0020`, `CON-015`):** Consistent with the technical audit in Chapter 4, the Prayer Stewardship Registry is implemented via logical table segregation (`prayer_requests`, `prayer_sessions`, `prayer_updates`) within the shared `data/josie.db` database, rather than a physically distinct database file. Its exclusion from general worker memory is verified along inspected canonical priming paths (`josie/priming.py`). However, no database encryption at rest is currently implemented, and no system-wide technical guarantee exists against uninspected future code paths. The governing operational requirement remains inviolable: sensitive prayer information must never enter unrelated commercial, deal-hunting, or general worker contexts.
 
 ---
 
@@ -343,8 +353,8 @@ The audit ledger below identifies the primary sources, operational directives, c
 | Mission Manager Dispatcher  | D:/Josie/mission_manager/     | Module: dispatcher.py  | Class 4         |
 | & Worker Registry Codebase  | dispatcher.py, worker_reg...  | Verified: 2026-09-15   | (Live Software) |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Concept CON-030 & DEC-0030  | D:/Josie/reports/genesis-003/ | Decision: DEC-0030     | Class 2 / 5     |
-| (Drift Prevention Protocol) | GENESIS-003_CONCEPT_LEDGER.md | Historical: Conv 1716  | (Candidate Can) |
+| Concept CON-030 (Sophie-    | D:/Josie/reports/genesis-003/ | Concept: CON-030       | Class 2 / 5     |
+| Bernie Drift Prevention)    | GENESIS-003_CONCEPT_LEDGER.md | Historical: Conv 1716  | (Candidate Can) |
 +-----------------------------+-------------------------------+------------------------+-----------------+
 | Concept CON-017 (Two-Click  | D:/Josie/reports/genesis-002/ | Concept: CON-017       | Class 2         |
 | Confirmed Publishing Link)  | JOSIE_CANON_CANDIDATE.md      | Directive: FSV v1.0    | (Operational)   |
@@ -372,7 +382,7 @@ To preserve intellectual integrity, the following items remain formally register
 
 #### UNRES-OPS-03: Automation Scope of Multi-Model Relay Synchronization
 * **Status:** `OPEN OPERATIONAL EVALUATION`
-* **Description:** While the 12-state Summit state machine was codified in August 2026, the transition between manual human copy-pasting of briefs, semi-automated browser extension relays (CDP), and fully automated n8n webhook listeners remains varied across operational domains. The long-term architectural goal is deterministic n8n orchestration, but manual human-in-the-loop relays remain active for high-consequence decisions.
+* **Description:** While the 12-stage Summit state machine was codified in August 2026, the transition between manual human copy-pasting of briefs, semi-automated browser extension relays (CDP), and fully automated n8n webhook listeners remains varied across operational domains. The long-term architectural goal is deterministic n8n orchestration, but manual human-in-the-loop relays remain active for high-consequence decisions.
 * **Provisional Stance:** All multi-model handoffs require explicit receipt capture regardless of transport mechanism.
 
 #### UNRES-GOV-01: Governance Hierarchy & Constitutional Supremacy
@@ -383,15 +393,15 @@ To preserve intellectual integrity, the following items remain formally register
 
 ```
 ================================================================================
-                          END OF CHAPTER 7 DRAFT (v1.0.0)
+                          END OF CHAPTER 7 DRAFT (v1.1.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
   1. Confirm the representation of The Summit as an evidence-weighted deliberation process rather than a democratic voting swarm.
   2. Validate the architectural separation between Summit deliberation and Mission Manager scheduling authority.
-  3. Verify the fidelity of the Full Steam Vapor Summit implementation, including the 12-stage state machine and commercial invariants.
+  3. Verify the fidelity of the Full Steam Vapor Summit implementation, distinguishing ratified design from prototype n8n testing.
   4. Review the Two-Click Confirmed Publishing Protocol (CON-017) designed to defeat automated email prefetch crawlers.
-  5. Validate the inter-model drift prevention protocols (CON-0030, DEC-0030) and asynchronous build board constraints.
-  6. Confirm the domain enclave boundaries (Commercial, Deal Hunter, Personal, Biblical, Prayer Stewardship).
+  5. Validate the inter-model drift prevention protocols (CON-030) and asynchronous build board constraints.
+  6. Confirm the domain enclave boundaries (Commercial, Deal Hunter, Personal, Biblical, and logically segregated Prayer Stewardship).
   7. Confirm that open governance question UNRES-GOV-01 remains formally open.
 ================================================================================
 ```

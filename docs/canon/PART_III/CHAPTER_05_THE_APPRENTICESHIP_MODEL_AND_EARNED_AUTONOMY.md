@@ -187,9 +187,9 @@ To provide complete architectural clarity, each major operational approval bound
 |    Pocket Purchasing   | Zero-Cent Spend Rule.      | payment APIs in runtime;    | holdout tests verify    | proxy; hardware-enforced  |
 |                        | (DEC-0016, DEC-0018).      | local deal hunter read-only.| zero API expenditure.   | purchasing tokens.        |
 +------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
-| 4. External Messaging &| DEC-0019, DEC-0020;        | Disconnected sources for    | Slack ingress isolation | Outbound network egress   |
-|    Public Posting      | Single-source gating.      | sensitive tables; relay in  | tests pass in suite     | firewall filter at OS     |
-|                        |                            | manual/scoped worker mode.  | (test_slack_ingress.py).| level for all workers.    |
+| 4. External Messaging &| CON-017; DEC-0003;         | Disconnected sources for    | Slack ingress isolation | Outbound network egress   |
+|    Public Posting      | Two-Click Publishing.      | sensitive tables; relay in  | tests pass in suite     | firewall filter at OS     |
+|                        | (FSV Unification Directive)| manual/scoped worker mode.  | (test_slack_ingress.py).| level for all workers.    |
 +------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
 | 5. Production SQLite   | Append-Only Schema Freeze; | Runtime code uses DML only  | Bootstrap pre-mutation  | SQLite connection in      |
 |    Schema Mutations    | Schema Migration Review.   | (SELECT/INSERT/UPDATE);     | backup snapshot tests   | URI mode (mode=ro); OS    |
