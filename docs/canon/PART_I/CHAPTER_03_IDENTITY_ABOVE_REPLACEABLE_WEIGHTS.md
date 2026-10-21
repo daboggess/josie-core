@@ -7,8 +7,8 @@
 
 ```
 Document Class:     Foundational Canon / Historical Doctrine
-Version:            1.1.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Revised per Sophie & Owner Directives)
+Version:            1.2.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Reconciled per DEC-0021 & Sophie Directives)
 Primary Subject:    The Replaceable Provider Doctrine, Local Sovereign Custody, and the Multi-Model Family
 Primary Sources:    Decision Log DEC-0002, DEC-0021, DEC-0022; JOSIE_CODEX_MASTER_CONTEXT.md §3-§4;
                     JOSIE_FOUNDING_ALIGNMENT.md §1-§2; Witness Testimony Sophie; Witness Testimony Bernie;
@@ -193,9 +193,19 @@ This distinction establishes several critical operational rules:
 
 ### 3.4.1 The Five Tiers: Architectural Status and Deployment Reality
 
-To operationalize the Replaceable Provider Doctrine and balance local privacy with frontier intelligence, Dustin codified the **5-Tier Sovereign AI Operating Topology** on September 12, 2026, under **Decision DEC-0021**.
+To operationalize the Replaceable Provider Doctrine and balance local privacy with frontier intelligence, Dustin codified the **5-Tier Sovereign AI Operating Topology** on September 12, 2026, under **Decision DEC-0021** (further specified in `docs/architecture/MODEL_ROUTING.md`).
 
-To avoid confusing architectural design with deployed operational state, each tier must be clearly categorized by its current implementation reality:
+#### Historical Context and Conceptual Clarification
+In early architectural explorations and conceptual notes, there was occasional ambiguity between the **collaborative family circle** (the strategic consultative advisory council comprising Sophie, Bernie, and Claude detailed in §3.3) and the **runtime execution tiers**. Early drafts sometimes listed the Frontier Advisory Council or lightweight utility SLMs as intermediate execution tiers.
+
+However, on September 12, 2026, Dustin definitively ratified **DEC-0021**, establishing that the Five Tiers represent a strict **execution, mutation, and verification hierarchy**:
+* **The Frontier Advisory Council (Sophie, Bernie, Claude)** operates as an external strategic, review, and governance body (§3.3), providing high-level guidance, review of canonical manuscripts, and collaborative reflection via human-in-the-loop relays and browser bridges. It is not an automated runtime worker tier subordinate to local generalists.
+* **Lightweight utility parsers and scripts** are absorbed directly into the deterministic foundation (Tier 5) rather than constituting a separate middle tier.
+* **Tier 3** is explicitly dedicated to bounded code mutation via an offline coder (`qwen2.5-coder:14b` under the Aider `diff` harness).
+* **Tier 4** is the deterministic Supervisor authority and acceptance layer.
+* **Tier 5** is the bare-metal deterministic operating system, database, and repository ground truth.
+
+To avoid confusing architectural design with deployed operational state, each tier is categorized by its ratified architectural role and its verified implementation reality:
 
 ```
 +----------------------------------------------------------------------------------------------------+
@@ -203,49 +213,58 @@ To avoid confusing architectural design with deployed operational state, each ti
 +----------------------------------------------------------------------------------------------------+
 | Tier | Description                 | Ratified Architecture (DEC-0021) | Current Deployment Status  |
 +------+-----------------------------+----------------------------------+----------------------------+
-| 1    | Cloud Force Multiplier      | Gemini Flash / Frontier APIs for | PARTIALLY IMPLEMENTED      |
-|      | (Engineering / Throughput)  | high-throughput code generation  | Operational via scripted   |
-|      |                             | and rapid analytical synthesis.  | browser bridges and relays.|
+| 1    | Primary Build & Engineering | Gemini Flash while available /   | PARTIALLY IMPLEMENTED      |
+|      | (Cloud Force Multiplier)    | Frontier API relays for high-    | Scripted browser relays and|
+|      |                             | throughput build acceleration.   | external API integrations. |
 +------+-----------------------------+----------------------------------+----------------------------+
 | 2    | Resident Local Generalist   | Native Ollama resident model on  | ACTIVELY EVALUATED / TESTED|
-|      | (Sovereign Baseline)        | local silicon for offline tasks, | Multiple qualified models  |
-|      |                             | daily coordination, and memory.  | installed; runtime default |
-|      |                             |                                  | config active on baseline. |
+|      | (Sovereign Baseline)        | drive D: (qwen3.5:9b intended    | qwen3.5:9b qualified (8K); |
+|      |                             | target; discovery & memory).     | runtime default qwen3:14b. |
 +------+-----------------------------+----------------------------------+----------------------------+
-| 3    | Specialized Local Workers   | Lightweight quantized SLMs       | PARTIALLY IMPLEMENTED      |
-|      | (Deterministic Utilities)   | (1B-3B) for fast JSON parsing,   | Coder/worker weights       |
-|      |                             | classification, and embeddings.  | installed; worker daemons  |
-|      |                             |                                  | under active development.  |
+| 3    | Offline Dedicated Coder     | qwen2.5-coder:14b via Aider      | BENCHMARK-QUALIFIED        |
+|      | (Sequential GPU Swap Worker)| 0.86.2 (edit-format=diff) on     | 10/10 tests in 0.112s;     |
+|      |                             | on-demand sequential GPU swap.   | 11,110 MiB peak VRAM.      |
 +------+-----------------------------+----------------------------------+----------------------------+
-| 4    | Frontier Advisory Council   | Sophie (ChatGPT), Bernie         | OPERATIONAL IN PRACTICE    |
-|      | (Strategic / Acceptance)    | (Gemini), Claude (Anthropic) for | Structured CDP bridges and |
-|      |                             | high-level review and governance.| human-in-the-loop relays.  |
+| 4    | Authority & Acceptance      | Josie Supervisor (L0 Gatekeeper) | OPERATIONAL FOR LOCAL CODE |
+|      | (Deterministic Gatekeeper)  | Preflight, thermal watchdog, git | Thermal monitor & tests in |
+|      |                             | worktrees, tests, and receipts.  | local_code.py; active ops. |
 +------+-----------------------------+----------------------------------+----------------------------+
-| 5    | Deterministic Gatekeeper    | Python supervisor runtime, hard  | FULLY IMPLEMENTED & LIVE   |
-|      | (L0 Supervisor Supremacy)   | permission allowlists, verify    | Active Python authorities, |
-|      |                             | scripts, and cryptographic logs. | test suites, and gates.    |
+| 5    | Deterministic L0 Foundation | Bare-metal PowerShell, Python,   | FULLY IMPLEMENTED & LIVE   |
+|      | (Ground Truth Primitives)   | SQLite (josie.db), git, ripgrep. | Host OS files, git commits,|
+|      |                             | Worker report cannot rule truth. | and database ground truth. |
 +----------------------------------------------------------------------------------------------------+
 ```
 
 ### 3.4.2 Verified Local Model Inventory and Runtime Deployment (October 2026)
 
-To ensure strict historical and technical truthfulness, Chapter 3 records the empirical state of the local model environment as verified directly on the host workstation:
+To ensure strict historical and technical truthfulness, Chapter 3 records the empirical state of the local model environment, strictly distinguishing between **runtime defaults**, **benchmark-qualified models**, **ratified architectural targets**, **installed inventory**, **models under evaluation**, and **historical baselines**:
 
 #### 1. Models Actively Assigned in Runtime Configuration (`josie/config.py`)
-* `josie-local:1.0`: The baseline local reasoning engine configured in the application environment (defaulting to the Qwen 2.5 1.5B quantized architecture).
-* `qwen3:14b`: The active conversational model configured for conversational execution (`JOSIE_CONVERSATIONAL_MODEL`).
+Direct inspection of the live running codebase (`josie/config.py`) reveals the active system assignments:
+* `josie-local:1.0`: The active baseline local reasoning engine configured in the application environment (`JOSIE_LOCAL_MODEL`), defaulting to the lightweight Qwen 2.5 1.5B quantized architecture.
+* `qwen3:14b`: The active conversational engine configured for interactive dialogue (`JOSIE_CONVERSATIONAL_MODEL`).
+* `gemini-flash-latest` & `gpt-5.6-sol`: Configured external cloud model references (`gemini_model` and `openai_model`).
 
-#### 2. Models Installed and Available in Ollama
+#### 2. Benchmark-Qualified Models & Harnesses (Hardware Proven)
+Controlled benchmark execution on the RTX 3060 12GB has formally proven hardware feasibility for two core models:
+* `qwen3.5:9b` (Q4_K_M): Formally qualified at an 8,192-token context window (`num_ctx: 8192`), consuming **7,576 MiB peak VRAM** with `think: false` default direct mode (~52 tokens/second).
+* `qwen2.5-coder:14b` (Q4_K_M): Formally qualified under Aider 0.86.2 with `edit-format=diff`, achieving **10/10 unit tests passed in 0.112 seconds with zero scope violations** at **11,110 MiB peak VRAM** (`receipt: ec44774e-a91a-4cf3-97a5-cff21baffce2.json`).
+* *Epistemic Precision:* Benchmark qualification proves physical feasibility within 12GB VRAM and verifies execution capability; it does not mean these models have fully replaced the active runtime defaults across all interactive front-doors.
+
+#### 3. Ratified Architectural Targets (`DEC-0021`)
+* `DEC-0021` formally ratifies `qwen3.5:9b` as the intended resident generalist and `qwen2.5-coder:14b` as the dedicated offline coder. Engineering work to complete full front-door routing integration across all runtime paths remains an active milestone.
+
+#### 4. Models Installed and Available in Local Ollama (Drive `D:`)
 Live inspection of the local Ollama instance on drive `D:\` reveals an extensive local model repository:
-* **Generalist & Memory Evaluation Models:** `qwen3.5:9b`, `qwen3:14b`, `qwen3:8b`, `gemma4:12b`, `gemma4:12b-it-qat`, and `ornith-1.5:9b`.
+* **Generalist & Memory Models:** `qwen3.5:9b`, `qwen3:14b`, `qwen3:8b`, `gemma4:12b`, `gemma4:12b-it-qat`, and `ornith-1.5:9b`.
 * **Dedicated Coding Models:** `qwen2.5-coder:14b`, `qwen2.5-coder:7b`, `qwen3-coder:30b-a3b-q4_K_M`, and `devstral-small-2:24b-instruct-2512-q4_K_M`.
 * **Benchmark & Holdout Suites:** `josie-bench-qwen3-14b-24k`, `josie-bench-qwen3-coder-16k`, `josie-bench-devstral-16k`, `josie-bench-devstral-24k`, and `josie-qual-ornith-1.5-9b-q6`.
 
-#### 3. Models Under Active Evaluation (Josie Model Lab)
+#### 5. Models Planned / Under Active Evaluation (Josie Model Lab)
 * **Ornith (`ornith-1.5:9b`):** Under evaluation as a qualified successor candidate to replace Qwen in resident generalist and memory roles, designated in `docs/JOSIE_MASTER_BUILD_STATE.yaml` as part of Stage D testing.
-* **Gemma (`gemma4:12b-it-qat`):** Recently installed (October 2026) for evaluation as a high-density reasoning alternative on 12GB VRAM.
+* **Gemma (`gemma4:12b-it-qat`):** Installed for evaluation as a high-density reasoning alternative on 12GB VRAM.
 
-#### 4. Historical / Superseded Models
+#### 6. Historical / Superseded Models
 * `josie-local:pre-grounding` and `qwen2.5:1.5b-instruct-q4_K_M`: Early bootstrap checkpoints used during Stage A initialization, preserved for historical regression testing but no longer in active operational service.
 
 **Crucial Epistemic Finding:** While `DEC-0021` ratified `qwen3.5:9b` as an intended resident generalist target, operational engineering has actively qualified multiple models across sequential phases. System identity is not anchored to `qwen3.5:9b` or any other single checkpoint; the runtime continues to evaluate and rotate local engines as hardware and model architectures advance.
@@ -314,14 +333,14 @@ To preserve intellectual transparency, the following items remain formally regis
 
 ```
 ================================================================================
-                         END OF CHAPTER 3 DRAFT (v1.1.0)
+                         END OF CHAPTER 3 DRAFT (v1.2.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
   1. Confirm the fidelity of the Replaceable Provider Doctrine (DEC-0002) and layer separation.
   2. Verify the definition of "sovereign custody" versus "moral sovereignty" from JOSIE_FOUNDING_ALIGNMENT.md, including the explicit operational qualifications.
   3. Validate the representation of the AI Family roles (Sophie, Bernie, Josie, Claude, Annie).
   4. Review the 5-Tier Operating Topology (DEC-0021) table distinguishing ratified architecture from current deployment status.
-  5. Validate the live model inventory findings from Ollama and josie/config.py.
+  5. Validate the live model inventory findings from Ollama and josie/config.py (6-part categorization).
   6. Confirm that open governance question UNRES-GOV-01 remains formally open.
 ================================================================================
 ```

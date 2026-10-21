@@ -7,8 +7,8 @@
 
 ```
 Document Class:     Foundational Canon / Architectural Doctrine
-Version:            1.0.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Active Draft — Submitted for Owner & Architectural Review)
+Version:            1.1.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Reconciled per DEC-0021 & Hardware Verification)
 Primary Subject:    The Five-Tier Sovereign Operating Topology, Bare-Metal Hardware Invariants, Sequential GPU Swapping, and Thermal Safeguards
 Primary Sources:    Decision Log DEC-0003, DEC-0004, DEC-0014, DEC-0021, DEC-0022;
                     Concept CON-012, CON-013, CON-014;
@@ -121,17 +121,18 @@ On September 12, 2026, Dustin ratified **Decision DEC-0021**, establishing the *
 * **Operational Scope:** Stateless cloud models (Gemini Flash, ChatGPT, DeepSeek) accessed via secure relay scripts. Tier 1 provides high-throughput token processing, multi-document architectural synthesis, and external research acceleration.
 * **Boundary:** Tier 1 systems are transient external consultants. They hold no custody over Josie’s canonical memory, cannot modify database schemas directly, and are bound by the strict zero-dollar incremental spend mandate (`DEC-0021`). If cloud connectivity is lost, the system remains fully operational locally.
 
-#### Tier 2: Offline / Private Resident Generalist (`qwen3.5:9b`)
-* **Model Baseline:** `qwen3.5:9b` (Q4_K_M quantization) running via native Windows Ollama on drive `D:`.
+#### Tier 2: Offline / Private Resident Generalist (`qwen3.5:9b` Ratified Target / `qwen3:14b` Runtime Default)
+* **Model Baseline & Architectural Target:** `qwen3.5:9b` (Q4_K_M quantization) running via native Windows Ollama on drive `D:`, ratified under `DEC-0021` as the intended sovereign resident baseline.
+* **Runtime Deployment Reality:** In the active running codebase (`josie/config.py`), the configured conversational engine is currently `qwen3:14b` (`JOSIE_CONVERSATIONAL_MODEL`), with `josie-local:1.0` (lightweight Qwen 2.5 1.5B) serving as the configured baseline local model. While `qwen3.5:9b` has been installed and formally benchmark-qualified, full front-door cutover across all interactive conversational paths remains an ongoing engineering milestone.
 * **Operational Role:** The resident generalist serves as Josie’s daily interactive conversational partner, private document parser, candidate claim extractor (`josie/candidate_claims.py`), and local task router.
 * **Context & Memory Footprint:** Formally qualified at an 8,192-token context window (`num_ctx: 8192`), consuming **7,576 MiB of peak VRAM**. While a larger 32K context window is architecturally feasible within the 12GB physical capacity, 8K remains the established, empirically verified operational baseline.
 * **Thinking Policy (`think: false`):** Runs by default in direct execution mode (`think: false`), generating fast responses (~52 tokens/second) without consuming limited context tokens on chain-of-thought scratchpads (`CON-013`).
 
-#### Tier 3: Offline Dedicated Coder (`qwen2.5-coder:14b`)
-* **Model Baseline:** `qwen2.5-coder:14b` (Q4_K_M quantization) running via native Ollama.
-* **Operational Harness:** Executed strictly under **Aider 0.86.2** utilizing `--edit-format diff`.
+#### Tier 3: Offline Dedicated Coder (`qwen2.5-coder:14b` via Aider Diff)
+* **Model Baseline & Architectural Target:** `qwen2.5-coder:14b` (Q4_K_M quantization) running via native Ollama.
+* **Operational Harness:** Executed strictly on-demand under **Aider 0.86.2** utilizing `--edit-format diff`. Tier 3 is not held continuously in VRAM; it is loaded via sequential GPU swapping specifically to execute bounded repository mutations.
 * **Surgical Diff Editing:** Rather than rewriting entire source files—a common failure mode where probabilistic models drop existing methods, mangle imports, and destroy unrelated comments—Aider diff mode restricts the model to generating surgical `<<<<<<< SEARCH / ======= / >>>>>>> REPLACE` blocks.
-* **Verified Benchmark Proof:** In official benchmark testing (`receipt: ec44774e-a91a-4cf3-97a5-cff21baffce2.json`), Tier 3 achieved **10/10 unit tests passed in 0.112 seconds with zero scope violations**, operating at **11,110 MiB peak VRAM**.
+* **Verified Benchmark Proof:** In official benchmark testing (`receipt: ec44774e-a91a-4cf3-97a5-cff21baffce2.json`), Tier 3 achieved **10/10 unit tests passed in 0.112 seconds with zero scope violations**, operating at **11,110 MiB peak VRAM**. Benchmark qualification establishes hardware and algorithmic feasibility; production dispatch occurs under supervisor work orders.
 
 #### Tier 4: Authority & Acceptance (Josie Supervisor / L0 Gatekeeper)
 * **Operational Role:** An autonomous Python and shell middleware layer that acts as an independent verifier. The Supervisor owns preflight validation, thermal monitoring, timeout watchdogs, git worktree provisioning, independent test suite execution, and the generation of tamper-evident `ExecutionReceipt` records.
@@ -192,10 +193,12 @@ Attempting to load both models simultaneously into local Ollama results in CUDA 
 
 To ensure stability, the architecture enforces **Mandatory Sequential GPU Swapping (`CON-012`, `DEC-0021`)**:
 
-1. **Single Resident Baseline:** Under normal operating conditions, the resident generalist (`qwen3.5:9b`) is held in VRAM ready for interactive user conversation and background data extraction.
+1. **Single Resident Baseline:** Under normal operating conditions, the resident generalist (`qwen3.5:9b` or configured runtime baseline) is held in VRAM ready for interactive user conversation and background data extraction.
 2. **Deterministic Model Eviction:** When the Supervisor dispatches a code modification work order requiring Tier 3, the generalist is explicitly evicted from VRAM via an Ollama unload signal (`keep_alive: 0`).
 3. **Sequential Coder Loading:** The Supervisor loads `qwen2.5-coder:14b` into VRAM under the Aider harness, executes the task within an isolated git worktree, collects test receipts, and captures diffs.
-4. **Restoration of Resident State:** Upon task completion and receipt verification, the coder is evicted, and `qwen3.5:9b` is reloaded into VRAM, restoring the interactive front door.
+4. **Restoration of Resident State:** Upon task completion and receipt verification, the coder is evicted, and the resident generalist is reloaded into VRAM, restoring the interactive front door.
+
+*Implementation Note:* Sequential model unloading and reloading via `keep_alive: 0` is actively executed within benchmark harnesses (e.g., `scripts/bench_aider_coder.py`) and specific supervisor work orders, ensuring that only one large model occupies the 12GB VRAM at a time. However, an automated, real-time background swap daemon for continuous multi-model traffic remains a future architectural milestone (`Epistemic Class 6`).
 
 ### 6.3.3 The Thinking Policy: `think: false` Default Direct Mode (`CON-013`)
 
@@ -217,7 +220,11 @@ Dustin established that **hardware preservation supersedes autonomous execution 
 
 ### 6.4.2 The Multi-Threshold Thermal Controller
 
-To protect the physical hardware during unattended background operations, the Josie Supervisor incorporates a deterministic thermal watchdog (`docs/operations/LOCAL_CODE_THERMAL_SAFETY.md`). The controller polls `nvidia-smi.exe` every 10 seconds, monitoring GPU temperature, utilization, and power draw:
+To protect the physical hardware during unattended background operations, the Josie Supervisor incorporates a deterministic thermal watchdog (`config/local-code-thermal.json` and `josie/local_code.py`). 
+
+*Implementation Scope:* This thermal controller is demonstrably implemented and programmatically enforced in code specifically for unattended local-code worker jobs (such as `Delegate Local:` and `Delegate Local Code:` execution paths). It is not currently a universal operating-system-level daemon or hardware interrupt governing interactive Open WebUI chat sessions.
+
+During local-code tasks, the controller polls `nvidia-smi.exe` every 10 seconds, monitoring GPU temperature, utilization, and power draw:
 
 ```text
 nvidia-smi.exe --id=0 --query-gpu=name,temperature.gpu,utilization.gpu,memory.used,memory.total,power.draw --format=csv,noheader,nounits
@@ -280,16 +287,20 @@ To preserve absolute privacy and prevent cross-contamination, the system enforce
 To maintain rigorous intellectual transparency, the operating topology and hardware status are partitioned into verified active capabilities and future engineering roadmaps:
 
 ### 6.6.1 Current Technical Implementation (Epistemic Class 4 — As of October 2026)
-* **Native Ollama Deployment on D:** Local model weights for `qwen3.5:9b` and `qwen2.5-coder:14b` are stored and executed from the high-capacity external drive `D:`, keeping the 128GB boot SSD unencumbered.
+* **Configured Runtime Baseline (`josie/config.py`):** `josie-local:1.0` (lightweight Qwen 2.5 1.5B) and `qwen3:14b` (`JOSIE_CONVERSATIONAL_MODEL`) serve as the active system runtime defaults.
+* **Benchmark-Qualified Hardware Baselines:** Controlled testing confirms `qwen3.5:9b` qualified at 8K context (7,576 MiB peak VRAM) and `qwen2.5-coder:14b` under Aider `diff` achieving 10/10 unit tests in 0.112s at 11,110 MiB VRAM (`receipt: ec44774e`).
+* **Native Ollama Deployment on D:** Local model weights for all qualified models are stored and executed from the high-capacity external drive `D:`, keeping the 128GB boot SSD unencumbered.
 * **Aider Diff Integration:** Bounded repository editing via Aider 0.86.2 with `edit-format=diff` is verified and operational for local coding tasks.
-* **Verified Benchmark Receipts:** Hardware benchmark receipt `ec44774e` confirms 10/10 unit tests passing at 11,110 MiB VRAM on the RTX 3060.
-* **Active Thermal Watchdog:** Python thermal monitor polling `nvidia-smi` with multi-threshold trip points (70°C warn, 75°C refuse, 82°C abort) is integrated into local worker launch scripts.
+* **Active Thermal Watchdog for Local Code:** Python thermal monitor in `josie/local_code.py` polling `nvidia-smi` with multi-threshold trip points (70°C warn, 75°C refuse, 82°C abort) is programmatically enforced for local worker jobs.
+* **Script-Enforced Sequential Swapping:** Explicit unload (`keep_alive: 0`) and reload procedures implemented in benchmark and work-order scripts to respect the 12GB VRAM ceiling.
 * **Tailscale Point-to-Point Mesh:** Private network ingress active, prohibiting public router port forwarding.
 
 ### 6.6.2 Future Technical Horizons (Epistemic Class 6)
+* **Full Production Front-Door Cutover:** Migrating active runtime defaults in `josie/config.py` from `qwen3:14b` to `qwen3.5:9b` across all interactive user workflows.
 * **32K Context Qualification on Generalist:** Extending `qwen3.5:9b` from its verified 8K context baseline to a 32K window, pending systematic VRAM headroom benchmarking under load.
+* **Universal Hardware Thermal Interrupt:** Extending thermal polling beyond local-code jobs to govern all host GPU operations, including Open WebUI interactive sessions.
+* **Automated Sequential Swapping Daemon:** Full integration of an automated, event-driven model swap manager within the Supervisor daemon to eliminate manual unload/reload scripts across general workflows.
 * **Secondary Workstation / GPU Clustering:** Future hardware roadmap includes potential deployment of dedicated secondary accelerators (or an enterprise workstation chassis) to host multi-model pipelines without sequential eviction.
-* **Automated Sequential Swapping Daemon:** Full integration of an automated, event-driven model swap manager within the Supervisor daemon to eliminate manual unload/reload scripts.
 
 ---
 
@@ -356,12 +367,12 @@ To maintain intellectual transparency, the following items remain formally regis
 
 ```
 ================================================================================
-                          END OF CHAPTER 6 DRAFT (v1.0.0)
+                          END OF CHAPTER 6 DRAFT (v1.1.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
   1. Confirm the fidelity of the Five-Tier Sovereign Operating Topology (DEC-0021) and the distinct role assignments across tiers.
-  2. Verify the mathematical necessity of Sequential GPU Swapping (CON-012) within the 12GB VRAM ceiling.
-  3. Validate the representation of the thermal watchdog thresholds (70°C warn, 75°C refuse, 82°C abort) from LOCAL_CODE_THERMAL_SAFETY.md.
+  2. Verify the mathematical necessity of Sequential GPU Swapping (CON-012) within the 12GB VRAM ceiling, distinguishing script enforcement from future daemons.
+  3. Validate the representation of the thermal watchdog thresholds (70°C warn, 75°C refuse, 82°C abort) and their specific enforcement scope in josie/local_code.py.
   4. Ensure that the least-exposure network perimeter policy (DEC-0003 via Tailscale Serve) is accurately documented.
   5. Confirm that open governance question UNRES-GOV-01 remains formally open.
 ================================================================================
