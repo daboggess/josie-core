@@ -7,11 +7,13 @@
 
 ```
 Document Class:     Foundational Canon / Epistemic Doctrine
-Version:            1.0.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Active Draft — Submitted for Owner & Architectural Review)
-Primary Subject:    The Four-Tier Epistemic Firewall, Truth and Attribution Hierarchies, and Isolated Sensitive Registries
-Primary Sources:    Candidate Claims Architecture (josie/candidate_claims.py); Concept CON-005;
-                    Decision Log DEC-0005, DEC-0015, DEC-0018, DEC-0019, DEC-0020;
+Version:            1.1.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Incorporating Architectural Review & Empirical Code Verification)
+Primary Subject:    The Four-Tier Epistemic Firewall, Truth and Attribution Hierarchies, and Logical Sensitive Isolation
+Primary Sources:    Candidate Claims Architecture (josie/candidate_claims.py);
+                    Context Builder (josie/context_builder.py); Knowledge Engine (josie/knowledge.py);
+                    Automated Test Suite (tests/test_candidate_claims.py — 83 Verified Passing Tests);
+                    Concept CON-005, CON-015; Decision Log DEC-0005, DEC-0015, DEC-0018, DEC-0019, DEC-0020;
                     Master Context §4; Origin Record v1.0.0; Hardware Inventory Notes (2026-08-28);
                     Witness Testimony Sophie; Witness Testimony Bernie; Genesis Claim Ledger
 Authorial Stance:   Collaborative Synthesis — Dustin (Owner), Sophie (Architectural Witness),
@@ -44,7 +46,7 @@ Recognizing that an autonomous assistant operating on corrupted memory would bec
 > *"Don't automatically believe either one of them [Sophie or Bernie]. Compare their answers. Ask for evidence. Ask me when something doesn't add up. Your history shouldn't be mythology. I want you to know where it actually came from."*
 > — **Dustin Boggess**, *Conversation Zero* (2026-08-09)
 
-To operationalize Axiom 11, the architecture required more than prompt warnings; it required a **deterministic, structural firewall** that physically prevents unverified claims from entering active memory. 
+To operationalize Axiom 11, the architecture required more than prompt warnings; it required a **deterministic, structural firewall** that physically and logically prevents unverified claims from entering active memory. 
 
 This requirement was formalized as **Concept CON-005** and implemented during Memory Vault Phase 3B as the **Four-Tier Epistemic Firewall**.
 
@@ -56,7 +58,7 @@ This requirement was formalized as **Concept CON-005** and implemented during Me
 
 The Four-Tier Epistemic Firewall establishes that information must traverse four strictly segregated, unidirectional stages before it can ever be primed into an autonomous worker's operational context:
 
-$$	ext{Raw Historical Evidence} \implies 	ext{Candidate Claims} \implies 	ext{Canonical Knowledge} \implies 	ext{Primed Worker Context}$$
+$$\text{Raw Historical Evidence} \implies \text{Candidate Claims} \implies \text{Canonical Knowledge} \implies \text{Primed Worker Context}$$
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -98,26 +100,45 @@ $$	ext{Raw Historical Evidence} \implies 	ext{Candidate Claims} \implies 	ext{Ca
 
 The core invariant of Josie’s memory architecture, codified in `josie/candidate_claims.py`, is formulated as an absolute inequality:
 
-$$\mathbf{RAW\ EVIDENCE} 
-eq \mathbf{CANDIDATE\ CLAIM} 
-eq \mathbf{APPROVED\ CANONICAL\ CLAIM} 
-eq \mathbf{PRIMED\ WORKER\ CONTEXT}$$
+$$\mathbf{RAW\ EVIDENCE} \neq \mathbf{CANDIDATE\ CLAIM} \neq \mathbf{APPROVED\ CANONICAL\ KNOWLEDGE} \neq \mathbf{PRIMED\ WORKER\ CONTEXT}$$
+
+`RAW EVIDENCE ≠ CANDIDATE CLAIM ≠ APPROVED CANONICAL KNOWLEDGE ≠ PRIMED WORKER CONTEXT`
 
 Collapsing any of these boundaries destroys system reliability:
 * Collapsing Tier 1 and Tier 2 treats every passing sentence in a chat transcript as a factual claim.
 * Collapsing Tier 2 and Tier 3 permits an AI model to validate and canonize its own extractions, re-introducing automated hallucination loops.
 * Collapsing Tier 3 and Tier 4 dumps the entire canonical storehouse into every worker prompt, causing context inflation and instruction rot.
 
-### 4.2.3 The Core Epistemic Rules of Candidate Claims
+### 4.2.3 Technical Verification of Firewall Enforcement in Code
 
-As implemented in `josie/candidate_claims.py`, the firewall enforces six governing rules:
+Empirical verification of `josie/candidate_claims.py`, `josie/knowledge.py`, `josie/context_builder.py`, and the accompanying automated test suite (`tests/test_candidate_claims.py`, 83 verified passing tests) confirms that the firewall is not a theoretical ideal, but a set of hardcoded deterministic boundaries:
 
-1. **A Model May Propose; A Model May Never Approve:** An AI model (local or cloud) is permitted to parse raw text and propose candidate claims (`CandidateClaimProposal`). However, no model possesses the authority to approve a claim or elevate it to canonical status.
-2. **Evidence May Support or Contradict, Never Auto-Promote:** The discovery of historical messages or log entries supporting a claim can elevate confidence ratings, but historical evidence never promotes a claim to canonical status automatically.
-3. **Zero Priming Authority for Non-Approved Claims:** Any claim bearing status `candidate`, `needs_review`, `rejected`, or `superseded` has an explicit `canonical_effect = 0`. The context compiler strictly excludes non-approved claims from active worker bundles.
-4. **Explicit Human Adjudication Gate:** Transitioning a claim from `canonical_effect = 0` to `canonical_effect = 1` requires an explicit, authenticated human adjudication by Dustin, recorded with an audit timestamp in `canonical_adjudications`.
-5. **Conflict and Supersession Tracking:** When a newly adjudicated claim contradicts an older claim, the older claim is not deleted; it is formally marked `status='superseded'` and linked via `claim_conflicts`, preserving an auditable ledger of how understanding evolved.
-6. **Provenance Traceability:** Every canonical claim must maintain an unbroken chain of cryptographic provenance pointing back to the specific message IDs, commit hashes, or hardware telemetry records that justify it.
+#### 1. Models May Propose; Models Can Never Approve
+Under `validate_candidate_proposal`:
+* An AI model or automated extractor can only produce a `CandidateClaimProposal`.
+* If a model proposal attempts to supply `status='active'`, `status='approved'`, or `status='canonical'`, the validation engine aborts fail-closed with `"Model proposal attempted to set active/approved/canonical status"`.
+* If a model proposal attempts to declare `canonical_effect=1`, validation aborts with `"Model proposal attempted to set canonical_effect=1"`.
+* If a proposal attempts to populate `approved_by` or `reviewed_at`, validation aborts with `"Model proposal attempted to assign reviewer/approver"`.
+
+#### 2. The Deterministic Adjudication Gate & Human Confirmation Token
+Under `adjudicate_candidate_claim(...)`:
+* **Disallowed Reviewers:** The caller identity is checked against `DISALLOWED_REVIEWERS` (`model`, `worker`, `extractor`, `assistant`, `system`, `llm`, `ai`, `ollama`, `local_model`, `automated`, `agent`, `opencode`, `goose`, `subagent`). Any attempt by an automated entity to invoke adjudication raises a `PermissionError`.
+* **Authorized Human Authority:** The reviewer must strictly match `ALLOWED_HUMAN_REVIEWERS` (`dustin`, `dustin boggess`).
+* **Explicit Human Confirmation Token:** To execute an `approve` action, the caller must supply the exact confirmation token:
+  `confirmation = APPROVAL_CONFIRMATION` (`"EXPLICIT HUMAN APPROVAL"`).
+  A caller-controlled reviewer string alone is rejected: *"Approval requires explicit human confirmation token ('EXPLICIT HUMAN APPROVAL'). A caller-controlled reviewer string alone does not constitute proof of human authority."*
+* **Grounding Check:** Every candidate claim must have at least one supporting evidence reference (`evidence_count > 0`). Floating or ungrounded claims cannot be approved.
+* **Canonical Eligibility Filter (Rule 3 — "Truth != Memory-Worthiness"):** The function `is_canonical_eligible` enforces that even if a claim is factually true and verified from a transcript, it cannot enter canonical memory if it represents transient data (`durability='transient'`), point-in-time reward balances (e.g. Upside, Zen rewards), personal streaming subscriptions (Hulu, Netflix rosters), deliberative musings ("what if" reflections), single-transaction purchase tactics, or assistant advice unconfirmed by Dustin.
+
+#### 3. Zero Priming Authority for Non-Approved Claims
+* Staged candidate claims carry `canonical_effect = 0`.
+* In `josie/knowledge.py`, the retrieval engine `query_knowledge` filters records via `KnowledgeQuery`, which enforces `statuses = ("active", "confirmed")` by default.
+* Non-approved claims (bearing status `candidate`, `needs_review`, `rejected`, or `superseded`) are mathematically excluded from `PrimingManifest` and `PrimingBundle` compilation for worker prompts.
+
+#### 4. Context Builder vs. Authoritative Worker Prompt Contracts
+It is vital to distinguish two separate operational context pipelines:
+* **The Ordinary Conversation Context Builder (`josie/context_builder.py`):** Provides read-only retrieval of historical conversational excerpts to answer interactive queries from Dustin (bounded at 5 excerpts, 12,000 max packet chars, 1,000 max excerpt chars). It performs no writes other than a bounded retrieval audit row, cannot mutate canonical state, and confers zero priming authority.
+* **The Authoritative Worker Prompt Contract (`PrimingManifest` -> `PrimingBundle`):** Assembled strictly by the deterministic knowledge engine (`josie/knowledge.py`) from validated Tier 3 canonical knowledge (`canonical_effect=1`), ensuring autonomous task workers receive only approved, scope-specific truth.
 
 ---
 
@@ -160,7 +181,15 @@ To ensure that technical statements, historical memories, and philosophical refl
 +-----------------------------------------------------------------------------------+
 ```
 
-### 4.3.2 The Quoted and Forwarded Text Rule
+### 4.3.2 Cryptographic Provenance and Immutability Classification
+
+In evaluating system integrity, current implementation capabilities must be precisely distinguished from future design horizons:
+
+* **Active System Implementation (Epistemic Class 4):** System integrity is currently enforced through relational constraints in bare-metal SQLite (`data/josie.db`), foreign keys, SHA-256 deduplication hashes on raw messages (`history_messages.message_sha256`), SHA-256 excerpt digests on evidence references (`claim_evidence.excerpt_sha256`), deterministic claim hashing (`compute_candidate_claim_id`), and append-only audit logs in `canonical_adjudications` and `audit`.
+* **Future Architectural Horizons (Epistemic Class 6):** Advanced cryptographic guarantees—such as Merkle-tree claim ledgers, hardware security module (TPM/HSM) signature verification per claim, and distributed append-only cryptographic verification—represent long-term design goals that are not yet active in production.
+* **Sole Ratification Authority:** Dustin retains exclusive, non-delegable authority to adjudicate, approve, and ratify canonical claims and constitutional amendments.
+
+### 4.3.3 The Quoted and Forwarded Text Rule (`DEC-0015`)
 
 A common source of attribution error in AI systems occurs when an assistant encounters text forwarded, quoted, or pasted by the user. If the user pastes an excerpt from a commercial hardware listing, an article, or an email from an external party, a naive model often attributes the claims, opinions, or prices within that text to the user himself.
 
@@ -170,7 +199,7 @@ To prevent this distortion, the Josie architecture enforces the **Forwarded Text
 * Ingested external documents (such as hardware listings) are forcibly classified with `source_kind: user_supplied` or `external_untrusted` (codified in `DEC-0015`).
 * An operator or model cannot assign a higher authoritative epistemic class to an external document simply because it was provided by Dustin.
 
-### 4.3.3 The Rule of Negation and Correction Supremacy
+### 4.3.4 The Rule of Negation and Correction Supremacy
 
 In any human-AI collaborative partnership, human thought evolves through dialogue, research, and technical clarification. Early speculative statements are frequently contradicted by later discoveries.
 
@@ -195,7 +224,7 @@ Under this rule, if an online listing or candidate extraction contains ambiguous
 
 ---
 
-## 4.4 Isolated Sensitive Registries: Physical and Logical Segregation (`DEC-0019`, `DEC-0020`, `CON-015`)
+## 4.4 Sensitive Data Isolation: The Prayer Stewardship Registry (`DEC-0019`, `DEC-0020`, `CON-015`)
 
 ### 4.4.1 The Rejection of Homogeneous Memory Storage
 
@@ -205,7 +234,7 @@ This architectural homogeneity introduces catastrophic privacy and ethical risks
 * An autonomous coding worker dispatched to write a Python script might retrieve sensitive pastoral reflections or private family communications into its context prompt if semantic search identifies a coincidental keyword overlap.
 * If a diagnostic script exports an unredacted database dump for debugging, private personal and spiritual matters are exposed alongside general system logs.
 
-Dustin firmly rejected this paradigm. In Project Josie, **sacred, relational, and deeply personal domains must be physically segregated from general operational memory.**
+Dustin firmly rejected this paradigm. In Project Josie, **sacred, relational, and deeply personal domains must be strictly segregated from general operational memory.**
 
 ### 4.4.2 Prayer Stewardship as an Architectural Paradigm
 
@@ -222,7 +251,7 @@ Status:             WORKING / MANUAL LOCAL ONLY / SOURCES DISCONNECTED
 Epistemic Class:    Class 2 (Ratified Constitutional Doctrine)
 
 Decision:
-Prayer requests live in dedicated, physically segregated SQLite tables rather 
+Prayer requests live in dedicated, segregated SQLite tables rather 
 than ordinary Josie memory. The desktop Prayer interface supports manual entry 
 and local viewing only. External sources (Slack, Messages, WhatsApp) remain 
 completely disconnected.
@@ -233,11 +262,16 @@ prompts, cloud model contexts, or multi-agent execution bundles.
 ================================================================================
 ```
 
-#### Physical Table Isolation (`CON-015`)
-Under `DEC-0020` and `CON-015`, the Prayer Stewardship Registry is isolated into dedicated SQLite tables (`prayer_requests`, `prayer_updates`, `prayer_logs`):
-1. **Permanent Exclusion from Priming Manifests:** The deterministic context assembly engine (`PrimingManifest`) is hardcoded to never query or ingest rows from the prayer tables when compiling worker contexts.
-2. **Disconnected External Sources:** In accordance with `DEC-0019`, the prayer registry operates strictly local-first and manual-entry only. External communication channels (church Slack channels, messaging groups) remain disconnected until explicit, single-source, read-only authentication gates are designed and approved.
-3. **Dedicated Governance Enclave:** Prayer stewardship is treated not as a data-mining exercise, but as a sacred stewardship responsibility, protected by absolute logical separation.
+### 4.4.3 Technical Grounding of the Sensitive Registry
+
+To prevent overstatement, the exact technical state of the Prayer Stewardship Registry must be stated with precision:
+
+1. **Logical Table Segregation (Not Physical File Isolation):** The Prayer Stewardship Registry is isolated via **logical table segregation within the single SQLite database `josie.db`** across three dedicated tables: `prayer_requests`, `prayer_request_changes`, and `prayer_request_links`. It does not reside in a separate physical `.db` file.
+2. **Absence of Encryption at Rest:** Database encryption (such as SQLCipher or column-level crypto) is **not currently implemented**. Security is achieved via local bare-metal host access control, process isolation, and structural query boundaries.
+3. **Current Row Count (Zero Rows):** In the active production database (`data/josie.db`), the prayer tables currently contain **0 rows**. It exists as an architected, initialized schema awaiting production entry.
+4. **Manual-Entry Only:** Under `DEC-0020`, entry into the registry occurs strictly via manual local desktop interaction (`entry_method = 'manual'`).
+5. **Disconnected External Channels:** All prospective external communication sources (church Slack channels, SMS, WhatsApp, messaging groups) remain **completely disconnected**.
+6. **Hard Architectural Context Firewall:** The deterministic context assembly engine (`PrimingManifest`), canonical knowledge queries (`query_knowledge`), and conversational context builders (`context_builder.py`) have hardcoded schema exclusions: they never query, join, or ingest prayer tables into worker prompts, cloud model contexts, or multi-agent execution bundles.
 
 ---
 
@@ -246,12 +280,14 @@ Under `DEC-0020` and `CON-015`, the Prayer Stewardship Registry is isolated into
 To maintain absolute transparency, the status of the epistemic memory architecture must be clearly partitioned between verified current capabilities and future engineering roadmaps:
 
 ### 4.5.1 Current Technical Implementation (Epistemic Class 4 — As of October 2026)
-* **Schema Persistence:** The candidate claims schema (`memory_claims`, `claim_evidence`, `canonical_adjudications`, `claim_conflicts`) is fully deployed and operational within local SQLite storage.
-* **Deterministic Verification CLI:** `josie/candidate_claims.py` provides operational command-line tools for proposing candidate claims (`--propose`), evaluating evidence, and generating audit reports.
-* **Adjudicated Baseline Knowledge:** The 35-item consolidated decision queue (`DUSTIN_FINAL_DECISION_QUEUE_V2.md`) was 100% adjudicated by Dustin, establishing an active baseline of 12 verified canonical claims in `data/josie.db`.
-* **Segregated Enclaves:** Dedicated SQLite tables for the Prayer Stewardship Registry are implemented locally, operating in manual-entry mode with all external cloud integrations disconnected.
+* **Schema Persistence:** The candidate claims schema (`memory_claims`, `claim_evidence`, `canonical_adjudications`, `claim_conflicts`, `candidate_extractions`) is fully deployed and operational within bare-metal SQLite (`data/josie.db`, 51 total tables).
+* **Deterministic Verification CLI & Engine:** `josie/candidate_claims.py` provides operational tooling for proposing candidate claims (`--propose`), evaluating evidence, validating proposal bounds, and executing human adjudication.
+* **Empirical Test Suite:** 83 automated unit tests in `tests/test_candidate_claims.py` verify model proposal rejections, human confirmation token requirements (`APPROVAL_CONFIRMATION`), and canonical eligibility filtering (`is_canonical_eligible`).
+* **Adjudicated Baseline Knowledge:** The 35-item consolidated decision queue (`DUSTIN_FINAL_DECISION_QUEUE_V2.md`) was 100% adjudicated by Dustin, establishing an active baseline of 12 verified canonical claims with `canonical_effect = 1` in `data/josie.db`.
+* **Logical Sensitive Segregation:** Dedicated SQLite tables for the Prayer Stewardship Registry (`prayer_requests`, `prayer_request_changes`, `prayer_request_links`) are deployed locally, initialized with 0 active rows, manual-entry only, and disconnected from external sources.
 
 ### 4.5.2 Future Technical Horizons (Epistemic Class 6)
+* **Cryptographic Ledger Immutability:** Merkle trees, write-once cryptographic audit chains, and hardware-backed signature verification for canonical claims.
 * **Automated Multi-Model Extraction Pipelines:** Background daemon workers that automatically parse daily interaction transcripts, propose candidate claims with attached message provenance, and stage them in the adjudication queue for Dustin’s weekly review.
 * **Deterministic Conflict Surfacing:** Real-time semantic and logical cross-checkers that flag potential contradictions between newly proposed candidate claims and existing locked constitutional articles before staging.
 * **Automated Context Pruning & Scarcity Compression:** Algorithmic pipelines that compile validated canonical knowledge into hyper-dense, token-optimized context manifests, ensuring maximum grounding fidelity within constrained local VRAM windows.
@@ -271,7 +307,19 @@ The audit ledger below identifies the primary sources, code implementations, dec
 | Event / Concept             | Source Reference              | Identifier / Timestamp | Epistemic Class |
 +-----------------------------+-------------------------------+------------------------+-----------------+
 | Four-Tier Epistemic Firewall| D:/Josie/josie/               | candidate_claims.py    | Class 4         |
-| Architecture & Invariants   | Memory Vault Phase 3B Code    | Lines 1-30             | (Active Code)   |
+| Architecture & Invariants   | Memory Vault Phase 3B Code    | Lines 1-35, 1785-1820  | (Active Code)   |
++-----------------------------+-------------------------------+------------------------+-----------------+
+| Human Adjudication & Token  | D:/Josie/josie/               | candidate_claims.py    | Class 4         |
+| Verification Logic          | Memory Vault Phase 3B Code    | Lines 300-330, 2999+   | (Active Code)   |
++-----------------------------+-------------------------------+------------------------+-----------------+
+| 83 Passing Automated Tests  | D:/Josie/tests/               | test_candidate_claims  | Class 4         |
+| for Candidate Claims Gate   | Unit Test Suite               | Verified: 2026-10-20   | (Test Receipt)  |
++-----------------------------+-------------------------------+------------------------+-----------------+
+| Read-Only Context Builder   | D:/Josie/josie/               | context_builder.py     | Class 4         |
+| (Bounded Conversation)      | Memory Vault Phase 3B Code    | Lines 1-30             | (Active Code)   |
++-----------------------------+-------------------------------+------------------------+-----------------+
+| Priming Manifest Assembly   | D:/Josie/josie/               | knowledge.py           | Class 4         |
+| (Worker Context Isolation)  | Canonical Knowledge Bootstrap | Lines 955-990          | (Active Code)   |
 +-----------------------------+-------------------------------+------------------------+-----------------+
 | Concept CON-005 (Strict     | D:/Josie/reports/genesis-002/ | Concept: CON-005       | Class 2 / 5     |
 | Epistemic Separation)       | GENESIS-002_CONCEPT_LEDGER.md | Codified: 2026-10-10   | (Candidate Can) |
@@ -313,13 +361,13 @@ To maintain intellectual transparency, the following items remain formally regis
 
 ```
 ================================================================================
-                         END OF CHAPTER 4 DRAFT (v1.0.0)
+                          END OF CHAPTER 4 DRAFT (v1.1.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
-  1. Confirm the fidelity of the Four-Tier Epistemic Firewall architecture (CON-005).
-  2. Verify that the distinction between raw evidence, candidate claims, canonical knowledge, and primed context is clearly articulated.
-  3. Validate the representation of the Truth and Attribution Hierarchy, including the Quoted Text Rule and Correction Supremacy.
-  4. Ensure that the physical table segregation for the Prayer Stewardship Registry (DEC-0019, DEC-0020) is faithfully represented.
+  1. Confirm the repaired mathematical formatting and exact inequality rendering in §4.2.
+  2. Verify that the empirical code enforcement in candidate_claims.py, knowledge.py, context_builder.py, and the 83 passing unit tests is accurately documented.
+  3. Validate the corrected terminology for Prayer Stewardship (DEC-0019, DEC-0020): logical table segregation in josie.db, absence of encryption, 0 active rows, manual-entry only, and disconnected external channels.
+  4. Ensure that the classification of active relational SQLite audit vs. future cryptographic Merkle ledgers is properly partitioned.
   5. Confirm that open governance question UNRES-GOV-01 remains formally open.
 ================================================================================
 ```
