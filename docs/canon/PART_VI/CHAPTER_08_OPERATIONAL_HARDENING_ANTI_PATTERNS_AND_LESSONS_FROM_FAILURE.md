@@ -194,87 +194,128 @@ $$\text{Monthly Incremental Cloud Compute Spend} = \$0.00$$
 A prime real-world application developed for Josie was the **Deal Hunter**—a system designed to monitor second-hand enterprise hardware markets, locate undervalued computer components (GPUs, motherboards, high-density storage, industrial servers), and present purchase opportunities to Dustin.
 
 In commercial implementations, such tools are often integrated directly into automated bidding bots, auto-checkout scrapers, or programmatic buying agents. In Project Josie, Dustin established an absolute operational boundary:
-* **Strict Read-Only Discovery (`DEC-0006`, `DEC-0016`):** The Deal Hunter queries the eBay Browse API, parses local JSON fixtures, calculates price-per-performance metrics, and records candidate deals in a local staging database (`candidate_deals`).
+* **Strict Read-Only Discovery (`DEC-0006`, `DEC-0016`):** The Deal Hunter stages listing data from offline JSON fixtures and the official eBay Browse API (`josie/ebay_source.py`), extracts structured parameters, calculates objective research scores, and records findings in local staging tables.
 * **Autonomous Purchasing Is Permanently Prohibited (`CON-010`, `DEC-0015`):** Under no circumstances may Josie, any worker, or any background script execute a financial transaction, place an auction bid, interact with a payment gateway, submit an order, or authorize a credit card charge.
 * **The Human Execution Gate:** All purchasing decisions require Dustin's direct physical action. The system's role terminates with presenting structured, evidence-weighted research; the human owner retains exclusive custody over capital allocation.
 
-### 8.5.4 Mathematical Formulation: The Price-per-Performance Deal Score
+### 8.5.4 Mathematical Formulation: The Verified 100-Point Scoring Policy
 
-To evaluate candidate hardware listings objectively without relying on subjective model impressions, the Deal Hunter implements a deterministic mathematical scoring function.
+To evaluate candidate hardware listings objectively without relying on subjective model impressions, the Deal Hunter implements a deterministic mathematical scoring rubric codified in `config/deal-scoring-policy.json` and executed by `josie/deal_hunter.py`.
 
-Let candidate listing $i$ have item price $P_i$, shipping cost $C_i$, estimated tax $T_i$, and verified benchmark performance index $\mathcal{P}_i$ (e.g., PassMark G3D Mark, compute TFLOPS, or VRAM bandwidth in GB/s). The **Total Landed Cost** $\mathcal{C}_i$ is defined as:
+Unlike speculative multiplicative formulas, Josie's implemented scoring engine evaluates deals across an **additive 100-point scale** with explicit penalty subtractions:
 
-$$\mathcal{C}_i = P_i + C_i + T_i$$
+$$\text{Raw Score} = S_{\text{price\_perf}} + S_{\text{vram}} + S_{\text{compat}} + S_{\text{condition}} + S_{\text{evidence}} - P_{\text{risk}} - P_{\text{power}}$$
 
-The normalized **Deal Score** $S_{\text{deal}}(i)$ is formulated as:
+$$\text{Research Score} = \max\left(0, \min\left(100, \text{Raw Score}\right)\right)$$
 
-$$S_{\text{deal}}(i) = \left( \frac{\mathcal{P}_i}{\mathcal{C}_i} \right) \times \prod_{k=1}^{K} w_k(i)$$
+The verified component scoring weights and deterministic point distributions are codified as follows:
 
-where $w_k(i) \in [0.0, 1.0]$ represents deterministic constraint penalty multipliers:
-1. **Seller Reliability Multiplier ($w_{\text{seller}}$):**
-   $$w_{\text{seller}} = \begin{cases} 1.00 & \text{if feedback score} \ge 98.5\% \text{ and sales count} \ge 100 \\ 0.85 & \text{if feedback score} \ge 95.0\% \text{ and sales count} \ge 20 \\ 0.50 & \text{if feedback score} < 95.0\% \text{ (high risk)} \\ 0.00 & \text{if seller has active fraud alerts or rating} < 90\% \end{cases}$$
-2. **Thermal & Power Envelope Multiplier ($w_{\text{tdp}}$):** Given host system power supply ceiling $\text{TDP}_{\max}$ (e.g., 250W TDP ceiling for supplementary compute cards):
-   $$w_{\text{tdp}} = \begin{cases} 1.00 & \text{if } \text{TDP}_i \le \text{TDP}_{\max} \\ \frac{\text{TDP}_{\max}}{\text{TDP}_i} & \text{if } \text{TDP}_i > \text{TDP}_{\max} \text{ and additional cooling is required} \\ 0.00 & \text{if } \text{TDP}_i > 1.5 \times \text{TDP}_{\max} \text{ (hardware hazard)} \end{cases}$$
-3. **Physical Form-Factor & PCIe Compatibility ($w_{\text{compat}}$):**
-   $$w_{\text{compat}} = \begin{cases} 1.00 & \text{if dual-slot PCIe 4.0 x16 verified} \\ 0.70 & \text{if triple-slot or requires PCIe riser cabling} \\ 0.00 & \text{if proprietary server blade form factor (unusable)} \end{cases}$$
+1. **Price-per-Performance Score ($S_{\text{price\_perf}}$, Max 40 Points):** Evaluates benchmark performance index against total acquisition cost relative to a baseline reference (0.25 benchmark points per dollar):
+   $$S_{\text{price\_perf}} = \min\left(40, \left( \frac{\text{Benchmark Index}}{\text{Total Acquisition Cost (USD)}} \right) \times \frac{40}{0.25} \right)$$
+2. **VRAM Capacity Score ($S_{\text{vram}}$, Max 20 Points):** Evaluates local video memory relative to a 24GB reference target:
+   $$S_{\text{vram}} = \min\left(20, \frac{\text{VRAM (GB)}}{24} \times 20 \right)$$
+3. **Compatibility Points ($S_{\text{compat}}$, Max 20 Points):** Deterministically mapped based on physical and bus compatibility with host platforms:
+   * `compatible`: 20 points
+   * `needs_review`: 8 points
+   * `unknown`: 0 points
+   * `incompatible`: 0 points (overrides and triggers rejection)
+4. **Physical Condition Points ($S_{\text{condition}}$, Max 10 Points):**
+   * `new`: 10 points
+   * `used_good`: 8 points
+   * `used_unknown`: 3 points
+   * `parts_only`: 0 points
+5. **Evidence Grounding Score ($S_{\text{evidence}}$, Max 10 Points):** Awards up to 10 points based on verified listing provenance and corroborating seller telemetry.
+6. **Seller Risk Penalty ($P_{\text{risk}}$):**
+   * `low`: 0 point penalty
+   * `medium`: 5 point penalty
+   * `high`: 15 point penalty
+7. **Power Envelope Penalty ($P_{\text{power}}$, Max 10 Points):** Imposes a scaled penalty for high-TDP hardware exceeding the 200W baseline up to the 500W ceiling:
+   $$P_{\text{power}} = \begin{cases} 0 & \text{if } \text{Watts} \le 200 \\ \min\left(10, \frac{\text{Watts} - 200}{500 - 200} \times 10 \right) & \text{if } \text{Watts} > 200 \end{cases}$$
 
-Candidate listings where $S_{\text{deal}}(i)$ exceeds the 85th percentile of historical category benchmarks are staged for human inspection. Those with any multiplier equal to $0.00$ are automatically rejected fail-closed.
+Candidate listings are categorized according to codified decision thresholds:
+* $\text{Score} \ge 70$: `candidate_for_human_review` (staged for Dustin's direct evaluation).
+* $50 \le \text{Score} < 70$: `watchlist` (held for price tracking).
+* $\text{Score} < 50$: `low_priority` or `reject_incompatible`.
 
-### 8.5.5 The Four-Stage Deal Hunter Pipeline & Staging Schema
+### 8.5.5 Verified Database Schemas: Engine-Level Enforcement
 
-The Deal Hunter operates across four deterministic stages, completely separated from any external action capabilities:
+In the running implementation, hardware discovery and research scoring are partitioned across two dedicated SQLite tables within `data/josie.db` (`deal_discoveries` and `deal_candidates`). 
 
-```
-+--------------------------------------------------------------------------------------------------+
-|                               FOUR-STAGE DEAL HUNTER PIPELINE                                    |
-+--------------------------------------------------------------------------------------------------+
-|  Stage 1: Read-Only Ingestion    --> Ingest raw listings via eBay Browse API / JSON fixtures.     |
-|                                      Enforce read-only OAuth tokens; zero write scopes.          |
-+--------------------------------------------------------------------------------------------------+
-|  Stage 2: Deterministic Normal.  --> Extract price, shipping, condition, seller metrics.         |
-|                                      Map item title to benchmark database via regex/FTS.         |
-+--------------------------------------------------------------------------------------------------+
-|  Stage 3: Objective Scoring      --> Compute Total Landed Cost and Deal Score S_deal.            |
-|                                      Apply penalty multipliers; filter below-threshold items.    |
-+--------------------------------------------------------------------------------------------------+
-|  Stage 4: Local Research Staging --> Insert qualified records into staging table in josie.db.     |
-|                                      Generate human markdown summary; await Dustin review.       |
-+--------------------------------------------------------------------------------------------------+
-```
-
-Staged records are stored in a dedicated local SQLite schema within `data/josie.db`:
+Critically, the purchasing prohibition is not merely a policy statement; it is **enforced by SQLite database CHECK constraints at the storage engine level**:
 
 ```sql
-CREATE TABLE IF NOT EXISTS candidate_deals (
-    deal_id TEXT PRIMARY KEY,
-    source TEXT NOT NULL,                  -- 'ebay_browse_api' or 'json_fixture'
+-- Verified Schema: deal_discoveries (josie/storage.py)
+CREATE TABLE IF NOT EXISTS deal_discoveries (
+    discovery_id INTEGER PRIMARY KEY,
+    source_id TEXT NOT NULL CHECK (source_id = 'ebay_browse_api'),
     external_item_id TEXT NOT NULL,
+    deduplication_key TEXT NOT NULL UNIQUE,
+    first_seen_at TEXT NOT NULL,
+    last_seen_at TEXT NOT NULL,
+    observation_count INTEGER NOT NULL DEFAULT 1 CHECK (observation_count >= 1),
     title TEXT NOT NULL,
-    item_price_cents INTEGER NOT NULL,
-    shipping_price_cents INTEGER NOT NULL,
-    benchmark_score REAL NOT NULL,
-    deal_score REAL NOT NULL,
-    seller_feedback_pct REAL NOT NULL,
-    tdp_watts INTEGER NOT NULL,
-    staged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status TEXT DEFAULT 'STAGED',          -- 'STAGED', 'REVIEWED', 'DISMISSED', 'PURCHASED_MANUALLY'
-    human_notes TEXT
+    item_url TEXT NOT NULL,
+    ask_price_cents INTEGER NOT NULL CHECK (ask_price_cents > 0),
+    shipping_cents INTEGER CHECK (shipping_cents >= 0),
+    shipping_known INTEGER NOT NULL CHECK (shipping_known IN (0,1)),
+    tax_known INTEGER NOT NULL DEFAULT 0 CHECK (tax_known = 0),
+    condition TEXT NOT NULL CHECK (condition IN ('new','used_good','used_unknown','parts_only')),
+    seller_risk TEXT NOT NULL CHECK (seller_risk IN ('low','medium','high')),
+    evidence_status TEXT NOT NULL CHECK (evidence_status = 'unverified_adapter_input'),
+    normalized_json TEXT NOT NULL,
+    scoring_ready INTEGER NOT NULL DEFAULT 0 CHECK (scoring_ready = 0),
+    external_activity INTEGER NOT NULL DEFAULT 0 CHECK (external_activity = 0),
+    action_authorized INTEGER NOT NULL DEFAULT 0 CHECK (action_authorized = 0),
+    purchase_authorized INTEGER NOT NULL DEFAULT 0 CHECK (purchase_authorized = 0),
+    actions_queued INTEGER NOT NULL DEFAULT 0 CHECK (actions_queued = 0),
+    actions_executed INTEGER NOT NULL DEFAULT 0 CHECK (actions_executed = 0),
+    capability_change TEXT NOT NULL DEFAULT 'none' CHECK (capability_change = 'none'),
+    UNIQUE (source_id, external_item_id)
+);
+
+-- Verified Schema: deal_candidates (josie/storage.py)
+CREATE TABLE IF NOT EXISTS deal_candidates (
+    candidate_id INTEGER PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    title TEXT NOT NULL,
+    source_reference TEXT NOT NULL,
+    source_kind TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    total_acquisition_cents INTEGER NOT NULL CHECK (total_acquisition_cents > 0),
+    research_score_milli INTEGER NOT NULL CHECK (research_score_milli >= 0 AND research_score_milli <= 100000),
+    evidence_status TEXT NOT NULL CHECK (evidence_status IN ('verified_for_analysis','verification_required')),
+    recommendation TEXT NOT NULL CHECK (recommendation IN (
+        'candidate_for_human_review','watchlist','low_priority',
+        'verify_before_review','high_risk_hold','reject_incompatible'
+    )),
+    result_json TEXT NOT NULL,
+    external_activity INTEGER NOT NULL DEFAULT 0 CHECK (external_activity = 0),
+    action_authorized INTEGER NOT NULL DEFAULT 0 CHECK (action_authorized = 0),
+    purchase_authorized INTEGER NOT NULL DEFAULT 0 CHECK (purchase_authorized = 0),
+    capability_change TEXT NOT NULL DEFAULT 'none' CHECK (capability_change = 'none')
 );
 ```
 
-At no point does the schema contain credit card numbers, payment tokens, or checkout session cookies. The status transitions to `PURCHASED_MANUALLY` only when Dustin physically completes the transaction in his personal web browser and manually updates the record.
+Any attempt by a rogue model or script to execute an SQL `UPDATE` setting `purchase_authorized = 1` or `action_authorized = 1` is immediately aborted fail-closed by SQLite with an `IntegrityError`.
 
-### 8.5.6 Capability OS: Deterministic Enforcement Outside the Model
+### 8.5.6 Architectural Concept vs. Implemented Containment: Capability OS
 
 A foundational insight of Project Josie's hardening doctrine is that **an artificial intelligence cannot be trusted to self-police its own operational boundaries**:
 
-> *"Never ask a large language model to remember its spend limits, respect its permission boundaries, or enforce its own security rules. The model is a probabilistic token predictor; the operating system is deterministic reality."*
+> *"Never ask a large language model to remember its spend limits, respect its permission boundaries, or enforce its own security rules. The model is a probabilistic token predictor; deterministic software sits outside."*
 
-To ensure inviolable safety, all operational boundaries are enforced by **Capability OS**—a layer of deterministic Python middleware, container configurations, and operating-system controls that sits between the AI models and the host environment:
-1. **Network Allowlisting & Loopback Enclosure:** Outbound network connections from local worker scripts are restricted at the operating-system firewall level. Local inference binds strictly to loopback (`127.0.0.1:11434` for Ollama). Inter-service coordination operates over private Tailscale mesh networks. Direct outbound HTTP calls to arbitrary internet IP addresses are blocked by default.
-2. **Filesystem Sandboxing & Scoped Worktrees:** Workers execute inside ephemeral git worktrees provisioned in dedicated scratch directories. Access to root system volumes, personal document folders, browser credential caches, and private keys is physically prevented by filesystem ACLs.
-3. **Hard Token and Wall-Clock Supervisor Watchdogs:** Every worker execution runs under an independent, parent-supervised execution envelope. If a worker exceeds its hard token quota (e.g., 4,096 tokens) or wall-clock timeout (e.g., 120 seconds), the Supervisor terminates the entire process tree forcibly (`taskkill /F /T` or `SIGKILL`), logs a timeout receipt, and reverts the worktree state.
-4. **Credential Isolation:** API keys for external services (e.g., eBay Browse API, Gemini Flash) are injected into worker environments as ephemeral environment variables with strictly scoped, read-only permissions. Payment credentials, bank tokens, and administrative credentials are never present in worker memory or environment blocks.
+In project documentation, this governing principle is designated **Concept CON-020 (Capability OS)**. To preserve epistemic integrity, the canon must strictly distinguish between **Capability OS as an architectural concept** and the **specific containment mechanisms currently implemented**:
+
+1. **Architectural Concept (`CON-020`):** Capability OS is the architectural philosophy mandating that external permissions, spend limits, and consequential boundaries must be enforced deterministically outside the neural network. It is not an independent operating system kernel or monolithic software suite; it is a design discipline governing middleware and host configuration.
+2. **Verified Deployed Containment Mechanisms:**
+   * *Process Tree Tracking & Termination:* Implemented in `supervisor/process_control.py` using Win32 API functions (`CreateToolhelp32Snapshot`, `Process32FirstW`, `Process32NextW`). The Supervisor tracks full descendant process trees (`descendant_pids`) and forcibly terminates runaway workers and their child processes upon test failure or timeout.
+   * *Worktree Isolation:* Implemented in `supervisor/launcher.py` under `DEC-0021`. Workers execute exclusively in ephemeral git worktrees; failed mutations are discarded without touching the main repository.
+   * *Storage Engine Invariants:* Implemented via SQLite `CHECK` constraints across all operational tables, guaranteeing that purchase authority, external messaging, and cloud processing remain zero at the storage engine level.
+   * *Inbound Ollama Firewall Hardening:* Implemented via administrator script `scripts/Set-JosieOllamaFirewall.ps1`. The script configures Windows Firewall (`NetFirewallRule`) to restrict inbound traffic to Ollama (port 11434) strictly to Docker/WSL subnets (`172.18.0.0/16`, `172.19.0.0/16`, `172.31.0.0/20`, `192.168.65.0/24`), disabling broad `Any` inbound rules.
+3. **Proposed & Architectural Policies (Not Fully Deployed Daemons):**
+   * *Outbound Egress Filtering:* While inbound Ollama access is firewall-restricted, general host-level outbound network egress blocking for arbitrary worker scripts is an architectural policy rather than an automated, system-wide OS firewall daemon.
+   * *Filesystem ACL Sandboxing:* Worker isolation is achieved through separate directory paths and git worktrees rather than hardened Windows NTFS access control lists (`icacls`).
+   * *Autonomous Spend Watchdogs:* Spend protection is enforced through dormant configurations (`"network_enabled": false`, `"live_calls_authorized": false` in `config/ebay-source.json`) and zero credit card credentials in runtime, rather than real-time metered API billing interception daemons.
 
 ---
 

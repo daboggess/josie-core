@@ -234,12 +234,16 @@ As established by the code audit in Chapter 4:
 2. **Verified Priming Exclusion (`josie/priming.py`):** Inspection of the canonical worker priming module (`josie/priming.py`) confirms that prayer tables are strictly excluded from standard worker context assembly. Code refactoring workers, Deal Hunter scripts, and commercial inventory analyzers receive zero tokens derived from the prayer tables.
 3. **No Commercial or Cloud Token Leakage:** Under `DEC-0019`, prayer records are restricted to local-first evaluation. They are never transmitted to commercial third-party APIs or cloud frontier models for summarization.
 
-### 9.5.3 Cryptographic Posture & Future Hardening Roadmap
+### 9.5.3 Cryptographic Posture & Engineering Recommendation Status
 
-While the operational exclusion of prayer data is verified along inspected code paths, intellectual honesty demands acknowledging current security limitations:
-* **Absence of Encryption at Rest:** The SQLite database `data/josie.db` is currently stored as an unencrypted binary file on host storage (`D:\Josie`). Anyone with physical or administrative filesystem access to the workstation can read the `prayer_requests` table.
-* **Absence of System-Wide Guarantees:** While known priming paths enforce table filtering, the codebase does not currently implement operating-system-level process segregation or hardware-enforced cryptographic boundaries preventing future unvetted scripts from querying the table.
-* **The Hardening Roadmap (`UNRES-SEC-02`):** The ratified architectural roadmap specifies migrating the Prayer Stewardship Registry into a dedicated SQLCipher-encrypted database (`data/prayer_vault.db`) unlocked exclusively via an ephemeral in-memory passphrase provided by Dustin during active prayer sessions and wiped immediately upon session termination.
+While the operational exclusion of prayer data is verified along inspected code paths, intellectual honesty and epistemic precision demand an exact classification of the system's security posture and forward roadmap:
+
+1. **The Ratified Governance Mandate (`DEC-0019`, `DEC-0020`, `CON-015`):** The governing constitutional requirement established by Dustin is that prayer records must remain local-first, source-separated, logically segregated in dedicated SQLite tables, and strictly excluded from general worker priming contexts, ordinary memory exports, and commercial cloud APIs. Furthermore, the storage engine permanently enforces `cloud_processing_authorized = 0`, `cross_post_authorized = 0`, `messages_sent = 0`, and `action_authorized = 0` via database `CHECK` constraints.
+2. **Current Storage Reality & Known Limitations:** In the current running deployment, `data/josie.db` is stored as an unencrypted binary SQLite database on host storage (`D:\Josie`). While worker priming routines in `josie/priming.py` enforce table exclusion, the database itself is not encrypted at rest. An operator or process with physical, raw administrative access to the host filesystem can read the underlying disk bytes.
+3. **Classification of SQLCipher Encrypted Vault Proposal (`UNRES-SEC-02`):**
+   * *Status:* **Unratified Engineering Recommendation (Proposed Technical Roadmap).**
+   * *Epistemic Precision:* Proposing that the Prayer Stewardship Registry migrate into a separate, SQLCipher-encrypted database (`data/prayer_vault.db`) unlocked exclusively via an ephemeral in-memory passphrase is an *engineering recommendation* formulated during architectural reviews. It is **not** an explicitly ratified constitutional requirement or binding owner directive.
+   * *Preservation of Boundary:* Dustin has not ratified database-level encryption at rest as a constitutional obligation. The governing requirement remains the strict isolation of sensitive prayer intercession from unrelated worker contexts, while acknowledging the absence of encryption at rest as a known physical storage reality.
 
 ---
 
@@ -283,9 +287,9 @@ The audit ledger below identifies the primary sources, operational directives, c
 To preserve intellectual transparency, the following technical items remain formally registered as open inquiries:
 
 #### UNRES-SEC-02: Cryptographic Database Encryption at Rest for Sacred Registries
-* **Status:** `OPEN ARCHITECTURAL EVALUATION`
-* **Description:** While the Prayer Stewardship Registry is logically isolated in dedicated SQLite tables and excluded from general worker priming contexts, the underlying database file (`data/josie.db`) is not encrypted at rest. Migration to an independent SQLCipher database (`data/prayer_vault.db`) with key derivation from a user-supplied master passphrase remains an active engineering milestone.
-* **Provisional Stance:** Logical table filtering and local-first execution provide sufficient operational containment pending implementation of cryptographic database encryption.
+* **Status:** `OPEN — UNRATIFIED ENGINEERING RECOMMENDATION`
+* **Description:** While the Prayer Stewardship Registry is logically isolated in dedicated SQLite tables and excluded from general worker priming contexts, the underlying database file (`data/josie.db`) is not encrypted at rest. A proposal exists to migrate prayer tables into an independent SQLCipher database (`data/prayer_vault.db`) with key derivation from a user-supplied master passphrase.
+* **Provisional Stance:** This proposal represents an unratified engineering recommendation, not a constitutional mandate. Logical table filtering and local-first execution provide sufficient operational containment for current bounded use pending Dustin's explicit decision.
 
 #### UNRES-GOV-01: Governance Hierarchy & Constitutional Supremacy
 * **Status:** `OPEN — PENDING OWNER DECISION`

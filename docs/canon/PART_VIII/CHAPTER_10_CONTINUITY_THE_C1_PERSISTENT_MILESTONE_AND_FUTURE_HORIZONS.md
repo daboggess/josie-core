@@ -133,101 +133,106 @@ Under `CON-014`, sovereign operation requires independence from external corpora
 
 ---
 
-## 10.3 Comprehensive Technical Evaluation: Demonstrated Reality vs. Unmet Gaps
+## 10.3 Reconstructing Milestone C1 Persistent: Traceability & Readiness Audit
 
-To maintain strict epistemic precision, this section provides an exhaustive technical audit of the **Eleven Foundation Readiness Criteria** codified in `JOSIE_MASTER_BUILD_STATE.yaml` and repository ledgers. 
+### 10.3.1 Historical Genesis & The Three-Tier Architectural Classification
 
-The evaluation explicitly distinguishes between **Demonstrated Capabilities** (verified in running code and test suites) and **Unmet Gaps** (architectural specifications not yet fully realized in production):
+To establish an authoritative, evidence-based understanding of **Milestone C1 Persistent**, the canon must reconstruct the milestone's earliest documented definition and trace its acceptance criteria back to primary project records (`docs/JOSIE_MASTER_BUILD_STATE.yaml`, `docs/JOSIE_CONTINUITY_AND_INTERFACE_DIRECTION_2026-10-05.md`, `docs/decisions/DECISION_LOG.md`, and `docs/architecture/CANONICAL_ROADMAP_RECONCILIATION_001.md`).
 
-```
-+==================================================================================================+
-|                        C1 PERSISTENT READINESS EVALUATION AUDIT                                  |
-+==================================================================================================+
-| #  | Subsystem / Criterion         | Implementation Status     | Operational Classification      |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 01 | Identity & Core Persona       | 12 Canonical Claims Active| DEMONSTRATED CAPABILITY         |
-|    | (CON-001 through CON-005)     | Verified in Priming Engine| Fully verified in unit suites.  |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 02 | Database Schema & Migrations  | SQLite data/josie.db      | DEMONSTRATED CAPABILITY         |
-|    | (Candidate & Canon Schemas)   | 83 Passing Tests          | Verified in test suites.        |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 03 | Epistemic Firewall            | Proposal vs Canon Segreg. | DEMONSTRATED CAPABILITY         |
-|    | (CON-005 Four-Tier Pipeline)  | Verified in priming.py    | Gated along inspected paths.    |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 04 | Sequential Model Swapping     | Benchmarked in scripts;   | PARTIALLY MET / GAP             |
-|    | (Ollama Sequential Lifecycle) | Manual / Scripted Only    | No 24/7 background swap daemon. |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 05 | Hardware & Thermal Protection | josie/local_code.py       | PARTIALLY MET / GAP             |
-|    | (75°C Ceiling, Thermal Delay) | Code worker harness only  | No system-wide global watchdog. |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 06 | Worktree Isolation & Diff     | DEC-0021 & Aider Harness  | DEMONSTRATED CAPABILITY         |
-|    | (Surgical SEARCH/REPLACE)     | Tested in Supervisor      | Production standard for coding. |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 07 | Deal Hunter Research Staging  | eBay Browse API / Fixture | DEMONSTRATED CAPABILITY         |
-|    | (CON-010 Purchasing Ban)      | candidate_deals Schema    | Read-only; purchase ban intact. |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 08 | Full Steam Vapor Summit       | Ratified 12-Stage Design; | PROTOTYPE / GATED INTEGRATION   |
-|    | (Two-Click Publishing CON-017)| 4 n8n Workflows in Docker | No live Google publishing node. |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 09 | Prayer Stewardship Enclave    | Logical SQLite Tables;    | UNMET SECURITY GAP              |
-|    | (DEC-0019, DEC-0020, CON-015) | Excluded from Priming     | No encryption at rest (SQLCiph).|
-+----+-------------------------------+---------------------------+---------------------------------+
-| 10 | Deterministic Event Scheduler | Mission Manager Spec;     | ARCHITECTURAL SPEC / GAP        |
-|    | (Autonomous Work Order Engine)| dispatcher.py Tested Gate | No autonomous 24/7 dispatcher.  |
-+----+-------------------------------+---------------------------+---------------------------------+
-| 11 | Production Model Migration    | qwen3.5:9b Benchmarked;   | PENDING OPERATIONAL CUTOVER     |
-|    | (Local Generalist Upgrade)    | Runtime is qwen3:14b      | Formal cutover awaiting review. |
-+==================================================================================================+
-```
+A critical insight of this editorial audit is that later engineering discussions frequently conflate three distinct categories of technical requirements:
+1. **Category A: Original C1 Acceptance Criteria:** The foundational capabilities established in original milestone specifications or explicitly approved by Dustin as prerequisites for demonstrating persistent continuity.
+2. **Category B: Later Engineering Recommendations:** Valuable hardening proposals—such as SQLCipher database encryption, a system-wide global thermal watchdog daemon, an automated 24/7 model swap daemon, or local model upgrades—that improve system resilience but were formulated *after* the milestone specification and were never ratified as original C1 prerequisites.
+3. **Category C: Future Milestone Capabilities:** Advanced features—such as direct voice speech-to-text/text-to-speech, live commercial API activations, or local LoRA fine-tuning—that explicitly belong to later roadmap phases (C2 through C5).
 
-### 10.3.1 Detailed Subsystem Audit Findings
+Intellectual honesty requires that **Category B and Category C items must not be retroactively promoted into Category A blockers**.
 
-1. **Criterion 01 (Identity & Persona):** *DEMONSTRATED.* The twelve canonical claims (`CON-001` through `CON-005`) are permanently codified in `data/josie.db` and injected into model contexts via `josie/priming.py`. Holdout tests confirm that local and frontier models respect persona boundaries when primed.
-2. **Criterion 02 (Database Schema Integrity):** *DEMONSTRATED.* The core schema migrations (`schema_v2.sql`) are fully applied to `data/josie.db`. The test suite `test_candidate_claims.py` executes 83 test assertions verifying schema constraints, proposal validation, and human adjudication transitions with zero failures.
-3. **Criterion 03 (Epistemic Firewall Enforcement):** *DEMONSTRATED.* In inspected code paths (`josie/candidate_claims.py`, `josie/priming.py`), candidate claims proposed by models cannot enter primed canonical context without Dustin's explicit human approval (`status = 'APPROVED'`). However, as noted in Chapter 4, this enforcement applies to verified priming paths; system-wide compile-time guarantees against uninspected future paths do not exist.
-4. **Criterion 04 (Sequential Model Swapping):** *PARTIALLY MET / GAP.* The benchmark harness (`run_benchmarks.py`) successfully loads, unloads, and transitions between local models sequentially (e.g., unloading `qwen3:14b` before loading `deepseek-coder:6.7b`). However, this is executed via discrete Python test scripts; an automated, system-wide daemon that continuously intercepts task packets and orchestrates GPU memory swapping dynamically in the background is not currently running.
-5. **Criterion 05 (Hardware & Thermal Guardrails):** *PARTIALLY MET / GAP.* Thermal safety logic is implemented in `josie/local_code.py` (querying `nvidia-smi`, pausing execution if GPU junction temperature exceeds 75°C, and enforcing a 5-second thermal cooldown between diff batches). However, this protection is localized to coding worker scripts; no independent, system-wide hardware supervisor daemon monitors host temperatures across all processes.
-6. **Criterion 06 (Worktree Isolation & Diff Editing):** *DEMONSTRATED.* Coding workers execute exclusively in isolated temporary git worktrees created by the Supervisor. Mutations are applied strictly through Aider SEARCH/REPLACE blocks. Test failures trigger automatic worktree destruction, preserving main branch stability.
-7. **Criterion 07 (Deal Hunter Research Staging):** *DEMONSTRATED.* The Deal Hunter queries the eBay Browse API or local JSON fixtures, computes the deterministic Deal Score $S_{\text{deal}}$, and stages records in `candidate_deals`. The strict purchasing prohibition (`CON-010`, `DEC-0015`) is verified; no payment credentials or transaction capabilities exist in the codebase.
-8. **Criterion 08 (Full Steam Vapor Summit & Two-Click Publishing):** *PROTOTYPE / GATED INTEGRATION.* The 12-stage state machine is a ratified operational specification. The Two-Click Publishing protocol was proven in prototype testing (`FSV-LOCAL-TEST-001`) via four local n8n workflows with HMAC-SHA256 tokens and 72-hour expiration. However, no production Google Business Profile publishing node was attached; the integration remains intentionally gated.
-9. **Criterion 09 (Prayer Stewardship Enclave):** *UNMET SECURITY GAP.* The registry is logically segregated into dedicated SQLite tables within `data/josie.db` and excluded from general worker priming contexts. However, the database file is completely unencrypted at rest. The planned SQLCipher encrypted vault (`data/prayer_vault.db`) has not been implemented.
-10. **Criterion 10 (Deterministic Event Scheduler):** *ARCHITECTURAL SPEC / GAP.* The Mission Manager architecture (`dispatcher.py`, `worker_registry.py`) is verified through discrete test gates (`06_AUTONOMOUS_MISSION_GATE.md`). However, it operates as an on-demand verification harness; a 24/7 background scheduler autonomously triggering tasks on cron intervals without human initiation is not deployed.
-11. **Criterion 11 (Production Local Model Migration):** *PENDING OPERATIONAL CUTOVER.* Extensive hardware benchmarks have proven that `qwen3.5:9b` delivers superior inference speed, lower VRAM footprint, and higher instruction following compared to `qwen3:14b`. However, the active runtime configuration in `config/local-code-thermal.json` and Ollama defaults still points to `qwen3:14b`. The formal production cutover awaits final operational sign-off.
+### 10.3.2 C1 Persistent Traceability Matrix
 
-### 10.3.2 Definitive Assessment: C1 Persistent Readiness
-
-Based upon rigorous physical machine evidence:
-* **The Core Invariants of Milestone C1 Persistent are Demonstrated:** Persistent identity across cold restarts, local durable ground-truth storage, worktree isolation, epistemic firewall priming, and complete offline autonomy are functional and verified.
-* **Milestone C1 Persistent Is Not Yet Fully Ratified:** Because critical security safeguards (database encryption at rest for sacred registries) and automated operational daemons (continuous GPU swapping and event scheduling) remain partially met or pending cutover, **Milestone C1 Persistent cannot be declared complete at this time.**
-
-Milestone C1 Persistent serves as a precise evaluative standard. The system operates in **Pre-C1 Foundation Hardening Mode**, possessing the verified architectural bedrock, with clear operational milestones required for formal ratification.
-
-### 10.3.3 Operational Remediation Roadmap to Formal C1 Ratification
-
-To transition Milestone C1 Persistent from *Pre-C1 Foundation Hardening* to *Fully Ratified Production Reality*, four concrete engineering tasks must be completed:
+The following matrix provides complete historical and technical traceability for all candidate requirements across the three defined categories:
 
 ```
-+----------------------------------------------------------------------------------------------------+
-|                               C1 PERSISTENT REMEDIATION ROADMAP                                    |
-+----------------------------------------------------------------------------------------------------+
-|  1. Sacred Database Encryption   --> Extract prayer_* tables from data/josie.db.                   |
-|     (Roadmap Item REM-SEC-01)        Migrate into data/prayer_vault.db using SQLCipher (AES-256).  |
-|                                      Derive encryption key at runtime from user master passphrase. |
-+----------------------------------------------------------------------------------------------------+
-|  2. Production Model Cutover     --> Update config/local-code-thermal.json and runtime defaults.   |
-|     (Roadmap Item REM-MOD-01)        Transition active resident model from qwen3:14b to qwen3.5:9b.|
-|                                      Execute test_resident_priming.py to verify 0 regressions.     |
-+----------------------------------------------------------------------------------------------------+
-|  3. Automated Swap Manager       --> Deploy lightweight Python daemon (josie_swapd.py).            |
-|     (Roadmap Item REM-OPS-01)        Monitors work order queues and issues Ollama preload/unload   |
-|                                      calls over loopback HTTP, managing 12GB VRAM sequentially.    |
-+----------------------------------------------------------------------------------------------------+
-|  4. System-Wide Thermal Watchdog --> Run host-level background service polling nvidia-smi.         |
-|     (Roadmap Item REM-HW-01)         Pauses all Ollama and worker tasks if GPU temp > 75°C.        |
-+----------------------------------------------------------------------------------------------------+
++==================================================================================================================================+
+|                                           C1 PERSISTENT TRACEABILITY MATRIX                                                      |
++==================================================================================================================================+
+| Criterion / Capability       | Source & Date              | Category / Approval Status | Implementation Evidence  | Status / Gap |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 1. Persistent Identity Above | DEC-0004, DEC-0021;        | CATEGORY A                 | 12 canonical claims in   | VERIFIED     |
+|    Replaceable Model Weights | JOSIE_MASTER_BUILD_STATE   | Ratified Founding Axiom;   | data/josie.db; injected  | Fully met.   |
+|                              | (2026-08-05, 2026-09-12)   | Approved by Dustin.        | via josie/priming.py.    |              |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 2. Durable Local Storage     | DEC-0002; Master Build     | CATEGORY A                 | SQLite data/josie.db;    | VERIFIED     |
+|    & Lexical Truth Grounding | State (2026-08-02)         | Ratified Core Standard;    | FTS5 indexing; 83 tests  | Fully met.   |
+|                              |                            | Approved by Dustin.        | in test_candidate_claims.|              |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 3. Epistemic Firewall        | CON-005, DEC-0005;         | CATEGORY A                 | josie/candidate_claims.py| VERIFIED     |
+|    Memory Gating Pipeline    | Direction (2026-10-05)     | Ratified Architecture;     | josie/priming.py; human  | Inspected    |
+|                              |                            | Approved by Dustin.        | adjudication required.   | paths.       |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 4. Structured Continuity     | Direction (2026-10-05) §3; | CATEGORY A                 | migrations/001_contin... | VERIFIED     |
+|    Schema (continuity_state) | Roadmap v1.2 Item 1.1      | Adopted Roadmap Spec;      | 7/7 tests pass in        | Phase 1      |
+|                              | (2026-10-07)               | Approved by Dustin.        | test_continuity_state.py.| Complete.    |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 5. Deterministic Event       | Direction (2026-10-05) §3; | CATEGORY A                 | josie/event_triggers.py; | VERIFIED     |
+|    Trigger Intake Layer      | Roadmap v1.2 Item 1.2      | Adopted Roadmap Spec;      | Tested via probe receipt | Phase 1      |
+|                              | (2026-10-07)               | Approved by Dustin.        | TRIG-PROBE-EB415A38.     | Complete.    |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 6. Dual-Hash Task-Specific   | Direction (2026-10-05) §4; | CATEGORY A                 | josie/priming.py; dual   | VERIFIED     |
+|    Priming Manifest Compiler | Roadmap v1.2 Item 1.3      | Adopted Roadmap Spec;      | sha256 manifests tested  | Phase 1      |
+|                              | (2026-10-07)               | Approved by Dustin.        | in test_priming.py.      | Complete.    |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 7. Isolated Worktree Harness | DEC-0021; Master Context   | CATEGORY A                 | supervisor/launcher.py;  | VERIFIED     |
+|    & Surgical Diff Editing   | §32 (2026-09-12)           | Ratified Operating Reform; | isolated git worktrees;  | Fully met.   |
+|                              |                            | Approved by Dustin.        | Aider SEARCH/REPLACE diff|              |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 8. Zero-Cloud Offline        | CON-014; Master Build      | CATEGORY A                 | Bare-metal RTX 3060 12GB | VERIFIED     |
+|    Baseline Survivability    | State (2026-10-07)         | Ratified Core Policy;      | host; local Ollama; runs | Fully met.   |
+|                              |                            | Approved by Dustin.        | with WAN disconnected.   |              |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 9. Zero-Spend Financial &    | DEC-0006, DEC-0015;        | CATEGORY A                 | SQLite CHECK constraints | VERIFIED     |
+|    Purchase Prohibition      | CON-010 (2026-08-12)       | Ratified Invariant;        | (purchase_auth = 0); zero| Engine-level |
+|                              |                            | Approved by Dustin.        | credit card credentials. | enforcement. |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 10. Database Encryption at   | UNRES-SEC-02; Candidate    | CATEGORY B                 | Not implemented; tables  | OPEN REC     |
+|     Rest (SQLCipher Vault)   | Review (2026-10-21)        | Unratified Recommendation; | logically segregated in  | Non-blocking |
+|                              |                            | NOT an original C1 spec.   | unencrypted josie.db.    | for C1.      |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 11. Automated 24/7 Model     | DEC-0022; Local Code       | CATEGORY B                 | Scripted swapping proven | OPEN REC     |
+|     Swap Background Daemon   | Thermal Safety (2026-09-12)| Operational Proposal;      | in run_benchmarks.py; no | Non-blocking |
+|                              |                            | NOT an original C1 spec.   | 24/7 background daemon.  | for C1.      |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 12. Host-Level Global        | CON-033; Local Code        | CATEGORY B                 | 75°C junction ceiling    | OPEN REC     |
+|     Thermal Watchdog Service | Safety (2026-09-01)        | Hardening Recommendation;  | active in local_code.py; | Non-blocking |
+|                              |                            | NOT an original C1 spec.   | no global OS daemon.     | for C1.      |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 13. Production Cutover to    | Roadmap v1.2 Item 4.2;     | CATEGORY B                 | qwen3.5:9b benchmarked;  | OPEN REC     |
+|     Qwen 3.5 9B Generalist   | Build State (2026-10-07)   | Model Evaluation Track;    | runtime config points to | Non-blocking |
+|                              |                            | NOT an original C1 spec.   | qwen3:14b (working).     | for C1.      |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 14. Direct Voice Pipeline    | Direction (2026-10-05) §8; | CATEGORY C                 | Uninstalled; reserved    | FUTURE       |
+|     (Whisper STT & Local TTS)| Roadmap v1.2 Item 2.3      | Future Milestone (C2);     | for voice front-door     | Milestone C2 |
+|                              |                            | Explicitly phased later.   | milestone phase.         | capability.  |
++------------------------------+----------------------------+----------------------------+--------------------------+--------------+
+| 15. Live Commercial Gateway  | Checklist Items 211-213;   | CATEGORY C                 | Dormant config in        | FUTURE       |
+|     & External Connectors    | Roadmap v1.2 Item 5.1      | Future Milestone (C3);     | config/ebay-source.json; | Milestone C3 |
+|                              |                            | Gated on Dustin Dev signup.| read-only discovery only.| capability.  |
++==================================================================================================================================+
 ```
 
-Upon the verified completion and test receipt generation for these four items, Dustin can formally declare Milestone C1 Persistent fully achieved.
+### 10.3.3 Definitive Readiness Verdict: Grounded Machine Reality
+
+Evaluating Project Josie against this disciplined categorization resolves the tension between demonstrated capability and ongoing hardening:
+
+1. **Category A Verification (The Core C1 Invariants are Demonstrated):**
+   * Every single one of the nine original Category A criteria is **fully implemented and verified by re-executable machine evidence, passing unit test suites, and database schema constraints**.
+   * On October 7, 2026, the formal **Phase 1 Continuity Foundation Acceptance Receipt (`PHASE1_CONTINUITY_FOUNDATION_RECEIPT_001.md`)** was reviewed and accepted by Sophie (`SOPHIE-ROADMAP-PHASE1-002`). This receipt confirmed the deployment and verification of the structured continuity schema (`continuity_state`), the deterministic trigger layer (`event_triggers.py`), and the dual-hash priming compiler (`josie/priming.py`).
+   * The core invariant—that *persistent continuity does not equal continuous GPU inference*—is a proven operational reality. The system cold-boots, hydrates state from SQLite, compiles task-scoped priming contexts, executes bounded coding work in temporary worktrees, and returns GPU power draw to zero without context loss.
+2. **Category B Classification (Valuable Recommendations, Not Blocking Prerequisites):**
+   * Migrating prayer records to an encrypted SQLCipher database (`UNRES-SEC-02`), deploying a 24/7 background model swap daemon, running an OS-level thermal service, and cutting over the local generalist model are legitimate engineering recommendations.
+   * However, primary records demonstrate that these items were never ratified by Dustin as prerequisite gates for baseline C1 Persistent continuity. Phase 0 Prayer Stewardship was formally marked `WORKING` with 82/82 passing tests under `DEC-0020` on August 15, 2026. Treating Category B recommendations as retroactively blocking C1 is an architectural category error.
+3. **Formal Readiness Stance (`UNRES-C1-01`):**
+   * *Technical Status:* **C1 Persistent Baseline Demonstrated & Verified.**
+   * *Constitutional Status:* **Awaiting Owner Review & Formal Ratification.**
+   * In accordance with Dustin's sole authority, Milestone C1 Persistent is submitted to Dustin as technically demonstrated across all Category A requirements. Dustin retains exclusive prerogative to ratify Milestone C1 Persistent immediately based upon Category A verification, or to withhold ratification until specific Category B recommendations are completed.
 
 ---
 
