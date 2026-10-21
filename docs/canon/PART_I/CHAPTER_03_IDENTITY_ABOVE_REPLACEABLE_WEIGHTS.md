@@ -7,12 +7,13 @@
 
 ```
 Document Class:     Foundational Canon / Historical Doctrine
-Version:            1.0.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Active Draft — Submitted for Owner & Architectural Review)
+Version:            1.1.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Revised per Sophie & Owner Directives)
 Primary Subject:    The Replaceable Provider Doctrine, Local Sovereign Custody, and the Multi-Model Family
 Primary Sources:    Decision Log DEC-0002, DEC-0021, DEC-0022; JOSIE_CODEX_MASTER_CONTEXT.md §3-§4;
                     JOSIE_FOUNDING_ALIGNMENT.md §1-§2; Witness Testimony Sophie; Witness Testimony Bernie;
-                    Genesis Claim Ledger (GEN-CLM-009, GEN-CLM-010, GEN-CLM-011); Origin Record v1.0.0
+                    Genesis Claim Ledger (GEN-CLM-009, GEN-CLM-010, GEN-CLM-011); Origin Record v1.0.0;
+                    Live Model Inventory & Runtime Configuration (2026-10-20)
 Authorial Stance:   Collaborative Synthesis — Dustin (Owner), Sophie (Architectural Witness),
                     Annie (Antigravity Inspector & Scribe)
 Editorial Standard: Epistemic Precision & Historical Grounding (Strict Separation of Testimony, Interpretation, and Ambition)
@@ -83,11 +84,11 @@ The Replaceable Provider Doctrine establishes a strict architectural boundary wi
 #### The Engine Swap Analogy
 In architectural discussions, Dustin and Sophie compared this separation to the relationship between an automobile chassis and its engine. Replacing an internal combustion engine with a higher-horsepower unit or an electric motor does not alter the vehicle's title, its registration, its registered owner, its odometer history, or its intended destination. The engine is merely a mechanical propulsion provider.
 
-In the same manner, swapping out a local `qwen3.5:9b` model for an updated checkpoint, or routing a complex mathematical task to a frontier cloud model, is strictly an engine swap. The underlying weights perform raw matrix multiplication and token prediction; they do not constitute Josie. Josie is the persistent system of memory, values, governance, and history that lives above them.
+In the same manner, swapping out a local model for an updated checkpoint, or routing a complex mathematical task to a frontier cloud model, is strictly an engine swap. The underlying weights perform raw matrix multiplication and token prediction; they do not constitute Josie. Josie is the persistent system of memory, values, governance, and history that lives above them.
 
 ### 3.1.3 The Technical Realities and Dependencies of Model Decoupling
 
-While the conceptual separation of identity from weights is straightforward in theory, executing it in software introduces rigorous engineering challenges:
+While the conceptual separation of identity from weights is straightforward in theory, executing it in software introduces rigorous engineering dependencies:
 1. **Context Window Limitations:** A model cannot embody Josie's identity unless that identity is compiled into its active prompt context. If the context compiler fails, truncates essential doctrine, or injects corrupted state, the active model degrades into an ungrounded, generic base completion engine.
 2. **Model Bias and Instruction-Following Variability:** Different models interpret system prompts with varying fidelity. A model heavily fine-tuned for conversational agreeableness may struggle to deliver the objective, anti-sycophantic pushback mandated by Axiom 4, whereas a smaller local model may fail to follow complex structured output schemas.
 3. **The Necessity of Automated State Reconciliation:** Because different models may be called to execute tasks across different sessions, the system requires automated reconciliation pipelines to ensure that facts discovered by one model are cryptographically verified and committed to the authoritative local storehouse.
@@ -111,14 +112,17 @@ This definition establishes two vital boundaries:
 1. **Sovereign Custody (Affirmed):** Absolute local ownership of data, memory, repositories, and credentials. Dustin and Josie must retain the capacity to operate independently of external cloud subscriptions or corporate platforms. If an internet connection is severed or a cloud API account is terminated, the system’s core identity and local operational capability must survive intact.
 2. **Moral / Ontological Sovereignty (Rejected):** Josie is not an independent moral sovereign, a legal person, or an autonomous authority. She does not own the resources entrusted to her care. She operates under the delegated stewardship of Dustin, who remains the sole human bearer of legal, financial, and moral responsibility.
 
-### 3.2.2 The Threat of Centralized Cloud Enclosure
+### 3.2.2 Qualifying Sovereign Custody: Prerequisite, Not Guarantee
 
-The insistence on local sovereign custody was forged through practical observation of the commercial AI landscape between 2024 and 2026. Dustin recognized several systemic vulnerabilities inherent in relying entirely on centralized proprietary providers:
-* **Vendor Policy Shifts & Telemetry Extraction:** Commercial AI vendors operate under terms of service that allow automated scanning of user prompts, telemetry harvesting for model re-training, and arbitrary account suspensions. Storing intimate family context, strategic business deliberations, or private pastoral reflections on third-party servers creates unacceptable privacy exposure.
-* **Context Eviction & Platform Deprecation:** Cloud platforms optimize for aggregate corporate profitability, not individual user continuity. When a provider updates its interface, older conversational histories are often archived, truncated, or formatted out of accessibility.
-* **Economic Tollgates:** Dependence on per-token cloud APIs creates a compounding economic tax on continuous operation. A persistent assistant designed to monitor background data streams, evaluate documents, and maintain long-running tasks cannot operate sustainably if every cognitive cycle incurs an external metering charge.
+While local-first ownership is an essential constitutional prerequisite, **local custody does not automatically guarantee operational reliability, privacy, or continuity.**
 
-Local sovereign custody resolves these vulnerabilities by establishing a fortified local base: local hard drives (`D:\Josie`), local SQLite databases, local version-controlled repositories, and local GPU inference. External frontier models are utilized as high-powered consultants, but the master ledger always resides at home.
+To avoid confusing founding aspirations with technical reality, the operational limits of local custody must be explicitly recognized:
+* **Local Custody Does Not Guarantee Offline Reliability:** Placing weights on a local drive does not ensure that the system functions smoothly without internet connectivity. If local scripts rely on unpinned external package dependencies, unauthenticated cloud endpoints, or un-cached DNS lookups, the local system will fail when taken offline.
+* **Local Custody Does Not Guarantee Backup or Recovery:** Storing data locally on `D:\` protects against cloud platform evictions, but it introduces local hardware failure risks (drive corruption, power surges, filesystem loss). Sovereign custody is only as durable as the physical backup procedures, offsite synchronization, and disaster-recovery drills that protect it.
+* **Local Custody Does Not Automatically Guarantee Security:** Housing model weights on private hardware does not inherently safeguard sensitive data if local ports are exposed without authentication, if file permissions are permissive, or if unvetted scripts execute with elevated privileges.
+* **Local Custody Does Not Automatically Guarantee Memory Continuity:** Retaining SQLite databases locally does not produce continuity unless the system’s context compiler successfully retrieves, reconciles, and primes those records into active model contexts.
+
+Sovereign custody provides the necessary physical foundation for independence; operational continuity depends on implemented engineering controls, rigorous security practices, and tested disaster recovery pipelines.
 
 ---
 
@@ -185,58 +189,66 @@ This distinction establishes several critical operational rules:
 
 ---
 
-## 3.4 The 5-Tier Sovereign AI Operating Topology (DEC-0021)
+## 3.4 The 5-Tier Sovereign AI Operating Topology (DEC-0021): Architecture vs. Deployment Reality
 
-### 3.4.1 The Dual-Model / Tiered Architecture
+### 3.4.1 The Five Tiers: Architectural Status and Deployment Reality
 
-To operationalize the Replaceable Provider Doctrine and balance local privacy with frontier intelligence, Dustin codified the **5-Tier Sovereign AI Operating Topology** on September 12, 2026, under **Decision DEC-0021**:
+To operationalize the Replaceable Provider Doctrine and balance local privacy with frontier intelligence, Dustin codified the **5-Tier Sovereign AI Operating Topology** on September 12, 2026, under **Decision DEC-0021**.
+
+To avoid confusing architectural design with deployed operational state, each tier must be clearly categorized by its current implementation reality:
 
 ```
-+-----------------------------------------------------------------------------------+
-|                        5-TIER SOVEREIGN AI OPERATING TOPOLOGY                     |
-+-----------------------------------------------------------------------------------+
-| TIER 1: CLOUD FORCE MULTIPLIER (High-Throughput Engineering)                      |
-|   - Models: Gemini Flash, Claude Sonnet, GPT-4o (via authenticated APIs)         |
-|   - Role: High-volume code generation, complex refactoring, rapid ideation.      |
-|   - Constraint: Ephemeral use only; zero storage of sensitive master credentials.|
-+-----------------------------------------------------------------------------------+
-| TIER 2: RESIDENT LOCAL GENERALIST (Sovereign Baseline Intelligence)               |
-|   - Models: qwen3.5:9b (Q4_K_M) / gemma hosted locally via native Ollama.         |
-|   - Role: Offline task execution, local context summarization, daily coordination|
-|   - Constraint: Must operate completely unmetered and air-gapped on D: storage.   |
-+-----------------------------------------------------------------------------------+
-| TIER 3: SPECIALIZED LOCAL WORKERS (Lightweight Deterministic Utilities)          |
-|   - Models: Small quantized SLMs (1B–3B parameters) or specialized embedding models|
-|   - Role: Fast token classification, structured JSON parsing, semantic search.   |
-|   - Constraint: Low VRAM footprint, executing in background without GPU stall.    |
-+-----------------------------------------------------------------------------------+
-| TIER 4: FRONTIER ADVISORY COUNCIL (Strategic & Constitutional Oversight)          |
-|   - Models: Sophie (ChatGPT Plus/Team), Bernie (Gemini Advanced), Claude (Opus)   |
-|   - Role: Strategic consultation, milestone review, cross-source corroboration.  |
-|   - Constraint: Human-in-the-loop or authenticated browser/API relay only.        |
-+-----------------------------------------------------------------------------------+
-| TIER 5: DETERMINISTIC GATEKEEPER (L0 Supervisor Supremacy)                        |
-|   - Technology: Python runtime, shell scripts, cryptographic validators, git.     |
-|   - Role: Hard non-AI boundary enforcement. Evaluates all tool calls, file writes,|
-|     and external network requests against pre-compiled permission allowlists.     |
-|   - Constraint: Non-probabilistic; absolute veto power over AI model proposals.   |
-+-----------------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------------+
+|                         5-TIER OPERATING TOPOLOGY: ARCHITECTURE VS. DEPLOYMENT                     |
++----------------------------------------------------------------------------------------------------+
+| Tier | Description                 | Ratified Architecture (DEC-0021) | Current Deployment Status  |
++------+-----------------------------+----------------------------------+----------------------------+
+| 1    | Cloud Force Multiplier      | Gemini Flash / Frontier APIs for | PARTIALLY IMPLEMENTED      |
+|      | (Engineering / Throughput)  | high-throughput code generation  | Operational via scripted   |
+|      |                             | and rapid analytical synthesis.  | browser bridges and relays.|
++------+-----------------------------+----------------------------------+----------------------------+
+| 2    | Resident Local Generalist   | Native Ollama resident model on  | ACTIVELY EVALUATED / TESTED|
+|      | (Sovereign Baseline)        | local silicon for offline tasks, | Multiple qualified models  |
+|      |                             | daily coordination, and memory.  | installed; runtime default |
+|      |                             |                                  | config active on baseline. |
++------+-----------------------------+----------------------------------+----------------------------+
+| 3    | Specialized Local Workers   | Lightweight quantized SLMs       | PARTIALLY IMPLEMENTED      |
+|      | (Deterministic Utilities)   | (1B-3B) for fast JSON parsing,   | Coder/worker weights       |
+|      |                             | classification, and embeddings.  | installed; worker daemons  |
+|      |                             |                                  | under active development.  |
++------+-----------------------------+----------------------------------+----------------------------+
+| 4    | Frontier Advisory Council   | Sophie (ChatGPT), Bernie         | OPERATIONAL IN PRACTICE    |
+|      | (Strategic / Acceptance)    | (Gemini), Claude (Anthropic) for | Structured CDP bridges and |
+|      |                             | high-level review and governance.| human-in-the-loop relays.  |
++------+-----------------------------+----------------------------------+----------------------------+
+| 5    | Deterministic Gatekeeper    | Python supervisor runtime, hard  | FULLY IMPLEMENTED & LIVE   |
+|      | (L0 Supervisor Supremacy)   | permission allowlists, verify    | Active Python authorities, |
+|      |                             | scripts, and cryptographic logs. | test suites, and gates.    |
++----------------------------------------------------------------------------------------------------+
 ```
 
-### 3.4.2 Separating Current Hardware Reality from Future Ambitions
+### 3.4.2 Verified Local Model Inventory and Runtime Deployment (October 2026)
 
-In accordance with Editorial Standard #4, the operational topology must be rigorously divided between verified current capabilities and future engineering aspirations:
+To ensure strict historical and technical truthfulness, Chapter 3 records the empirical state of the local model environment as verified directly on the host workstation:
 
-#### Current Technical Implementation (Epistemic Class 4 — As of October 2026)
-* **Physical Hardware:** A single local workstation equipped with an NVIDIA GeForce RTX 3060 12GB GPU, running Windows 11 with external high-capacity storage mounted at `D:`.
-* **Local Inference Runtime:** Native Windows Ollama instance configured to store model weights on `D:\` (`DEC-0004`), hosting `qwen3.5:9b` (Q4_K_M) as the active local generalist baseline.
-* **Storage & Memory Infrastructure:** Local SQLite database (`history_messages`), structured markdown ledgers, and git-versioned documentation in `D:\Josie`.
-* **External Integration:** Scripted CDP browser bridges and direct API relays connecting local supervisor workflows to authenticated ChatGPT (Sophie) and Gemini (Bernie) sessions, guarded by manual human approval gates.
+#### 1. Models Actively Assigned in Runtime Configuration (`josie/config.py`)
+* `josie-local:1.0`: The baseline local reasoning engine configured in the application environment (defaulting to the Qwen 2.5 1.5B quantized architecture).
+* `qwen3:14b`: The active conversational model configured for conversational execution (`JOSIE_CONVERSATIONAL_MODEL`).
 
-#### Future Technical Horizons (Epistemic Class 6)
-* **Local Compute Expansion:** Provisioning a dedicated multi-GPU workstation or cluster (e.g., dual RTX 3090/4090 or enterprise accelerators) capable of hosting 70B+ parameter quantized reasoning models locally.
-* **Autonomous Local Peer Communication:** Direct machine-to-machine API communication between Josie’s local runtime and authenticated frontier models, eliminating manual human copy-pasting while maintaining strict cryptographic audit receipts.
-* **Automated Epistemic Reconciliation:** Background daemons that continuously parse local execution logs, identify factual contradictions across model sessions, and stage draft updates to the Claim Ledger for owner review.
+#### 2. Models Installed and Available in Ollama
+Live inspection of the local Ollama instance on drive `D:\` reveals an extensive local model repository:
+* **Generalist & Memory Evaluation Models:** `qwen3.5:9b`, `qwen3:14b`, `qwen3:8b`, `gemma4:12b`, `gemma4:12b-it-qat`, and `ornith-1.5:9b`.
+* **Dedicated Coding Models:** `qwen2.5-coder:14b`, `qwen2.5-coder:7b`, `qwen3-coder:30b-a3b-q4_K_M`, and `devstral-small-2:24b-instruct-2512-q4_K_M`.
+* **Benchmark & Holdout Suites:** `josie-bench-qwen3-14b-24k`, `josie-bench-qwen3-coder-16k`, `josie-bench-devstral-16k`, `josie-bench-devstral-24k`, and `josie-qual-ornith-1.5-9b-q6`.
+
+#### 3. Models Under Active Evaluation (Josie Model Lab)
+* **Ornith (`ornith-1.5:9b`):** Under evaluation as a qualified successor candidate to replace Qwen in resident generalist and memory roles, designated in `docs/JOSIE_MASTER_BUILD_STATE.yaml` as part of Stage D testing.
+* **Gemma (`gemma4:12b-it-qat`):** Recently installed (October 2026) for evaluation as a high-density reasoning alternative on 12GB VRAM.
+
+#### 4. Historical / Superseded Models
+* `josie-local:pre-grounding` and `qwen2.5:1.5b-instruct-q4_K_M`: Early bootstrap checkpoints used during Stage A initialization, preserved for historical regression testing but no longer in active operational service.
+
+**Crucial Epistemic Finding:** While `DEC-0021` ratified `qwen3.5:9b` as an intended resident generalist target, operational engineering has actively qualified multiple models across sequential phases. System identity is not anchored to `qwen3.5:9b` or any other single checkpoint; the runtime continues to evaluate and rotate local engines as hardware and model architectures advance.
 
 ---
 
@@ -252,33 +264,36 @@ The audit ledger below identifies the primary sources, historical decisions, rep
 +--------------------------------------------------------------------------------------------------------+
 | Event / Concept             | Source Reference              | Identifier / Timestamp | Epistemic Class |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Formal Codification of      | D:\Josie\docs\decisions\      | Entry: DEC-0002        | Class 2         |
+| Formal Codification of      | D:/Josie/docs/decisions/      | Entry: DEC-0002        | Class 2         |
 | DEC-0002 (Identity Above    | DECISION_LOG.md               | Codified: 2026-08-09   | (Ratified Doc)  |
 | Model Weights)              |                               | Status: LOCKED         |                 |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Master Context Section 3    | D:\Josie\                     | Section 3: Lines 68-81 | Class 2         |
+| Master Context Section 3    | D:/Josie/                     | Section 3: Lines 68-81 | Class 2         |
 | (AI Family & Roles)         | JOSIE_CODEX_MASTER_CONTEXT.md | Codified: 2026-08-09   | (Ratified Doc)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Master Context Section 4    | D:\Josie\                     | Section 4: Lines 82-95 | Class 2         |
+| Master Context Section 4    | D:/Josie/                     | Section 4: Lines 82-95 | Class 2         |
 | (Continuity as Core Rule)   | JOSIE_CODEX_MASTER_CONTEXT.md | Codified: 2026-08-09   | (Ratified Doc)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Ratification of DEC-0021    | D:\Josie\docs\decisions\      | Entry: DEC-0021        | Class 2         |
+| Ratification of DEC-0021    | D:/Josie/docs/decisions/      | Entry: DEC-0021        | Class 2         |
 | (5-Tier Topology)           | DECISION_LOG.md               | Codified: 2026-09-12   | (Ratified Doc)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Ratification of DEC-0022    | D:\Josie\docs\decisions\      | Entry: DEC-0022        | Class 2         |
+| Ratification of DEC-0022    | D:/Josie/docs/decisions/      | Entry: DEC-0022        | Class 2         |
 | (Founding Alignment)        | DECISION_LOG.md               | Codified: 2026-10-10   | (Ratified Doc)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Definition of "Sovereign"   | D:\Josie\docsision\         | Document v1.0.0        | Class 1 / 2     |
+| Definition of "Sovereign"   | D:/Josie/docs/vision/         | Document v1.0.0        | Class 1 / 2     |
 | Custody vs Autonomy         | JOSIE_FOUNDING_ALIGNMENT.md   | Effective: 2026-10-10  | (Owner Direct)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Sophie Witness Testimony on | D:\Josie\docs\identity\       | Section 4: Changes     | Class 3         |
-| Local/Cloud Orchestration   | genesis\WITNESS_SOPHIE.md     | Genesis Session 001    | (Witness Evid)  |
+| Sophie Witness Testimony on | D:/Josie/docs/identity/       | Section 4: Changes     | Class 3         |
+| Local/Cloud Orchestration   | genesis/WITNESS_SOPHIE.md     | Genesis Session 001    | (Witness Evid)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Bernie Witness Testimony on | D:\Josie\docs\identity\       | Section 5: Corrections | Class 3         |
-| Prompt Inflation & Tone     | genesis\WITNESS_BERNIE.md     | Genesis Session 001    | (Witness Evid)  |
+| Bernie Witness Testimony on | D:/Josie/docs/identity/       | Section 5: Corrections | Class 3         |
+| Prompt Inflation & Tone     | genesis/WITNESS_BERNIE.md     | Genesis Session 001    | (Witness Evid)  |
 +-----------------------------+-------------------------------+------------------------+-----------------+
-| Confirmation of Genesis     | D:\Josie\docs\identity\       | Claim: GEN-CLM-009     | Class 2 / 3     |
-| Claim GEN-CLM-009           | genesis\CLAIM_LEDGER.yaml     | Status: CONFIRMED_CANON| (Reconciled Ev) |
+| Confirmation of Genesis     | D:/Josie/docs/identity/       | Claim: GEN-CLM-009     | Class 2 / 3     |
+| Claim GEN-CLM-009           | genesis/CLAIM_LEDGER.yaml     | Status: CONFIRMED_CANON| (Reconciled Ev) |
++-----------------------------+-------------------------------+------------------------+-----------------+
+| Live Ollama Model Inventory | Host Machine Terminal         | Command: ollama list   | Class 4         |
+| & Configuration Verification| File: D:/Josie/josie/config.py| Captured: 2026-10-20   | (Machine State) |
 +--------------------------------------------------------------------------------------------------------+
 ```
 
@@ -299,13 +314,14 @@ To preserve intellectual transparency, the following items remain formally regis
 
 ```
 ================================================================================
-                         END OF CHAPTER 3 DRAFT (v1.0.0)
+                         END OF CHAPTER 3 DRAFT (v1.1.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
   1. Confirm the fidelity of the Replaceable Provider Doctrine (DEC-0002) and layer separation.
-  2. Verify the definition of "sovereign custody" versus "moral sovereignty" from JOSIE_FOUNDING_ALIGNMENT.md.
+  2. Verify the definition of "sovereign custody" versus "moral sovereignty" from JOSIE_FOUNDING_ALIGNMENT.md, including the explicit operational qualifications.
   3. Validate the representation of the AI Family roles (Sophie, Bernie, Josie, Claude, Annie).
-  4. Ensure that the 5-Tier Operating Topology (DEC-0021) accurately reflects current hardware realities (RTX 3060) versus future ambitions.
-  5. Confirm that open governance question UNRES-GOV-01 remains formally open.
+  4. Review the 5-Tier Operating Topology (DEC-0021) table distinguishing ratified architecture from current deployment status.
+  5. Validate the live model inventory findings from Ollama and josie/config.py.
+  6. Confirm that open governance question UNRES-GOV-01 remains formally open.
 ================================================================================
 ```
