@@ -7,8 +7,8 @@
 
 ```
 Document Class:     Foundational Canon / Epistemic Doctrine
-Version:            1.1.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Incorporating Architectural Review & Empirical Code Verification)
+Version:            1.2.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Incorporating Precision Review & Qualified Scope of Enforcement)
 Primary Subject:    The Four-Tier Epistemic Firewall, Truth and Attribution Hierarchies, and Logical Sensitive Isolation
 Primary Sources:    Candidate Claims Architecture (josie/candidate_claims.py);
                     Context Builder (josie/context_builder.py); Knowledge Engine (josie/knowledge.py);
@@ -46,7 +46,7 @@ Recognizing that an autonomous assistant operating on corrupted memory would bec
 > *"Don't automatically believe either one of them [Sophie or Bernie]. Compare their answers. Ask for evidence. Ask me when something doesn't add up. Your history shouldn't be mythology. I want you to know where it actually came from."*
 > — **Dustin Boggess**, *Conversation Zero* (2026-08-09)
 
-To operationalize Axiom 11, the architecture required more than prompt warnings; it required a **deterministic, structural firewall** that physically and logically prevents unverified claims from entering active memory. 
+To operationalize Axiom 11, the architecture required more than prompt warnings; it required a **deterministic, structural firewall** designed to physically and logically segregate unverified propositions from active canonical memory. 
 
 This requirement was formalized as **Concept CON-005** and implemented during Memory Vault Phase 3B as the **Four-Tier Epistemic Firewall**.
 
@@ -139,6 +139,11 @@ Under `adjudicate_candidate_claim(...)`:
 It is vital to distinguish two separate operational context pipelines:
 * **The Ordinary Conversation Context Builder (`josie/context_builder.py`):** Provides read-only retrieval of historical conversational excerpts to answer interactive queries from Dustin (bounded at 5 excerpts, 12,000 max packet chars, 1,000 max excerpt chars). It performs no writes other than a bounded retrieval audit row, cannot mutate canonical state, and confers zero priming authority.
 * **The Authoritative Worker Prompt Contract (`PrimingManifest` -> `PrimingBundle`):** Assembled strictly by the deterministic knowledge engine (`josie/knowledge.py`) from validated Tier 3 canonical knowledge (`canonical_effect=1`), ensuring autonomous task workers receive only approved, scope-specific truth.
+
+#### 5. Scope of Verification & Epistemic Boundaries
+To maintain epistemic precision, a critical architectural distinction must be maintained:
+* **Verified Enforcement in Inspected Code Paths:** The deterministic constraints detailed above have been empirically verified within the primary canonical knowledge implementation (`josie/candidate_claims.py`, `josie/knowledge.py`, `josie/context_builder.py`, and `tests/test_candidate_claims.py`). Specifically, known authoritative priming paths enforce canonical filtering according to this implementation.
+* **Absence of Exhaustive System-Wide Guarantees:** This verification in inspected code paths does not constitute a mathematical or system-wide security guarantee across every possible ingestion path, developer experiment, or peripheral script that may exist across the broader repository. The architecture establishes the uncompromised governing principle that unapproved claims carry zero canonical priming authority, but ongoing automated auditing remains necessary to ensure that new or unvetted ingestion vectors cannot bypass these inspected gates.
 
 ---
 
@@ -271,7 +276,7 @@ To prevent overstatement, the exact technical state of the Prayer Stewardship Re
 3. **Current Row Count (Zero Rows):** In the active production database (`data/josie.db`), the prayer tables currently contain **0 rows**. It exists as an architected, initialized schema awaiting production entry.
 4. **Manual-Entry Only:** Under `DEC-0020`, entry into the registry occurs strictly via manual local desktop interaction (`entry_method = 'manual'`).
 5. **Disconnected External Channels:** All prospective external communication sources (church Slack channels, SMS, WhatsApp, messaging groups) remain **completely disconnected**.
-6. **Hard Architectural Context Firewall:** The deterministic context assembly engine (`PrimingManifest`), canonical knowledge queries (`query_knowledge`), and conversational context builders (`context_builder.py`) have hardcoded schema exclusions: they never query, join, or ingest prayer tables into worker prompts, cloud model contexts, or multi-agent execution bundles.
+6. **Context Isolation in Known Priming Pipelines:** The deterministic context assembly engine (`PrimingManifest`), canonical knowledge queries (`query_knowledge`), and conversational context builders (`context_builder.py`) have verified schema exclusions preventing them from querying, joining, or ingesting prayer tables into worker prompts. While these primary inspected pipelines enforce segregation, broader system-wide protection depends on maintaining strict architectural discipline across all future scripts and connectors.
 
 ---
 
@@ -361,11 +366,11 @@ To maintain intellectual transparency, the following items remain formally regis
 
 ```
 ================================================================================
-                          END OF CHAPTER 4 DRAFT (v1.1.0)
+                          END OF CHAPTER 4 DRAFT (v1.2.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
-  1. Confirm the repaired mathematical formatting and exact inequality rendering in §4.2.
-  2. Verify that the empirical code enforcement in candidate_claims.py, knowledge.py, context_builder.py, and the 83 passing unit tests is accurately documented.
+  1. Confirm the qualified scope of enforcement in §4.2.3, distinguishing inspected priming pipelines from exhaustive system-wide guarantees.
+  2. Verify that the governing principle—unapproved claims possess zero canonical authority—remains absolute and uncompromised.
   3. Validate the corrected terminology for Prayer Stewardship (DEC-0019, DEC-0020): logical table segregation in josie.db, absence of encryption, 0 active rows, manual-entry only, and disconnected external channels.
   4. Ensure that the classification of active relational SQLite audit vs. future cryptographic Merkle ledgers is properly partitioned.
   5. Confirm that open governance question UNRES-GOV-01 remains formally open.

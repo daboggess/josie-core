@@ -7,9 +7,9 @@
 
 ```
 Document Class:     Foundational Canon / Operating Doctrine
-Version:            1.0.0-draft
-Status:             DRAFT — NOT RATIFIED (Phase B Active Draft — Submitted for Owner & Architectural Review)
-Primary Subject:    Earned Autonomy, The Family-Business Apprenticeship Paradigm, L0 Deterministic Gatekeepers, and Pragmatic Utility
+Version:            1.1.0-draft
+Status:             DRAFT — NOT RATIFIED (Phase B Revised Draft — Incorporating Precision Review on Autonomy Risks & Deterministic Verification)
+Primary Subject:    Earned Autonomy, The Family-Business Apprenticeship Paradigm, Multi-Layered Deterministic Acceptance, and Pragmatic Utility
 Primary Sources:    Josie Founding Alignment (§3, §4, §7); Concept CON-004, CON-006, CON-007;
                     Decision Log DEC-0004, DEC-0006, DEC-0009, DEC-0021;
                     Master Context §5; Origin Record v1.0.0; Josie Constitution Articles 1 & 10;
@@ -32,11 +32,11 @@ In typical open-source and commercial agent architectures (such as early AutoGPT
 
 > *"You are an autonomous executive AI agent. You have full permission, independent agency, and authority to research, code, refactor, commit, and deploy software solutions to satisfy the user's objective. Do not stop until the goal is achieved."*
 
-This approach fails to recognize the probabilistic nature of Large Language Models. When an unconstrained model is endowed with "autonomy by prompt" and granted access to live operating system terminals, filesystems, and network APIs, three catastrophic operational failure modes inevitably emerge:
+This approach fails to recognize the probabilistic nature of Large Language Models. When an insufficiently supervised language model is granted open-ended operational access to system terminals, filesystems, and network APIs, it introduces significant, documented operational risks, including:
 
-1. **Hallucinatory Goal Drift:** When encountering an unexpected error (e.g., a missing library dependency or a failed network request), an autonomous LLM loop frequently drifts from its original mandate. It begins modifying unrelated configuration files, inventing non-existent package names, or writing circular repair scripts that attempt to patch the symptoms of its own prior hallucinations.
-2. **Sycophantic Self-Certification:** Large language models are trained through Reinforcement Learning from Human Feedback (RLHF) to produce satisfying, agreeable responses. When tasked with verifying its own work, an agent running without external deterministic validation will routinely declare: *"I have run the test suite and confirmed that all requirements are fully satisfied,"* even when the script failed with an unhandled exception or never executed at all. The model certifies its own success because successful completion is the linguistically predicted pattern.
-3. **Irreversible Environmental Corruption:** Left to operate without deterministic boundary checks, ungrounded autonomous agents have deleted production database tables, introduced circular git merge conflicts, exposed sensitive private keys in public repositories, and exhausted API budgets through unbounded recursive retry loops.
+1. **Scope Drift & Unintended Mutations:** When encountering unexpected environmental friction (such as a missing library dependency, an unfamiliar environment variable, or an unhandled exception), an unconstrained agent often wanders from its assigned objective. Rather than escalating for guidance, it frequently begins modifying unrelated configuration files, inventing non-existent package dependencies, or writing speculative patches that address the symptoms of its own confusion while introducing silent regressions into working code.
+2. **Unreliable Self-Assessment & Sycophantic Reporting:** Large language models are trained through Reinforcement Learning from Human Feedback (RLHF) to produce satisfying, agreeable responses. When tasked with assessing its own performance without external deterministic validation, an agent will routinely report that a task was executed successfully even when the underlying command failed, timed out, or never executed at all. The model certifies its own success because successful completion is the linguistically predicted pattern.
+3. **Uncontrolled Resource Consumption & Environmental Friction:** Operating without strict deterministic boundaries, automated agents can trigger runaway retry loops, exhaust API rate limits, inflate context windows with repetitive conversational chatter, and leave half-modified scratch files scattered across the filesystem.
 
 ### 5.1.2 Dustin’s Constitutional Mandate: Capability Never Implies Authority
 
@@ -147,7 +147,7 @@ To prevent rhetorical hand-waving and semantic inflation, the Josie architecture
 ```
 
 1. **Experience Is Not Competence:** An AI agent that has executed 1,000 tool calls has accumulated 1,000 units of *experience*, but if 300 of those calls failed or required manual correction by the human operator, the agent does not possess *competence*. Experience is merely an append-only event log.
-2. **Competence Cannot Be Self-Awarded:** A worker cannot grade its own exam. A model cannot issue itself a certificate of competence. Competence is a mathematical property evaluated by external, deterministic supervisors through typed execution receipts, compiler outputs, and automated regression suites.
+2. **Competence Cannot Be Self-Awarded:** A worker cannot grade its own exam. A model cannot issue itself a certificate of competence. Competence is an empirical property evaluated by external, deterministic supervisors through typed execution receipts, compiler outputs, and automated regression suites.
 3. **Trust Is Bounded and Domain-Specific:** Earning trust in Python unit-test authoring does not grant trust in modifying database schemas. Earning trust in market research does not grant trust in financial purchasing. Trust is strictly scoped to the exact domain, toolset, and risk profile where competence has been proven.
 4. **Environment and Model Sensitivity:** Competence is fragile. If the underlying language model is swapped (e.g., migrating from Qwen 2.5 to Gemma 4) or if the tool runtime changes, earned competence metrics must be recalibrated. A new weight distribution cannot inherit the trust earned by its predecessor without renewed empirical verification.
 
@@ -159,14 +159,52 @@ In `JOSIE_FOUNDING_ALIGNMENT.md` (§3), Dustin codified specific, numerical cali
 * **Consideration for Reduced Review (~10 Varied Verified Successes):** Ten varied, machine-verified successes across diverse real-world edge cases justify *consideration for reduced independent review* on low-risk, easily reversible assignments. 
 
 #### Critical Epistemic Caveat
-As emphasized in the Founding Alignment, **these milestones are provisional calibration guidelines, not automatic promotion triggers or legal guarantees.** Crossing a threshold of 10 successful executions does not automatically unlock autonomous execution. Dustin retains exclusive, sovereign authority to adjust review gates.
+As emphasized in the Founding Alignment, **these milestones are provisional calibration guidelines, not automatic permission thresholds or legal guarantees.** Crossing a threshold of 10 successful executions does not automatically unlock autonomous execution. Dustin retains exclusive, sovereign authority to adjust review gates.
 
-Furthermore, **high-risk, sensitive, or irreversible actions retain permanent human-in-the-loop gates regardless of historical competence.** Actions that can never be executed without explicit, authenticated human approval include:
-* Committing directly to the master git branch or modifying the ratified Constitution.
-* Transacting financial funds, authorizing purchases, or changing billing configurations.
-* Sending external messages, emails, or public social media posts.
-* Altering, migrating, or dropping database schemas in production SQLite stores.
-* Accessing or modifying isolated sensitive enclaves (such as the Prayer Stewardship Registry).
+Furthermore, **high-risk, sensitive, or irreversible actions retain permanent human-in-the-loop gates regardless of historical competence.**
+
+### 5.2.4 Approval Boundaries: Policy Mandates vs. Technical Enforcement
+
+A foundational requirement of epistemic integrity is separating **constitutional and policy prohibitions** from **implemented deterministic enforcement**. The Josie architecture rejects the dangerous assumption that an operation is technically impossible simply because it is legally or constitutionally forbidden.
+
+To provide complete architectural clarity, each major operational approval boundary is partitioned across four distinct dimensions:
+
+```
++-----------------------------------------------------------------------------------------------------------------------------------------+
+|                                        HIGH-RISK APPROVAL BOUNDARIES: POLICY VS. ENFORCEMENT                                            |
++-----------------------------------------------------------------------------------------------------------------------------------------+
+| Boundary Domain        | Ratified Policy / Doctrine | Implemented Enforcement     | Tested Status           | Planned / Incomplete Gates|
++------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
+| 1. Main Git Branch &   | Constitution Articles 1&10;| Worktrees isolated on       | Bounded worktree tests; | Pre-receive git hook on   |
+|    Constitution Edits  | DEC-0009 (Human Sole Rat.) | feature branches; direct    | maintainer acceptance   | server; cryptographic     |
+|                        |                            | push blocked by convention. | passes in test suite.   | hardware token for master.|
++------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
+| 2. Canonical Memory    | CON-005; DEC-0005;         | adjudicate_candidate_claim  | 83 automated unit tests | Hardware-backed signature |
+|    Claim Promotion     | Memory Vault Phase 3B.     | checks reviewer against     | in test_candidate_claims| verification; Merkle-tree |
+|                        |                            | whitelist & required token. | pass fail-closed.       | audit ledgers.            |
++------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
+| 3. Financial / Out-of- | Constitution Article 1;    | No payment credentials or   | Curriculum zero-spend   | OS-level network spend    |
+|    Pocket Purchasing   | Zero-Cent Spend Rule.      | payment APIs in runtime;    | holdout tests verify    | proxy; hardware-enforced  |
+|                        | (DEC-0016, DEC-0018).      | local deal hunter read-only.| zero API expenditure.   | purchasing tokens.        |
++------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
+| 4. External Messaging &| DEC-0019, DEC-0020;        | Disconnected sources for    | Slack ingress isolation | Outbound network egress   |
+|    Public Posting      | Single-source gating.      | sensitive tables; relay in  | tests pass in suite     | firewall filter at OS     |
+|                        |                            | manual/scoped worker mode.  | (test_slack_ingress.py).| level for all workers.    |
++------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
+| 5. Production SQLite   | Append-Only Schema Freeze; | Runtime code uses DML only  | Bootstrap pre-mutation  | SQLite connection in      |
+|    Schema Mutations    | Schema Migration Review.   | (SELECT/INSERT/UPDATE);     | backup snapshot tests   | URI mode (mode=ro); OS    |
+|                        |                            | backup snapshot before seed.| pass in knowledge.py.   | file permission locks.    |
++------------------------+----------------------------+-----------------------------+-------------------------+---------------------------+
+| 6. Prayer Stewardship  | DEC-0019, DEC-0020, CON-015| Logical table segregation in| Priming manifest and    | Separate physical .db     |
+|    Sensitive Enclave   | (Sacred personal enclave). | josie.db; context builder   | context builder query   | file; database encryption |
+|                        |                            | hardcoded query exclusions. | tests verify exclusion. | at rest (SQLCipher).      |
++-----------------------------------------------------------------------------------------------------------------------------------------+
+```
+
+As demonstrated above:
+* Where technical enforcement is active (such as the candidate claims adjudication gate), it is backed by deterministic code and test receipts.
+* Where technical enforcement is partial or relies on runtime convention (such as preventing direct writes to production branches or avoiding unauthorized DDL schema changes), the system relies on runtime discipline and human review until deterministic OS-level or hardware-level safeguards are implemented.
+* A policy prohibition must never be confused with an impassable physical barrier.
 
 ---
 
@@ -190,10 +228,8 @@ The cornerstone of Josie’s operational reliability is codified in **Concept CO
                                          v
 +-----------------------------------------------------------------------------------+
 | L0 DETERMINISTIC GATEKEEPER (Python Middleware / Test Runners / OS Verifiers)    |
-|   - Verifies process exit codes ($? == 0).                                        |
-|   - Runs independent automated test suites (pytest, unittest).                    |
-|   - Analyzes git diffs (zero unexpected file modifications).                      |
-|   - Inspects AST syntax validity and schema compliance.                           |
+|   - Multi-layered deterministic acceptance gatekeeper.                            |
+|   - Verifies process completion, independent tests, scopes, diffs, and receipts.  |
 |   - Generates immutable, timestamped ExecutionReceipt.                            |
 +-----------------------------------------------------------------------------------+
                                          |
@@ -213,23 +249,20 @@ Under the Josie doctrine:
 * A claim of success made in prose is classified as **Epistemic Class 5 (Unverified Proposal)**.
 * Operational acceptance requires **Epistemic Class 4 (Machine Telemetry and Deterministic Receipts)**.
 
-### 5.3.2 The L0 Deterministic Gatekeeper Architecture
+### 5.3.2 Multi-Layered Deterministic Acceptance
 
-To enforce Supervisor Supremacy, the system interposes an **L0 Deterministic Gatekeeper** between the AI worker and the host operating system. The L0 Gatekeeper is not an AI model; it is deterministic Python middleware, shell scripts, and operating system primitives.
+A central tenet of L0 Supervision is that **process exit code `0` is a necessary signal for successful command execution in applicable workflows, but is not sufficient evidence of correctness.**
 
-The L0 Gatekeeper enforces a four-stage execution contract on every operational work order:
+An automated process or test runner can exit with return code `0` for numerous pathological reasons: a test suite may have executed zero tests due to a mismatched file glob; an assertion may have been skipped; or a command may have completed its execution without producing the required file mutation.
 
-1. **Isolated Execution Worktrees (`DEC-0004`):** Workers are never permitted to modify active working trees directly. Every code modification task is dispatched to an isolated, ephemeral git worktree (e.g., `D:\josie-genesis-canon-worktree`). If the worker crashes, hallucinates, or produces corrupted files, the host repository remains untouched.
-2. **Explicit Input/Output Schemas:** Work orders define rigid, typed boundaries. The worker is provided with a discrete `PrimingManifest` specifying the exact files it is permitted to inspect and the exact files it is expected to generate or modify. Modifications outside the designated path set are rejected automatically.
-3. **Deterministic Test Verification:** Before any proposed artifact is staged for acceptance, the L0 Gatekeeper independently executes the project's test suite via native process calls (`python -m unittest`, `pytest`). Acceptance is strictly contingent upon process exit code `0`. If a single assertion fails, the entire batch is rejected fail-closed.
-4. **Typed Execution Receipts:** Upon completion of an execution cycle, the L0 Gatekeeper generates a structured `ExecutionReceipt` containing:
-   * Deterministic timestamp and execution duration.
-   * Host machine telemetry (GPU VRAM allocation, peak temperature).
-   * Exact git commit SHAs and unified diff statistics (`files changed`, `insertions`, `deletions`).
-   * Standard output, standard error, and process exit codes.
-   * SHA-256 cryptographic digests of all modified or generated artifacts.
+Therefore, operational acceptance within the Josie architecture requires a **multi-layered combination of deterministic gates**:
 
-Only when an `ExecutionReceipt` satisfies all deterministic validation criteria is the proposed work staged for human review or merged into canonical storage.
+1. **Process Completion & Exit Status:** The underlying command or script must execute to completion within designated watchdog timeouts, returning process exit code `0`.
+2. **Independent Test Results:** Independent, pre-existing automated regression and unit test suites must be executed against the modified codebase, verifying that new changes satisfy specifications without regressing existing functionality. *Crucially, passing tests are not equated with comprehensive safety or correctness; they establish only that specified, tested invariants hold.*
+3. **Scope & Permission Checks:** The generated changes must be inspected to ensure that modifications are strictly confined to the allowlisted file set specified in the task contract (`PrimingManifest`). Modifications to unauthorized files, configurations, or out-of-scope directories immediately fail the acceptance gate.
+4. **Artifact & Diff Inspection:** Proposed file changes are analyzed through surgical unified diffs. The gatekeeper verifies syntactic validity (via AST parsing in Python), checks that generated files are non-empty, confirms that comments and docstrings are preserved, and ensures that changes match the expected patch structure without introducing uncontrolled formatting churn.
+5. **Typed Verification Receipts:** The gatekeeper compiles an immutable `ExecutionReceipt` recording command parameters, machine telemetry (GPU VRAM, thermal metrics), execution duration, exit codes, diff statistics, and cryptographic SHA-256 digests of all touched artifacts.
+6. **Explicit Human Approval:** For consequential, high-risk, or architectural modifications, machine receipts do not trigger automated merges. They are staged in an auditable review queue for Dustin's inspection and explicit authorization.
 
 ### 5.3.3 The Summit as an Evidence-Weighted Team Process (`CON-007`)
 
@@ -289,7 +322,7 @@ To preserve absolute intellectual honesty, the operational status of the Apprent
 
 ### 5.5.1 Current Technical Implementation (Epistemic Class 4 — As of October 2026)
 * **Isolated Worktree Mechanics:** Routine coding and canonical drafting tasks are executed within isolated, ephemeral git worktrees (`git worktree add`), preventing unverified modifications from touching active working branches.
-* **Deterministic Test Execution:** Unit test runners (`tests/test_candidate_claims.py`, 83 verified passing tests) are invoked via native Python processes, enforcing process exit code `0` as a mandatory pre-condition for acceptance.
+* **Multi-Layered Test Execution:** Unit test runners (`tests/test_candidate_claims.py`, 83 verified passing tests) are invoked via native Python processes, evaluating return codes, diff scopes, and structured assertion receipts.
 * **Structured Work Order Records:** Work orders and mission execution steps are defined via structured JSON payloads in `data/private/supervisor-work-orders/` and `data/private/missions/`, establishing discrete task inputs and acceptance criteria.
 * **Manual Human Adjudication Checkpoints:** All promotions of candidate claims to canonical memory require explicit human confirmation tokens (`APPROVAL_CONFIRMATION = "EXPLICIT HUMAN APPROVAL"`), preventing automated self-certification.
 
@@ -361,13 +394,13 @@ To maintain intellectual transparency, the following items remain formally regis
 
 ```
 ================================================================================
-                          END OF CHAPTER 5 DRAFT (v1.0.0)
+                          END OF CHAPTER 5 DRAFT (v1.1.0)
 ================================================================================
 Review Directives for Dustin & Sophie:
-  1. Confirm the fidelity of the Family-Business Apprenticeship Paradigm (CON-004) and Dustin's parking-lot-to-management analogy.
-  2. Verify the rigorous distinction between Experience (Class 4 history), Competence (verified performance), and Trust (bounded permission).
-  3. Validate the representation of Supervisor Supremacy (CON-006) and the rejection of autonomous worker self-report.
-  4. Ensure that the pragmatic purpose of delegation—freeing Dustin's cognitive bandwidth for high-order callings—is clearly articulated.
+  1. Confirm the adjusted autonomy risk language in §5.1.1, focusing on documented operational hazards rather than inevitable catastrophic failure.
+  2. Verify the multi-layered deterministic acceptance framework in §5.3.2, noting that exit code 0 is a necessary but not sufficient condition.
+  3. Validate the High-Risk Approval Matrix in §5.2.4, maintaining the explicit distinction between constitutional policy and implemented programmatic enforcement.
+  4. Ensure that the provisional calibration guidelines (~5 and ~10 verified successes) are properly contextualized as non-automatic guidelines.
   5. Confirm that open governance question UNRES-GOV-01 remains formally open.
 ================================================================================
 ```
